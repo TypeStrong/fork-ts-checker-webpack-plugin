@@ -1,0 +1,8 @@
+/coverage
+/examples
+/test
+yarn.lock
+.idea
+.travis.yml
+.nvmrc
+karma.conf.js

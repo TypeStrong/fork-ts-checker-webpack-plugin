@@ -59,6 +59,7 @@ TODO
 |**colors**| `boolean` | If `false`, disables colors for logger. Default: `true`. |
 |**logger**| `LoggerInterface` | Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.|
 |**silent**| `boolean` | If `true`, logger will not be used. Default: `false`.|
+|**cluster**| `number` | You can split type checking to few workers to speed-up on increment build. But remember: if you don't want type checker to affect build time, you should keep 1 core for build and 1 core for system. Also - node doesn't share memory so keep in mind that memory usage will increase linear. Default: `1`.|
 
 ## License ##
 MIT

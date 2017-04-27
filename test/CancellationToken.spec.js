@@ -1,4 +1,5 @@
+var describe = require('mocha').describe;
 
-describe('CancellationToken', function() {
+describe('CancellationToken', function () {
   // TODO...
 });

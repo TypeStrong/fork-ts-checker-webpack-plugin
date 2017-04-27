@@ -1,4 +1,5 @@
+var describe = require('mocha').describe;
 
-describe('FilesWatcher', function() {
+describe('FilesWatcher', function () {
   // TODO...
 });

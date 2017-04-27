@@ -1,4 +1,5 @@
+var describe = require('mocha').describe;
 
-describe('IncrementalChecker', function() {
+describe('IncrementalChecker', function () {
   // TODO...
 });

@@ -1,7 +1,3 @@
-var webpack = require('webpack');
-var path = require('path');
-var process = require('process');
-
 module.exports = function (config) {
   config.set({
     browsers: ['PhantomJS'],

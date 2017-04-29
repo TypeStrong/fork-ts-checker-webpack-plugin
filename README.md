@@ -48,18 +48,42 @@ var webpackConfig = {
 TODO
 
 ## Options ##
-| option | type | description |
-|--------|------|-------------|
-|**tsconfig**| `string` | Path to tsconfig.json file. If not set, plugin will use `path.resolve(compiler.context, './tsconfig.json')`. |
-|**tslint**| `string` or `false` | Path to tslint.json file. If not set, plugin will use `path.resolve(compiler.context, './tslint.json')`. If `false`, disables tslint.|
-|**watch**| `string` or `string[]` | Files or directories to watch be service. Not necessary but improves performance (reduces number of `fs.stat` calls). |
-|**blockEmit**| `boolean` | If `true`, plugin will block emit until check will be done. It's good setting for ci/production build because webpack will return code != 0 if there are type/lint errors. Default: `false`. | 
-|**ignoreDiagnostics**| `number[]` | List of typescript diagnostic codes to ignore. |
-|**ignoreLints**| `string[]` | List of tslint rule names to ignore. |
-|**colors**| `boolean` | If `false`, disables colors for logger. Default: `true`. |
-|**logger**| `LoggerInterface` | Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.|
-|**silent**| `boolean` | If `true`, logger will not be used. Default: `false`.|
-|**cluster**| `number` | You can split type checking to few workers to speed-up on increment build. But remember: if you don't want type checker to affect build time, you should keep 1 core for build and 1 core for system. Also - node doesn't share memory so keep in mind that memory usage will increase linear. Default: `1`.|
+**tsconfig** `string` - Path to tsconfig.json file. If not set, plugin will use `path.resolve(compiler.options.context, './tsconfig.json')`.
+
+**tslint** `string | false` - Path to tslint.json file. If not set, plugin will use `path.resolve(compiler.options.context, './tslint.json')`. 
+                            If `false`, disables tslint.
+
+**watch** `string | string[]` - Directories or files to watch by service. Not necessary but improves performance 
+                                (reduces number of `fs.stat` calls).
+                                  
+**blockEmit** `boolean` - If `true`, plugin will block emit until check will be done. It's good setting for ci/production build because 
+                          webpack will return code != 0 if there are type/lint errors. Default: `false`. 
+
+**ignoreDiagnostics** `number[]` - List of typescript diagnostic codes to ignore.
+
+**ignoreLints** `string[]` - List of tslint rule names to ignore.
+
+**colors** `boolean` - If `false`, disables built-in colors in logger messages. Default: `true`.
+
+**logger** `object` - Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.
+
+**silent** `boolean` - If `true`, logger will not be used. Default: `false`.
+
+**workers** `number` - You can split type checking to few workers to speed-up on increment build. 
+                       **Be careful** - if you don't want to increase build time, you should keep 1 core for *build* and 1 core for 
+                       *system* free *(for example system with 4 cpu threads should use max 2 workers)*. 
+                       Second thing - node doesn't share memory between workers so keep in mind that memory usage will increase 
+                       linearly. If you want to use workers, please experiment with workers number. In some scenarios increasing this number 
+                       **can increase check time** (and of course memory consumption).
+                       Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
+
+Pre-computed consts:      
+  * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one cpu (core)
+  * `ForkTsCheckerWebpackPlugin.ONE_FREE_CPU` - leave only one cpu for build (probably will increase build time)
+  * `ForkTsCheckerWebpackPlugin.TWO_FREE_CPUS` - leave two cpus free (one for build, one for system)
+
+**memoryLimit** `number` - Memory limit for service process in MB. If service exits with allocation failed error, increase this number.
+                           Default: `2048`.
 
 ## License ##
 MIT

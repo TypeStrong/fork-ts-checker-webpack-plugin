@@ -1,12 +1,9 @@
 # Fork TS Checker Webpack Plugin
 [![Npm version](https://img.shields.io/npm/v/@realytics/fork-ts-checker-webpack-plugin.svg?style=flat-square)](https://www.npmjs.com/package/@realytics/fork-ts-checker-webpack-plugin)
 [![Build Status](https://travis-ci.org/realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/realytics/fork-ts-checker-webpack-plugin)
-[![Coverage Status](https://coveralls.io/repos/github/realytics/fork-ts-checker-webpack-plugin/badge.svg?branch=master)](https://coveralls.io/github/realytics/fork-ts-checker-webpack-plugin?branch=master)
 
-Webpack plugin that runs typescript type checker (and eventually linter) on separate process.
+Webpack plugin that runs typescript type checker (with optional linter) on separate processes.
  
-**Warning: API is not stable yet, will be from version 1.0**
-
 ## Installation ##
 This plugin is compatible with **Webpack 2**, **TypeScript 2.1** and **tslint 5.0**
 ```sh
@@ -45,7 +42,8 @@ var webpackConfig = {
 ```
 
 ## Motivation ##
-TODO
+There is already similar solution - [awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader).
+The problem with atl is that it's slower in some cases. 
 
 ## Options ##
 **tsconfig** `string` - Path to tsconfig.json file. If not set, plugin will use `path.resolve(compiler.options.context, './tsconfig.json')`.

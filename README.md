@@ -5,7 +5,7 @@
 Webpack plugin that runs typescript type checker (with optional linter) on separate processes.
  
 ## Installation ##
-This plugin is compatible with **Webpack 2**, **TypeScript 2.1** and **tslint 5.0**
+This plugin requires minimum **webpack 2**, **typescript 2.1** and optionally **tslint 5.0**
 ```sh
 npm install --save fork-ts-checker-webpack-plugin
 ```
@@ -42,8 +42,13 @@ var webpackConfig = {
 ```
 
 ## Motivation ##
-There is already similar solution - [awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader).
-The problem with atl is that it's slower in some cases. 
+There is already similar solution - [awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader). You can
+add `CheckerPlugin` and delegate checker to the separate process. The problem with `awesome-typescript-laoder` is that it's a lot slower 
+than [ts-loader](https://github.com/TypeStrong/ts-loader) on incremental build in our case (~20s vs ~3s).
+Secondly, we use [tslint](https://palantir.github.io/tslint/) and we wanted to run this also on separate process.
+This is why we've created this plugin. The performance is great because of reusing Abstract Syntax Trees between compilations and sharing 
+these trees with tslint. We can also scale checker with multi-process mode - it will split work between processes to utilize maximum cpu 
+power.
 
 ## Options ##
 **tsconfig** `string` - Path to tsconfig.json file. If not set, plugin will use `path.resolve(compiler.options.context, './tsconfig.json')`.

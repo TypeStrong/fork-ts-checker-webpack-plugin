@@ -7,7 +7,6 @@
     "test": "NODE_ENV=test node_modules/.bin/mocha -R spec",
     "test:watch": "NODE_ENV=test node_modules/.bin/mocha -R spec --watch",
     "test:cover": "rimraf coverage && node_modules/.bin/istanbul cover -root lib --include-all-sources node_modules/.bin/_mocha -- -R spec",
-    "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
     "lint": "node node_modules/.bin/eslint ./lib ./test",
     "lint:fix": "node node_modules/.bin/eslint ./lib ./test --fix"
   },
@@ -33,9 +32,6 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "chai-spies": "^0.7.1",
-    "coveralls": "^2.11.15",
-    "cross-env": "^4.0.0",
     "eslint": "^3.19.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.2.0",

@@ -1,6 +1,6 @@
 # Fork TS Checker Webpack Plugin
 [![Npm version](https://img.shields.io/npm/v/@realytics/fork-ts-checker-webpack-plugin.svg?style=flat-square)](https://www.npmjs.com/package/@realytics/fork-ts-checker-webpack-plugin)
-[![Build Status](https://travis-ci.org/realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/realytics/fork-ts-checker-webpack-plugin)
+[![Build Status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/realytics/fork-ts-checker-webpack-plugin)
 
 Webpack plugin that runs typescript type checker (with optional linter) on separate processes.
  
@@ -82,11 +82,24 @@ power.
 
 Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one cpu (core)
-  * `ForkTsCheckerWebpackPlugin.ONE_FREE_CPU` - leave only one cpu for build (probably will increase build time)
-  * `ForkTsCheckerWebpackPlugin.TWO_FREE_CPUS` - leave two cpus free (one for build, one for system)
+  * `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one cpu for build (probably will increase build time)
+  * `ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE` - leave two cpus free (one for build, one for system)
 
 **memoryLimit** `number` - Memory limit for service process in MB. If service exits with allocation failed error, increase this number.
                            Default: `2048`.
+
+## Plugin Hooks ##
+This plugin provides some custom webpack hooks (all are sync):
+
+| Event name | Description | Params |
+|------------|-------------|--------|
+|`fork-ts-checker-cancel`| Cancellation has been requested | `cancellationToken` |
+|`fork-ts-checker-waiting`| Waiting for results | `hasTsLint` |
+|`fork-ts-checker-service-start`| Service will be started | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
+|`fork-ts-checker-service-out-of-memory`| Service is out of memory | - |
+|`fork-ts-checker-receive`| Plugin receives diagnostics and lints from service | `diagnostics`, `lints` | 
+|`fork-ts-checker-emit`| Service will add errors and warnings to webpack compilation (`blockEmit: true`) | `diagnostics`, `lints`, `elapsed` |
+|`fork-ts-checker-done`| Service finished type checking and webpack finished compilation (`blockEmit: false`) | `diagnostics`, `lints`, `elapsed` |
 
 ## License ##
 MIT

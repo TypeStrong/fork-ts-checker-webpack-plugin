@@ -43,7 +43,7 @@ var webpackConfig = {
 
 ## Motivation ##
 There is already similar solution - [awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader). You can
-add `CheckerPlugin` and delegate checker to the separate process. The problem with `awesome-typescript-laoder` is that it's a lot slower 
+add `CheckerPlugin` and delegate checker to the separate process. The problem with `awesome-typescript-loader` is that it's a lot slower 
 than [ts-loader](https://github.com/TypeStrong/ts-loader) on incremental build in our case (~20s vs ~3s).
 Secondly, we use [tslint](https://palantir.github.io/tslint/) and we wanted to run this also on separate process.
 This is why we've created this plugin. The performance is great because of reusing Abstract Syntax Trees between compilations and sharing 

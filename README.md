@@ -94,6 +94,7 @@ This plugin provides some custom webpack hooks (all are sync):
 |`fork-ts-checker-cancel`| Cancellation has been requested | `cancellationToken` |
 |`fork-ts-checker-waiting`| Waiting for results | `hasTsLint` |
 |`fork-ts-checker-service-start`| Service will be started | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
+|`fork-ts-checker-service-start-error` | Cannot start service | `error` |
 |`fork-ts-checker-service-out-of-memory`| Service is out of memory | - |
 |`fork-ts-checker-receive`| Plugin receives diagnostics and lints from service | `diagnostics`, `lints` | 
 |`fork-ts-checker-emit`| Service will add errors and warnings to webpack compilation (`blockEmit: true`) | `diagnostics`, `lints`, `elapsed` |

@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "scripts": {
@@ -23,7 +23,11 @@
     "linter",
     "fork",
     "fast",
-    "speed"
+    "speed",
+    "ts-loader",
+    "awesome-typescript-loader",
+    "increment",
+    "webpack-plugin"
   ],
   "author": "Piotr Oleś <piotrek.oles@gmail.com>",
   "license": "MIT",
@@ -38,7 +42,7 @@
     "mock-fs": "^4.3.0",
     "mock-require": "^2.0.2",
     "rimraf": "^2.5.4",
-    "sinon": "^2.2.0",
+    "sinon": "^2.3.1",
     "typescript": "^2.1.0"
   },
   "peerDependencies": {

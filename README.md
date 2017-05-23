@@ -50,64 +50,62 @@ This is why we've created this plugin. To provide better performance, plugin reu
 these trees with tslint. It can be scaled with a multi-process mode to utilize maximum CPU power.
 
 ## Modules resolution
-It's very important to be aware that this plugin uses [typescript](https://github.com/Microsoft/TypeScript)'s, not 
-[webpack](https://github.com/webpack/webpack)'s modules resolution. It means that you have to setup `tsconfig.json` correctly. For example 
+It's very important to be aware that **this plugin uses [typescript](https://github.com/Microsoft/TypeScript)'s, not 
+[webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. For example 
 if you set `files: ['./src/someFile.ts']` in `tsconfig.json`, this plugin will check only `someFile.ts` for semantic errors. It's because 
-of performance. The goal of this plugin is to be as fast as possible. With typescript's module resolution we don't have to wait for webpack 
+of performance. The goal of this plugin is to be *as fast as possible*. With typescript's module resolution we don't have to wait for webpack 
 to compile files (which traverses dependency graph during compilation) - we have a full list of files from the begin.
 
 To debug typescript's modules resolution, you can use `tsc --traceResolution` command.
 
 ## TSLint
 If you have installed [tslint](https://palantir.github.io/tslint), it's enabled by default. To disable it, set `tslint: false` in plugin 
-options. We recommend changing `defaultSeverity` to the `warning` in `tslint.json` file. It helps to distinguish lints from typescript's 
+options. We recommend changing `defaultSeverity` to the `"warning"` in `tslint.json` file. It helps to distinguish lints from typescript's 
 diagnostics.
 
 ## Options
-#### tsconfig `string`
+* **tsconfig** `string`:
 Path to tsconfig.json file. Default: `path.resolve(compiler.options.context, './tsconfig.json')`
 
-#### tslint `string | false` 
+* **tslint** `string | false`: 
 Path to tslint.json file. If `false`, disables tslint. Default: `path.resolve(compiler.options.context, './tslint.json')`
 
-#### watch `string | string[]` 
+* **watch** `string | string[]`: 
 Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls).
                                   
-#### blockEmit `boolean` 
+* **blockEmit** `boolean`: 
 If `true`, plugin will block emit until check will be done. It's good setting for ci/production build because webpack will return code != 0 
 if there are type/lint errors. Default: `false`. 
 
-#### ignoreDiagnostics `number[]`
+* **ignoreDiagnostics** `number[]`:
 List of typescript diagnostic codes to ignore.
 
-#### ignoreLints `string[]` 
+* **ignoreLints** `string[]`: 
 List of tslint rule names to ignore.
 
-#### colors `boolean`
+* **colors** `boolean`:
 If `false`, disables built-in colors in logger messages. Default: `true`.
 
-#### logger `object`
+* **logger** `object`:
 Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.
 
-#### silent `boolean`
+* **silent** `boolean`:
 If `true`, logger will not be used. Default: `false`.
 
-#### workers `number`
+* **memoryLimit** `number`: 
+Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
+
+* **workers** `number`:
 You can split type checking to a few workers to speed-up increment build. **Be careful** - if you don't want to increase build time, you 
 should keep free 1 core for *build* and 1 core for a *system* *(for example system with 4 CPUs should use max 2 workers)*. Second thing -
 node doesn't share memory between workers - keep in mind that memory usage will increase. Be aware that in some scenarios increasing workers
-number **can increase checking time**.
+number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
 
-Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
-
-Pre-computed consts:      
+### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
   * `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
   * `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one CPU for build (probably will increase build time)
   * `ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE` - **recommended** - leave two CPUs free (one for build, one for system)
-
-#### memoryLimit `number` 
-Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
 
 ## Plugin Hooks
 This plugin provides some custom webpack hooks (all are sync):

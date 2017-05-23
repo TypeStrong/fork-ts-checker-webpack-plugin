@@ -1,3 +1,7 @@
+## v0.1.5
+ * Disable tslint if module is not installed and no tslint path is passed
+ * Improve README.md
+
 ## v0.1.4
  * Fix send to closed channel case
  * Fix removed files case

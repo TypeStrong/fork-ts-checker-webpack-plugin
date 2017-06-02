@@ -2,9 +2,9 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var beforeEach = require('mocha').beforeEach;
 var expect = require('chai').expect;
-var FilesRegister = require('../lib/FilesRegister');
+var FilesRegister = require('../../lib/FilesRegister');
 
-describe('FilesRegister', function () {
+describe('[UNIT] FilesRegister', function () {
   var register;
   beforeEach(function () {
     register = new FilesRegister(function () {

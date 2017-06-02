@@ -6,7 +6,7 @@ var sinon = require('sinon');
 var expect = require('chai').expect;
 var mockRequire = require('mock-require');
 
-describe('FilesWatcher', function () {
+describe('[UNIT] FilesWatcher', function () {
   var FilesWatcher;
   var watcher;
   var watchStub;
@@ -19,7 +19,7 @@ describe('FilesWatcher', function () {
     watchStub = sinon.stub().returns(watcherStub);
 
     mockRequire('chokidar', { watch: watchStub });
-    FilesWatcher = mockRequire.reRequire('../lib/FilesWatcher');
+    FilesWatcher = mockRequire.reRequire('../../lib/FilesWatcher');
 
     watcher = new FilesWatcher(
       ['/test', '/bar'],

@@ -1,3 +1,12 @@
+## v0.2.0
+ * tsconfig.json and tslint.json path are not printed anymore.
+ * `watch` option is not used on 'build' mode
+ * Handle case with no options object (`new ForkTsCheckerWebpacPlugin()`)
+ * Basic integration tests (along  units)
+ * **Breaking changes**:
+   * tslint is not enabled by default - you have to set `tslint: true` or `tslint: './path/to/tslint.json'` to enable it.
+   * `blockEmit` option is removed - it choose automatically - blocks always on 'build' mode, never on 'watch' mode.
+
 ## v0.1.5
  * Disable tslint if module is not installed and no tslint path is passed
  * Improve README.md

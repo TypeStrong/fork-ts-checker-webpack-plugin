@@ -1,9 +1,9 @@
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
-var WorkSet = require('../lib/WorkSet');
+var WorkSet = require('../../lib/WorkSet');
 
-describe('WorkSet', function () {
+describe('[UNIT] WorkSet', function () {
   function testForDomainAndDivision (domain, divisions) {
     divisions.forEach(function (division) {
       var toProcess = [];

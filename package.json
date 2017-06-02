@@ -1,12 +1,14 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "NODE_ENV=test node_modules/.bin/mocha -R spec",
-    "test:watch": "NODE_ENV=test node_modules/.bin/mocha -R spec --watch",
-    "test:cover": "rimraf coverage && node_modules/.bin/istanbul cover -root lib --include-all-sources node_modules/.bin/_mocha -- -R spec",
+    "test:unit": "NODE_ENV=test node_modules/.bin/mocha -R spec ./test/unit",
+    "test:integration": "NODE_ENV=test node_modules/.bin/mocha -R spec ./test/integration && rimraf tmp",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:watch": "NODE_ENV=test node_modules/.bin/mocha -R spec --watch ./test/unit",
+    "test:coverage": "rimraf coverage && node_modules/.bin/istanbul cover -root lib --include-all-sources node_modules/.bin/_mocha -- -R spec ./test/unit ./test/integration",
     "lint": "node node_modules/.bin/eslint ./lib ./test",
     "lint:fix": "node node_modules/.bin/eslint ./lib ./test --fix"
   },
@@ -43,7 +45,10 @@
     "mock-require": "^2.0.2",
     "rimraf": "^2.5.4",
     "sinon": "^2.3.1",
-    "typescript": "^2.1.0"
+    "ts-loader": "^2.1.0",
+    "tslint": "^5.0.0",
+    "typescript": "^2.1.0",
+    "webpack": "^2.0.0"
   },
   "peerDependencies": {
     "typescript": "^2.1.0",

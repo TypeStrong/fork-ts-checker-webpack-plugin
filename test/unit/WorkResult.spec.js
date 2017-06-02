@@ -3,9 +3,9 @@ var it = require('mocha').it;
 var beforeEach = require('mocha').beforeEach;
 var expect = require('chai').expect;
 var sinon = require('sinon');
-var WorkResult = require('../lib/WorkResult');
+var WorkResult = require('../../lib/WorkResult');
 
-describe('WorkResult', function () {
+describe('[UNIT] WorkResult', function () {
   var result;
 
   beforeEach(function () {

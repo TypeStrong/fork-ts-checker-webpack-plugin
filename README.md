@@ -34,9 +34,7 @@ var webpackConfig = {
     ]
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin({
-      watch: './src' // optional but improves performance (less stat calls)
-    })
+    new ForkTsCheckerWebpackPlugin()
   ]
 };
 ```
@@ -59,24 +57,20 @@ to compile files (which traverses dependency graph during compilation) - we have
 To debug typescript's modules resolution, you can use `tsc --traceResolution` command.
 
 ## TSLint
-If you have installed [tslint](https://palantir.github.io/tslint), it's enabled by default. To disable it, set `tslint: false` in plugin 
-options. We recommend changing `defaultSeverity` to the `"warning"` in `tslint.json` file. It helps to distinguish lints from typescript's 
-diagnostics.
+If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or 
+`tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file. 
+It helps to distinguish lints from typescript's diagnostics.
 
 ## Options
 * **tsconfig** `string`:
-Path to tsconfig.json file. Default: `path.resolve(compiler.options.context, './tsconfig.json')`
+Path to *tsconfig.json* file. Default: `path.resolve(compiler.options.context, './tsconfig.json')`.
 
-* **tslint** `string | false`: 
-Path to tslint.json file. If `false`, disables tslint. Default: `path.resolve(compiler.options.context, './tslint.json')`
+* **tslint** `string | true`: 
+Path to *tslint.json* file or `true`. If `true`, uses `path.resolve(compiler.options.context, './tslint.json')`. Default: `undefined`.
 
 * **watch** `string | string[]`: 
 Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls).
                                   
-* **blockEmit** `boolean`: 
-If `true`, plugin will block emit until check will be done. It's good setting for ci/production build because webpack will return code != 0 
-if there are type/lint errors. Default: `false`. 
-
 * **ignoreDiagnostics** `number[]`:
 List of typescript diagnostic codes to ignore.
 
@@ -118,8 +112,8 @@ This plugin provides some custom webpack hooks (all are sync):
 |`fork-ts-checker-service-start-error` | Cannot start service | `error` |
 |`fork-ts-checker-service-out-of-memory`| Service is out of memory | - |
 |`fork-ts-checker-receive`| Plugin receives diagnostics and lints from service | `diagnostics`, `lints` | 
-|`fork-ts-checker-emit`| Service will add errors and warnings to webpack compilation (`blockEmit: true`) | `diagnostics`, `lints`, `elapsed` |
-|`fork-ts-checker-done`| Service finished type checking and webpack finished compilation (`blockEmit: false`) | `diagnostics`, `lints`, `elapsed` |
+|`fork-ts-checker-emit`| Service will add errors and warnings to webpack compilation ('build' mode) | `diagnostics`, `lints`, `elapsed` |
+|`fork-ts-checker-done`| Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed` |
 
 ## License
 MIT

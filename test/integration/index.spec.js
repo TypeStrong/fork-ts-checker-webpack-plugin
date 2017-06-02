@@ -34,6 +34,8 @@ describe('[INTEGRATION] index', function () {
   }
 
   it('should work without configuration', function (callback) {
+    this.timeout(5000);
+
     var compiler = createCompiler();
 
     compiler.run(function (err, stats) {
@@ -43,6 +45,8 @@ describe('[INTEGRATION] index', function () {
   });
 
   it('should block emit on build mode', function (callback) {
+    this.timeout(5000);
+
     var compiler = createCompiler();
     compiler.plugin('fork-ts-checker-emit', function () {
       expect(true).to.be.true;
@@ -54,6 +58,8 @@ describe('[INTEGRATION] index', function () {
 
 
   it('should not block emit on watch mode', function (callback) {
+    this.timeout(5000);
+
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
@@ -83,7 +89,7 @@ describe('[INTEGRATION] index', function () {
 
   it('should find the same errors on multi-process mode', function (callback) {
     // set bigger timeout - it can be a little big long test
-    this.timeout(5000);
+    this.timeout(10000);
 
     var compilerA = createCompiler({ workers: 1, tslint: true });
     var compilerB = createCompiler({ workers: 4, tslint: true });

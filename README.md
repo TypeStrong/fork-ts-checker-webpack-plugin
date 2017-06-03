@@ -16,15 +16,10 @@ var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 var webpackConfig = {
   context: __dirname, // to automatically find tsconfig.json
   entry: './src/index.ts',
-  output: {
-    path: 'dist',
-    filename: 'index.js'
-  },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        include: './src',
         loader: 'ts-loader',
         options: {
           // disable type checker - we will use it in fork plugin

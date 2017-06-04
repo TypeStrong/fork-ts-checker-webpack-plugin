@@ -1,3 +1,6 @@
+## v0.2.1
+ * Fix for `tslint: true` option issue
+
 ## v0.2.0
  * tsconfig.json and tslint.json path are not printed anymore.
  * `watch` option is not used on 'build' mode

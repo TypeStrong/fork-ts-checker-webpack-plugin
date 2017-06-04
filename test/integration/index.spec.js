@@ -121,4 +121,10 @@ describe('[INTEGRATION] index', function () {
       callback();
     }
   });
+
+  it('should detect tslint path for true option', function () {
+    expect(function() {
+      createCompiler({ tslint: true });
+    }).to.not.throw.error;
+  });
 });

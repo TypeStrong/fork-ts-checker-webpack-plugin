@@ -1,3 +1,6 @@
+## v0.2.2
+ * Force `isolatedModule: false` in checker compiler for better performance
+
 ## v0.2.1
  * Fix for `tslint: true` option issue
 

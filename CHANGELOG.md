@@ -1,3 +1,6 @@
+## v0.2.3
+ * Add support for webpack 3 as peerDependency
+
 ## v0.2.2
  * Force `isolatedModule: false` in checker compiler for better performance
 

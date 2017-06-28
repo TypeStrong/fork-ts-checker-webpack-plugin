@@ -1,8 +1,11 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "test:unit": "NODE_ENV=test node_modules/.bin/mocha -R spec ./test/unit",
     "test:integration": "NODE_ENV=test node_modules/.bin/mocha -R spec ./test/integration && rimraf tmp",

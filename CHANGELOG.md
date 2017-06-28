@@ -1,3 +1,6 @@
+## v0.2.4
+ * Fix `ESLint: "fork-ts-checker-webpack-plugin" is not published.` issue
+
 ## v0.2.3
  * Add support for webpack 3 as peerDependency
 

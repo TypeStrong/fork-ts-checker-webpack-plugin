@@ -84,12 +84,23 @@ describe('[INTEGRATION] index', function () {
     compiler.run(function() {});
   });
 
-
   it('should not block emit on watch mode', function (callback) {
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
     compiler.plugin('fork-ts-checker-done', function () {
+      watching.close(function() {
+        expect(true).to.be.true;
+        callback();
+      });
+    });
+  });
+
+  it('should block emit if async flag is false', function (callback) {
+    var compiler = createCompiler({ async: false });
+    var watching = compiler.watch({}, function() {});
+
+    compiler.plugin('fork-ts-checker-emit', function () {
       watching.close(function() {
         expect(true).to.be.true;
         callback();

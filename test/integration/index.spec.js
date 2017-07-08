@@ -7,6 +7,7 @@ var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
 describe('[INTEGRATION] index', function () {
+  this.timeout(30000);
 
   function createCompiler(options) {
     return webpack({
@@ -33,9 +34,38 @@ describe('[INTEGRATION] index', function () {
     });
   }
 
-  it('should work without configuration', function (callback) {
-    this.timeout(5000);
+  it('should allow to pass no options', function () {
+    expect(function () {
+      new ForkTsCheckerWebpackPlugin();
+    }).to.not.throw.error;
+  });
 
+  it('should detect paths', function () {
+    var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
+
+    expect(plugin.tsconfig).to.be.equal('./tsconfig.json');
+    expect(plugin.tslint).to.be.equal('./tslint.json');
+  });
+
+  it('should set logger to console by default', function () {
+    var plugin = new ForkTsCheckerWebpackPlugin({ });
+
+    expect(plugin.logger).to.be.equal(console);
+  });
+
+  it('should set watch to empty array by default', function () {
+    var plugin = new ForkTsCheckerWebpackPlugin({ });
+
+    expect(plugin.watch).to.be.deep.equal([]);
+  });
+
+  it('should set watch to one element array for string', function () {
+    var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
+
+    expect(plugin.watch).to.be.deep.equal(['/test']);
+  });
+
+  it('should work without configuration', function (callback) {
     var compiler = createCompiler();
 
     compiler.run(function (err, stats) {
@@ -45,8 +75,6 @@ describe('[INTEGRATION] index', function () {
   });
 
   it('should block emit on build mode', function (callback) {
-    this.timeout(5000);
-
     var compiler = createCompiler();
     compiler.plugin('fork-ts-checker-emit', function () {
       expect(true).to.be.true;
@@ -58,8 +86,6 @@ describe('[INTEGRATION] index', function () {
 
 
   it('should not block emit on watch mode', function (callback) {
-    this.timeout(5000);
-
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
@@ -88,9 +114,6 @@ describe('[INTEGRATION] index', function () {
   });
 
   it('should find the same errors on multi-process mode', function (callback) {
-    // set bigger timeout - it can be a little big long test
-    this.timeout(10000);
-
     var compilerA = createCompiler({ workers: 1, tslint: true });
     var compilerB = createCompiler({ workers: 4, tslint: true });
     var errorsA, errorsB, warningsA, warningsB;

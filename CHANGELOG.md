@@ -1,3 +1,6 @@
+## v0.2.5
+ * Add `async` option - more information in `README.md`
+
 ## v0.2.4
  * Fix `ESLint: "fork-ts-checker-webpack-plugin" is not published.` issue
 

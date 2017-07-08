@@ -82,6 +82,13 @@ If `false`, disables built-in colors in logger messages. Default: `true`.
 * **logger** `object`:
 Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.
 
+* **formatter** `'default' | 'codeframe' | Function`:
+Formatter for diagnostics and lints. By default uses `default` formatter. You can also pass your own formatter as a function
+(see `lib/NormalizedMessage.js` and `lib/formatter/` for api reference).
+
+* **formatterOptions** `object`:
+Options passed to formatters (currently only `codeframe` - see [available options](https://www.npmjs.com/package/babel-code-frame#options))
+
 * **silent** `boolean`:
 If `true`, logger will not be used. Default: `false`.
 

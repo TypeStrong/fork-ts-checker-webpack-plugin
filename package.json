@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "files": [
@@ -58,9 +58,11 @@
     "webpack": "^2.0.0 || ^3.0.0"
   },
   "dependencies": {
+    "babel-code-frame": "^6.22.0",
     "chalk": "^1.1.3",
     "chokidar": "^1.7.0",
     "lodash.endswith": "^4.2.1",
+    "lodash.isfunction": "^3.0.8",
     "lodash.isstring": "^4.0.1",
     "lodash.startswith": "^4.2.1"
   }

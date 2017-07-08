@@ -1,3 +1,6 @@
+## v0.2.6
+ * Add diagnostics/lints formatters - `formatter` and `formatterOptions` option
+
 ## v0.2.5
  * Add `async` option - more information in `README.md`
 

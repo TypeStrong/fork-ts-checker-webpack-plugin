@@ -7,13 +7,13 @@
     "lib"
   ],
   "scripts": {
-    "test:unit": "NODE_ENV=test node_modules/.bin/mocha -R spec ./test/unit",
-    "test:integration": "NODE_ENV=test node_modules/.bin/mocha -R spec ./test/integration && rimraf tmp",
+    "test:unit": "mocha -R spec ./test/unit",
+    "test:integration": "mocha -R spec ./test/integration && rimraf tmp",
     "test": "npm run test:unit && npm run test:integration",
-    "test:watch": "NODE_ENV=test node_modules/.bin/mocha -R spec --watch ./test/unit",
-    "test:coverage": "rimraf coverage && node_modules/.bin/istanbul cover -root lib --include-all-sources node_modules/.bin/_mocha -- -R spec ./test/unit ./test/integration",
-    "lint": "node node_modules/.bin/eslint ./lib ./test",
-    "lint:fix": "node node_modules/.bin/eslint ./lib ./test --fix"
+    "test:watch": "mocha -R spec --watch ./test/unit",
+    "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources node_modules/.bin/_mocha -- -R spec ./test/unit ./test/integration",
+    "lint": "eslint ./lib ./test",
+    "lint:fix": "eslint ./lib ./test --fix"
   },
   "repository": {
     "url": "https://github.com/Realytics/fork-ts-checker-webpack-plugin.git",

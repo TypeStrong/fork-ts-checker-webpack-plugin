@@ -8,8 +8,11 @@ var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
 describe('[INTEGRATION] index', function () {
   this.timeout(30000);
+  var plugin;
 
   function createCompiler(options) {
+    plugin = new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }));
+
     return webpack({
       context: path.resolve(__dirname, './project'),
       entry: './src/index.ts',
@@ -29,9 +32,18 @@ describe('[INTEGRATION] index', function () {
         ]
       },
       plugins: [
-        new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }))
+        plugin
       ]
     });
+  }
+
+  /**
+   * Implicitly check whether killService was called by checking that
+   * the service property was set to undefined.
+   * @returns [boolean] true if killService was called
+   */
+  function killServiceWasCalled() {
+    return plugin.service === undefined;
   }
 
   it('should allow to pass no options', function () {
@@ -104,6 +116,18 @@ describe('[INTEGRATION] index', function () {
       watching.close(function() {
         expect(true).to.be.true;
         callback();
+      });
+    });
+  });
+
+  it('kills the service when the watch is done', function (done) {
+    var compiler = createCompiler();
+    var watching = compiler.watch({}, function() {});
+
+    compiler.plugin('fork-ts-checker-done', function () {
+      watching.close(function() {
+        expect(killServiceWasCalled()).to.be.true;
+        done();
       });
     });
   });

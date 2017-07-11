@@ -55,7 +55,7 @@
   },
   "peerDependencies": {
     "typescript": "^2.1.0",
-    "webpack": "^2.0.0 || ^3.0.0"
+    "webpack": "^2.3.0 || ^3.0.0"
   },
   "dependencies": {
     "babel-code-frame": "^6.22.0",

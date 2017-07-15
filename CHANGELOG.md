@@ -1,3 +1,6 @@
+## v0.2.7
+ * Fix service is not killed when webpack watch is done
+
 ## v0.2.6
  * Add diagnostics/lints formatters - `formatter` and `formatterOptions` option
 

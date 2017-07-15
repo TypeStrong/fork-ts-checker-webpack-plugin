@@ -5,7 +5,7 @@
 Webpack plugin that runs typescript type checker on a separate process.
  
 ## Installation
-This plugin requires minimum **webpack 2**, **typescript 2.1** and optionally **tslint 5.0**
+This plugin requires minimum **webpack 2.3**, **typescript 2.1** and optionally **tslint 5.0**
 ```sh
 npm install --save-dev fork-ts-checker-webpack-plugin
 ```

@@ -111,6 +111,12 @@ number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_
 
 You may already be using the excellent [webpack-notifier](https://github.com/Turbo87/webpack-notifier) plugin to make build failures more obvious in the form of system notifications. There's an equivalent notifier plugin designed to work with the `fork-ts-checker-webpack-plugin`.  It is the `fork-ts-checker-notifier-webpack-plugin` and can be found [here](https://github.com/johnnyreilly/fork-ts-checker-notifier-webpack-plugin). This notifier deliberately has a similar API as the `webpack-notifier` plugin to make migration easier.
 
+## Known Issue Watching Non-Emitting Files
+
+At present there is an issue with the plugin regarding the triggering of type-checking when a change is made in a source file that will not emit js. If you have a file which contains only `interface`s and / or `type`s then changes to it will **not** trigger the type checker whilst in watch mode. Sorry about that.
+
+We hope this will be resolved in future; the issue can be tracked [here](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/36).
+
 ## Plugin Hooks
 This plugin provides some custom webpack hooks (all are sync):
 

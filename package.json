@@ -11,7 +11,7 @@
     "test:integration": "mocha -R spec ./test/integration && rimraf tmp",
     "test": "npm run test:unit && npm run test:integration",
     "test:watch": "mocha -R spec --watch ./test/unit",
-    "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources node_modules/.bin/_mocha -- -R spec ./test/unit ./test/integration",
+    "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources mocha -- -R spec ./test/unit ./test/integration",
     "lint": "eslint ./lib ./test",
     "lint:fix": "eslint ./lib ./test --fix"
   },

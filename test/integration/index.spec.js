@@ -193,7 +193,7 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler({ checkSyntacticErrors: false }, true);
     
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(1);
+      expect(stats.compilation.errors.length).to.be.equal(3);
       callback();
     });
   });
@@ -202,7 +202,7 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler({ checkSyntacticErrors: true }, true);
     
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(2);
+      expect(stats.compilation.errors.length).to.be.equal(3);
       callback();
     });
   });

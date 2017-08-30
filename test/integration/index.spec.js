@@ -10,14 +10,12 @@ describe('[INTEGRATION] index', function () {
   this.timeout(30000);
   var plugin;
 
-  function createCompiler(options, happypackMode) {
+  function createCompiler(options, happyPackMode) {
     plugin = new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }));
 
-    var tsLoaderOptions = Object.assign({}, 
-      happypackMode 
-        ? { happyPackMode: true } 
-        : { transpileOnly: true },
-      { silent: true });
+    var tsLoaderOptions = happyPackMode 
+        ? { happyPackMode: true, silent: true } 
+        : { transpileOnly: true, silent: true };
 
     return webpack({
       context: path.resolve(__dirname, './project'),

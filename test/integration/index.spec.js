@@ -188,7 +188,7 @@ describe('[INTEGRATION] index', function () {
   });
 
   it('should not find syntactic errors when checkSyntacticErrors is false', function (callback) {
-    var compiler = createCompiler({ checkSyntacticErrors: false }, true);
+    var compiler = createCompiler({}, true);
     
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.be.equal(1);

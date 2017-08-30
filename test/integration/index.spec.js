@@ -15,8 +15,8 @@ describe('[INTEGRATION] index', function () {
 
     var tsLoaderOptions = Object.assign({}, 
       happypackMode 
-        ? { transpileOnly: true }
-        : { happyPackMode: true }, 
+        ? { happyPackMode: true } 
+        : { transpileOnly: true },
       { silent: true });
 
     return webpack({

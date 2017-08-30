@@ -189,11 +189,20 @@ describe('[INTEGRATION] index', function () {
     }).to.not.throw.error;
   });
 
-  it('should find syntactic errors in happyPackMode', function (callback) {
-    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
+  it('should not find syntactic errors when checkSyntacticErrors is false', function (callback) {
+    var compiler = createCompiler({ checkSyntacticErrors: false }, true);
     
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.be.equal(1);
+      callback();
+    });
+  });
+
+  it('should not find syntactic errors when checkSyntacticErrors is true', function (callback) {
+    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
+    
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.be.equal(2);
       callback();
     });
   });

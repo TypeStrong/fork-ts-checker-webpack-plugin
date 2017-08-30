@@ -10,8 +10,14 @@ describe('[INTEGRATION] index', function () {
   this.timeout(30000);
   var plugin;
 
-  function createCompiler(options) {
+  function createCompiler(options, happypackMode) {
     plugin = new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }));
+
+    var tsLoaderOptions = Object.assign({}, 
+      happypackMode 
+        ? { transpileOnly: true }
+        : { happyPackMode: true }, 
+      { silent: true });
 
     return webpack({
       context: path.resolve(__dirname, './project'),
@@ -24,10 +30,7 @@ describe('[INTEGRATION] index', function () {
           {
             test: /\.tsx?$/,
             loader: 'ts-loader',
-            options: {
-              transpileOnly: true,
-              silent: true
-            }
+            options: tsLoaderOptions
           }
         ]
       },
@@ -184,5 +187,14 @@ describe('[INTEGRATION] index', function () {
     expect(function() {
       createCompiler({ tslint: true });
     }).to.not.throw.error;
+  });
+
+  it('should find syntactic errors in happyPackMode', function (callback) {
+    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
+    
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.be.equal(1);
+      callback();
+    });
   });
 });

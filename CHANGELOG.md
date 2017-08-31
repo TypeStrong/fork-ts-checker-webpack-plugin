@@ -1,3 +1,8 @@
+## v0.2.8
+ * Add `checkSyntacticErrors` option
+ * Fix `process.env` pass to the child process
+ * Add `fork-ts-checker-service-before-start` hook
+
 ## v0.2.7
  * Fix service is not killed when webpack watch is done
 

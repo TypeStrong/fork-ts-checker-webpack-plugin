@@ -187,6 +187,26 @@ describe('[INTEGRATION] index', function () {
     }).to.not.throw.error;
   });
 
+  it('should allow delaying service-start', function (callback) {
+    var compiler = createCompiler();
+    var delayed = false;
+
+    compiler.plugin('fork-ts-checker-service-before-start', function (cb) {
+      setTimeout(function () {
+        delayed = true;
+
+        cb();
+      }, 0);
+    });
+
+    compiler.plugin('fork-ts-checker-service-start', function () {
+      expect(delayed).to.be.true;
+      callback();
+    });
+
+    compiler.run(function () {});
+  });
+
   it('should not find syntactic errors when checkSyntacticErrors is false', function (callback) {
     var compiler = createCompiler({}, true);
     

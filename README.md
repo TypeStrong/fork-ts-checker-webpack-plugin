@@ -127,6 +127,7 @@ This plugin provides some custom webpack hooks (all are sync):
 |------------|-------------|--------|
 |`fork-ts-checker-cancel`| Cancellation has been requested | `cancellationToken` |
 |`fork-ts-checker-waiting`| Waiting for results | `hasTsLint` |
+|`fork-ts-checker-service-before-start`| Async plugin that can be used for delaying `fork-ts-checker-service-start` | - |
 |`fork-ts-checker-service-start`| Service will be started | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
 |`fork-ts-checker-service-start-error` | Cannot start service | `error` |
 |`fork-ts-checker-service-out-of-memory`| Service is out of memory | - |

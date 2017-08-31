@@ -92,6 +92,9 @@ Options passed to formatters (currently only `codeframe` - see [available option
 * **silent** `boolean`:
 If `true`, logger will not be used. Default: `false`.
 
+* **checkSyntacticErrors** `boolean`: 
+This option is useful if you're using ts-loader in `happyPackMode` with [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds.  It will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`).  By default the plugin only checks for semantic errors.  This is because when ts-loader is used in `transpileOnly` mode, ts-loader will still report syntactic errors. When used in `happyPackMode` it does not. Default: `false`.
+
 * **memoryLimit** `number`: 
 Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
 

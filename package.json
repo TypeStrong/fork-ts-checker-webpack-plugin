@@ -8,9 +8,10 @@
   ],
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
+    "prepublish": "npm run build",
     "test:unit": "mocha -R spec ./test/unit",
     "test:integration": "mocha -R spec ./test/integration && rimraf tmp",
-    "test": "npm run test:unit && npm run test:integration",
+    "test": "npm run build && npm run test:unit && npm run test:integration",
     "test:watch": "mocha -R spec --watch ./test/unit",
     "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources mocha -- -R spec ./test/unit ./test/integration",
     "lint": "eslint ./lib ./test",

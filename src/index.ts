@@ -4,12 +4,14 @@ import childProcess = require('child_process');
 import chalk = require('chalk');
 import fs = require('fs');
 import os = require('os');
+import webpack = require('webpack');
 import isString = require('lodash.isstring');
 import isFunction = require('lodash.isfunction');
 import CancellationToken = require('./CancellationToken');
 import NormalizedMessage = require('./NormalizedMessage');
 import createDefaultFormatter = require('./formatter/defaultFormatter');
 import createCodeframeFormatter = require('./formatter/codeframeFormatter');
+import Message from './Message';
 
 interface Options {
   tsconfig: string;
@@ -134,11 +136,11 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  apply(compiler) {
+  apply(compiler: webpack.Compiler) {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
-    this.tslintPath = this.tslint ? this.computeContextPath(this.tslint) : null;
+    this.tslintPath = this.tslint ? this.computeContextPath(this.tslint as string) : null;
     this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
@@ -184,17 +186,17 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  computeContextPath(filePath) {
+  computeContextPath(filePath: string) {
     return path.isAbsolute(filePath) ? filePath : path.resolve(this.compiler.options.context, filePath);
   }
 
   pluginStart() {
-    this.compiler.plugin('run', (_compiler, callback) => {
+    this.compiler.plugin('run', (_compiler: webpack.Compiler, callback: () => void) => {
       this.isWatching = false;
       callback();
     });
 
-    this.compiler.plugin('watch-run', (_watching, callback) => {
+    this.compiler.plugin('watch-run', (_watching: webpack.Watching, callback: () => void) => {
       this.isWatching = true;
       callback();
     });
@@ -249,7 +251,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   pluginEmit() {
-    this.compiler.plugin('emit', (compilation, callback) => {
+    this.compiler.plugin('emit', (compilation: any, callback: () => void) => {
       if (this.isWatching && this.async) {
         callback();
         return;
@@ -336,14 +338,14 @@ class ForkTsCheckerWebpackPlugin {
           'Watching:' +
           (this.watchPaths.length > 1 ? '\n' : ' ') +
           this.watchPaths
-            .map(path => this.colors.grey(path))
+            .map(wpath => this.colors.grey(wpath))
             .join('\n')
         );
       }
     }
 
-    this.service.on('message', this.handleServiceMessage.bind(this));
-    this.service.on('exit', this.handleServiceExit.bind(this));
+    this.service.on('message', (message: Message) => this.handleServiceMessage(message));
+    this.service.on('exit', (code: string | number, signal: string) => this.handleServiceExit(code, signal));
   }
 
   killService() {
@@ -363,7 +365,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  handleServiceMessage(message) {
+  handleServiceMessage(message: Message) {
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
       // job is done - nothing to cancel
@@ -377,13 +379,13 @@ class ForkTsCheckerWebpackPlugin {
 
     if (this.ignoreDiagnostics.length) {
       this.diagnostics = this.diagnostics.filter(diagnostic =>
-        this.ignoreDiagnostics.indexOf(parseInt(diagnostic.getCode(), 10)) === -1
+        this.ignoreDiagnostics.indexOf(parseInt(diagnostic.getCode() as string, 10)) === -1
       );
     }
 
     if (this.ignoreLints.length) {
       this.lints = this.lints.filter(lint =>
-        this.ignoreLints.indexOf(lint.getCode()) === -1
+        this.ignoreLints.indexOf(lint.getCode() as string) === -1
       );
     }
 
@@ -394,7 +396,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  handleServiceExit(_code, signal) {
+  handleServiceExit(_code: string | number, signal: string) {
     if (signal === 'SIGABRT') {
       // probably out of memory :/
       if (this.compiler) {
@@ -411,7 +413,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  createEmitCallback(compilation, callback) {
+  createEmitCallback(compilation: any, callback: () => void) {
     const emitCallback = () => {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 

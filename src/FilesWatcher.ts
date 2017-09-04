@@ -14,7 +14,7 @@ class FilesWatcher {
     this.listeners = {};
   }
 
-  isFileSupported(filePath) {
+  isFileSupported(filePath: string) {
     return this.watchExtensions.indexOf(path.extname(filePath)) !== -1;
   }
 
@@ -45,7 +45,7 @@ class FilesWatcher {
     });
   }
 
-  isWatchingFile(filePath) {
+  isWatchingFile(filePath: string) {
     return (
       this.isWatching() &&
       this.isFileSupported(filePath) &&
@@ -57,7 +57,7 @@ class FilesWatcher {
     return this.watchers.length > 0;
   }
 
-  on(event, listener) {
+  on(event: string, listener: Function) {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
@@ -65,7 +65,7 @@ class FilesWatcher {
     this.listeners[event].push(listener);
   }
 
-  off(event, listener) {
+  off(event: string, listener: Function) {
     if (this.listeners[event]) {
       this.listeners[event] = this.listeners[event].filter(oldListener => oldListener !== listener);
     }

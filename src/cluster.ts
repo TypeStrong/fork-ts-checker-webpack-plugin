@@ -1,13 +1,14 @@
-import process = require('process');
 import childProcess = require('child_process');
 import path = require('path');
+import process = require('process');
 
 import WorkResult = require('./WorkResult');
 import NormalizedMessage = require('./NormalizedMessage');
+import Message from './Message';
 
 // fork workers...
 const division = parseInt(process.env.WORK_DIVISION, 10);
-const workers = [];
+const workers: childProcess.ChildProcess[] = [];
 
 for (let num = 0; num < division; num++) {
   workers.push(
@@ -26,7 +27,7 @@ for (let num = 0; num < division; num++) {
 const pids = workers.map(worker => worker.pid);
 const result = new WorkResult(pids);
 
-process.on('message', (message) => {
+process.on('message', (message: Message) => {
   // broadcast message to all workers
   workers.forEach(worker => {
     try {
@@ -43,10 +44,10 @@ process.on('message', (message) => {
 
 // listen to all workers
 workers.forEach(worker => {
-  worker.on('message', (message) => {
+  worker.on('message', (message: Message) => {
     // set result from worker
     result.set(
-      worker.pid,
+      `${worker.pid}`,
       {
         diagnostics: message.diagnostics.map(NormalizedMessage.createFromJSON),
         lints: message.lints.map(NormalizedMessage.createFromJSON)
@@ -55,8 +56,8 @@ workers.forEach(worker => {
 
     // if we have result from all workers, send merged
     if (result.hasAll()) {
-      const merged = result.reduce(
-        (innerMerged, innerResult: { diagnostics: any[]; lints: any[]; }) => ({
+      const merged: Message = result.reduce(
+        (innerMerged: Message, innerResult: Message) => ({
           diagnostics: innerMerged.diagnostics.concat(innerResult.diagnostics),
           lints: innerMerged.lints.concat(innerResult.lints)
         }),

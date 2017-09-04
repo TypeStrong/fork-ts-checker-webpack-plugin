@@ -7,10 +7,11 @@ import FilesRegister = require('./FilesRegister');
 import FilesWatcher = require('./FilesWatcher');
 import WorkSet = require('./WorkSet');
 import NormalizedMessage = require('./NormalizedMessage');
+import CancellationToken = require('./CancellationToken');
 
 class IncrementalChecker {
   programConfigFile: string;
-  linterConfigFile: string;
+  linterConfigFile: string | false;
   watchPaths: string[];
   workNumber: number;
   workDivision: number;
@@ -24,7 +25,14 @@ class IncrementalChecker {
   programConfig: ts.ParsedCommandLine;
   watcher: FilesWatcher;
 
-  constructor(programConfigFile, linterConfigFile, watchPaths, workNumber, workDivision, checkSyntacticErrors) {
+  constructor(
+    programConfigFile: string,
+    linterConfigFile: string | false,
+    watchPaths: string[],
+    workNumber: number,
+    workDivision: number,
+    checkSyntacticErrors: boolean
+  ) {
     this.programConfigFile = programConfigFile;
     this.linterConfigFile = linterConfigFile;
     this.watchPaths = watchPaths;
@@ -56,7 +64,12 @@ class IncrementalChecker {
     return tslint.Configuration.loadConfigurationFromPath(configFile);
   }
 
-  static createProgram(programConfig, files, watcher, oldProgram) {
+  static createProgram(
+    programConfig: ts.ParsedCommandLine,
+    files: FilesRegister,
+    watcher: FilesWatcher,
+    oldProgram: ts.Program
+  ) {
     const host = ts.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
@@ -91,7 +104,7 @@ class IncrementalChecker {
     );
   }
 
-  static createLinter(program) {
+  static createLinter(program: ts.Program) {
     const tslint: typeof tslintTypes = require('tslint');
 
     return new tslint.Linter({ fix: false }, program);
@@ -102,7 +115,7 @@ class IncrementalChecker {
       this.watcher = new FilesWatcher(this.watchPaths, ['.ts', '.tsx']);
 
       // connect watcher with register
-      this.watcher.on('change', (filePath: string, stats) => {
+      this.watcher.on('change', (filePath: string, stats: fs.Stats) => {
         this.files.setMtime(filePath, stats.mtime.valueOf());
       });
       this.watcher.on('unlink', (filePath: string) => {
@@ -130,8 +143,8 @@ class IncrementalChecker {
     return this.linter !== undefined;
   }
 
-  getDiagnostics(cancellationToken) {
-    const diagnostics = [];
+  getDiagnostics(cancellationToken: CancellationToken) {
+    const diagnostics: ts.Diagnostic[] = [];
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = this.program.getSourceFiles();
 
@@ -144,7 +157,7 @@ class IncrementalChecker {
         cancellationToken.throwIfCancellationRequested();
       }
 
-      const diagnosticsToRegister = this.checkSyntacticErrors
+      const diagnosticsToRegister: ts.Diagnostic[] = this.checkSyntacticErrors
         ? []
           .concat(this.program.getSemanticDiagnostics(sourceFile, cancellationToken))
           .concat(this.program.getSyntacticDiagnostics(sourceFile, cancellationToken))
@@ -159,7 +172,7 @@ class IncrementalChecker {
     );
   }
 
-  getLints(cancellationToken) {
+  getLints(cancellationToken: CancellationToken) {
     if (!this.hasLinter()) {
       throw new Error('Cannot get lints - checker has no linter.');
     }

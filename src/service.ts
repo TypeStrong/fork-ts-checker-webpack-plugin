@@ -2,6 +2,7 @@ import process = require('process');
 import ts = require('typescript');
 import IncrementalChecker = require('./IncrementalChecker');
 import CancellationToken = require('./CancellationToken');
+import NormalizedMessage = require('./NormalizedMessage');
 
 const checker = new IncrementalChecker(
   process.env.TSCONFIG,
@@ -13,8 +14,8 @@ const checker = new IncrementalChecker(
 );
 
 function run(cancellationToken: CancellationToken) {
-  let diagnostics = [];
-  let lints = [];
+  let diagnostics: NormalizedMessage[] = [];
+  let lints: NormalizedMessage[] = [];
 
   checker.nextIteration();
 

@@ -1,9 +1,13 @@
+// Imported for types alone; actual requires take place in methods below
+import tsTypes = require('typescript');
+import tslintTypes = require('tslint');
+
 type ErrorType = 'diagnostic' | 'lint';
 type Severity = 'error' | 'warning';
 
 interface NormalizedMessageJson {
   type: ErrorType;
-  code: string;
+  code: string | number;
   severity: Severity;
   content: string;
   file: string;
@@ -20,7 +24,7 @@ class NormalizedMessage {
   static SEVERITY_WARNING: Severity = 'warning';
 
   type: ErrorType;
-  code: string; // unclear whether this should be string | number - spec suggests that
+  code: string | number;
   severity: Severity;
   content: string;
   file: string;
@@ -38,14 +42,14 @@ class NormalizedMessage {
   }
 
   // message types
-  static createFromDiagnostic(diagnostic) {
-    const ts = require('typescript');
+  static createFromDiagnostic(diagnostic: tsTypes.Diagnostic) {
+    const ts: typeof tsTypes = require('typescript');
     const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
 
     return new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: diagnostic.code,
-      severity: ts.DiagnosticCategory[diagnostic.category].toLowerCase(),
+      severity: ts.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
       content: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
       file: diagnostic.file.fileName,
       line: position.line + 1,
@@ -53,13 +57,13 @@ class NormalizedMessage {
     });
   }
 
-  static createFromLint(lint) {
+  static createFromLint(lint: tslintTypes.RuleFailure) {
     const position = lint.getStartPosition().getLineAndCharacter();
 
     return new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: lint.getRuleName(),
-      severity: lint.getRuleSeverity(),
+      severity: lint.getRuleSeverity() as Severity,
       content: lint.getFailure(),
       file: lint.getFileName(),
       line: position.line + 1,
@@ -85,7 +89,8 @@ class NormalizedMessage {
       NormalizedMessage.compareSeverities(messageA.getSeverity(), messageB.getSeverity()) ||
       NormalizedMessage.compareNumbers(messageA.getLine(), messageB.getLine()) ||
       NormalizedMessage.compareNumbers(messageA.getCharacter(), messageB.getCharacter()) ||
-      NormalizedMessage.compareOptionalStrings(messageA.getCode(), messageB.getCode()) ||
+      // code can be string (lint failure) or number (typescript error) - should the following line cater for this in some way?
+      NormalizedMessage.compareOptionalStrings(messageA.getCode() as string, messageB.getCode() as string) ||
       NormalizedMessage.compareOptionalStrings(messageA.getContent(), messageB.getContent()) ||
       0 /* EqualTo */
     );
@@ -95,7 +100,7 @@ class NormalizedMessage {
     return this.compare(messageA, messageB) === 0;
   }
 
-  static deduplicate(messages) {
+  static deduplicate(messages: NormalizedMessage[]) {
     return messages
       .sort(NormalizedMessage.compare)
       .filter((message, index) => {

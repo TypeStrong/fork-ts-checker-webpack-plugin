@@ -1,3 +1,5 @@
+import Message from './Message';
+
 class WorkResult {
   workResult: {};
   workDomain: any[];
@@ -7,7 +9,7 @@ class WorkResult {
     this.workDomain = workDomain;
   }
 
-  supports(workName) {
+  supports(workName: string) {
     return -1 !== this.workDomain.indexOf(workName);
   }
 
@@ -19,11 +21,11 @@ class WorkResult {
     this.workResult[workName] = result;
   }
 
-  has(workName) {
+  has(workName: string) {
     return this.supports(workName) && undefined !== this.workResult[workName];
   }
 
-  get(workName) {
+  get(workName: string) {
     if (!this.supports(workName)) {
       throw new Error('Cannot get result - work "' + workName + '" is not supported.');
     }
@@ -39,7 +41,7 @@ class WorkResult {
     this.workResult = {};
   }
 
-  reduce(reducer, initial) {
+  reduce(reducer: (m1: Message, m2: Message) => Message, initial: Message) {
     return this.workDomain.reduce((reduced, workName) => {
       return reducer(reduced, this.workResult[workName]);
     }, initial);

@@ -50,6 +50,7 @@
     "@types/lodash.isstring": "^4.0.3",
     "@types/lodash.startswith": "^4.2.3",
     "@types/node": "^8.0.26",
+    "@types/webpack": "^3.0.10",
     "chai": "^3.5.0",
     "eslint": "^3.19.0",
     "istanbul": "^0.4.5",

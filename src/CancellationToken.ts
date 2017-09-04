@@ -1,8 +1,13 @@
+import crypto = require('crypto');
 import fs = require('fs');
 import os = require('os');
 import path = require('path');
 import ts = require('typescript');
-import crypto = require('crypto');
+
+interface CancellationTokenData {
+  isCancelled: boolean;
+  cancellationFileName: string;
+}
 
 class CancellationToken {
   isCancelled: boolean;
@@ -14,7 +19,7 @@ class CancellationToken {
     this.lastCancellationCheckTime = 0;
   }
 
-  static createFromJSON(json) {
+  static createFromJSON(json: CancellationTokenData) {
     return new CancellationToken(
       json.cancellationFileName,
       json.isCancelled

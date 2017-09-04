@@ -9,11 +9,11 @@ class WorkResult {
     this.workDomain = workDomain;
   }
 
-  supports(workName: string) {
+  supports(workName: number) {
     return -1 !== this.workDomain.indexOf(workName);
   }
 
-  set(workName: string, result: any) {
+  set(workName: number, result: any) {
     if (!this.supports(workName)) {
       throw new Error('Cannot set result - work "' + workName + '" is not supported.');
     }
@@ -21,11 +21,11 @@ class WorkResult {
     this.workResult[workName] = result;
   }
 
-  has(workName: string) {
+  has(workName: number) {
     return this.supports(workName) && undefined !== this.workResult[workName];
   }
 
-  get(workName: string) {
+  get(workName: number) {
     if (!this.supports(workName)) {
       throw new Error('Cannot get result - work "' + workName + '" is not supported.');
     }

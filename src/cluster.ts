@@ -47,7 +47,7 @@ workers.forEach(worker => {
   worker.on('message', (message: Message) => {
     // set result from worker
     result.set(
-      `${worker.pid}`,
+      worker.pid,
       {
         diagnostics: message.diagnostics.map(NormalizedMessage.createFromJSON),
         lints: message.lints.map(NormalizedMessage.createFromJSON)

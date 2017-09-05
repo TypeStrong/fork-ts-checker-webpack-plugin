@@ -7,3 +7,6 @@ yarn.lock
 .nvmrc
 .eslintrc.json
 karma.conf.js
+*.ts
+.vscode
+src

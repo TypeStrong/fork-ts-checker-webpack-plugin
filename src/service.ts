@@ -1,9 +1,10 @@
-var ts = require('typescript');
-var process = require('process');
-var IncrementalChecker = require('./IncrementalChecker');
-var CancellationToken = require('./CancellationToken');
+import process = require('process');
+import ts = require('typescript');
+import IncrementalChecker = require('./IncrementalChecker');
+import CancellationToken = require('./CancellationToken');
+import NormalizedMessage = require('./NormalizedMessage');
 
-var checker = new IncrementalChecker(
+const checker = new IncrementalChecker(
   process.env.TSCONFIG,
   process.env.TSLINT === '' ? false : process.env.TSLINT,
   process.env.WATCH === '' ? [] : process.env.WATCH.split('|'),
@@ -12,9 +13,9 @@ var checker = new IncrementalChecker(
   process.env.CHECK_SYNTACTIC_ERRORS === 'true'
 );
 
-function run (cancellationToken) {
-  var diagnostics = [];
-  var lints = [];
+function run(cancellationToken: CancellationToken) {
+  let diagnostics: NormalizedMessage[] = [];
+  let lints: NormalizedMessage[] = [];
 
   checker.nextIteration();
 
@@ -34,8 +35,8 @@ function run (cancellationToken) {
   if (!cancellationToken.isCancellationRequested()) {
     try {
       process.send({
-        diagnostics: diagnostics,
-        lints: lints
+        diagnostics,
+        lints
       });
     } catch (e) {
       // channel closed...
@@ -44,10 +45,10 @@ function run (cancellationToken) {
   }
 }
 
-process.on('message', function (message) {
+process.on('message', (message) => {
   run(CancellationToken.createFromJSON(message));
 });
 
-process.on('SIGINT', function () {
+process.on('SIGINT', () => {
   process.exit();
 });

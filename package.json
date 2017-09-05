@@ -7,9 +7,11 @@
     "lib"
   ],
   "scripts": {
+    "build": "tsc --version && tsc --project \"./src\"",
+    "prepublish": "npm run build",
     "test:unit": "mocha -R spec ./test/unit",
     "test:integration": "mocha -R spec ./test/integration && rimraf tmp",
-    "test": "npm run test:unit && npm run test:integration",
+    "test": "npm run build && npm run test:unit && npm run test:integration",
     "test:watch": "mocha -R spec --watch ./test/unit",
     "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources mocha -- -R spec ./test/unit ./test/integration",
     "lint": "eslint ./lib ./test",
@@ -40,6 +42,15 @@
     "url": "https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues"
   },
   "devDependencies": {
+    "@types/babel-code-frame": "^6.20.1",
+    "@types/chalk": "^0.4.31",
+    "@types/chokidar": "^1.7.2",
+    "@types/lodash.endswith": "^4.2.3",
+    "@types/lodash.isfunction": "^3.0.3",
+    "@types/lodash.isstring": "^4.0.3",
+    "@types/lodash.startswith": "^4.2.3",
+    "@types/node": "^8.0.26",
+    "@types/webpack": "^3.0.10",
     "chai": "^3.5.0",
     "eslint": "^3.19.0",
     "istanbul": "^0.4.5",

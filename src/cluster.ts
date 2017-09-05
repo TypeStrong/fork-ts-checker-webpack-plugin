@@ -1,34 +1,35 @@
-var process = require('process');
-var childProcess = require('child_process');
-var path = require('path');
+import childProcess = require('child_process');
+import path = require('path');
+import process = require('process');
 
-var WorkResult = require('./WorkResult');
-var NormalizedMessage = require('./NormalizedMessage');
+import WorkResult = require('./WorkResult');
+import NormalizedMessage = require('./NormalizedMessage');
+import Message from './Message';
 
 // fork workers...
-var division = parseInt(process.env.WORK_DIVISION);
-var workers = [];
+const division = parseInt(process.env.WORK_DIVISION, 10);
+const workers: childProcess.ChildProcess[] = [];
 
-for (var number = 0; number < division; number++) {
+for (let num = 0; num < division; num++) {
   workers.push(
     childProcess.fork(
       path.resolve(__dirname, './service.js'),
       [],
       {
         execArgv: ['--max-old-space-size=' + process.env.MEMORY_LIMIT],
-        env: Object.assign({}, process.env, { WORK_NUMBER: number }),
+        env: Object.assign({}, process.env, { WORK_NUMBER: num }),
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     )
   );
 }
 
-var pids = workers.map(function (worker) { return worker.pid; });
-var result = new WorkResult(pids);
+const pids = workers.map(worker => worker.pid);
+const result = new WorkResult(pids);
 
-process.on('message', function (message) {
+process.on('message', (message: Message) => {
   // broadcast message to all workers
-  workers.forEach(function (worker) {
+  workers.forEach(worker => {
     try {
       worker.send(message);
     } catch (e) {
@@ -42,8 +43,8 @@ process.on('message', function (message) {
 });
 
 // listen to all workers
-workers.forEach(function (worker) {
-  worker.on('message', function (message) {
+workers.forEach(worker => {
+  worker.on('message', (message: Message) => {
     // set result from worker
     result.set(
       worker.pid,
@@ -55,13 +56,11 @@ workers.forEach(function (worker) {
 
     // if we have result from all workers, send merged
     if (result.hasAll()) {
-      var merged = result.reduce(
-        function (merged, result) {
-          return {
-            diagnostics: merged.diagnostics.concat(result.diagnostics),
-            lints: merged.lints.concat(result.lints)
-          };
-        },
+      const merged: Message = result.reduce(
+        (innerMerged: Message, innerResult: Message) => ({
+          diagnostics: innerMerged.diagnostics.concat(innerResult.diagnostics),
+          lints: innerMerged.lints.concat(innerResult.lints)
+        }),
         { diagnostics: [], lints: [] }
       );
 
@@ -78,12 +77,12 @@ workers.forEach(function (worker) {
   });
 });
 
-process.on('SIGINT', function () {
+process.on('SIGINT', () => {
   process.exit();
 });
 
-process.on('exit', function () {
-  workers.forEach(function (worker) {
+process.on('exit', () => {
+  workers.forEach(worker => {
     try {
       worker.kill();
     } catch (e) {

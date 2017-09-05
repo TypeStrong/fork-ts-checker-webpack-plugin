@@ -3,6 +3,8 @@ logs
 *.log
 npm-debug.log*
 
+lib
+
 # Coverage directory used by tools like istanbul
 coverage
 

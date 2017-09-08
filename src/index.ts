@@ -13,6 +13,8 @@ import createDefaultFormatter = require('./formatter/defaultFormatter');
 import createCodeframeFormatter = require('./formatter/codeframeFormatter');
 import Message from './Message';
 
+type Formatter = (message: NormalizedMessage, useColors: boolean) => string;
+
 interface Options {
   tsconfig: string;
   tslint: string | true;
@@ -22,7 +24,7 @@ interface Options {
   ignoreLints: string[];
   colors: boolean;
   logger: Console;
-  formatter: 'default' | 'codeframe' | Function;
+  formatter: 'default' | 'codeframe' | Formatter;
   formatterOptions: any;
   silent: boolean;
   checkSyntacticErrors: boolean;
@@ -58,7 +60,7 @@ class ForkTsCheckerWebpackPlugin {
   memoryLimit: number;
   useColors: boolean;
   colors: chalk.Chalk;
-  formatter: Function;
+  formatter: Formatter;
 
   tsconfigPath: string;
   tslintPath: string;
@@ -100,8 +102,9 @@ class ForkTsCheckerWebpackPlugin {
     this.memoryLimit = options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
     this.useColors = options.colors !== false; // default true
     this.colors = new chalk.constructor({ enabled: this.useColors });
-    this.formatter = (options.formatter && isFunction(options.formatter)) ?
-      options.formatter : ForkTsCheckerWebpackPlugin.createFormatter(options.formatter || 'default', options.formatterOptions || {});
+    this.formatter = (options.formatter && isFunction(options.formatter))
+      ? options.formatter
+      : ForkTsCheckerWebpackPlugin.createFormatter(options.formatter as 'default' | 'codeframe' || 'default', options.formatterOptions || {});
 
     this.tsconfigPath = undefined;
     this.tslintPath = undefined;
@@ -125,7 +128,7 @@ class ForkTsCheckerWebpackPlugin {
     this.tslintVersion = this.tslint ? require('tslint').Linter.VERSION : undefined;
   }
 
-  static createFormatter(type: Function | 'default' | 'codeframe', options: any) {
+  static createFormatter(type: 'default' | 'codeframe', options: any) {
     switch (type) {
       case 'default':
         return createDefaultFormatter();

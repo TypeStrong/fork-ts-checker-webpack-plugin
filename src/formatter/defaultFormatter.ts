@@ -16,8 +16,8 @@ export = function createDefaultFormatter() {
     const codeColor = colors.grey;
 
     return [
-      messageColor(message.getSeverity().toUpperCase() + ' at ' + message.getFile()) +
-      '(' + numberColor(`${message.getLine()}`) + ',' + numberColor(`${message.getCharacter()}`) + '): ',
+      messageColor(message.getSeverity().toUpperCase() + ' in ' + message.getFile()),
+      '(' + numberColor(`${message.getLine()}`) + ',' + numberColor(`${message.getCharacter()}`) + '): ' +
       codeColor(message.getFormattedCode() + ': ') + message.getContent()
     ].join(os.EOL);
   };

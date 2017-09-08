@@ -32,7 +32,7 @@ export = function createCodeframeFormatter(options: any) {
     }
 
     return (
-      messageColor(message.getSeverity().toUpperCase() + ' at ' + message.getFile()) + os.EOL +
+      messageColor(message.getSeverity().toUpperCase() + ' in ' + message.getFile()) + os.EOL +
       positionColor(message.getLine() + ':' + message.getCharacter()) + ' ' + message.getContent() +
       (frame ? os.EOL + frame : '')
     );

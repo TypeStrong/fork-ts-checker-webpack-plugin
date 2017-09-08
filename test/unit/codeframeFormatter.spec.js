@@ -47,7 +47,7 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'ERROR at some/file.ts' + os.EOL +
+      'ERROR in some/file.ts' + os.EOL +
       '1:7 Some diagnostic content' + os.EOL +
       '  > 1 | class SomeClass {' + os.EOL +
       '      |       ^' + os.EOL +
@@ -72,7 +72,7 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING at some/file.ts' + os.EOL +
+      'WARNING in some/file.ts' + os.EOL +
       '2:11 Some lint content' + os.EOL +
       '    1 | class SomeClass {' + os.EOL +
       '  > 2 |   private someProperty: boolean;' + os.EOL +
@@ -98,7 +98,7 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING at some/unknown-file.ts' + os.EOL +
+      'WARNING in some/unknown-file.ts' + os.EOL +
       '2:11 Some lint content'
     );
   });

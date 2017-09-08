@@ -82,9 +82,9 @@ If `false`, disables built-in colors in logger messages. Default: `true`.
 * **logger** `object`:
 Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.
 
-* **formatter** `'default' | 'codeframe' | Function`:
+* **formatter** `'default' | 'codeframe' | ((message: NormalizedMessage, useColors: boolean) => string)`:
 Formatter for diagnostics and lints. By default uses `default` formatter. You can also pass your own formatter as a function
-(see `lib/NormalizedMessage.js` and `lib/formatter/` for api reference).
+(see `src/NormalizedMessage.js` and `src/formatter/` for api reference).
 
 * **formatterOptions** `object`:
 Options passed to formatters (currently only `codeframe` - see [available options](https://www.npmjs.com/package/babel-code-frame#options))
@@ -112,7 +112,7 @@ number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_
 
 ## Notifier
 
-You may already be using the excellent [webpack-notifier](https://github.com/Turbo87/webpack-notifier) plugin to make build failures more obvious in the form of system notifications. There's an equivalent notifier plugin designed to work with the `fork-ts-checker-webpack-plugin`.  It is the `fork-ts-checker-notifier-webpack-plugin` and can be found [here](https://github.com/johnnyreilly/fork-ts-checker-notifier-webpack-plugin). This notifier deliberately has a similar API as the `webpack-notifier` plugin to make migration easier.
+You may already be using the excellent [webpack-notifier](https://github.com/Turbo87/webpack-notifier) plugin to make build failures more obvious in the form of system notifications. There's an equivalent notifier plugin designed to work with the `fork-ts-checker-webpack-plugin`.  It is the `fork-ts-checker-notifier-webpack-plugin` and can be found [here](https://github.com/johnnyreilly/fork-ts-checker-notifier-webpack-plugin). This notifier desrcerately has a similar API as the `webpack-notifier` plugin to make migration easier.
 
 ## Known Issue Watching Non-Emitting Files
 

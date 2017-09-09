@@ -18,7 +18,7 @@ export = function createDefaultFormatter() {
     return [
       messageColor(`${message.getSeverity().toUpperCase()} in `) +
       fileAndNumberColor(`${message.getFile()}(${message.getLine()},${message.getCharacter()})`) +
-      messageColor(': '),
+      messageColor(':'),
       codeColor(message.getFormattedCode() + ': ') + message.getContent()
     ].join(os.EOL);
   };

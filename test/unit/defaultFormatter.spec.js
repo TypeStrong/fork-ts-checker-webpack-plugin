@@ -22,7 +22,7 @@ describe('[UNIT] formatter/defaultFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'ERROR at /some/file.ts(1,5): ' + os.EOL +
+      'ERROR in /some/file.ts(1,5):' + os.EOL +
       'TS123: Some diagnostic content'
     );
   });
@@ -41,7 +41,7 @@ describe('[UNIT] formatter/defaultFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING at /some/file.ts(2,6): ' + os.EOL +
+      'WARNING in /some/file.ts(2,6):' + os.EOL +
       'some-lint-rule: Some lint content'
     );
   });

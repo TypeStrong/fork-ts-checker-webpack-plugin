@@ -136,7 +136,7 @@ class ForkTsCheckerWebpackPlugin {
       case 'default':
         return createDefaultFormatter(useGnuStandardLines);
       case 'codeframe':
-        return createCodeframeFormatter(useGnuStandardLines, options);
+        return createCodeframeFormatter(options, useGnuStandardLines);
       default:
         throw new Error('Unknown "' + type + '" formatter. Available are: default, codeframe.');
     }

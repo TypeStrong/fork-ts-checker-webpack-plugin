@@ -23,7 +23,7 @@ describe('[UNIT] formatter/defaultFormatter', function () {
 
     expect(formattedMessage).to.be.equal(
       'ERROR in /some/file.ts(1,5):' + os.EOL +
-      'TS123: Some diagnostic content'
+      'TS123: Some diagnostic content' + os.EOL
     );
   });
 
@@ -42,7 +42,7 @@ describe('[UNIT] formatter/defaultFormatter', function () {
 
     expect(formattedMessage).to.be.equal(
       'WARNING in /some/file.ts(2,6):' + os.EOL +
-      'some-lint-rule: Some lint content'
+      'some-lint-rule: Some lint content' + os.EOL
     );
   });
 });

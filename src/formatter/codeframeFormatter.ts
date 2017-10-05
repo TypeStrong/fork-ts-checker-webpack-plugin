@@ -11,7 +11,7 @@ import createDefaultFormatter = require('./defaultFormatter');
  * @param options Options for babel-code-frame - see https://www.npmjs.com/package/babel-code-frame
  * @returns {codeframeFormatter}
  */
-export = function createCodeframeFormatter(useGnuStandardLines = false, options: any) {
+export = function createCodeframeFormatter(options: any, useGnuStandardLines = false) {
   function codeframeFormatter(message: NormalizedMessage, useColors: boolean) {
     const source = message.getFile() && fs.existsSync(message.getFile()) && fs.readFileSync(message.getFile(), 'utf-8');
     let frame;

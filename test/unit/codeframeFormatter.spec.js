@@ -47,11 +47,11 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'ERROR in some/file.ts' + os.EOL +
-      '1:7 Some diagnostic content' + os.EOL +
+      'ERROR in some/file.ts(1,7):' + os.EOL +
+      'TS123: Some diagnostic content' + os.EOL +
       '  > 1 | class SomeClass {' + os.EOL +
       '      |       ^' + os.EOL +
-      '    2 |   private someProperty: boolean;'
+      '    2 |   private someProperty: boolean;' + os.EOL
     );
   });
 
@@ -72,12 +72,12 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING in some/file.ts' + os.EOL +
-      '2:11 Some lint content' + os.EOL +
+      'WARNING in some/file.ts(2,11):' + os.EOL +
+      'some-lint-rule: Some lint content' + os.EOL +
       '    1 | class SomeClass {' + os.EOL +
       '  > 2 |   private someProperty: boolean;' + os.EOL +
       '      |           ^' + os.EOL +
-      '    3 |   constructor() {'
+      '    3 |   constructor() {' + os.EOL
     );
   });
 
@@ -98,8 +98,8 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING in some/unknown-file.ts' + os.EOL +
-      '2:11 Some lint content'
+      'WARNING in some/unknown-file.ts(2,11):' + os.EOL +
+      'some-lint-rule: Some lint content' + os.EOL
     );
   });
 });

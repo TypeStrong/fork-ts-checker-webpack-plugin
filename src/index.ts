@@ -26,6 +26,7 @@ interface Options {
   logger: Console;
   formatter: 'default' | 'codeframe' | Formatter;
   formatterOptions: any;
+  gnuStandardLines: boolean;
   silent: boolean;
   checkSyntacticErrors: boolean;
   memoryLimit: number;
@@ -61,6 +62,7 @@ class ForkTsCheckerWebpackPlugin {
   useColors: boolean;
   colors: chalk.Chalk;
   formatter: Formatter;
+  gnuStandardLines: boolean;
 
   tsconfigPath: string;
   tslintPath: string;
@@ -102,9 +104,10 @@ class ForkTsCheckerWebpackPlugin {
     this.memoryLimit = options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
     this.useColors = options.colors !== false; // default true
     this.colors = new chalk.constructor({ enabled: this.useColors });
+    this.gnuStandardLines = options.gnuStandardLines;
     this.formatter = (options.formatter && isFunction(options.formatter))
       ? options.formatter
-      : ForkTsCheckerWebpackPlugin.createFormatter(options.formatter as 'default' | 'codeframe' || 'default', options.formatterOptions || {});
+      : ForkTsCheckerWebpackPlugin.createFormatter(options.formatter as 'default' | 'codeframe' || 'default', options.formatterOptions || {}, this.gnuStandardLines);
 
     this.tsconfigPath = undefined;
     this.tslintPath = undefined;
@@ -128,12 +131,12 @@ class ForkTsCheckerWebpackPlugin {
     this.tslintVersion = this.tslint ? require('tslint').Linter.VERSION : undefined;
   }
 
-  static createFormatter(type: 'default' | 'codeframe', options: any) {
+  static createFormatter(type: 'default' | 'codeframe', options: any, useGnuStandardLines = false) {
     switch (type) {
       case 'default':
-        return createDefaultFormatter();
+        return createDefaultFormatter(useGnuStandardLines);
       case 'codeframe':
-        return createCodeframeFormatter(options);
+        return createCodeframeFormatter(useGnuStandardLines, options);
       default:
         throw new Error('Unknown "' + type + '" formatter. Available are: default, codeframe.');
     }
@@ -429,17 +432,21 @@ class ForkTsCheckerWebpackPlugin {
 
       this.diagnostics.concat(this.lints).forEach(message => {
         // webpack message format
+        const position = this.gnuStandardLines
+          ? `:${message.getLine()}:${message.getCharacter()}`
+          : `(${message.getLine()},${message.getCharacter()}):`;
+
         const formatted = {
           rawMessage: (
             message.getSeverity().toUpperCase() + ' ' + message.getFormattedCode() + ': ' +
             message.getContent()
           ),
-          message: '(' + message.getLine() + ',' + message.getCharacter() + '): ' + message.getContent(),
+          message: message.getFormattedCode() + ': ' + message.getContent(),
           location: {
             line: message.getLine(),
             character: message.getCharacter()
           },
-          file: message.getFile()
+          file: message.getFile() + position
         };
 
         if (message.isWarningSeverity()) {

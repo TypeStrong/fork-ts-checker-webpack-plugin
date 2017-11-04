@@ -8,6 +8,16 @@ import FilesWatcher = require('./FilesWatcher');
 import WorkSet = require('./WorkSet');
 import NormalizedMessage = require('./NormalizedMessage');
 import CancellationToken = require('./CancellationToken');
+import minimatch = require('minimatch');
+
+// Need some augmentation here - linterOptions.exclude is not (yet) part of the official
+// types for tslint.
+interface ConfigurationFile extends tslintTypes.Configuration.IConfigurationFile {
+  linterOptions?: {
+    typeCheck?: boolean;
+    exclude?: string[];
+  };
+}
 
 class IncrementalChecker {
   programConfigFile: string;
@@ -19,7 +29,8 @@ class IncrementalChecker {
   files: FilesRegister;
 
   linter: tslintTypes.Linter;
-  linterConfig: tslintTypes.Configuration.IConfigurationFile;
+  linterConfig: ConfigurationFile;
+  linterExclusions: minimatch.IMinimatch[];
 
   program: ts.Program;
   programConfig: ts.ParsedCommandLine;
@@ -39,6 +50,9 @@ class IncrementalChecker {
     this.workNumber = workNumber || 0;
     this.workDivision = workDivision || 1;
     this.checkSyntacticErrors = checkSyntacticErrors || false;
+    // Use empty array of exclusions in general to avoid having
+    // to check of its existence later on.
+    this.linterExclusions = [];
 
     // it's shared between compilations
     this.files = new FilesRegister(() => ({
@@ -58,10 +72,10 @@ class IncrementalChecker {
     );
   }
 
-  static loadLinterConfig(configFile: string) {
+  static loadLinterConfig(configFile: string): ConfigurationFile {
     const tslint: typeof tslintTypes = require('tslint');
 
-    return tslint.Configuration.loadConfigurationFromPath(configFile);
+    return tslint.Configuration.loadConfigurationFromPath(configFile) as ConfigurationFile;
   }
 
   static createProgram(
@@ -110,6 +124,10 @@ class IncrementalChecker {
     return new tslint.Linter({ fix: false }, program);
   }
 
+  static isFileExcluded(filePath: string, linterExclusions: minimatch.IMinimatch[]): boolean {
+    return endsWith(filePath, '.d.ts') || linterExclusions.some(matcher => matcher.match(filePath));
+  }
+
   nextIteration() {
     if (!this.watcher) {
       this.watcher = new FilesWatcher(this.watchPaths, ['.ts', '.tsx']);
@@ -131,6 +149,13 @@ class IncrementalChecker {
 
     if (!this.linterConfig && this.linterConfigFile) {
       this.linterConfig = IncrementalChecker.loadLinterConfig(this.linterConfigFile);
+
+      if (this.linterConfig.linterOptions && this.linterConfig.linterOptions.exclude) {
+        // Pre-build minimatch patterns to avoid additional overhead later on.
+        // Note: Resolving the path is required to properly match against the full file paths,
+        // and also deals with potential cross-platform problems regarding path separators.
+        this.linterExclusions = this.linterConfig.linterOptions.exclude.map(pattern => new minimatch.Minimatch(path.resolve(pattern)));
+      }
     }
 
     this.program = IncrementalChecker.createProgram(this.programConfig, this.files, this.watcher, this.program);
@@ -179,7 +204,7 @@ class IncrementalChecker {
 
     // select files to lint
     const filesToLint = this.files.keys().filter(filePath =>
-      !endsWith(filePath, '.d.ts') && !this.files.getData(filePath).linted
+      !this.files.getData(filePath).linted && !IncrementalChecker.isFileExcluded(filePath, this.linterExclusions)
     );
 
     // calculate subset of work to do

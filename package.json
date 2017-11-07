@@ -8,7 +8,6 @@
   ],
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
-    "prepublish": "npm run build",
     "test:unit": "mocha -R spec ./test/unit",
     "test:integration": "mocha -R spec ./test/integration && rimraf tmp",
     "test": "npm run build && npm run test:unit && npm run test:integration",

@@ -1,3 +1,7 @@
+## v0.2.9
+ * Make errors formatting closer to `ts-loader` style
+ * Handle tslint exclude option
+
 ## v0.2.8
  * Add `checkSyntacticErrors` option
  * Fix `process.env` pass to the child process

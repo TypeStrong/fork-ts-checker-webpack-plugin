@@ -61,8 +61,8 @@
     "sinon": "^2.3.1",
     "ts-loader": "^2.1.0",
     "tslint": "^5.0.0",
-    "webpack": "^3.0.0",
-    "typescript": "^2.1.0"
+    "typescript": "^2.1.0",
+    "webpack": "^3.0.0"
   },
   "peerDependencies": {
     "typescript": "^2.1.0",

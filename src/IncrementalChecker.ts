@@ -182,7 +182,7 @@ class IncrementalChecker {
         cancellationToken.throwIfCancellationRequested();
       }
 
-      const diagnosticsToRegister: ts.Diagnostic[] = this.checkSyntacticErrors
+      const diagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this.checkSyntacticErrors
         ? []
           .concat(this.program.getSemanticDiagnostics(sourceFile, cancellationToken))
           .concat(this.program.getSyntacticDiagnostics(sourceFile, cancellationToken))

@@ -9,6 +9,7 @@ import WorkSet = require('./WorkSet');
 import NormalizedMessage = require('./NormalizedMessage');
 import CancellationToken = require('./CancellationToken');
 import minimatch = require('minimatch');
+import vueParser = require('vue-parser');
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
@@ -107,7 +108,46 @@ class IncrementalChecker {
         });
       }
 
-      return files.getData(filePath).source;
+      let source = files.getData(filePath).source;
+
+      // get typescript contents from Vue file
+      if (path.extname(filePath) === '.vue') {
+        const parsed = vueParser.parse(source.text, 'script', { lang: 'ts' });
+        source = ts.createSourceFile(filePath, parsed, languageVersion);
+      }
+
+      return source;
+    };
+
+    host.fileExists = function fileExists(fileName) {
+      return ts.sys.fileExists(fileName);
+    };
+
+    host.readFile = function readFile(fileName) {
+    return ts.sys.readFile(fileName);
+    };
+
+    host.resolveModuleNames = (moduleNames, containingFile) => {
+      const resolvedModules: ts.ResolvedModule[] = [];
+
+      for (const moduleName of moduleNames) {
+        // Try to use standard resolution.
+        const result = ts.resolveModuleName(moduleName, containingFile, programConfig.options, {
+          fileExists: host.fileExists,
+          readFile: host.readFile
+        });
+
+        if (result.resolvedModule) {
+          resolvedModules.push(result.resolvedModule);
+        } else {
+          // For non-ts extensions.
+          resolvedModules.push({
+            resolvedFileName: moduleName,
+            extension: '.ts'
+          } as ts.ResolvedModuleFull);
+        }
+      }
+      return resolvedModules;
     };
 
     return ts.createProgram(

@@ -76,6 +76,7 @@
     "lodash.isfunction": "^3.0.8",
     "lodash.isstring": "^4.0.1",
     "lodash.startswith": "^4.2.1",
-    "minimatch": "^3.0.4"
+    "minimatch": "^3.0.4",
+    "vue-parser": "0.0.3"    
   }
 }

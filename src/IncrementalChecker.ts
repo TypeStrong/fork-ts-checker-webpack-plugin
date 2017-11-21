@@ -9,7 +9,7 @@ import WorkSet = require('./WorkSet');
 import NormalizedMessage = require('./NormalizedMessage');
 import CancellationToken = require('./CancellationToken');
 import minimatch = require('minimatch');
-import * as vueParser from 'vue-parser';
+import vueParser = require('vue-parser');
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.

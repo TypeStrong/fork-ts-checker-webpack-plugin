@@ -1,23 +1,20 @@
 import os = require('os');
 import codeFrame = require('babel-code-frame');
-import chalk = require('chalk');
 import fs = require('fs');
 import NormalizedMessage = require('../NormalizedMessage');
+import createDefaultFormatter = require('./defaultFormatter');
 
 /**
  * Create new code frame formatter.
  *
+ * @param useGnuStandardLines Use GNU standard error line format - see https://github.com/Microsoft/TypeScript/issues/14482
  * @param options Options for babel-code-frame - see https://www.npmjs.com/package/babel-code-frame
  * @returns {codeframeFormatter}
  */
-export = function createCodeframeFormatter(options: any) {
-  return function codeframeFormatter(message: NormalizedMessage, useColors: boolean) {
-    const colors = new chalk.constructor({enabled: useColors});
-    const messageColor = message.isWarningSeverity() ? colors.bold.yellow : colors.bold.red;
-    const positionColor = colors.dim;
-
+export = function createCodeframeFormatter(options: any, useGnuStandardLines = false) {
+  function codeframeFormatter(message: NormalizedMessage, useColors: boolean) {
     const source = message.getFile() && fs.existsSync(message.getFile()) && fs.readFileSync(message.getFile(), 'utf-8');
-    let frame = '';
+    let frame;
 
     if (source) {
       frame = codeFrame(
@@ -31,10 +28,8 @@ export = function createCodeframeFormatter(options: any) {
       .join(os.EOL);
     }
 
-    return (
-      messageColor(message.getSeverity().toUpperCase() + ' in ' + message.getFile()) + os.EOL +
-      positionColor(message.getLine() + ':' + message.getCharacter()) + ' ' + message.getContent() +
-      (frame ? os.EOL + frame : '')
-    );
-  };
+    return frame ? frame + os.EOL : '';
+  }
+
+  return createDefaultFormatter(useGnuStandardLines, codeframeFormatter);
 };

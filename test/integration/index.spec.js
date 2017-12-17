@@ -218,10 +218,8 @@ describe('[INTEGRATION] index', function () {
 
   it('should find syntactic errors when checkSyntacticErrors is true', function (callback) {
     var compiler = createCompiler({ checkSyntacticErrors: true }, true);
-    var logger = console;
     
     compiler.run(function(error, stats) {
-      // logger.info(stats.compilation.errors);
       expect(stats.compilation.errors.length).to.be.equal(2);
       callback();
     });

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+      "experimentalDecorators": true
+  },
+  "include": [
+      "src/**/*.ts",
+      "src/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

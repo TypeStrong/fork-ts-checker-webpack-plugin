@@ -30,6 +30,7 @@ interface Options {
   checkSyntacticErrors: boolean;
   memoryLimit: number;
   workers: number;
+  vue: boolean;
 }
 
 /**
@@ -84,6 +85,8 @@ class ForkTsCheckerWebpackPlugin {
 
   service: childProcess.ChildProcess;
 
+  vue: boolean;
+
   constructor(options: Options) {
     options = options || {} as Options;
     this.options = Object.assign({}, options);
@@ -126,6 +129,8 @@ class ForkTsCheckerWebpackPlugin {
 
     this.typescriptVersion = require('typescript').version;
     this.tslintVersion = this.tslint ? require('tslint').Linter.VERSION : undefined;
+
+    this.vue = options.vue === true; // default false
   }
 
   static createFormatter(type: 'default' | 'codeframe', options: any) {
@@ -313,7 +318,8 @@ class ForkTsCheckerWebpackPlugin {
             WATCH: this.isWatching ? this.watchPaths.join('|') : '',
             WORK_DIVISION: Math.max(1, this.workersNumber),
             MEMORY_LIMIT: this.memoryLimit,
-            CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors
+            CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
+            VUE: this.vue
           }
         ),
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']

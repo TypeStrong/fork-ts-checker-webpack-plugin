@@ -7,7 +7,6 @@ var webpack = require('webpack');
 var process = require('process');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker');
-var CancellationToken = require('../../lib/CancellationToken');
 
 describe('[INTEGRATION] vue', function () {
   this.timeout(30000);

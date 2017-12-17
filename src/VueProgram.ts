@@ -8,7 +8,7 @@ import vueParser = require('vue-parser');
 class VueProgram {
   static loadProgramConfig(configFile: string) {
     const extraExtensions = ['vue'];
-    
+
     const parseConfigHost: ts.ParseConfigHost = {
         fileExists: ts.sys.fileExists,
         readFile: ts.sys.readFile,

@@ -44,16 +44,24 @@ class NormalizedMessage {
   // message types
   static createFromDiagnostic(diagnostic: tsTypes.Diagnostic) {
     const ts: typeof tsTypes = require('typescript');
-    const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+    let file: string;
+    let line: number;
+    let character: number;
+    if (diagnostic.file) {
+      file = diagnostic.file.fileName;
+      const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+      line = position.line + 1;
+      character = position.character + 1;
+    }
 
     return new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: diagnostic.code,
       severity: ts.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
       content: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-      file: diagnostic.file.fileName,
-      line: position.line + 1,
-      character: position.character + 1
+      file: file,
+      line: line,
+      character: character
     });
   }
 

@@ -417,7 +417,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   createEmitCallback(compilation: any, callback: () => void) {
-    const emitCallback = () => {
+    return function emitCallback (this: ForkTsCheckerWebpackPlugin) {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 
       this.compiler.applyPlugins(
@@ -451,8 +451,6 @@ class ForkTsCheckerWebpackPlugin {
 
       callback();
     };
-
-    return emitCallback;
   }
 
   createNoopEmitCallback() {
@@ -461,7 +459,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   createDoneCallback() {
-    const doneCallback = () => {
+    return function doneCallback (this: ForkTsCheckerWebpackPlugin) {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 
       if (this.compiler) {
@@ -493,7 +491,6 @@ class ForkTsCheckerWebpackPlugin {
         this.logger.info('Time: ' + this.colors.bold(Math.round(elapsed / 1E6).toString()) + 'ms');
       }
     };
-    return doneCallback;
   }
 }
 

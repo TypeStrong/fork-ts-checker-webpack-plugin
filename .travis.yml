@@ -3,6 +3,7 @@ deploy:
   - provider: npm
     email: opensource@realytics.io
     skip_cleanup: true
+    tag: latest
     api_key:
       secure: L1iiDkvSgk7uIhdeglWijy8GqSQ63Uu7F/3TB1LEJN2xQ0YgbrBBW2Y1WFzBuVncaLzGV7YtS4eSGT1tjTqEl/c2I4vMdlsusFMSRuA3vDOYc0Uqwn3cjT1X23Exv0foj/Ifltv0idn21TVFWKNy3RSpf1IZ1ZyX9PTBn1QCeUpmlPm5f9HRMOrV7jBPOxS3eS7eeuZvzMk+EsA1XwLhJIhasd0gGXDnItLnCGN+7hrrGEppOQCQhKFfv3cA5hScLSoYUtHwGxryddyhia+UyOfcliXtfb2lvuzJ6rJjRrW6Gce33m1MEXYpOAqkCoF5BXrCLhEfCN+MkfaF9hd8Ytj3DEbIwetcj4XH7rPaiIjN9yKBYkOWeUPUeQ9HRbJ3Nwvapn6od3bHfRr0qCGlltEOtBcMKkARBWd3CiMEJolgoZ1q+w25DZYi9D76jBf8m8MDf2rAt2RapSnBpn70wkPWrcw/+vj/Y5ZQJDj6hzyk/sGTVNOemwtBDa/ishJKVugEQgW+F3mdqoFAfMZrg40yPgj3X34RRUgtTPDGSRZ5+Q57Mt61vcSkNmJWS/oU2zJyHiZEsz0mKOyjko4bip/zkc7oP81GONQ/+EESWuBJusF2ypG/6FJChfgz3XS18jzSRvtihUqLbN30Mvt2mkCeh7GxChVNJVyclCM5HKE=
     on:
@@ -11,18 +12,9 @@ deploy:
   - provider: npm
     email: opensource@realytics.io
     skip_cleanup: true
-    tag: latest
-    api_key:
-      secure: L1iiDkvSgk7uIhdeglWijy8GqSQ63Uu7F/3TB1LEJN2xQ0YgbrBBW2Y1WFzBuVncaLzGV7YtS4eSGT1tjTqEl/c2I4vMdlsusFMSRuA3vDOYc0Uqwn3cjT1X23Exv0foj/Ifltv0idn21TVFWKNy3RSpf1IZ1ZyX9PTBn1QCeUpmlPm5f9HRMOrV7jBPOxS3eS7eeuZvzMk+EsA1XwLhJIhasd0gGXDnItLnCGN+7hrrGEppOQCQhKFfv3cA5hScLSoYUtHwGxryddyhia+UyOfcliXtfb2lvuzJ6rJjRrW6Gce33m1MEXYpOAqkCoF5BXrCLhEfCN+MkfaF9hd8Ytj3DEbIwetcj4XH7rPaiIjN9yKBYkOWeUPUeQ9HRbJ3Nwvapn6od3bHfRr0qCGlltEOtBcMKkARBWd3CiMEJolgoZ1q+w25DZYi9D76jBf8m8MDf2rAt2RapSnBpn70wkPWrcw/+vj/Y5ZQJDj6hzyk/sGTVNOemwtBDa/ishJKVugEQgW+F3mdqoFAfMZrg40yPgj3X34RRUgtTPDGSRZ5+Q57Mt61vcSkNmJWS/oU2zJyHiZEsz0mKOyjko4bip/zkc7oP81GONQ/+EESWuBJusF2ypG/6FJChfgz3XS18jzSRvtihUqLbN30Mvt2mkCeh7GxChVNJVyclCM5HKE=
-    on:
-      tags: false
-      branch: master
-  - provider: npm
-    email: opensource@realytics.io
-    skip_cleanup: true
     tag: next
     api_key:
       secure: L1iiDkvSgk7uIhdeglWijy8GqSQ63Uu7F/3TB1LEJN2xQ0YgbrBBW2Y1WFzBuVncaLzGV7YtS4eSGT1tjTqEl/c2I4vMdlsusFMSRuA3vDOYc0Uqwn3cjT1X23Exv0foj/Ifltv0idn21TVFWKNy3RSpf1IZ1ZyX9PTBn1QCeUpmlPm5f9HRMOrV7jBPOxS3eS7eeuZvzMk+EsA1XwLhJIhasd0gGXDnItLnCGN+7hrrGEppOQCQhKFfv3cA5hScLSoYUtHwGxryddyhia+UyOfcliXtfb2lvuzJ6rJjRrW6Gce33m1MEXYpOAqkCoF5BXrCLhEfCN+MkfaF9hd8Ytj3DEbIwetcj4XH7rPaiIjN9yKBYkOWeUPUeQ9HRbJ3Nwvapn6od3bHfRr0qCGlltEOtBcMKkARBWd3CiMEJolgoZ1q+w25DZYi9D76jBf8m8MDf2rAt2RapSnBpn70wkPWrcw/+vj/Y5ZQJDj6hzyk/sGTVNOemwtBDa/ishJKVugEQgW+F3mdqoFAfMZrg40yPgj3X34RRUgtTPDGSRZ5+Q57Mt61vcSkNmJWS/oU2zJyHiZEsz0mKOyjko4bip/zkc7oP81GONQ/+EESWuBJusF2ypG/6FJChfgz3XS18jzSRvtihUqLbN30Mvt2mkCeh7GxChVNJVyclCM5HKE=
     on:
-      tags: false
+      tags: true
       branch: next

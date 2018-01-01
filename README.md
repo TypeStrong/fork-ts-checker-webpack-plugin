@@ -195,7 +195,7 @@ import Hello from '@/components/hello.vue'
     ]
 }
 ```
-5. Ensure your `tsconfig.json` includes .vue files:
+5. Ensure your `tsconfig.json` includes .vue files:  
 
 ```
 // tsconfig.json

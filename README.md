@@ -104,6 +104,10 @@ should keep free 1 core for *build* and 1 core for a *system* *(for example syst
 node doesn't share memory between workers - keep in mind that memory usage will increase. Be aware that in some scenarios increasing workers
 number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
 
+* **vue** `boolean`:
+If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the 
+[Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
+
 ### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
   * `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
@@ -140,6 +144,95 @@ This plugin provides some custom webpack hooks (all are sync):
 |`fork-ts-checker-receive`| Plugin receives diagnostics and lints from service | `diagnostics`, `lints` | 
 |`fork-ts-checker-emit`| Service will add errors and warnings to webpack compilation ('build' mode) | `diagnostics`, `lints`, `elapsed` |
 |`fork-ts-checker-done`| Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed` |
+
+## Vue
+1. Turn on the vue option in the plugin in your webpack config:
+
+```
+    new ForkTsCheckerWebpackPlugin({
+      tslint: true,
+      vue: true
+    })
+```
+
+2. To activate TypeScript in your `.vue` files, you need to ensure your script tag's language attribute is set
+to `ts` or `tsx` (also make sure you include the `.vue` extension in all your import statements as shown below): 
+
+```html
+<script lang="ts">
+import Hello from '@/components/hello.vue'
+
+// ...
+
+</script>
+```
+
+3. Ideally you are also using `ts-loader` (in transpileOnly mode). Your Webpack config rules may look something like this:  
+
+```
+{
+  test: /\.ts$/,
+  loader: 'ts-loader',
+  include: [resolve('src'), resolve('test')],
+  options: {
+    appendTsSuffixTo: [/\.vue$/],
+    transpileOnly: true
+  }
+},
+{
+  test: /\.vue$/,
+  loader: 'vue-loader',
+  options: vueLoaderConfig
+},
+```
+4. Add rules to your `tslint.json` and they will be applied to Vue files. For example, you could apply the Standard JS rules [tslint-config-standard](https://github.com/blakeembrey/tslint-config-standard) like this:  
+
+```json
+{
+    "defaultSeverity": "error",
+    "extends": [
+      "tslint-config-standard"
+    ]
+}
+```
+5. Ensure your `tsconfig.json` includes .vue files:
+
+```
+// tsconfig.json
+{
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue"
+  ],
+  "exclude": [
+      "node_modules"
+  ]
+}
+```
+
+6. The commonly used `@` path wildcard will work if you set up a `baseUrl` and `paths` (in `compilerOptions`) to include `@/*`. If you don't set this, then 
+the fallback for the `@` wildcard will be `[tsconfig directory]/src` (we hope to make this more flexible on future releases):  
+```
+// tsconfig.json
+{
+  "compilerOptions": {
+    
+    // ...
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
+  }
+}
+
+// In a .ts or .vue file...
+import Hello from '@/components/hello.vue'
+```
+
+7. If you are working in **VSCode**, you can get extensions [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) and [TSLint Vue](https://marketplace.visualstudio.com/items?itemName=prograhammer.tslint-vue) to complete the developer workflow.
 
 ## License
 MIT

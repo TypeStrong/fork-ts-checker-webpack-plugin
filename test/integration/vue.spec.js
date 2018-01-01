@@ -45,6 +45,10 @@ describe('[INTEGRATION] vue', function () {
               transpileOnly: true,
               silent: true
             }
+          },
+          {
+            test: /\.css$/,
+            loader: 'css-loader'
           }
         ]
       },

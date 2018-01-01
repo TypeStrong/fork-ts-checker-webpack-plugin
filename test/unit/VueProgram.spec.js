@@ -4,6 +4,16 @@ var expect = require('chai').expect;
 var VueProgram = require('../../lib/VueProgram');
 
 describe('[UNIT] VueProgram', function () {
+  it('should determine if file is a Vue file', function() {
+    expect(VueProgram.isVue('./test.vue')).to.be.true;
+    expect(VueProgram.isVue('../test.vue')).to.be.true;
+    expect(VueProgram.isVue('../../test.vue')).to.be.true;
+    expect(VueProgram.isVue('@/test.vue')).to.be.true;
+    expect(VueProgram.isVue('../../.vue')).to.be.false;
+    expect(VueProgram.isVue('./test.css')).to.be.false;
+    expect(VueProgram.isVue('./')).to.be.false;
+  });
+
   it('should properly resolve relative module names', function() {
     var basedir = '/base/dir';
     var containingFile = '/con/tain/ing/main.ts';

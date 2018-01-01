@@ -52,6 +52,10 @@ class VueProgram {
     return moduleName;
   }
 
+  public static isVue(filePath: string) {
+    return path.extname(filePath) === '.vue';
+  }
+
   static createProgram(
     programConfig: ts.ParsedCommandLine,
     basedir: string,
@@ -86,7 +90,7 @@ class VueProgram {
       let source = files.getData(filePath).source;
 
       // get typescript contents from Vue file
-      if (source && filePath.substr(-4) === '.vue') {
+      if (source && VueProgram.isVue(filePath)) {
         const parsed = vueParser.parse(source.text, 'script', { lang: ['ts', 'tsx', 'js', 'jsx'] });
         source = ts.createSourceFile(filePath, parsed, languageVersion, true);
       }
@@ -109,10 +113,20 @@ class VueProgram {
           resolvedModules.push(result.resolvedModule);
         } else {
           // For non-ts extensions.
-          resolvedModules.push({
-            resolvedFileName: VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, programConfig.options),
-            extension: '.ts'
-          } as ts.ResolvedModuleFull);
+          const absolutePath = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, programConfig.options);
+
+          if (VueProgram.isVue(moduleName)) {
+            resolvedModules.push({
+              resolvedFileName: absolutePath,
+              extension: '.ts'
+            } as ts.ResolvedModuleFull);
+          } else {
+            resolvedModules.push({
+              // If the file does exist, return an empty string (because we assume user has provided a ".d.ts" file for it).
+              resolvedFileName: host.fileExists(absolutePath) ? '' : absolutePath,
+              extension: '.ts'
+            } as ts.ResolvedModuleFull);
+          }
         }
       }
 

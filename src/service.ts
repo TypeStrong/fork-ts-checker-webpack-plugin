@@ -10,7 +10,8 @@ const checker = new IncrementalChecker(
   process.env.WATCH === '' ? [] : process.env.WATCH.split('|'),
   parseInt(process.env.WORK_NUMBER, 10),
   parseInt(process.env.WORK_DIVISION, 10),
-  process.env.CHECK_SYNTACTIC_ERRORS === 'true'
+  process.env.CHECK_SYNTACTIC_ERRORS === 'true',
+  process.env.VUE === 'true'
 );
 
 function run(cancellationToken: CancellationToken) {

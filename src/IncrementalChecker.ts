@@ -9,6 +9,7 @@ import WorkSet = require('./WorkSet');
 import NormalizedMessage = require('./NormalizedMessage');
 import CancellationToken = require('./CancellationToken');
 import minimatch = require('minimatch');
+import VueProgram = require('./VueProgram');
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
@@ -36,13 +37,16 @@ class IncrementalChecker {
   programConfig: ts.ParsedCommandLine;
   watcher: FilesWatcher;
 
+  vue: boolean;
+
   constructor(
     programConfigFile: string,
     linterConfigFile: string | false,
     watchPaths: string[],
     workNumber: number,
     workDivision: number,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    vue: boolean
   ) {
     this.programConfigFile = programConfigFile;
     this.linterConfigFile = linterConfigFile;
@@ -50,6 +54,7 @@ class IncrementalChecker {
     this.workNumber = workNumber || 0;
     this.workDivision = workDivision || 1;
     this.checkSyntacticErrors = checkSyntacticErrors || false;
+    this.vue = vue || false;
     // Use empty array of exclusions in general to avoid having
     // to check of its existence later on.
     this.linterExclusions = [];
@@ -130,7 +135,8 @@ class IncrementalChecker {
 
   nextIteration() {
     if (!this.watcher) {
-      this.watcher = new FilesWatcher(this.watchPaths, ['.ts', '.tsx']);
+      const watchExtensions = this.vue ? ['.ts', '.tsx', '.vue'] : ['.ts', '.tsx'];
+      this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
 
       // connect watcher with register
       this.watcher.on('change', (filePath: string, stats: fs.Stats) => {
@@ -141,10 +147,6 @@ class IncrementalChecker {
       });
 
       this.watcher.watch();
-    }
-
-    if (!this.programConfig) {
-      this.programConfig = IncrementalChecker.loadProgramConfig(this.programConfigFile);
     }
 
     if (!this.linterConfig && this.linterConfigFile) {
@@ -158,10 +160,29 @@ class IncrementalChecker {
       }
     }
 
-    this.program = IncrementalChecker.createProgram(this.programConfig, this.files, this.watcher, this.program);
+    this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
+
     if (this.linterConfig) {
       this.linter = IncrementalChecker.createLinter(this.program);
     }
+  }
+
+  loadVueProgram() {
+    this.programConfig = this.programConfig || VueProgram.loadProgramConfig(this.programConfigFile);
+
+    return VueProgram.createProgram(
+      this.programConfig,
+      path.dirname(this.programConfigFile),
+      this.files,
+      this.watcher,
+      this.program
+    );
+  }
+
+  loadDefaultProgram() {
+    this.programConfig = this.programConfig || IncrementalChecker.loadProgramConfig(this.programConfigFile);
+
+    return IncrementalChecker.createProgram(this.programConfig, this.files, this.watcher, this.program);
   }
 
   hasLinter() {

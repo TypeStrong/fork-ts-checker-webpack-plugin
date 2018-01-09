@@ -1,3 +1,6 @@
+## v0.3.0
+ * Add `vue` support
+
 ## v0.2.10
  * Fix #80 "Cannot read property 'getLineAndCharacterOfPosition' of undefined"
  * Fix #76 "TypeError: Cannot read property '0' of undefined"

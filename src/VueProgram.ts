@@ -38,19 +38,33 @@ class VueProgram {
    */
   public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
     const baseUrl = options.baseUrl ? options.baseUrl : basedir;
-    const wildcard = options.wildcard ? options.wildcard : '@';
-    const pattern = options.paths ? options.paths[`${wildcard}/*`] : undefined;
-    const substitution = pattern ? options.paths[`${wildcard}/*`][0].replace('*', '') : 'src';
-    const isWildcard = moduleName.substr(0, 2) === `${wildcard}/`;
-    const isRelative = !path.isAbsolute(moduleName);
+    const discartedSymbols = ['.', '..', '/'];
+        let wildcards = [];
+        Object.keys(options.paths).forEach(path => {
+            const pathSymbol = path[0];
+            if (!discartedSymbols.includes(pathSymbol) && !wildcards.includes(pathSymbol)) {
+                wildcards.push(pathSymbol);
+            }
+        });
 
-    if (isWildcard) {
-      moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
-    } else if (isRelative) {
-      moduleName = path.resolve(path.dirname(containingFile), moduleName);
-    }
-
-    return moduleName;
+        const isRelative = !path.isAbsolute(moduleName);
+        let correctWildcard;
+        
+        wildcards.forEach(wildcard => {
+            if (moduleName.substr(0, 2) === `${wildcard}/`) {
+                correctWildcard = wildcard;
+            }
+        });
+        
+        if (correctWildcard) {
+            const pattern = options.paths ? options.paths[`${correctWildcard}/*`] : undefined;
+            const substitution = pattern ? options.paths[`${correctWildcard}/*`][0].replace('*', '') : 'src';
+            moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
+        }
+        else if (isRelative) {
+            moduleName = path.resolve(path.dirname(containingFile), moduleName);
+        }
+        return moduleName;
   }
 
   public static isVue(filePath: string) {

@@ -151,8 +151,7 @@ This plugin provides some custom webpack hooks (all are sync):
 ```
     new ForkTsCheckerWebpackPlugin({
       tslint: true,
-      vue: true,
-      wildcard: '~' // Optional
+      vue: true
     })
 ```
 
@@ -211,8 +210,7 @@ import Hello from '@/components/hello.vue'
 }
 ```
 
-6. The commonly used `@` path wildcard will work if you set up a `baseUrl` and `paths` (in `compilerOptions`) to include `@/*`. If you don't set this, then 
-the fallback to options.wildcard and if this not exist the fallback will be `[tsconfig directory]/src` (we hope to make this more flexible on future releases):  
+6. It accepts any wildcard in your TypeScript configuration:  
 ```
 // tsconfig.json
 {
@@ -223,6 +221,9 @@ the fallback to options.wildcard and if this not exist the fallback will be `[ts
     "baseUrl": ".",
     "paths": {
       "@/*": [
+        "src/*"
+      ],
+      "~/*": [
         "src/*"
       ]
     }

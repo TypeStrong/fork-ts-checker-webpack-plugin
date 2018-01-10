@@ -31,16 +31,17 @@ class VueProgram {
   }
 
   /**
-   * Since 99.9% of Vue projects use the wildcard '@/*', we only search for that in tsconfig CompilerOptions.paths.
+   * Search for default wildcard or wildcard from options, we only search for that in tsconfig CompilerOptions.paths.
    * The path is resolved with thie given substitution and includes the CompilerOptions.baseUrl (if given).
    * If no paths given in tsconfig, then the default substitution is '[tsconfig directory]/src'.
    * (This is a fast, simplified inspiration of what's described here: https://github.com/Microsoft/TypeScript/issues/5039)
    */
   public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
     const baseUrl = options.baseUrl ? options.baseUrl : basedir;
-    const pattern = options.paths ? options.paths['@/*'] : undefined;
-    const substitution = pattern ? options.paths['@/*'][0].replace('*', '') : 'src';
-    const isWildcard = moduleName.substr(0, 2) === '@/';
+    const wildcard = options.wildcard ? options.wildcard : '@';
+    const pattern = options.paths ? options.paths[`${wildcard}/*`] : undefined;
+    const substitution = pattern ? options.paths[`${wildcard}/*`][0].replace('*', '') : 'src';
+    const isWildcard = moduleName.substr(0, 2) === `${wildcard}/`;
     const isRelative = !path.isAbsolute(moduleName);
 
     if (isWildcard) {

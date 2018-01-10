@@ -39,32 +39,36 @@ class VueProgram {
   public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
     const baseUrl = options.baseUrl ? options.baseUrl : basedir;
     const discartedSymbols = ['.', '..', '/'];
-        let wildcards: string[] = [];
-        Object.keys(options.paths).forEach(path => {
-            const pathSymbol = path[0];
-            if (discartedSymbols.indexOf(pathSymbol) < 0 && wildcards.indexOf(pathSymbol) < 0) {
-                wildcards.push(pathSymbol);
-            }
-        });
+    const wildcards: string[] = [];
 
-        const isRelative = !path.isAbsolute(moduleName);
-        let correctWildcard;
-        
-        wildcards.forEach(wildcard => {
-            if (moduleName.substr(0, 2) === `${wildcard}/`) {
-                correctWildcard = wildcard;
-            }
-        });
-        
-        if (correctWildcard) {
-            const pattern = options.paths ? options.paths[`${correctWildcard}/*`] : undefined;
-            const substitution = pattern ? options.paths[`${correctWildcard}/*`][0].replace('*', '') : 'src';
-            moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
+    if (options.paths) {
+      Object.keys(options.paths).forEach(key => {
+        const pathSymbol = key[0];
+        if (discartedSymbols.indexOf(pathSymbol) < 0 && wildcards.indexOf(pathSymbol) < 0) {
+          wildcards.push(pathSymbol);
         }
-        else if (isRelative) {
-            moduleName = path.resolve(path.dirname(containingFile), moduleName);
-        }
-        return moduleName;
+      });
+    } else {
+      wildcards.push('@');
+    }
+
+    const isRelative = !path.isAbsolute(moduleName);
+    let correctWildcard;
+
+    wildcards.forEach(wildcard => {
+      if (moduleName.substr(0, 2) === `${wildcard}/`) {
+        correctWildcard = wildcard;
+      }
+    });
+
+    if (correctWildcard) {
+      const pattern = options.paths ? options.paths[`${correctWildcard}/*`] : undefined;
+      const substitution = pattern ? options.paths[`${correctWildcard}/*`][0].replace('*', '') : 'src';
+      moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
+    } else if (isRelative) {
+      moduleName = path.resolve(path.dirname(containingFile), moduleName);
+    }
+    return moduleName;
   }
 
   public static isVue(filePath: string) {

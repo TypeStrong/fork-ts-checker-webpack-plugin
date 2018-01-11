@@ -36,20 +36,8 @@ class VueProgram {
    * If no paths given in tsconfig, then the default substitution is '[tsconfig directory]/src'.
    * (This is a fast, simplified inspiration of what's described here: https://github.com/Microsoft/TypeScript/issues/5039)
    */
-  public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
-    const baseUrl = options.baseUrl ? options.baseUrl : basedir;
-    const pattern = options.paths ? options.paths['@/*'] : undefined;
-    const substitution = pattern ? options.paths['@/*'][0].replace('*', '') : 'src';
-    const isWildcard = moduleName.substr(0, 2) === '@/';
-    const isRelative = !path.isAbsolute(moduleName);
-
-    if (isWildcard) {
-      moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
-    } else if (isRelative) {
-      moduleName = path.resolve(path.dirname(containingFile), moduleName);
-    }
-
-    return moduleName;
+  public static resolveNonTsModuleName(moduleName: string, containingFile: string) {
+    return path.resolve(path.dirname(containingFile), moduleName);
   }
 
   public static isVue(filePath: string) {
@@ -58,7 +46,6 @@ class VueProgram {
 
   static createProgram(
     programConfig: ts.ParsedCommandLine,
-    basedir: string,
     files: FilesRegister,
     watcher: FilesWatcher,
     oldProgram: ts.Program
@@ -113,7 +100,7 @@ class VueProgram {
           resolvedModules.push(result.resolvedModule);
         } else {
           // For non-ts extensions.
-          const absolutePath = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, programConfig.options);
+          const absolutePath = VueProgram.resolveNonTsModuleName(moduleName, containingFile);
 
           if (VueProgram.isVue(moduleName)) {
             resolvedModules.push({

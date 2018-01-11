@@ -38,13 +38,13 @@ class VueProgram {
    */
   public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
     const baseUrl = options.baseUrl ? options.baseUrl : basedir;
-    const discartedSymbols = ['.', '..', '/'];
+    const discardedSymbols = ['.', '..', '/'];
     const wildcards: string[] = [];
 
     if (options.paths) {
       Object.keys(options.paths).forEach(key => {
         const pathSymbol = key[0];
-        if (discartedSymbols.indexOf(pathSymbol) < 0 && wildcards.indexOf(pathSymbol) < 0) {
+        if (discardedSymbols.indexOf(pathSymbol) < 0 && wildcards.indexOf(pathSymbol) < 0) {
           wildcards.push(pathSymbol);
         }
       });

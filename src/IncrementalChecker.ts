@@ -172,7 +172,6 @@ class IncrementalChecker {
 
     return VueProgram.createProgram(
       this.programConfig,
-      path.dirname(this.programConfigFile),
       this.files,
       this.watcher,
       this.program

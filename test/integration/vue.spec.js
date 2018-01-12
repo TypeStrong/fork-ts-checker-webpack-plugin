@@ -134,7 +134,7 @@ describe('[INTEGRATION] vue', function () {
     createCompiler({ tslint: true, vue: true });
     
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(2);
+      expect(stats.compilation.errors.length).to.be.equal(1);
       callback();
     });
   });
@@ -143,7 +143,7 @@ describe('[INTEGRATION] vue', function () {
     createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
     
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(3);
+      expect(stats.compilation.errors.length).to.be.equal(2);
       callback();
     });
   });

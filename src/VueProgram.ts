@@ -66,6 +66,19 @@ class VueProgram {
     const host = ts.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
+    const getScriptKind = (lang: string) => {
+      if (lang === "ts") {
+        return ts.ScriptKind.TS;
+      } else if (lang === "tsx") {
+        return ts.ScriptKind.TSX;
+      } else if (lang === "jsx") {
+        return ts.ScriptKind.JSX;
+      } else {
+        // when lang is "js" or no lang specified
+        return ts.ScriptKind.JS;
+      }
+    }
+
     // We need a host that can parse Vue SFCs (single file components).
     host.getSourceFile = (filePath, languageVersion, onError) => {
       // first check if watcher is watching file - if not - check it's mtime
@@ -91,8 +104,21 @@ class VueProgram {
 
       // get typescript contents from Vue file
       if (source && VueProgram.isVue(filePath)) {
-        const parsed = vueParser.parse(source.text, 'script', { lang: ['ts', 'tsx', 'js', 'jsx'] });
-        source = ts.createSourceFile(filePath, parsed, languageVersion, true);
+        let parsed: string;
+        let kind: ts.ScriptKind;
+        for (const lang of ['ts', 'tsx', 'js', 'jsx']) {
+          parsed = vueParser.parse(source.text, 'script', { lang: [lang], emptyExport: false });
+          if (parsed) {
+            kind = getScriptKind(lang);
+            break;
+          }
+        }
+        if (!parsed) {
+          // when script tag has no lang, or no script tag given
+          parsed = vueParser.parse(source.text, 'script');
+          kind = ts.ScriptKind.JS;
+        }
+        source = ts.createSourceFile(filePath, parsed, languageVersion, true, kind);
       }
 
       return source;

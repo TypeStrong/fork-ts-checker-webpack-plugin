@@ -18,6 +18,7 @@ describe('[INTEGRATION] index', function () {
         : { transpileOnly: true, silent: true };
 
     return webpack({
+      mode: 'development',
       context: path.resolve(__dirname, './project'),
       entry: './src/index.ts',
       output: {
@@ -89,7 +90,7 @@ describe('[INTEGRATION] index', function () {
 
   it('should block emit on build mode', function (callback) {
     var compiler = createCompiler();
-    compiler.plugin('fork-ts-checker-emit', function () {
+    compiler.hooks.forkTsCheckerEmit.tap('should block emit on build mode', function () {
       expect(true).to.be.true;
       callback();
     });
@@ -101,7 +102,7 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
-    compiler.plugin('fork-ts-checker-done', function () {
+    compiler.hooks.forkTsCheckerDone.tap('should not block emit on watch mode', function () {
       watching.close(function() {
         expect(true).to.be.true;
         callback();
@@ -113,7 +114,7 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler({ async: false });
     var watching = compiler.watch({}, function() {});
 
-    compiler.plugin('fork-ts-checker-emit', function () {
+    compiler.hooks.forkTsCheckerEmit.tap('should block emit if async flag is false', function () {
       watching.close(function() {
         expect(true).to.be.true;
         callback();
@@ -125,7 +126,7 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
-    compiler.plugin('fork-ts-checker-done', function () {
+    compiler.hooks.forkTsCheckerDone.tap('kills the service when the watch is done', function () {
       watching.close(function() {
         expect(killServiceWasCalled()).to.be.true;
         done();
@@ -191,7 +192,7 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler();
     var delayed = false;
 
-    compiler.plugin('fork-ts-checker-service-before-start', function (cb) {
+    compiler.hooks.forkTsCheckerServiceBeforeStart.tapAsync('should allow delaying service-start', function (cb) {
       setTimeout(function () {
         delayed = true;
 
@@ -199,7 +200,7 @@ describe('[INTEGRATION] index', function () {
       }, 0);
     });
 
-    compiler.plugin('fork-ts-checker-service-start', function () {
+    compiler.hooks.forkTsCheckerServiceStart.tap('should allow delaying service-start', function () {
       expect(delayed).to.be.true;
       callback();
     });

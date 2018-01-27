@@ -20,6 +20,7 @@ describe('[INTEGRATION] vue', function () {
     plugin = new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }));
 
     compiler = webpack({
+      mode: 'development',
       context: path.resolve(__dirname, './vue'),
       entry: './src/index.ts',
       output: {

@@ -31,24 +31,43 @@ class VueProgram {
   }
 
   /**
-   * Since 99.9% of Vue projects use the wildcard '@/*', we only search for that in tsconfig CompilerOptions.paths.
+   * Search for default wildcard or wildcard from options, we only search for that in tsconfig CompilerOptions.paths.
    * The path is resolved with thie given substitution and includes the CompilerOptions.baseUrl (if given).
    * If no paths given in tsconfig, then the default substitution is '[tsconfig directory]/src'.
    * (This is a fast, simplified inspiration of what's described here: https://github.com/Microsoft/TypeScript/issues/5039)
    */
   public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
     const baseUrl = options.baseUrl ? options.baseUrl : basedir;
-    const pattern = options.paths ? options.paths['@/*'] : undefined;
-    const substitution = pattern ? options.paths['@/*'][0].replace('*', '') : 'src';
-    const isWildcard = moduleName.substr(0, 2) === '@/';
-    const isRelative = !path.isAbsolute(moduleName);
+    const discardedSymbols = ['.', '..', '/'];
+    const wildcards: string[] = [];
 
-    if (isWildcard) {
+    if (options.paths) {
+      Object.keys(options.paths).forEach(key => {
+        const pathSymbol = key[0];
+        if (discardedSymbols.indexOf(pathSymbol) < 0 && wildcards.indexOf(pathSymbol) < 0) {
+          wildcards.push(pathSymbol);
+        }
+      });
+    } else {
+      wildcards.push('@');
+    }
+
+    const isRelative = !path.isAbsolute(moduleName);
+    let correctWildcard;
+
+    wildcards.forEach(wildcard => {
+      if (moduleName.substr(0, 2) === `${wildcard}/`) {
+        correctWildcard = wildcard;
+      }
+    });
+
+    if (correctWildcard) {
+      const pattern = options.paths ? options.paths[`${correctWildcard}/*`] : undefined;
+      const substitution = pattern ? options.paths[`${correctWildcard}/*`][0].replace('*', '') : 'src';
       moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
     } else if (isRelative) {
       moduleName = path.resolve(path.dirname(containingFile), moduleName);
     }
-
     return moduleName;
   }
 

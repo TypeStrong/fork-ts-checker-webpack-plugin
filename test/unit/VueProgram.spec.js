@@ -9,6 +9,7 @@ describe('[UNIT] VueProgram', function () {
     expect(VueProgram.isVue('../test.vue')).to.be.true;
     expect(VueProgram.isVue('../../test.vue')).to.be.true;
     expect(VueProgram.isVue('@/test.vue')).to.be.true;
+    expect(VueProgram.isVue('~/test.vue')).to.be.true;
     expect(VueProgram.isVue('../../.vue')).to.be.false;
     expect(VueProgram.isVue('./test.css')).to.be.false;
     expect(VueProgram.isVue('./')).to.be.false;

@@ -149,13 +149,29 @@ class VueProgram {
 
       for (const moduleName of moduleNames) {
         // Try to use standard resolution.
-        const result = ts.resolveModuleName(moduleName, containingFile, programConfig.options, {
-          fileExists: host.fileExists,
-          readFile: host.readFile
+        const { resolvedModule } = ts.resolveModuleName(moduleName, containingFile, programConfig.options, {
+          fileExists(fileName) {
+            if (fileName.endsWith('.vue.ts')) {
+              return host.fileExists(fileName.slice(0, -3)) || host.fileExists(fileName);
+            } else {
+              return host.fileExists(fileName);
+            }
+          },
+          readFile(fileName) {
+            // This implementation is not necessary. Just for consistent behavior.
+            if (fileName.endsWith('.vue.ts') && !host.fileExists(fileName)) {
+              return host.readFile(fileName.slice(0, -3));
+            } else {
+              return host.readFile(fileName);
+            }
+          }
         });
 
-        if (result.resolvedModule) {
-          resolvedModules.push(result.resolvedModule);
+        if (resolvedModule) {
+          if (resolvedModule.resolvedFileName.endsWith('vue.ts') && !host.fileExists(resolvedModule.resolvedFileName)) {
+            resolvedModule.resolvedFileName = resolvedModule.resolvedFileName.slice(0, -3);
+          }
+          resolvedModules.push(resolvedModule);
         } else {
           // For non-ts extensions.
           const absolutePath = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, programConfig.options);

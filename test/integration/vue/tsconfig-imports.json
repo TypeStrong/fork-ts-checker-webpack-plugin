@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+      "baseUrl": "./src",
+      "moduleResolution": "node",
+      "paths": {
+          "@/*": ["imports/*"],
+          "foo/*": [
+              "imports/foo1/*",
+              "imports/foo2/*"
+          ]
+      }
+  },
+  "include": [
+      "imports/Test.vue"
+  ],
+  "exclude": [
+      "node_modules"
+  ]
+}

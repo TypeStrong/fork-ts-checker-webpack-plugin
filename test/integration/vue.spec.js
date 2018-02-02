@@ -234,4 +234,42 @@ describe('[INTEGRATION] vue', function () {
       expect(errors['example-nolang.vue'].length).to.be.equal(0);
     });
   });
+
+  describe('should resolve *.vue in the same way as TypeScript', function() {
+    var errors;
+    before(function(callback) {
+      createCompiler({ vue: true, tsconfig: 'tsconfig-imports.json' });
+      compiler.run(function(error, stats) {
+        errors = stats.compilation.errors;
+        callback();
+      });
+    });
+
+    it('should be able to import by relative path', function() {
+      expect(
+        errors.filter(e => e.rawMessage.indexOf('./Component1.vue') >= 0).length
+      ).to.be.equal(0);
+    });
+    it('should be able to import by path from baseUrl', function() {
+      expect(
+        errors.filter(e => e.rawMessage.indexOf('imports/Component2.vue') >= 0).length
+      ).to.be.equal(0);
+    });
+    it('should be able to import by compilerOptions.paths setting', function() {
+      expect(
+        errors.filter(e => e.rawMessage.indexOf('@/Component3.vue') >= 0).length
+      ).to.be.equal(0);
+    });
+    it('should be able to import by compilerOptions.paths setting (by array)', function() {
+      expect(
+        errors.filter(e => e.rawMessage.indexOf('foo/Foo1.vue') >= 0).length
+      ).to.be.equal(0);
+      expect(
+        errors.filter(e => e.rawMessage.indexOf('foo/Foo2.vue') >= 0).length
+      ).to.be.equal(0);
+    });
+    it('should not report any compilation errors', function() {
+      expect(errors.length).to.be.equal(0);
+    });
+  });
 });

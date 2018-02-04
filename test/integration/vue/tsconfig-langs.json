@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-      "experimentalDecorators": true
+      "jsx": "preserve"
   },
   "include": [
-      "src/*.ts",
-      "src/*.vue"
+      "src/langs/*.ts",
+      "src/langs/*.vue"
   ],
   "exclude": [
     "node_modules"

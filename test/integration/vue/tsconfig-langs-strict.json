@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+      "jsx": "preserve",
+      "noUnusedLocals": true
+  },
+  "include": [
+      "src/langs/*.ts",
+      "src/langs/*.vue"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

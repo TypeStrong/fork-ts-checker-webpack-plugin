@@ -210,8 +210,7 @@ import Hello from '@/components/hello.vue'
 }
 ```
 
-6. The commonly used `@` path wildcard will work if you set up a `baseUrl` and `paths` (in `compilerOptions`) to include `@/*`. If you don't set this, then 
-the fallback for the `@` wildcard will be `[tsconfig directory]/src` (we hope to make this more flexible on future releases):  
+6. It accepts any wildcard in your TypeScript configuration:  
 ```
 // tsconfig.json
 {
@@ -222,6 +221,9 @@ the fallback for the `@` wildcard will be `[tsconfig directory]/src` (we hope to
     "baseUrl": ".",
     "paths": {
       "@/*": [
+        "src/*"
+      ],
+      "~/*": [
         "src/*"
       ]
     }

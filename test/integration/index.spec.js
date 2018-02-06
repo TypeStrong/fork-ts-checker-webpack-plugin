@@ -90,10 +90,18 @@ describe('[INTEGRATION] index', function () {
 
   it('should block emit on build mode', function (callback) {
     var compiler = createCompiler();
-    compiler.hooks.forkTsCheckerEmit.tap('should block emit on build mode', function () {
-      expect(true).to.be.true;
-      callback();
-    });
+
+    if ('hooks' in compiler) {
+      compiler.hooks.forkTsCheckerEmit.tap('should block emit on build mode', function () {
+        expect(true).to.be.true;
+        callback();
+      });
+    } else {
+      compiler.plugin('fork-ts-checker-emit', function () {
+        expect(true).to.be.true;
+        callback();
+      });
+    }
 
     compiler.run(function() {});
   });
@@ -102,36 +110,63 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
-    compiler.hooks.forkTsCheckerDone.tap('should not block emit on watch mode', function () {
-      watching.close(function() {
-        expect(true).to.be.true;
-        callback();
+    if ('hooks' in compiler) {
+      compiler.hooks.forkTsCheckerDone.tap('should not block emit on watch mode', function () {
+        watching.close(function() {
+          expect(true).to.be.true;
+          callback();
+        });
       });
-    });
+    } else {
+      compiler.plugin('fork-ts-checker-done', function () {
+        watching.close(function() {
+          expect(true).to.be.true;
+          callback();
+        });
+      });
+    }
   });
 
   it('should block emit if async flag is false', function (callback) {
     var compiler = createCompiler({ async: false });
     var watching = compiler.watch({}, function() {});
 
-    compiler.hooks.forkTsCheckerEmit.tap('should block emit if async flag is false', function () {
-      watching.close(function() {
-        expect(true).to.be.true;
-        callback();
+    if ('hooks' in compiler) {
+      compiler.hooks.forkTsCheckerEmit.tap('should block emit if async flag is false', function () {
+        watching.close(function() {
+          expect(true).to.be.true;
+          callback();
+        });
       });
-    });
+    } else {
+      compiler.plugin('fork-ts-checker-emit', function () {
+        watching.close(function() {
+          expect(true).to.be.true;
+          callback();
+        });
+      });
+    }
   });
 
   it('kills the service when the watch is done', function (done) {
     var compiler = createCompiler();
     var watching = compiler.watch({}, function() {});
 
-    compiler.hooks.forkTsCheckerDone.tap('kills the service when the watch is done', function () {
-      watching.close(function() {
-        expect(killServiceWasCalled()).to.be.true;
-        done();
+    if ('hooks' in compiler) {
+      compiler.hooks.forkTsCheckerDone.tap('kills the service when the watch is done', function () {
+        watching.close(function() {
+          expect(killServiceWasCalled()).to.be.true;
+          done();
+        });
       });
-    });
+    } else {
+      compiler.plugin('fork-ts-checker-done', function () {
+        watching.close(function() {
+          expect(killServiceWasCalled()).to.be.true;
+          done();
+        });
+      });
+    }
   });
 
   it('should throw error if config container wrong tsconfig.json path', function () {
@@ -192,19 +227,34 @@ describe('[INTEGRATION] index', function () {
     var compiler = createCompiler();
     var delayed = false;
 
-    compiler.hooks.forkTsCheckerServiceBeforeStart.tapAsync('should allow delaying service-start', function (cb) {
-      setTimeout(function () {
-        delayed = true;
-
-        cb();
-      }, 0);
-    });
-
-    compiler.hooks.forkTsCheckerServiceStart.tap('should allow delaying service-start', function () {
-      expect(delayed).to.be.true;
-      callback();
-    });
-
+    if ('hooks' in compiler) {
+      compiler.hooks.forkTsCheckerServiceBeforeStart.tapAsync('should allow delaying service-start', function (cb) {
+        setTimeout(function () {
+          delayed = true;
+  
+          cb();
+        }, 0);
+      });
+  
+      compiler.hooks.forkTsCheckerServiceStart.tap('should allow delaying service-start', function () {
+        expect(delayed).to.be.true;
+        callback();
+      });
+    } else {
+      compiler.plugin('fork-ts-checker-service-before-start', function (cb) {
+        setTimeout(function () {
+          delayed = true;
+  
+          cb();
+        }, 0);
+      });
+  
+      compiler.plugin('fork-ts-checker-service-start', function () {
+        expect(delayed).to.be.true;
+        callback();
+      });
+    }
+    
     compiler.run(function () {});
   });
 

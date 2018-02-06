@@ -4,7 +4,7 @@ node_js:
 install:
   - yarn install
   - yarn build
-  - npm install $WEBPACK
+  - yarn install $WEBPACK -D
 # Test against multiple webpack versions
 env:
   - WEBPACK=webpack@4.0.0-beta.0

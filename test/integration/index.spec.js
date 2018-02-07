@@ -6,6 +6,8 @@ var path = require('path');
 var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
+var webpackMajorVersion = require('./webpackVersion')();
+
 describe('[INTEGRATION] index', function () {
   this.timeout(30000);
   var plugin;
@@ -18,7 +20,7 @@ describe('[INTEGRATION] index', function () {
         : { transpileOnly: true, silent: true };
 
     return webpack({
-      mode: 'development',
+      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
       context: path.resolve(__dirname, './project'),
       entry: './src/index.ts',
       output: {

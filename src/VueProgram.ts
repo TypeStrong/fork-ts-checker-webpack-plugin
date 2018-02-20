@@ -168,7 +168,7 @@ class VueProgram {
         });
 
         if (resolvedModule) {
-          if (resolvedModule.resolvedFileName.endsWith('vue.ts') && !host.fileExists(resolvedModule.resolvedFileName)) {
+          if (resolvedModule.resolvedFileName.endsWith('.vue.ts') && !host.fileExists(resolvedModule.resolvedFileName)) {
             resolvedModule.resolvedFileName = resolvedModule.resolvedFileName.slice(0, -3);
           }
           resolvedModules.push(resolvedModule);

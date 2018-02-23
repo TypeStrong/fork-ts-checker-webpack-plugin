@@ -5,6 +5,7 @@ var expect = require('chai').expect;
 var path = require('path');
 var webpack = require('webpack');
 var process = require('process');
+var ts = require('typescript');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker');
 
@@ -63,6 +64,7 @@ describe('[INTEGRATION] vue', function () {
     };
 
     checker = new IncrementalChecker(
+      ts,
       plugin.tsconfigPath,
       plugin.tslintPath || false,
       [compiler.context],

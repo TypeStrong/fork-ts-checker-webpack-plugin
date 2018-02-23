@@ -108,6 +108,9 @@ number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_
 If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the 
 [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
+* **compiler** `string`:
+Allows use of TypeScript compilers other than the official one. Should be set to the NPM name of the compiler, eg ntypescript.
+
 ### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
   * `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)

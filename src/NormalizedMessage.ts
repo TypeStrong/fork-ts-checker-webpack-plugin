@@ -1,5 +1,5 @@
 // Imported for types alone; actual requires take place in methods below
-import tsTypes = require('typescript');
+import ts = require('typescript');
 import tslintTypes = require('tslint');
 
 type ErrorType = 'diagnostic' | 'lint';
@@ -42,8 +42,7 @@ class NormalizedMessage {
   }
 
   // message types
-  static createFromDiagnostic(diagnostic: tsTypes.Diagnostic) {
-    const ts: typeof tsTypes = require('typescript');
+  static createFromDiagnostic(compiler: typeof ts, diagnostic: ts.Diagnostic) {
     let file: string;
     let line: number;
     let character: number;
@@ -57,11 +56,11 @@ class NormalizedMessage {
     return new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: diagnostic.code,
-      severity: ts.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
-      content: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-      file: file,
-      line: line,
-      character: character
+      severity: compiler.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
+      content: compiler.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+      file,
+      line,
+      character
     });
   }
 

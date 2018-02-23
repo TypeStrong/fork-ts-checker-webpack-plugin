@@ -6,21 +6,21 @@ import FilesWatcher = require('./FilesWatcher');
 import vueParser = require('vue-parser');
 
 class VueProgram {
-  static loadProgramConfig(configFile: string) {
+  static loadProgramConfig(compiler: typeof ts, configFile: string) {
     const extraExtensions = ['vue'];
 
     const parseConfigHost: ts.ParseConfigHost = {
-        fileExists: ts.sys.fileExists,
-        readFile: ts.sys.readFile,
-        useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+        fileExists: compiler.sys.fileExists,
+        readFile: compiler.sys.readFile,
+        useCaseSensitiveFileNames: compiler.sys.useCaseSensitiveFileNames,
         readDirectory: (rootDir, extensions, excludes, includes, depth) => {
-            return ts.sys.readDirectory(rootDir, extensions.concat(extraExtensions), excludes, includes, depth);
+            return compiler.sys.readDirectory(rootDir, extensions.concat(extraExtensions), excludes, includes, depth);
         }
     };
 
-    const parsed = ts.parseJsonConfigFileContent(
+    const parsed = compiler.parseJsonConfigFileContent(
       // Regardless of the setting in the tsconfig.json we want isolatedModules to be false
-      Object.assign(ts.readConfigFile(configFile, ts.sys.readFile).config, { isolatedModules: false }),
+      Object.assign(compiler.readConfigFile(configFile, compiler.sys.readFile).config, { isolatedModules: false }),
       parseConfigHost,
       path.dirname(configFile)
     );
@@ -76,27 +76,28 @@ class VueProgram {
   }
 
   static createProgram(
+    compiler: typeof ts,
     programConfig: ts.ParsedCommandLine,
     basedir: string,
     files: FilesRegister,
     watcher: FilesWatcher,
     oldProgram: ts.Program
   ) {
-    const host = ts.createCompilerHost(programConfig.options);
+    const host = compiler.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
     const getScriptKind = (lang: string) => {
       if (lang === "ts") {
-        return ts.ScriptKind.TS;
+        return compiler.ScriptKind.TS;
       } else if (lang === "tsx") {
-        return ts.ScriptKind.TSX;
+        return compiler.ScriptKind.TSX;
       } else if (lang === "jsx") {
-        return ts.ScriptKind.JSX;
+        return compiler.ScriptKind.JSX;
       } else {
         // when lang is "js" or no lang specified
-        return ts.ScriptKind.JS;
+        return compiler.ScriptKind.JS;
       }
-    }
+    };
 
     // We need a host that can parse Vue SFCs (single file components).
     host.getSourceFile = (filePath, languageVersion, onError) => {
@@ -135,9 +136,9 @@ class VueProgram {
         if (!parsed) {
           // when script tag has no lang, or no script tag given
           parsed = vueParser.parse(source.text, 'script');
-          kind = ts.ScriptKind.JS;
+          kind = compiler.ScriptKind.JS;
         }
-        source = ts.createSourceFile(filePath, parsed, languageVersion, true, kind);
+        source = compiler.createSourceFile(filePath, parsed, languageVersion, true, kind);
       }
 
       return source;
@@ -149,7 +150,7 @@ class VueProgram {
 
       for (const moduleName of moduleNames) {
         // Try to use standard resolution.
-        const { resolvedModule } = ts.resolveModuleName(moduleName, containingFile, programConfig.options, {
+        const { resolvedModule } = compiler.resolveModuleName(moduleName, containingFile, programConfig.options, {
           fileExists(fileName) {
             if (fileName.endsWith('.vue.ts')) {
               return host.fileExists(fileName.slice(0, -3)) || host.fileExists(fileName);
@@ -194,7 +195,7 @@ class VueProgram {
       return resolvedModules;
     };
 
-    return ts.createProgram(
+    return compiler.createProgram(
       programConfig.fileNames,
       programConfig.options,
       host,

@@ -10,17 +10,20 @@ interface CancellationTokenData {
 }
 
 class CancellationToken {
+  compiler: typeof ts;
   isCancelled: boolean;
   cancellationFileName: string;
   lastCancellationCheckTime: number;
-  constructor(cancellationFileName: string, isCancelled: boolean) {
+  constructor(compiler: typeof ts, cancellationFileName: string, isCancelled: boolean) {
+    this.compiler = compiler;
     this.isCancelled = !!isCancelled;
     this.cancellationFileName = cancellationFileName || crypto.randomBytes(64).toString('hex');
     this.lastCancellationCheckTime = 0;
   }
 
-  static createFromJSON(json: CancellationTokenData) {
+  static createFromJSON(compiler: typeof ts, json: CancellationTokenData) {
     return new CancellationToken(
+      compiler,
       json.cancellationFileName,
       json.isCancelled
     );
@@ -56,7 +59,7 @@ class CancellationToken {
 
   throwIfCancellationRequested() {
     if (this.isCancellationRequested()) {
-      throw new ts.OperationCanceledException();
+      throw new this.compiler.OperationCanceledException();
     }
   }
 

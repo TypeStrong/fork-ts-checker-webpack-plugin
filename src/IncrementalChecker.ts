@@ -21,6 +21,7 @@ interface ConfigurationFile extends tslintTypes.Configuration.IConfigurationFile
 }
 
 class IncrementalChecker {
+  compiler: typeof ts;
   programConfigFile: string;
   linterConfigFile: string | false;
   watchPaths: string[];
@@ -40,6 +41,7 @@ class IncrementalChecker {
   vue: boolean;
 
   constructor(
+    compiler: typeof ts,
     programConfigFile: string,
     linterConfigFile: string | false,
     watchPaths: string[],
@@ -48,6 +50,7 @@ class IncrementalChecker {
     checkSyntacticErrors: boolean,
     vue: boolean
   ) {
+    this.compiler = compiler;
     this.programConfigFile = programConfigFile;
     this.linterConfigFile = linterConfigFile;
     this.watchPaths = watchPaths;
@@ -68,11 +71,11 @@ class IncrementalChecker {
     }));
   }
 
-  static loadProgramConfig(configFile: string) {
-    return ts.parseJsonConfigFileContent(
+  static loadProgramConfig(compiler: typeof ts, configFile: string) {
+    return compiler.parseJsonConfigFileContent(
       // Regardless of the setting in the tsconfig.json we want isolatedModules to be false
-      Object.assign(ts.readConfigFile(configFile, ts.sys.readFile).config, { isolatedModules: false }),
-      ts.sys,
+      Object.assign(compiler.readConfigFile(configFile, compiler.sys.readFile).config, { isolatedModules: false }),
+      compiler.sys,
       path.dirname(configFile)
     );
   }
@@ -84,12 +87,13 @@ class IncrementalChecker {
   }
 
   static createProgram(
+    compiler: typeof ts,
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
     watcher: FilesWatcher,
     oldProgram: ts.Program
   ) {
-    const host = ts.createCompilerHost(programConfig.options);
+    const host = compiler.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
     host.getSourceFile = (filePath, languageVersion, onError) => {
@@ -115,7 +119,7 @@ class IncrementalChecker {
       return files.getData(filePath).source;
     };
 
-    return ts.createProgram(
+    return compiler.createProgram(
       programConfig.fileNames,
       programConfig.options,
       host,
@@ -168,9 +172,10 @@ class IncrementalChecker {
   }
 
   loadVueProgram() {
-    this.programConfig = this.programConfig || VueProgram.loadProgramConfig(this.programConfigFile);
+    this.programConfig = this.programConfig || VueProgram.loadProgramConfig(this.compiler, this.programConfigFile);
 
     return VueProgram.createProgram(
+      this.compiler,
       this.programConfig,
       path.dirname(this.programConfigFile),
       this.files,
@@ -180,9 +185,9 @@ class IncrementalChecker {
   }
 
   loadDefaultProgram() {
-    this.programConfig = this.programConfig || IncrementalChecker.loadProgramConfig(this.programConfigFile);
+    this.programConfig = this.programConfig || IncrementalChecker.loadProgramConfig(this.compiler, this.programConfigFile);
 
-    return IncrementalChecker.createProgram(this.programConfig, this.files, this.watcher, this.program);
+    return IncrementalChecker.createProgram(this.compiler, this.programConfig, this.files, this.watcher, this.program);
   }
 
   hasLinter() {
@@ -214,7 +219,7 @@ class IncrementalChecker {
 
     // normalize and deduplicate diagnostics
     return NormalizedMessage.deduplicate(
-      diagnostics.map(NormalizedMessage.createFromDiagnostic)
+      diagnostics.map(d => NormalizedMessage.createFromDiagnostic(this.compiler, d))
     );
   }
 

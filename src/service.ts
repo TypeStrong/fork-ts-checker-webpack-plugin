@@ -3,8 +3,10 @@ import ts = require('typescript');
 import IncrementalChecker = require('./IncrementalChecker');
 import CancellationToken = require('./CancellationToken');
 import NormalizedMessage = require('./NormalizedMessage');
+const compiler: typeof ts = require(process.env.COMPILER);
 
 const checker = new IncrementalChecker(
+  compiler,
   process.env.TSCONFIG,
   process.env.TSLINT === '' ? false : process.env.TSLINT,
   process.env.WATCH === '' ? [] : process.env.WATCH.split('|'),
@@ -26,7 +28,7 @@ function run(cancellationToken: CancellationToken) {
       lints = checker.getLints(cancellationToken);
     }
   } catch (error) {
-    if (error instanceof ts.OperationCanceledException) {
+    if (error instanceof compiler.OperationCanceledException) {
       return;
     }
 
@@ -47,7 +49,7 @@ function run(cancellationToken: CancellationToken) {
 }
 
 process.on('message', (message) => {
-  run(CancellationToken.createFromJSON(message));
+  run(CancellationToken.createFromJSON(compiler, message));
 });
 
 process.on('SIGINT', () => {

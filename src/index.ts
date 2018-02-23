@@ -31,6 +31,7 @@ interface Options {
   memoryLimit: number;
   workers: number;
   vue: boolean;
+  compiler: string;
 }
 
 /**
@@ -67,6 +68,7 @@ class ForkTsCheckerWebpackPlugin {
   tslintPath: string;
   watchPaths: string[];
 
+  compilerName: string;
   compiler: any;
   started: [number, number];
   elapsed: [number, number];
@@ -104,6 +106,7 @@ class ForkTsCheckerWebpackPlugin {
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit = options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
     this.useColors = options.colors !== false; // default true
+    this.compilerName = options.compiler || 'typescript';
     this.colors = new chalk.constructor({ enabled: this.useColors });
     this.formatter = (options.formatter && isFunction(options.formatter))
       ? options.formatter
@@ -127,7 +130,7 @@ class ForkTsCheckerWebpackPlugin {
     this.emitCallback = this.createNoopEmitCallback();
     this.doneCallback = this.createDoneCallback();
 
-    this.typescriptVersion = require('typescript').version;
+    this.typescriptVersion = require(this.compilerName).version;
     this.tslintVersion = this.tslint ? require('tslint').Linter.VERSION : undefined;
 
     this.vue = options.vue === true; // default false
@@ -240,7 +243,7 @@ class ForkTsCheckerWebpackPlugin {
         this.started = process.hrtime();
 
         // create new token for current job
-        this.cancellationToken = new CancellationToken(undefined, undefined);
+        this.cancellationToken = new CancellationToken(require(this.compilerName), undefined, undefined);
         if (!this.service || !this.service.connected) {
           this.spawnService();
         }
@@ -319,7 +322,8 @@ class ForkTsCheckerWebpackPlugin {
             WORK_DIVISION: Math.max(1, this.workersNumber),
             MEMORY_LIMIT: this.memoryLimit,
             CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
-            VUE: this.vue
+            VUE: this.vue,
+            COMPILER: this.compilerName
           }
         ),
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
@@ -423,7 +427,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   createEmitCallback(compilation: any, callback: () => void) {
-    return function emitCallback (this: ForkTsCheckerWebpackPlugin) {
+    return function emitCallback(this: ForkTsCheckerWebpackPlugin) {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 
       this.compiler.applyPlugins(
@@ -465,7 +469,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   createDoneCallback() {
-    return function doneCallback (this: ForkTsCheckerWebpackPlugin) {
+    return function doneCallback(this: ForkTsCheckerWebpackPlugin) {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 
       if (this.compiler) {

@@ -22,48 +22,48 @@ describe('[UNIT] CancellationToken', function () {
   });
 
   it('should create valid cancellation token', function () {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(ts);
     expect(tokenA.isCancellationRequested()).to.be.false;
 
-    var tokenB = new CancellationToken('FA#FERgSERgRT$rA$#rA#Ea@RweFRgERG');
+    var tokenB = new CancellationToken(ts, 'FA#FERgSERgRT$rA$#rA#Ea@RweFRgERG');
     expect(tokenB.isCancellationRequested()).to.be.false;
 
-    var tokenC = new CancellationToken('GFERWgEgeF#R2erwreWrweWER', false);
+    var tokenC = new CancellationToken(ts, 'GFERWgEgeF#R2erwreWrweWER', false);
     expect(tokenC.isCancellationRequested()).to.be.false;
 
-    var tokenD = new CancellationToken('REGg$#R2$#@r@#R$#T43T$#t43t', true);
+    var tokenD = new CancellationToken(ts, 'REGg$#R2$#@r@#R$#T43T$#t43t', true);
     expect(tokenD.isCancellationRequested()).to.be.true;
   });
 
   it('should serialize to JSON', function () {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(ts);
     var json = JSON.stringify(tokenA);
 
     expect(json).to.be.a('string');
     expect(function() { JSON.parse(json); }).to.not.throw(Error);
     expect(JSON.parse(json)).to.be.a('object');
 
-    var tokenB = CancellationToken.createFromJSON(JSON.parse(json));
+    var tokenB = CancellationToken.createFromJSON(ts, JSON.parse(json));
     expect(tokenA.getCancellationFilePath()).to.be.equal(tokenB.getCancellationFilePath());
     expect(tokenA.isCancellationRequested()).to.be.equal(tokenB.isCancellationRequested());
   });
 
   it('should generate path in os.tmpdir() directory', function () {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(ts);
 
     expect(tokenA.getCancellationFilePath().indexOf(os.tmpdir())).to.be.equal(0);
   });
 
   it('should throw ts.OperationCanceledException error on cancelled', function () {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(ts);
     expect(function () { tokenA.throwIfCancellationRequested(); }).to.not.throw();
 
-    var tokenB = new CancellationToken('rgeer#R23r$#T$3t#$t43', true);
+    var tokenB = new CancellationToken(ts, 'rgeer#R23r$#T$3t#$t43', true);
     expect(function () { tokenB.throwIfCancellationRequested(); }).to.throw(ts.OperationCanceledException);
   });
 
   it('should write file in filesystem on requestCancellation', function () {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(ts);
     tokenA.requestCancellation();
 
     expect(tokenA.isCancellationRequested()).to.be.true;
@@ -71,7 +71,7 @@ describe('[UNIT] CancellationToken', function () {
   });
 
   it('should cleanup file on cleanupCancellation', function () {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(ts);
     tokenA.requestCancellation();
     tokenA.cleanupCancellation();
 
@@ -84,15 +84,15 @@ describe('[UNIT] CancellationToken', function () {
   });
 
   it('should not throw error on cleanupCancellation with no file exists', function () {
-    var tokenA = new CancellationToken('some_file_that_doesnt_exists', true);
+    var tokenA = new CancellationToken(ts, 'some_file_that_doesnt_exists', true);
 
     expect(function() { tokenA.cleanupCancellation(); }).to.not.throw();
     expect(function() { tokenA.cleanupCancellation(); }).to.not.throw();
   });
 
   it('should throttle check for 10ms', function (done) {
-    var tokenA = new CancellationToken();
-    var tokenB = CancellationToken.createFromJSON(tokenA.toJSON());
+    var tokenA = new CancellationToken(ts);
+    var tokenB = CancellationToken.createFromJSON(ts, tokenA.toJSON());
     var start = Date.now();
 
     expect(tokenA.isCancellationRequested()).to.be.false;

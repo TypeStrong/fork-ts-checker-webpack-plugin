@@ -1,3 +1,6 @@
+## v0.4.0
+ * Support webpack
+
 ## v0.3.0
  * Add `vue` support
 

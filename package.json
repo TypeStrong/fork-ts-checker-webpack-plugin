@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "files": [
@@ -35,7 +35,14 @@
     "increment",
     "webpack-plugin"
   ],
+  "engines": {
+    "node": ">=6.11.5"
+  },
   "author": "Piotr Oleś <piotrek.oles@gmail.com>",
+  "contributors": [
+    "Piotr Oleś <piotrek.oles@gmail.com> (https://github.com/piotr-oles)",
+    "John Reilly <johnny_reilly@hotmail.com> (https://blog.johnnyreilly.com)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues"
@@ -61,18 +68,19 @@
     "mock-require": "^2.0.2",
     "rimraf": "^2.5.4",
     "sinon": "^2.3.1",
-    "ts-loader": "^2.1.0",
+    "ts-loader": "^4.0.0-beta.0",
     "tslint": "^5.0.0",
-    "typescript": "^2.1.0",
+    "typescript": "^2.6.2",
     "vue": "^2.5.9",
     "vue-class-component": "^6.1.1",
-    "vue-loader": "^13.5.0",
+    "vue-loader": "^14.1.0",
     "vue-template-compiler": "^2.5.9",
-    "webpack": "^3.0.0"
+    "webpack": "^4.0.0"
   },
   "peerDependencies": {
+    "tslint": "^4.0.0 || ^5.0.0",
     "typescript": "^2.1.0",
-    "webpack": "^2.3.0 || ^3.0.0"
+    "webpack": "^2.3.0 || ^3.0.0 || ^4.0.0"
   },
   "dependencies": {
     "babel-code-frame": "^6.22.0",
@@ -84,6 +92,7 @@
     "lodash.startswith": "^4.2.1",
     "minimatch": "^3.0.4",
     "resolve": "^1.5.0",
+    "tapable": "^1.0.0",
     "vue-parser": "^1.1.5"
   }
 }

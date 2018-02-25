@@ -1,4 +1,15 @@
 language: node_js
+node_js:
+  - "8"
+install:
+  - yarn install
+  - yarn build
+  - yarn add $WEBPACK $TSLOADER $VUELOADER -D
+# Test against multiple webpack versions
+env:
+  - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^4.0.0 VUELOADER=vue-loader@^14.1.0
+  - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+  - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
 deploy:
   - provider: npm
     email: opensource@realytics.io

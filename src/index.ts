@@ -280,14 +280,14 @@ class ForkTsCheckerWebpackPlugin {
     }
     this.compiler.hooks.forkTsCheckerServiceBeforeStart = new AsyncSeriesHook([]);
 
-    this.compiler.hooks.forkTsCheckerCancel = new SyncHook([]);
-    this.compiler.hooks.forkTsCheckerServiceStartError = new SyncHook([]);
-    this.compiler.hooks.forkTsCheckerWaiting = new SyncHook([]);
-    this.compiler.hooks.forkTsCheckerServiceStart = new SyncHook([]);
-    this.compiler.hooks.forkTsCheckerReceive = new SyncHook([]);
+    this.compiler.hooks.forkTsCheckerCancel = new SyncHook(['cancellationToken']);
+    this.compiler.hooks.forkTsCheckerServiceStartError = new SyncHook(['error']);
+    this.compiler.hooks.forkTsCheckerWaiting = new SyncHook(['hasTsLint']);
+    this.compiler.hooks.forkTsCheckerServiceStart = new SyncHook(['tsconfigPath', 'tslintPath', 'watchPaths', 'workersNumber', 'memoryLimit']);
+    this.compiler.hooks.forkTsCheckerReceive = new SyncHook(['diagnostics', 'lints']);
     this.compiler.hooks.forkTsCheckerServiceOutOfMemory = new SyncHook([]);
-    this.compiler.hooks.forkTsCheckerEmit = new SyncHook([]);
-    this.compiler.hooks.forkTsCheckerDone = new SyncHook([]);
+    this.compiler.hooks.forkTsCheckerEmit = new SyncHook(['diagnostics', 'lints', 'elapsed']);
+    this.compiler.hooks.forkTsCheckerDone = new SyncHook(['diagnostics', 'lints', 'elapsed']);
 
     // for backwards compatibility
     this.compiler._pluginCompat.tap(checkerPluginName, (options: any) => {

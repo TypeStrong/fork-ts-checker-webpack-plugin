@@ -11,7 +11,7 @@ var IncrementalChecker = require('../../lib/IncrementalChecker');
 var webpackMajorVersion = require('./webpackVersion')();
 
 describe('[INTEGRATION] vue', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   process.setMaxListeners(20);   
   var plugin;
   var files;

@@ -6,13 +6,13 @@ var path = require('path');
 var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
-chai.config.truncateThreshold = 0
+chai.config.truncateThreshold = 0;
 var expect = chai.expect;
 
 var webpackMajorVersion = require('./webpackVersion')();
 
 describe('[INTEGRATION] index', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   var plugin;
 
   function createCompiler(options, happyPackMode) {

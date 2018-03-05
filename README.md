@@ -67,8 +67,8 @@ Path to *tslint.json* file or `true`. If `true`, uses `path.resolve(compiler.opt
 Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls).
 
 * **async** `boolean`:
-True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.
-We recommend to use it in projects where type checking is faster than webpack's build - it's better for integration with other plugins.
+True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.`
+We recommend to set this to `false` in projects where type checking is faster than webpack's build - it's better for integration with other plugins. Another scenario where you might want to set this to `false` is if you use the `overlay` functionality of `webpack-dev-server`.
 
 * **ignoreDiagnostics** `number[]`:
 List of typescript diagnostic codes to ignore.

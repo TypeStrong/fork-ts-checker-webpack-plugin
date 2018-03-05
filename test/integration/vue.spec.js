@@ -9,8 +9,10 @@ var ts = require('typescript');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker');
 
+var webpackMajorVersion = require('./webpackVersion')();
+
 describe('[INTEGRATION] vue', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   process.setMaxListeners(20);   
   var plugin;
   var files;
@@ -21,6 +23,7 @@ describe('[INTEGRATION] vue', function () {
     plugin = new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }));
 
     compiler = webpack({
+      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
       context: path.resolve(__dirname, './vue'),
       entry: './src/index.ts',
       output: {

@@ -626,7 +626,7 @@ class ForkTsCheckerWebpackPlugin {
             message.getSeverity().toUpperCase() + ' ' + message.getFormattedCode() + ': ' +
             message.getContent()
           ),
-          message: '(' + message.getLine() + ',' + message.getCharacter() + '): ' + message.getContent(),
+          message: this.formatter(message, this.useColors),
           location: {
             line: message.getLine(),
             character: message.getCharacter()

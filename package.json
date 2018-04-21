@@ -80,6 +80,7 @@
   "peerDependencies": {
     "tslint": "^4.0.0 || ^5.0.0",
     "typescript": "^2.1.0",
+    "vue-parser": "^1.1.5",
     "webpack": "^2.3.0 || ^3.0.0 || ^4.0.0"
   },
   "dependencies": {
@@ -92,7 +93,6 @@
     "lodash.startswith": "^4.2.1",
     "minimatch": "^3.0.4",
     "resolve": "^1.5.0",
-    "tapable": "^1.0.0",
-    "vue-parser": "^1.1.5"
+    "tapable": "^1.0.0"
   }
 }

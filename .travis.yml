@@ -1,22 +1,20 @@
 language: node_js
 node_js:
-  - "8"
+ - '8'
 install:
-  - yarn install
-  - yarn build
-  - yarn add $WEBPACK $TSLOADER $VUELOADER -D
-# Test against multiple webpack versions
+ - yarn install
+ - yarn build
+ - yarn add $WEBPACK $TSLOADER $VUELOADER -D
 env:
-  - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^4.0.0 VUELOADER=vue-loader@^14.1.0
-  - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
-  - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+ - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^4.0.0 VUELOADER=vue-loader@^14.1.0
+ - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+ - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
 deploy:
-  - provider: npm
-    email: opensource@realytics.io
-    skip_cleanup: true
-    tag: latest
-    api_key:
-      secure: L1iiDkvSgk7uIhdeglWijy8GqSQ63Uu7F/3TB1LEJN2xQ0YgbrBBW2Y1WFzBuVncaLzGV7YtS4eSGT1tjTqEl/c2I4vMdlsusFMSRuA3vDOYc0Uqwn3cjT1X23Exv0foj/Ifltv0idn21TVFWKNy3RSpf1IZ1ZyX9PTBn1QCeUpmlPm5f9HRMOrV7jBPOxS3eS7eeuZvzMk+EsA1XwLhJIhasd0gGXDnItLnCGN+7hrrGEppOQCQhKFfv3cA5hScLSoYUtHwGxryddyhia+UyOfcliXtfb2lvuzJ6rJjRrW6Gce33m1MEXYpOAqkCoF5BXrCLhEfCN+MkfaF9hd8Ytj3DEbIwetcj4XH7rPaiIjN9yKBYkOWeUPUeQ9HRbJ3Nwvapn6od3bHfRr0qCGlltEOtBcMKkARBWd3CiMEJolgoZ1q+w25DZYi9D76jBf8m8MDf2rAt2RapSnBpn70wkPWrcw/+vj/Y5ZQJDj6hzyk/sGTVNOemwtBDa/ishJKVugEQgW+F3mdqoFAfMZrg40yPgj3X34RRUgtTPDGSRZ5+Q57Mt61vcSkNmJWS/oU2zJyHiZEsz0mKOyjko4bip/zkc7oP81GONQ/+EESWuBJusF2ypG/6FJChfgz3XS18jzSRvtihUqLbN30Mvt2mkCeh7GxChVNJVyclCM5HKE=
-    on:
-      tags: true
-      branch: master
+  provider: npm
+  email: piotrek.oles@gmail.com
+  skip_cleanup: true
+  api_key:
+    secure: CBqE7TbznvJn5/rkRPdzF3QH4mrkt7pGp/v9H5jk1RQrdL29+zeCPGMe8WsFnpJWBwM6NDzQDnR4FzPTzg9AIF/pE2Q+EA8wRJdMiDgqLcWBgNTrbyFKi8qSvWEKpaUwbfmyeIGjmaeCCY/UIrBFcOwq7Uuo5owBMBKOrGTeu14JK4ZvhB2H4Kn/SjzPKxaUm2epcwzhZTjVlzjMWlsKMiXnBtOHoTW2HirnqO0rtRtCdZQR3Bsvkg7RTLI+P3zmCjl6C+fSS50NCfIVZq1Hz9MUIzjhuofhqoL1u8BYZMz23uUYnkn95tpyi8ZJl40kXGnDhT0bEHVuD4V+noLG+z9EJp0wj+fTtD4kz6OrIQe73tjuZ5psdmqcYNG4yRgwldnpjVWQ//6UBBWtFKd4NOudHs67q8KeQDjVBY/Yw/qbKtvYxpuilMCqvN2nLvxSCu8kaOWw3QXUJLRZbrYsN/iRlBglDDNecMrswXXnNVKWsjR6wzWkDladQwcBrqBzcizBbItqQjCG+/D4i8nHmiw/lg18lwBD9RxtMsVdJhJQdoSYR+S3DROqVGurxOk3vDA/z+Z+RRVA0v2oGaS5iLnSGXTSSK+Weri5RRdTaCeL+nnSF+zsoA6wtsZpwdhzZRM/l0dzJhcH5XPMEQZNLFEsss2/d54rPBqAC8acJUk=
+  on:
+    tags: true
+    branch: master

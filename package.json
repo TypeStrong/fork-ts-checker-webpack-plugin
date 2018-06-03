@@ -68,7 +68,7 @@
     "mock-require": "^2.0.2",
     "rimraf": "^2.5.4",
     "sinon": "^2.3.1",
-    "ts-loader": "^4.0.0-beta.0",
+    "ts-loader": "4.3.0",
     "tslint": "^5.0.0",
     "typescript": "^2.6.2",
     "vue": "^2.5.9",

@@ -1,3 +1,6 @@
+## v0.4.2
+ * Format messages when `async` is false
+
 ## v0.4.1
  * Fix webpack 4 hooks bug
 

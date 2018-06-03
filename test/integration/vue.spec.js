@@ -12,7 +12,7 @@ var webpackMajorVersion = require('./webpackVersion')();
 
 describe('[INTEGRATION] vue', function () {
   this.timeout(60000);
-  process.setMaxListeners(20);   
+  process.setMaxListeners(0);   
   var plugin;
   var files;
   var compiler;
@@ -164,7 +164,7 @@ describe('[INTEGRATION] vue', function () {
       var source = checker.program.getSourceFile(sourceFilePath);
       expect(source).to.not.be.undefined;
       // remove padding lines
-      var text = source.text.replace(/^\s*\/\/.*$\n/gm, '');
+      var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '');
       expect(text.startsWith('/* OK */')).to.be.true;
     });
   });

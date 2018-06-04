@@ -14,7 +14,7 @@ var VueLoaderPlugin = webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin'
 
 describe('[INTEGRATION] vue', function () {
   this.timeout(60000);
-  process.setMaxListeners(0);   
+  process.setMaxListeners(0);
   var plugin;
   var files;
   var compiler;
@@ -22,6 +22,15 @@ describe('[INTEGRATION] vue', function () {
 
   function createCompiler(options) {
     plugin = new ForkTsCheckerWebpackPlugin(Object.assign({}, options, { silent: true }));
+
+    var tsLoader = {
+      loader: 'ts-loader',
+      options: {
+        appendTsSuffixTo: [/\.vue$/],
+        transpileOnly: true,
+        silent: true
+      }
+    }
 
     compiler = webpack({
       ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
@@ -40,16 +49,16 @@ describe('[INTEGRATION] vue', function () {
         rules: [
           {
             test: /\.vue$/,
-            loader: 'vue-loader'
+            loader: 'vue-loader',
+            options: {
+              loaders: {
+                ts: tsLoader
+              }
+            }
           },
           {
             test: /\.ts$/,
-            loader: 'ts-loader',
-            options: {
-              appendTsSuffixTo: [/\.vue$/],
-              transpileOnly: true,
-              silent: true
-            }
+            use: tsLoader
           },
           {
             test: /\.css$/,
@@ -85,10 +94,10 @@ describe('[INTEGRATION] vue', function () {
     createCompiler({ vue: true });
 
     var fileFound;
-    
+
     fileFound = checker.programConfig.fileNames.indexOf(files['example.vue']) >= 0;
     expect(fileFound).to.be.true;
-    
+
     fileFound = checker.programConfig.fileNames.indexOf(files['syntacticError.ts']) >= 0;
     expect(fileFound).to.be.true;
   });
@@ -96,11 +105,11 @@ describe('[INTEGRATION] vue', function () {
   it('should not create a Vue program config if vue=false', function () {
     createCompiler();
 
-    var fileFound;    
-    
+    var fileFound;
+
     fileFound = checker.programConfig.fileNames.indexOf(files['example.vue']) >= 0;
     expect(fileFound).to.be.false;
-    
+
     fileFound = checker.programConfig.fileNames.indexOf(files['syntacticError.ts']) >= 0;
     expect(fileFound).to.be.true;
   });
@@ -112,33 +121,33 @@ describe('[INTEGRATION] vue', function () {
 
     source = checker.program.getSourceFile(files['example.vue']);
     expect(source).to.not.be.undefined;
-    
+
     source = checker.program.getSourceFile(files['syntacticError.ts']);
-    expect(source).to.not.be.undefined;  
+    expect(source).to.not.be.undefined;
   });
 
   it('should not create a Vue program if vue=false', function () {
     createCompiler();
-    
+
     var source;
-    
+
     source = checker.program.getSourceFile(files['example.vue']);
     expect(source).to.be.undefined;
-    
+
     source = checker.program.getSourceFile(files['syntacticError.ts']);
-    expect(source).to.not.be.undefined;  
+    expect(source).to.not.be.undefined;
   });
 
   it('should get syntactic diagnostics from Vue program', function () {
     createCompiler({ tslint: true, vue: true });
 
     const diagnostics = checker.program.getSyntacticDiagnostics();
-    expect(diagnostics.length).to.be.equal(1);    
+    expect(diagnostics.length).to.be.equal(1);
   });
 
   it('should not find syntactic errors when checkSyntacticErrors is false', function (callback) {
     createCompiler({ tslint: true, vue: true });
-    
+
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.be.equal(1);
       callback();
@@ -147,7 +156,7 @@ describe('[INTEGRATION] vue', function () {
 
   it('should find syntactic errors when checkSyntacticErrors is true', function (callback) {
     createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
-    
+
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.be.equal(2);
       callback();

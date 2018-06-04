@@ -7,9 +7,10 @@ var webpack = require('webpack');
 var process = require('process');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker');
-var VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 var webpackMajorVersion = require('./webpackVersion')();
+
+var VueLoaderPlugin = webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
 
 describe('[INTEGRATION] vue', function () {
   this.timeout(60000);
@@ -57,7 +58,7 @@ describe('[INTEGRATION] vue', function () {
         ]
       },
       plugins: [
-        new VueLoaderPlugin(),
+        ...(webpackMajorVersion >= 4 ? [new VueLoaderPlugin()] : []),
         plugin
       ]
     });

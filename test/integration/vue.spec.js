@@ -7,6 +7,7 @@ var webpack = require('webpack');
 var process = require('process');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker');
+var VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 var webpackMajorVersion = require('./webpackVersion')();
 
@@ -56,6 +57,7 @@ describe('[INTEGRATION] vue', function () {
         ]
       },
       plugins: [
+        new VueLoaderPlugin(),
         plugin
       ]
     });

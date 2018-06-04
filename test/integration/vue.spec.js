@@ -10,6 +10,8 @@ var IncrementalChecker = require('../../lib/IncrementalChecker');
 
 var webpackMajorVersion = require('./webpackVersion')();
 
+var VueLoaderPlugin = webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
+
 describe('[INTEGRATION] vue', function () {
   this.timeout(60000);
   process.setMaxListeners(0);   
@@ -56,6 +58,7 @@ describe('[INTEGRATION] vue', function () {
         ]
       },
       plugins: [
+        ...(webpackMajorVersion >= 4 ? [new VueLoaderPlugin()] : []),
         plugin
       ]
     });

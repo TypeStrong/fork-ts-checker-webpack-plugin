@@ -238,7 +238,11 @@ class IncrementalChecker {
       try {
         this.linter.lint(fileName, undefined, this.linterConfig);
       } catch (e) {
-        if (fs.existsSync(fileName)) {
+        if (
+          fs.existsSync(fileName) &&
+          !e.message.trim().startsWith("Invalid source file") &&
+          /(.tsx?|.jsx?|.vue)$/.match(fileName)
+        ) {
           // it's not because file doesn't exist - throw error
           throw e;
         }

@@ -241,7 +241,7 @@ class IncrementalChecker {
         if (
           fs.existsSync(fileName) &&
           !e.message.trim().startsWith("Invalid source file") &&
-          /(.tsx?|.jsx?|.vue)$/.match(fileName)
+          fileName.match(/(.tsx?|.jsx?|.vue)$/)
         ) {
           // it's not because file doesn't exist - throw error
           throw e;

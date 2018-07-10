@@ -1,3 +1,6 @@
+## v0.4.3
+ * Fix "File system lag can cause Invalid source file errors to slip through" (#127)
+
 ## v0.4.2
  * Format messages when `async` is false
 

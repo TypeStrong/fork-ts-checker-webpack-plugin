@@ -239,11 +239,11 @@ class IncrementalChecker {
         this.linter.lint(fileName, undefined, this.linterConfig);
       } catch (e) {
         if (
-          fs.existsSync(fileName) &&
-          // check the error type due to file system lag
-          !(e instanceof Error) &&
-          !(e.constructor.name === 'FatalError') &&
-          !(e.message && e.message.trim().startsWith('Invalid source file')
+            fs.existsSync(fileName) &&
+            // check the error type due to file system lag
+            !(e instanceof Error) &&
+            !(e.constructor.name === 'FatalError') &&
+            !(e.message && e.message.trim().startsWith("Invalid source file"))
         ) {
           // it's not because file doesn't exist - throw error
           throw e;

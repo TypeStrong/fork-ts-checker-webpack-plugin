@@ -154,6 +154,15 @@ describe('[INTEGRATION] vue', function () {
     });
   });
 
+  it('should resolve src attribute and check referred source', function (callback) {
+    createCompiler({ vue: true, tsconfig: 'tsconfig-attrs.json' });
+
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.be.equal(1);
+      callback();
+    });
+  });
+
   [
     'example-ts.vue',
     'example-tsx.vue',

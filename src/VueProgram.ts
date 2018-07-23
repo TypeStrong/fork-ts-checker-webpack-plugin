@@ -216,7 +216,7 @@ class VueProgram {
     if (!script) {
       return {
         scriptKind: ts.ScriptKind.JS,
-        content: '// tslint:disable\nexport default {};\n',
+        content: '// tslint:disable\nexport default {};\n'
       };
     }
 
@@ -224,9 +224,11 @@ class VueProgram {
 
     // There is src attribute
     if (script.attrs.src) {
+      // import path cannot be end with '.ts[x]'
+      const src = script.attrs.src.replace(/\.tsx?$/i, '');
       return {
         scriptKind,
-        content: `// tslint:disable\nexport { default } from '${src}';`,
+        content: `// tslint:disable\nexport { default } from '${src}';`
       };
     }
 

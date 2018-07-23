@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {},
+  "include": [
+      "src/attrs/Test.vue"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

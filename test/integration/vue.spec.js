@@ -167,7 +167,7 @@ describe('[INTEGRATION] vue', function () {
       var source = checker.program.getSourceFile(sourceFilePath);
       expect(source).to.not.be.undefined;
       // remove padding lines
-      var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '');
+      var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();
       expect(text.startsWith('/* OK */')).to.be.true;
     });
   });

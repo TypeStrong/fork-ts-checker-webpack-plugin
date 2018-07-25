@@ -154,11 +154,13 @@ describe('[INTEGRATION] vue', function () {
     });
   });
 
-  it('should resolve src attribute and check referred source', function (callback) {
+  it('should resolve src attribute but not report not found error', function (callback) {
     createCompiler({ vue: true, tsconfig: 'tsconfig-attrs.json' });
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(1);
+      const errors = stats.compilation.errors;
+      expect(errors.length).to.be.equal(1);
+      expect(errors[0].file).to.match(/test\/integration\/vue\/src\/attrs\/test.ts$/);
       callback();
     });
   });

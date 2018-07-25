@@ -216,7 +216,7 @@ class VueProgram {
     if (!script) {
       return {
         scriptKind: ts.ScriptKind.JS,
-        content: '// tslint:disable\nexport default {};\n'
+        content: '/* tslint:disable */\nexport default {};\n'
       };
     }
 
@@ -228,8 +228,14 @@ class VueProgram {
       const src = script.attrs.src.replace(/\.tsx?$/i, '');
       return {
         scriptKind,
-        content: '// tslint:disable\n'
+
+        // For now, ignore the error when the src file is not found
+        // since it will produce incorrect code location.
+        // It's not a large problem since it's handled on webpack side.
+        content: '/* tslint:disable */\n'
+          + '// @ts-ignore\n'
           + `export { default } from '${src}';\n`
+          + '// @ts-ignore\n'
           + `export * from '${src}';\n`
       };
     }

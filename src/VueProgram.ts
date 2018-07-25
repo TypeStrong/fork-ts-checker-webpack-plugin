@@ -228,7 +228,9 @@ class VueProgram {
       const src = script.attrs.src.replace(/\.tsx?$/i, '');
       return {
         scriptKind,
-        content: `// tslint:disable\nexport { default } from '${src}';`
+        content: '// tslint:disable\n'
+          + `export { default } from '${src}';\n`
+          + `export * from '${src}';\n`
       };
     }
 

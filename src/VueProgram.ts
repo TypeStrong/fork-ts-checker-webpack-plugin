@@ -196,9 +196,9 @@ class VueProgram {
   }
 
   private static resolveScriptBlock(content: string): ResolvedScript {
-    // We need to import vue-template-compiler lazily because it is cannot be included it
+    // We need to import vue-template-compiler lazily because it cannot be included it
     // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
-    // Since its version must not mismatch with user-installed vue-template-compiler,
+    // Since its version must not mismatch with user-installed Vue.js,
     // we should let the users install vue-template-compiler by themselves.
     let parser: typeof vueCompiler;
     try {

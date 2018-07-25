@@ -196,10 +196,10 @@ class VueProgram {
   }
 
   private static resolveScriptBlock(content: string): ResolvedScript {
-    // We need to import vue-template-compiler dinamically because cannot include it as direct dependency.
-    // The reason is that it should not mismatch the versions with user-installed vue-template-compiler
-    // while it is an optional dependency for fork-ts-checker-webpack-plugin.
-    // So here we load the compiler and throws when it is not in the user's dependencies.
+    // We need to import vue-template-compiler lazily because it is cannot be included it
+    // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
+    // Since its version must not mismatch with user-installed vue-template-compiler,
+    // we should let the users install vue-template-compiler by themselves.
     let parser: typeof vueCompiler;
     try {
       // tslint:disable-next-line

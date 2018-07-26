@@ -1,3 +1,7 @@
+## v0.4.4
+
+ * [Fix(vue): resolve src attribute on the script block on Vue files](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/130) (#111, #85)
+
 ## v0.4.3
  * Fix "File system lag can cause Invalid source file errors to slip through" (#127)
 

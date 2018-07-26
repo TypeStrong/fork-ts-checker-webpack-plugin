@@ -3,7 +3,13 @@ import path = require('path');
 import ts = require('typescript');
 import FilesRegister = require('./FilesRegister');
 import FilesWatcher = require('./FilesWatcher');
-import vueParser = require('vue-parser');
+// tslint:disable-next-line
+import vueCompiler = require('vue-template-compiler');
+
+interface ResolvedScript {
+  scriptKind: ts.ScriptKind;
+  content: string;
+}
 
 class VueProgram {
   static loadProgramConfig(configFile: string) {
@@ -85,19 +91,6 @@ class VueProgram {
     const host = ts.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
-    const getScriptKind = (lang: string) => {
-      if (lang === "ts") {
-        return ts.ScriptKind.TS;
-      } else if (lang === "tsx") {
-        return ts.ScriptKind.TSX;
-      } else if (lang === "jsx") {
-        return ts.ScriptKind.JSX;
-      } else {
-        // when lang is "js" or no lang specified
-        return ts.ScriptKind.JS;
-      }
-    }
-
     // We need a host that can parse Vue SFCs (single file components).
     host.getSourceFile = (filePath, languageVersion, onError) => {
       // first check if watcher is watching file - if not - check it's mtime
@@ -123,21 +116,8 @@ class VueProgram {
 
       // get typescript contents from Vue file
       if (source && VueProgram.isVue(filePath)) {
-        let parsed: string;
-        let kind: ts.ScriptKind;
-        for (const lang of ['ts', 'tsx', 'js', 'jsx']) {
-          parsed = vueParser.parse(source.text, 'script', { lang: [lang], emptyExport: false });
-          if (parsed) {
-            kind = getScriptKind(lang);
-            break;
-          }
-        }
-        if (!parsed) {
-          // when script tag has no lang, or no script tag given
-          parsed = vueParser.parse(source.text, 'script');
-          kind = ts.ScriptKind.JS;
-        }
-        source = ts.createSourceFile(filePath, parsed, languageVersion, true, kind);
+        const resolved = VueProgram.resolveScriptBlock(source.text);
+        source = ts.createSourceFile(filePath, resolved.content, languageVersion, true, resolved.scriptKind);
       }
 
       return source;
@@ -200,6 +180,70 @@ class VueProgram {
       host,
       oldProgram // re-use old program
     );
+  }
+
+  private static getScriptKindByLang(lang: string) {
+    if (lang === "ts") {
+      return ts.ScriptKind.TS;
+    } else if (lang === "tsx") {
+      return ts.ScriptKind.TSX;
+    } else if (lang === "jsx") {
+      return ts.ScriptKind.JSX;
+    } else {
+      // when lang is "js" or no lang specified
+      return ts.ScriptKind.JS;
+    }
+  }
+
+  private static resolveScriptBlock(content: string): ResolvedScript {
+    // We need to import vue-template-compiler lazily because it cannot be included it
+    // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
+    // Since its version must not mismatch with user-installed Vue.js,
+    // we should let the users install vue-template-compiler by themselves.
+    let parser: typeof vueCompiler;
+    try {
+      // tslint:disable-next-line
+      parser = require('vue-template-compiler');
+    } catch (err) {
+      throw new Error('When you use `vue` option, make sure to install `vue-template-compiler`.');
+    }
+
+    const { script } = parser.parseComponent(content, {
+      pad: 'line'
+    });
+
+    // No <script> block
+    if (!script) {
+      return {
+        scriptKind: ts.ScriptKind.JS,
+        content: '/* tslint:disable */\nexport default {};\n'
+      };
+    }
+
+    const scriptKind = VueProgram.getScriptKindByLang(script.lang);
+
+    // There is src attribute
+    if (script.attrs.src) {
+      // import path cannot be end with '.ts[x]'
+      const src = script.attrs.src.replace(/\.tsx?$/i, '');
+      return {
+        scriptKind,
+
+        // For now, ignore the error when the src file is not found
+        // since it will produce incorrect code location.
+        // It's not a large problem since it's handled on webpack side.
+        content: '/* tslint:disable */\n'
+          + '// @ts-ignore\n'
+          + `export { default } from '${src}';\n`
+          + '// @ts-ignore\n'
+          + `export * from '${src}';\n`
+      };
+    }
+
+    return {
+      scriptKind,
+      content: script.content
+    };
   }
 }
 

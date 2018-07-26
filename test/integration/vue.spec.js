@@ -154,6 +154,17 @@ describe('[INTEGRATION] vue', function () {
     });
   });
 
+  it('should resolve src attribute but not report not found error', function (callback) {
+    createCompiler({ vue: true, tsconfig: 'tsconfig-attrs.json' });
+
+    compiler.run(function(error, stats) {
+      const errors = stats.compilation.errors;
+      expect(errors.length).to.be.equal(1);
+      expect(errors[0].file).to.match(/test\/integration\/vue\/src\/attrs\/test.ts$/);
+      callback();
+    });
+  });
+
   [
     'example-ts.vue',
     'example-tsx.vue',
@@ -167,7 +178,7 @@ describe('[INTEGRATION] vue', function () {
       var source = checker.program.getSourceFile(sourceFilePath);
       expect(source).to.not.be.undefined;
       // remove padding lines
-      var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '');
+      var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();
       expect(text.startsWith('/* OK */')).to.be.true;
     });
   });

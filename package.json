@@ -71,10 +71,10 @@
     "ts-loader": "4.3.0",
     "tslint": "^5.0.0",
     "typescript": "^2.6.2",
-    "vue": "^2.5.9",
+    "vue": "^2.5.16",
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
-    "vue-template-compiler": "^2.5.9",
+    "vue-template-compiler": "^2.5.16",
     "webpack": "^4.0.0"
   },
   "peerDependencies": {
@@ -92,7 +92,6 @@
     "lodash.startswith": "^4.2.1",
     "minimatch": "^3.0.4",
     "resolve": "^1.5.0",
-    "tapable": "^1.0.0",
-    "vue-parser": "^1.1.5"
+    "tapable": "^1.0.0"
   }
 }

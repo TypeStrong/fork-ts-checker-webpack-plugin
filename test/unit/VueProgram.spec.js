@@ -47,7 +47,7 @@ describe('[UNIT] VueProgram', function () {
     var options = {};
     var moduleName = '@/test.vue';
 
-    resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
+    var resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
     expect(resolvedModuleName).to.be.equal('/base/dir/src/test.vue');
 
     options.baseUrl = '/baseurl1';

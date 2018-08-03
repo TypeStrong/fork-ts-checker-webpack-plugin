@@ -70,7 +70,7 @@
     "sinon": "^2.3.1",
     "ts-loader": "4.3.0",
     "tslint": "^5.0.0",
-    "typescript": "^2.6.2",
+    "typescript": "^3.0.1",
     "vue": "^2.5.16",
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
@@ -79,7 +79,7 @@
   },
   "peerDependencies": {
     "tslint": "^4.0.0 || ^5.0.0",
-    "typescript": "^2.1.0",
+    "typescript": "^2.1.0 || ^3.0.0",
     "webpack": "^2.3.0 || ^3.0.0 || ^4.0.0"
   },
   "dependencies": {

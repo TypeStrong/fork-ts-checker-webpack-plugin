@@ -1,3 +1,7 @@
+## v0.4.6
+
+ * [Fix(types): Make options Partial<Options> ](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/141) (#140)
+
 ## v0.4.5
 
  * [Fix(types): Add types to the plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/139) (#137)

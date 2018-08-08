@@ -145,6 +145,17 @@ describe('[INTEGRATION] vue', function () {
     });
   });
 
+  it('should not report no-consecutive-blank-lines tslint rule', function (callback) {
+    createCompiler({ tslint: true, vue: true });
+
+    compiler.run(function(error, stats) {
+      stats.compilation.warnings.forEach(function(warning) {
+        expect(warning.rawMessage).to.not.match(/no-consecutive-blank-lines/);
+      });
+      callback();
+    });
+  });
+
   it('should find syntactic errors when checkSyntacticErrors is true', function (callback) {
     createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
     

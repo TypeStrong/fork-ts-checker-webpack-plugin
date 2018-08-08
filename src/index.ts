@@ -104,7 +104,7 @@ class ForkTsCheckerWebpackPlugin {
 
   vue: boolean;
 
-  constructor(options: Options) {
+  constructor(options: Partial<Options>) {
     options = options || {} as Options;
     this.options = Object.assign({}, options);
 

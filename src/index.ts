@@ -64,7 +64,7 @@ class ForkTsCheckerWebpackPlugin {
   static ONE_CPU_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 1);
   static TWO_CPUS_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 2);
 
-  options: Options;
+  options: Partial<Options>;
   tsconfig: string;
   tslint: string | true;
   watch: string[];
@@ -104,7 +104,7 @@ class ForkTsCheckerWebpackPlugin {
 
   vue: boolean;
 
-  constructor(options: Options) {
+  constructor(options?: Partial<Options>) {
     options = options || {} as Options;
     this.options = Object.assign({}, options);
 

@@ -13,6 +13,8 @@
         ],
         "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "../lib"
+        "declaration": true,
+        "outDir": "../lib",
+        "declarationDir": "../lib/types"
     }
 }

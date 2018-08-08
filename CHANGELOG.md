@@ -1,3 +1,8 @@
+## v0.4.5
+
+ * [Fix(types): Add types to the plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/139) (#137)
+ * [Fix(vue): Avoid false positive of no-consecutive-blank-lines TSLint rule in Vue file](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/138) (#130)
+
 ## v0.4.4
 
  * [Fix(vue): resolve src attribute on the script block on Vue files](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/130) (#111, #85)

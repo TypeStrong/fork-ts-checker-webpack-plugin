@@ -195,7 +195,7 @@ class VueProgram {
     }
   }
 
-  private static resolveScriptBlock(content: string): ResolvedScript {
+  static resolveScriptBlock(content: string): ResolvedScript {
     // We need to import vue-template-compiler lazily because it cannot be included it
     // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
     // Since its version must not mismatch with user-installed Vue.js,
@@ -209,7 +209,7 @@ class VueProgram {
     }
 
     const { script } = parser.parseComponent(content, {
-      pad: 'line'
+      pad: 'space'
     });
 
     // No <script> block
@@ -240,9 +240,15 @@ class VueProgram {
       };
     }
 
+    // Pad blank lines to retain diagnostics location
+    // We need to prepend `//` for each line to avoid
+    // false positive of no-consecutive-blank-lines TSLint rule
+    const offset = content.slice(0, script.start).split(/\r?\n/g).length;
+    const paddedContent = Array(offset).join('//\n') + script.content.slice(script.start);
+
     return {
       scriptKind,
-      content: script.content
+      content: paddedContent
     };
   }
 }

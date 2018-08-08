@@ -1,3 +1,4 @@
+var ts = require('typescript');
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
@@ -63,5 +64,50 @@ describe('[UNIT] VueProgram', function () {
     options.paths = { '@/*': ['src1/src2/*'] }    
     resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
     expect(resolvedModuleName).to.be.equal('/baseurl3/src1/src2/test.vue');
+  });
+
+  it('should extract script block', function() {
+    var content = [
+      '<script lang="ts">',
+      'import Vue from "vue";',
+      'export default Vue.extend({});',
+      '</script>'
+    ].join('\n');
+
+    var result = VueProgram.resolveScriptBlock(content);
+
+    expect(result.scriptKind).to.be.equal(ts.ScriptKind.TS);
+    expect(result.content).to.be.equal([
+      '',
+      'import Vue from "vue";',
+      'export default Vue.extend({});',
+      ''
+    ].join('\n'));
+  });
+
+  it('should pad lines', function() {
+    var content = [
+      '<template>',
+      '  <p>Hello</p>',
+      '</template>',
+      '',
+      '<script lang="ts">',
+      'import Vue from "vue";',
+      'export default Vue.extend({});',
+      '</script>'
+    ].join('\n');
+
+    var result = VueProgram.resolveScriptBlock(content);
+
+    expect(result.content).to.be.equal([
+      '//',
+      '//',
+      '//',
+      '//',
+      '',
+      'import Vue from "vue";',
+      'export default Vue.extend({});',
+      ''
+    ].join('\n'));
   });
 });

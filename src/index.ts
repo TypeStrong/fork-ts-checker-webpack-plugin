@@ -1,7 +1,7 @@
 import path = require('path');
 import process = require('process');
 import childProcess = require('child_process');
-import chalk = require('chalk');
+import chalk, { Chalk } from 'chalk';
 import fs = require('fs');
 import os = require('os');
 import webpack = require('webpack');
@@ -77,7 +77,7 @@ class ForkTsCheckerWebpackPlugin {
   workersNumber: number;
   memoryLimit: number;
   useColors: boolean;
-  colors: chalk.Chalk;
+  colors: Chalk;
   formatter: Formatter;
 
   tsconfigPath: string;
@@ -599,7 +599,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   createEmitCallback(compilation: any, callback: () => void) {
-    return function emitCallback (this: ForkTsCheckerWebpackPlugin) {
+    return function emitCallback(this: ForkTsCheckerWebpackPlugin) {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 
       if ('hooks' in this.compiler) {
@@ -651,7 +651,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   createDoneCallback() {
-    return function doneCallback (this: ForkTsCheckerWebpackPlugin) {
+    return function doneCallback(this: ForkTsCheckerWebpackPlugin) {
       const elapsed = Math.round(this.elapsed[0] * 1E9 + this.elapsed[1]);
 
       if (this.compiler) {

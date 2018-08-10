@@ -1,5 +1,5 @@
 
-import chalk = require('chalk');
+import chalk from 'chalk';
 import os = require('os');
 import NormalizedMessage = require('../NormalizedMessage');
 

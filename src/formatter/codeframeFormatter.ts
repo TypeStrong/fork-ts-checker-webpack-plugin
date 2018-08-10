@@ -1,6 +1,6 @@
 import os = require('os');
 import codeFrame = require('babel-code-frame');
-import chalk = require('chalk');
+import chalk from 'chalk';
 import fs = require('fs');
 import NormalizedMessage = require('../NormalizedMessage');
 

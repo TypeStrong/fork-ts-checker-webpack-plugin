@@ -32,6 +32,12 @@ const customHooks = {
 
 type Formatter = (message: NormalizedMessage, useColors: boolean) => string;
 
+interface Logger {
+  error(message?: any): void;
+  warn(message?: any): void;
+  info(message?: any): void;
+}
+
 interface Options {
   tsconfig: string;
   tslint: string | true;
@@ -40,7 +46,7 @@ interface Options {
   ignoreDiagnostics: number[];
   ignoreLints: string[];
   colors: boolean;
-  logger: Console;
+  logger: Logger;
   formatter: 'default' | 'codeframe' | Formatter;
   formatterOptions: any;
   silent: boolean;
@@ -70,7 +76,7 @@ class ForkTsCheckerWebpackPlugin {
   watch: string[];
   ignoreDiagnostics: number[];
   ignoreLints: string[];
-  logger: Console;
+  logger: Logger;
   silent: boolean;
   async: boolean;
   checkSyntacticErrors: boolean;

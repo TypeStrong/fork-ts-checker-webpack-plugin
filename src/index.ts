@@ -313,6 +313,7 @@ class ForkTsCheckerWebpackPlugin {
     if ('hooks' in this.compiler) {
       // webpack 4
       this.compiler.hooks.compile.tap(checkerPluginName, () => {
+        this.compilationDone = false;
         this.compiler.hooks.forkTsCheckerServiceBeforeStart.callAsync(() => {
           if (this.cancellationToken) {
             // request cancellation if there is not finished job
@@ -320,7 +321,6 @@ class ForkTsCheckerWebpackPlugin {
             this.compiler.hooks.forkTsCheckerCancel.call(this.cancellationToken);
           }
           this.checkDone = false;
-          this.compilationDone = false;
 
           this.started = process.hrtime();
 
@@ -344,6 +344,7 @@ class ForkTsCheckerWebpackPlugin {
     } else {
       // webpack 2 / 3
       this.compiler.plugin('compile', () => {
+        this.compilationDone = false;
         this.compiler.applyPluginsAsync('fork-ts-checker-service-before-start', () => {
           if (this.cancellationToken) {
             // request cancellation if there is not finished job
@@ -351,7 +352,6 @@ class ForkTsCheckerWebpackPlugin {
             this.compiler.applyPlugins('fork-ts-checker-cancel', this.cancellationToken);
           }
           this.checkDone = false;
-          this.compilationDone = false;
 
           this.started = process.hrtime();
 

@@ -1,3 +1,7 @@
+## v0.4.8
+
+* [Fix(types collision): update webpack](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/151) (#142)
+
 ## v0.4.7
 
  * [Fix(types collision): update chalk and chokidar](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/147) (#142)

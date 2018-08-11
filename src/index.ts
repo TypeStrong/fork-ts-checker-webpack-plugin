@@ -4,7 +4,7 @@ import childProcess = require('child_process');
 import chalk, { Chalk } from 'chalk';
 import fs = require('fs');
 import os = require('os');
-import webpack = require('webpack');
+import * as webpack from 'webpack';
 import isString = require('lodash.isstring');
 import isFunction = require('lodash.isfunction');
 import CancellationToken = require('./CancellationToken');

@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -58,7 +58,7 @@
     "@types/minimatch": "^3.0.1",
     "@types/node": "^8.0.26",
     "@types/resolve": "0.0.4",
-    "@types/webpack": "^3.0.10",
+    "@types/webpack": "^4.4.9",
     "chai": "^3.5.0",
     "css-loader": "^0.28.7",
     "eslint": "^3.19.0",
@@ -75,7 +75,7 @@
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
     "vue-template-compiler": "^2.5.16",
-    "webpack": "^4.0.0"
+    "webpack": "^4.16.5"
   },
   "peerDependencies": {
     "tslint": "^4.0.0 || ^5.0.0",

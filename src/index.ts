@@ -4,7 +4,7 @@ import childProcess = require('child_process');
 import chalk, { Chalk } from 'chalk';
 import fs = require('fs');
 import os = require('os');
-import webpack = require('webpack');
+import * as webpack from 'webpack';
 import isString = require('lodash.isstring');
 import isFunction = require('lodash.isfunction');
 import CancellationToken = require('./CancellationToken');
@@ -32,6 +32,12 @@ const customHooks = {
 
 type Formatter = (message: NormalizedMessage, useColors: boolean) => string;
 
+interface Logger {
+  error(message?: any): void;
+  warn(message?: any): void;
+  info(message?: any): void;
+}
+
 interface Options {
   tsconfig: string;
   tslint: string | true;
@@ -40,7 +46,7 @@ interface Options {
   ignoreDiagnostics: number[];
   ignoreLints: string[];
   colors: boolean;
-  logger: Console;
+  logger: Logger;
   formatter: 'default' | 'codeframe' | Formatter;
   formatterOptions: any;
   silent: boolean;
@@ -70,7 +76,7 @@ class ForkTsCheckerWebpackPlugin {
   watch: string[];
   ignoreDiagnostics: number[];
   ignoreLints: string[];
-  logger: Console;
+  logger: Logger;
   silent: boolean;
   async: boolean;
   checkSyntacticErrors: boolean;

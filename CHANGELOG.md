@@ -1,6 +1,15 @@
+## v0.4.8
+
+* [Fix(types collision): update webpack](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/151) (#142)
+
+## v0.4.7
+
+ * [Fix(types collision): update chalk and chokidar](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/147) (#142)
+ * [Fix(logger): Don't limit Options.logger to Console type](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/143)
+
 ## v0.4.6
 
- * [Fix(types): Make options Partial<Options> ](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/141) (#140)
+ * [Fix(types): Make options Partial<Options>](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/141) (#140)
 
 ## v0.4.5
 

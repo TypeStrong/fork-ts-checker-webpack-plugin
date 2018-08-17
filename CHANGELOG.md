@@ -1,3 +1,7 @@
+## v0.4.9
+
+* [Set "compilationDone" before resolving "forkTsCheckerServiceBeforeStart"](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/146) (#146)
+
 ## v0.4.8
 
 * [Fix(types collision): update webpack](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/151) (#142)

@@ -66,7 +66,7 @@ interface Options {
 class ForkTsCheckerWebpackPlugin {
   static DEFAULT_MEMORY_LIMIT = 2048;
   static ONE_CPU = 1;
-  static ALL_CPUS = os.cpus().length;
+  static ALL_CPUS = os.cpus() ? os.cpus().length : 1;
   static ONE_CPU_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 1);
   static TWO_CPUS_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 2);
 

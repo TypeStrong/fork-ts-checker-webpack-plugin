@@ -4,7 +4,7 @@ var expect = require('chai').expect;
 var path = require('path');
 var minimatch = require('minimatch');
 
-var IncrementalChecker = require('../../lib/IncrementalChecker');
+var IncrementalChecker = require('../../lib/IncrementalChecker').IncrementalChecker;
 
 describe('[UNIT] IncrementalChecker', function () {
   describe('isFileExcluded', function() {

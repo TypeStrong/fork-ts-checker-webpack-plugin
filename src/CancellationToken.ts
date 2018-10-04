@@ -1,15 +1,15 @@
-import crypto = require('crypto');
-import fs = require('fs');
-import os = require('os');
-import path = require('path');
-import ts = require('typescript');
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as ts from 'typescript';
 
 interface CancellationTokenData {
   isCancelled: boolean;
   cancellationFileName: string;
 }
 
-class CancellationToken {
+export class CancellationToken {
   isCancelled: boolean;
   cancellationFileName: string;
   lastCancellationCheckTime: number;
@@ -72,5 +72,3 @@ class CancellationToken {
     }
   }
 }
-
-export = CancellationToken;

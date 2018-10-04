@@ -1,6 +1,5 @@
-// Imported for types alone; actual requires take place in methods below
-import tsTypes = require('typescript');
-import tslintTypes = require('tslint');
+import { Diagnostic, DiagnosticCategory, flattenDiagnosticMessageText } from 'typescript';
+import { RuleFailure } from 'tslint';
 
 type ErrorType = 'diagnostic' | 'lint';
 type Severity = 'error' | 'warning';
@@ -15,7 +14,7 @@ interface NormalizedMessageJson {
   character: number;
 }
 
-class NormalizedMessage {
+export class NormalizedMessage {
   static TYPE_DIAGNOSTIC: ErrorType = 'diagnostic';
   static TYPE_LINT: ErrorType = 'lint';
 
@@ -42,8 +41,7 @@ class NormalizedMessage {
   }
 
   // message types
-  static createFromDiagnostic(diagnostic: tsTypes.Diagnostic) {
-    const ts: typeof tsTypes = require('typescript');
+  static createFromDiagnostic(diagnostic: Diagnostic) {
     let file: string;
     let line: number;
     let character: number;
@@ -57,15 +55,15 @@ class NormalizedMessage {
     return new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: diagnostic.code,
-      severity: ts.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
-      content: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+      severity: DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
+      content: flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
       file: file,
       line: line,
       character: character
     });
   }
 
-  static createFromLint(lint: tslintTypes.RuleFailure) {
+  static createFromLint(lint: RuleFailure) {
     const position = lint.getStartPosition().getLineAndCharacter();
 
     return new NormalizedMessage({
@@ -216,5 +214,3 @@ class NormalizedMessage {
     return this.character;
   }
 }
-
-export = NormalizedMessage;

@@ -1,14 +1,14 @@
 
 import chalk from 'chalk';
-import os = require('os');
-import NormalizedMessage = require('../NormalizedMessage');
+import * as os from 'os';
+import { NormalizedMessage } from '../NormalizedMessage';
 
 /**
  * Creates new default formatter.
  *
  * @returns {defaultFormatter}
  */
-export = function createDefaultFormatter() {
+export function createDefaultFormatter() {
   return function defaultFormatter(message: NormalizedMessage, useColors: boolean) {
     const colors = new chalk.constructor({enabled: useColors});
     const messageColor = message.isWarningSeverity() ? colors.bold.yellow : colors.bold.red;

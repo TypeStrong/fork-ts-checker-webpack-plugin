@@ -3,8 +3,8 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var os = require('os');
 var expect = require('chai').expect;
-var NormalizedMessage = require('../../lib/NormalizedMessage');
-var createDefaultFormatter = require('../../lib/formatter/defaultFormatter');
+var NormalizedMessage = require('../../lib/NormalizedMessage').NormalizedMessage;
+var createDefaultFormatter = require('../../lib/formatter/defaultFormatter').createDefaultFormatter;
 
 describe('[UNIT] formatter/defaultFormatter', function () {
 

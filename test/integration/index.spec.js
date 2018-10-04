@@ -4,7 +4,7 @@ var it = require('mocha').it;
 var chai = require('chai');
 var path = require('path');
 var webpack = require('webpack');
-var ForkTsCheckerWebpackPlugin = require('../../lib/index');
+var ForkTsCheckerWebpackPlugin = require('../../lib/index').ForkTsCheckerWebpackPlugin;
 
 chai.config.truncateThreshold = 0;
 var expect = chai.expect;

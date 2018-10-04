@@ -1,8 +1,8 @@
-import os = require('os');
+import * as os from 'os';
 import codeFrame = require('babel-code-frame');
 import chalk from 'chalk';
-import fs = require('fs');
-import NormalizedMessage = require('../NormalizedMessage');
+import * as fs from 'fs';
+import { NormalizedMessage } from '../NormalizedMessage';
 
 /**
  * Create new code frame formatter.
@@ -10,7 +10,7 @@ import NormalizedMessage = require('../NormalizedMessage');
  * @param options Options for babel-code-frame - see https://www.npmjs.com/package/babel-code-frame
  * @returns {codeframeFormatter}
  */
-export = function createCodeframeFormatter(options: any) {
+export function createCodeframeFormatter(options: any) {
   return function codeframeFormatter(message: NormalizedMessage, useColors: boolean) {
     const colors = new chalk.constructor({enabled: useColors});
     const messageColor = message.isWarningSeverity() ? colors.bold.yellow : colors.bold.red;

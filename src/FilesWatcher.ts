@@ -1,8 +1,8 @@
-import chokidar = require('chokidar');
-import path = require('path');
+import * as chokidar from 'chokidar';
+import * as path from 'path';
 import startsWith = require('lodash.startswith');
 
-class FilesWatcher {
+export class FilesWatcher {
   watchPaths: string[];
   watchExtensions: string[];
   watchers: chokidar.FSWatcher[];
@@ -71,5 +71,3 @@ class FilesWatcher {
     }
   }
 }
-
-export = FilesWatcher;

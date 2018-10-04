@@ -19,7 +19,7 @@ describe('[UNIT] FilesWatcher', function () {
     watchStub = sinon.stub().returns(watcherStub);
 
     mockRequire('chokidar', { watch: watchStub });
-    FilesWatcher = mockRequire.reRequire('../../lib/FilesWatcher');
+    FilesWatcher = mockRequire.reRequire('../../lib/FilesWatcher').FilesWatcher;
 
     watcher = new FilesWatcher(
       ['/test', '/bar'],

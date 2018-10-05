@@ -5,7 +5,7 @@ var expect = require('chai').expect;
 var path = require('path');
 var webpack = require('webpack');
 var process = require('process');
-var ForkTsCheckerWebpackPlugin = require('../../lib/index').ForkTsCheckerWebpackPlugin;
+var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker').IncrementalChecker;
 
 var webpackMajorVersion = require('./webpackVersion')();

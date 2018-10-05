@@ -704,3 +704,7 @@ export class ForkTsCheckerWebpackPlugin {
 }
 
 export default ForkTsCheckerWebpackPlugin
+
+if (module && module.exports) {
+    module.exports = exports.default
+}

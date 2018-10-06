@@ -1,17 +1,17 @@
-import fs = require('fs');
-import path = require('path');
-import ts = require('typescript');
-import FilesRegister = require('./FilesRegister');
-import FilesWatcher = require('./FilesWatcher');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as ts from 'typescript';
+import { FilesRegister } from './FilesRegister';
+import { FilesWatcher } from './FilesWatcher';
 // tslint:disable-next-line
-import vueCompiler = require('vue-template-compiler');
+import * as vueCompiler from 'vue-template-compiler';
 
 interface ResolvedScript {
   scriptKind: ts.ScriptKind;
   content: string;
 }
 
-class VueProgram {
+export class VueProgram {
   static loadProgramConfig(configFile: string) {
     const extraExtensions = ['vue'];
 
@@ -252,5 +252,3 @@ class VueProgram {
     };
   }
 }
-
-export = VueProgram;

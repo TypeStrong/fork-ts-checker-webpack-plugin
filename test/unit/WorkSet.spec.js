@@ -1,7 +1,7 @@
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
-var WorkSet = require('../../lib/WorkSet');
+var WorkSet = require('../../lib/WorkSet').WorkSet;
 
 describe('[UNIT] WorkSet', function () {
   function testForDomainAndDivision (domain, divisions) {

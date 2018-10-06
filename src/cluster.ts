@@ -1,10 +1,10 @@
-import childProcess = require('child_process');
-import path = require('path');
-import process = require('process');
+import * as childProcess from 'child_process';
+import * as path from 'path';
+import * as process from 'process';
 
-import WorkResult = require('./WorkResult');
-import NormalizedMessage = require('./NormalizedMessage');
-import Message from './Message';
+import { WorkResult } from './WorkResult';
+import { NormalizedMessage } from './NormalizedMessage';
+import { Message } from './Message';
 
 // fork workers...
 const division = parseInt(process.env.WORK_DIVISION, 10);

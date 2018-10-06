@@ -2,7 +2,7 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var beforeEach = require('mocha').beforeEach;
 var expect = require('chai').expect;
-var NormalizedMessage = require('../../lib/NormalizedMessage');
+var NormalizedMessage = require('../../lib/NormalizedMessage').NormalizedMessage;
 
 describe('[UNIT] NormalizedMessage', function () {
   var diagnosticMessage;

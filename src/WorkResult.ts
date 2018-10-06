@@ -1,6 +1,6 @@
-import Message from './Message';
+import { Message } from './Message';
 
-class WorkResult {
+export class WorkResult {
   workResult: {};
   workDomain: any[];
 
@@ -47,5 +47,3 @@ class WorkResult {
     }, initial);
   }
 }
-
-export = WorkResult;

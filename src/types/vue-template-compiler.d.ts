@@ -3,7 +3,7 @@
  * which may included vue-template-compiler v2.6.0.
  */
 declare module 'vue-template-compiler' {
-  import Vue, { VNode } from "vue"
+  import Vue, { VNode } from 'vue';
 
   /*
   * Template compilation options / results

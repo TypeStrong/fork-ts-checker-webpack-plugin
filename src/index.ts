@@ -1,20 +1,20 @@
-import path = require('path');
-import process = require('process');
-import childProcess = require('child_process');
+import * as path from 'path';
+import * as process from 'process';
+import * as childProcess from 'child_process';
 import chalk, { Chalk } from 'chalk';
-import fs = require('fs');
-import os = require('os');
+import * as fs from 'fs';
+import * as os from 'os';
 import * as webpack from 'webpack';
 import isString = require('lodash.isstring');
 import isFunction = require('lodash.isfunction');
-import CancellationToken = require('./CancellationToken');
-import NormalizedMessage = require('./NormalizedMessage');
-import createDefaultFormatter = require('./formatter/defaultFormatter');
-import createCodeframeFormatter = require('./formatter/codeframeFormatter');
-import Message from './Message';
+import { CancellationToken } from './CancellationToken';
+import { NormalizedMessage } from './NormalizedMessage';
+import { createDefaultFormatter } from './formatter/defaultFormatter';
+import { createCodeframeFormatter } from './formatter/codeframeFormatter';
+import { Message } from './Message';
 
-const AsyncSeriesHook = require("tapable").AsyncSeriesHook;
-const SyncHook = require("tapable").SyncHook;
+import { AsyncSeriesHook } from 'tapable';
+import { SyncHook } from 'tapable';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -703,4 +703,6 @@ class ForkTsCheckerWebpackPlugin {
   }
 }
 
-export = ForkTsCheckerWebpackPlugin;
+export = ForkTsCheckerWebpackPlugin
+
+namespace ForkTsCheckerWebpackPlugin {}

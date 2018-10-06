@@ -1,4 +1,4 @@
-import ts = require('typescript');
+import * as ts from 'typescript';
 
 interface DataShape {
   source: ts.SourceFile;
@@ -6,7 +6,7 @@ interface DataShape {
   lints: any[];
 }
 
-class FilesRegister {
+export class FilesRegister {
   files: { [filePath: string]: { mtime: number; data: DataShape; }};
   dataFactory: (_data?: any) => DataShape; // It doesn't seem that the _data parameter is ever used?
 
@@ -74,4 +74,4 @@ class FilesRegister {
     }
   }
 }
-export = FilesRegister;
+

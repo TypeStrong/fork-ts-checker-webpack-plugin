@@ -7,7 +7,7 @@ var beforeEach = require('mocha').beforeEach;
 var afterEach = require('mocha').afterEach;
 var expect = require('chai').expect;
 var mockFs = require('mock-fs');
-var CancellationToken = require('../../lib/CancellationToken');
+var CancellationToken = require('../../lib/CancellationToken').CancellationToken;
 
 describe('[UNIT] CancellationToken', function () {
   beforeEach(function () {

@@ -2,7 +2,7 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var beforeEach = require('mocha').beforeEach;
 var expect = require('chai').expect;
-var FilesRegister = require('../../lib/FilesRegister');
+var FilesRegister = require('../../lib/FilesRegister').FilesRegister;
 
 describe('[UNIT] FilesRegister', function () {
   var register;

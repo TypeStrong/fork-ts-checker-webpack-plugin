@@ -2,7 +2,7 @@ var ts = require('typescript');
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
-var VueProgram = require('../../lib/VueProgram');
+var VueProgram = require('../../lib/VueProgram').VueProgram;
 
 describe('[UNIT] VueProgram', function () {
   it('should determine if file is a Vue file', function() {
@@ -56,12 +56,12 @@ describe('[UNIT] VueProgram', function () {
     expect(resolvedModuleName).to.be.equal('/baseurl1/src/test.vue');
 
     options.baseUrl = '/baseurl2';    
-    options.paths = { '@/*': ['src1/*'] }    
+    options.paths = { '@/*': ['src1/*'] };
     resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
     expect(resolvedModuleName).to.be.equal('/baseurl2/src1/test.vue');
 
     options.baseUrl = '/baseurl3';    
-    options.paths = { '@/*': ['src1/src2/*'] }    
+    options.paths = { '@/*': ['src1/src2/*'] };
     resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
     expect(resolvedModuleName).to.be.equal('/baseurl3/src1/src2/test.vue');
   });

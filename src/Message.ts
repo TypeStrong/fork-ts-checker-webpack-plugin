@@ -1,6 +1,6 @@
-import NormalizedMessage = require('./NormalizedMessage');
+import { NormalizedMessage } from './NormalizedMessage';
 
-export default interface Message {
+export interface Message {
     diagnostics: NormalizedMessage[];
     lints: NormalizedMessage[];
 }

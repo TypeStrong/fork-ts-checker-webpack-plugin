@@ -1,6 +1,6 @@
-import ts = require('typescript');
+import * as ts from 'typescript';
 
-class WorkSet {
+export class WorkSet {
   workDomain: ReadonlyArray<ts.SourceFile> | string[];
   workNumber: number;
   workDivision: number;
@@ -28,5 +28,3 @@ class WorkSet {
     }
   }
 }
-
-export = WorkSet;

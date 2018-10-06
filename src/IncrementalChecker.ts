@@ -1,26 +1,26 @@
-import fs = require('fs');
+import * as fs from 'fs';
 import endsWith = require('lodash.endswith');
-import path = require('path');
-import ts = require('typescript');
-import tslintTypes = require('tslint'); // Imported for types alone; actual requires take place in methods below
-import FilesRegister = require('./FilesRegister');
-import FilesWatcher = require('./FilesWatcher');
-import WorkSet = require('./WorkSet');
-import NormalizedMessage = require('./NormalizedMessage');
-import CancellationToken = require('./CancellationToken');
-import minimatch = require('minimatch');
-import VueProgram = require('./VueProgram');
+import * as path from 'path';
+import * as ts from 'typescript';
+import { Configuration, Linter } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+import { FilesRegister } from './FilesRegister';
+import { FilesWatcher } from './FilesWatcher';
+import { WorkSet } from './WorkSet';
+import { NormalizedMessage } from './NormalizedMessage';
+import { CancellationToken } from './CancellationToken';
+import * as minimatch from 'minimatch';
+import { VueProgram } from './VueProgram';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
-interface ConfigurationFile extends tslintTypes.Configuration.IConfigurationFile {
+interface ConfigurationFile extends Configuration.IConfigurationFile {
   linterOptions?: {
     typeCheck?: boolean;
     exclude?: string[];
   };
 }
 
-class IncrementalChecker {
+export class IncrementalChecker {
   programConfigFile: string;
   linterConfigFile: string | false;
   watchPaths: string[];
@@ -29,7 +29,7 @@ class IncrementalChecker {
   checkSyntacticErrors: boolean;
   files: FilesRegister;
 
-  linter: tslintTypes.Linter;
+  linter: Linter;
   linterConfig: ConfigurationFile;
   linterExclusions: minimatch.IMinimatch[];
 
@@ -78,7 +78,7 @@ class IncrementalChecker {
   }
 
   static loadLinterConfig(configFile: string): ConfigurationFile {
-    const tslint: typeof tslintTypes = require('tslint');
+    const tslint = require('tslint');
 
     return tslint.Configuration.loadConfigurationFromPath(configFile) as ConfigurationFile;
   }
@@ -124,7 +124,7 @@ class IncrementalChecker {
   }
 
   static createLinter(program: ts.Program) {
-    const tslint: typeof tslintTypes = require('tslint');
+    const tslint = require('tslint');
 
     return new tslint.Linter({ fix: false }, program);
   }
@@ -279,5 +279,3 @@ class IncrementalChecker {
     );
   }
 }
-
-export = IncrementalChecker;

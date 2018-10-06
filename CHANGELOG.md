@@ -1,3 +1,7 @@
+## v0.4.10
+
+* [Allow fork-ts-checker-webpack-plugin to be imported in .ts files using ESM import syntax](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/163) (#163)
+
 ## v0.4.9
 
 * [Set "compilationDone" before resolving "forkTsCheckerServiceBeforeStart"](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/146) (#146)

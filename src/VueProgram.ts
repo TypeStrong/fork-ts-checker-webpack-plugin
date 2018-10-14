@@ -16,17 +16,25 @@ export class VueProgram {
     const extraExtensions = ['vue'];
 
     const parseConfigHost: ts.ParseConfigHost = {
-        fileExists: ts.sys.fileExists,
-        readFile: ts.sys.readFile,
-        useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
-        readDirectory: (rootDir, extensions, excludes, includes, depth) => {
-            return ts.sys.readDirectory(rootDir, extensions.concat(extraExtensions), excludes, includes, depth);
-        }
+      fileExists: ts.sys.fileExists,
+      readFile: ts.sys.readFile,
+      useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+      readDirectory: (rootDir, extensions, excludes, includes, depth) => {
+        return ts.sys.readDirectory(
+          rootDir,
+          extensions.concat(extraExtensions),
+          excludes,
+          includes,
+          depth
+        );
+      }
     };
 
     const parsed = ts.parseJsonConfigFileContent(
       // Regardless of the setting in the tsconfig.json we want isolatedModules to be false
-      Object.assign(ts.readConfigFile(configFile, ts.sys.readFile).config, { isolatedModules: false }),
+      Object.assign(ts.readConfigFile(configFile, ts.sys.readFile).config, {
+        isolatedModules: false
+      }),
       parseConfigHost,
       path.dirname(configFile)
     );
@@ -42,7 +50,12 @@ export class VueProgram {
    * If no paths given in tsconfig, then the default substitution is '[tsconfig directory]/src'.
    * (This is a fast, simplified inspiration of what's described here: https://github.com/Microsoft/TypeScript/issues/5039)
    */
-  public static resolveNonTsModuleName(moduleName: string, containingFile: string, basedir: string, options: ts.CompilerOptions) {
+  public static resolveNonTsModuleName(
+    moduleName: string,
+    containingFile: string,
+    basedir: string,
+    options: ts.CompilerOptions
+  ) {
     const baseUrl = options.baseUrl ? options.baseUrl : basedir;
     const discardedSymbols = ['.', '..', '/'];
     const wildcards: string[] = [];
@@ -50,7 +63,10 @@ export class VueProgram {
     if (options.paths) {
       Object.keys(options.paths).forEach(key => {
         const pathSymbol = key[0];
-        if (discardedSymbols.indexOf(pathSymbol) < 0 && wildcards.indexOf(pathSymbol) < 0) {
+        if (
+          discardedSymbols.indexOf(pathSymbol) < 0 &&
+          wildcards.indexOf(pathSymbol) < 0
+        ) {
           wildcards.push(pathSymbol);
         }
       });
@@ -68,8 +84,12 @@ export class VueProgram {
     });
 
     if (correctWildcard) {
-      const pattern = options.paths ? options.paths[`${correctWildcard}/*`] : undefined;
-      const substitution = pattern ? options.paths[`${correctWildcard}/*`][0].replace('*', '') : 'src';
+      const pattern = options.paths
+        ? options.paths[`${correctWildcard}/*`]
+        : undefined;
+      const substitution = pattern
+        ? options.paths[`${correctWildcard}/*`][0].replace('*', '')
+        : 'src';
       moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
     } else if (isRelative) {
       moduleName = path.resolve(path.dirname(containingFile), moduleName);
@@ -107,7 +127,7 @@ export class VueProgram {
 
       // get source file only if there is no source in files register
       if (!files.has(filePath) || !files.getData(filePath).source) {
-        files.mutateData(filePath, (data) => {
+        files.mutateData(filePath, data => {
           data.source = realGetSourceFile(filePath, languageVersion, onError);
         });
       }
@@ -117,7 +137,13 @@ export class VueProgram {
       // get typescript contents from Vue file
       if (source && VueProgram.isVue(filePath)) {
         const resolved = VueProgram.resolveScriptBlock(source.text);
-        source = ts.createSourceFile(filePath, resolved.content, languageVersion, true, resolved.scriptKind);
+        source = ts.createSourceFile(
+          filePath,
+          resolved.content,
+          languageVersion,
+          true,
+          resolved.scriptKind
+        );
       }
 
       return source;
@@ -129,32 +155,51 @@ export class VueProgram {
 
       for (const moduleName of moduleNames) {
         // Try to use standard resolution.
-        const { resolvedModule } = ts.resolveModuleName(moduleName, containingFile, programConfig.options, {
-          fileExists(fileName) {
-            if (fileName.endsWith('.vue.ts')) {
-              return host.fileExists(fileName.slice(0, -3)) || host.fileExists(fileName);
-            } else {
-              return host.fileExists(fileName);
-            }
-          },
-          readFile(fileName) {
-            // This implementation is not necessary. Just for consistent behavior.
-            if (fileName.endsWith('.vue.ts') && !host.fileExists(fileName)) {
-              return host.readFile(fileName.slice(0, -3));
-            } else {
-              return host.readFile(fileName);
+        const { resolvedModule } = ts.resolveModuleName(
+          moduleName,
+          containingFile,
+          programConfig.options,
+          {
+            fileExists(fileName) {
+              if (fileName.endsWith('.vue.ts')) {
+                return (
+                  host.fileExists(fileName.slice(0, -3)) ||
+                  host.fileExists(fileName)
+                );
+              } else {
+                return host.fileExists(fileName);
+              }
+            },
+            readFile(fileName) {
+              // This implementation is not necessary. Just for consistent behavior.
+              if (fileName.endsWith('.vue.ts') && !host.fileExists(fileName)) {
+                return host.readFile(fileName.slice(0, -3));
+              } else {
+                return host.readFile(fileName);
+              }
             }
           }
-        });
+        );
 
         if (resolvedModule) {
-          if (resolvedModule.resolvedFileName.endsWith('.vue.ts') && !host.fileExists(resolvedModule.resolvedFileName)) {
-            resolvedModule.resolvedFileName = resolvedModule.resolvedFileName.slice(0, -3);
+          if (
+            resolvedModule.resolvedFileName.endsWith('.vue.ts') &&
+            !host.fileExists(resolvedModule.resolvedFileName)
+          ) {
+            resolvedModule.resolvedFileName = resolvedModule.resolvedFileName.slice(
+              0,
+              -3
+            );
           }
           resolvedModules.push(resolvedModule);
         } else {
           // For non-ts extensions.
-          const absolutePath = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, programConfig.options);
+          const absolutePath = VueProgram.resolveNonTsModuleName(
+            moduleName,
+            containingFile,
+            basedir,
+            programConfig.options
+          );
 
           if (VueProgram.isVue(moduleName)) {
             resolvedModules.push({
@@ -164,7 +209,9 @@ export class VueProgram {
           } else {
             resolvedModules.push({
               // If the file does exist, return an empty string (because we assume user has provided a ".d.ts" file for it).
-              resolvedFileName: host.fileExists(absolutePath) ? '' : absolutePath,
+              resolvedFileName: host.fileExists(absolutePath)
+                ? ''
+                : absolutePath,
               extension: '.ts'
             } as ts.ResolvedModuleFull);
           }
@@ -183,11 +230,11 @@ export class VueProgram {
   }
 
   private static getScriptKindByLang(lang: string) {
-    if (lang === "ts") {
+    if (lang === 'ts') {
       return ts.ScriptKind.TS;
-    } else if (lang === "tsx") {
+    } else if (lang === 'tsx') {
       return ts.ScriptKind.TSX;
-    } else if (lang === "jsx") {
+    } else if (lang === 'jsx') {
       return ts.ScriptKind.JSX;
     } else {
       // when lang is "js" or no lang specified
@@ -205,7 +252,9 @@ export class VueProgram {
       // tslint:disable-next-line
       parser = require('vue-template-compiler');
     } catch (err) {
-      throw new Error('When you use `vue` option, make sure to install `vue-template-compiler`.');
+      throw new Error(
+        'When you use `vue` option, make sure to install `vue-template-compiler`.'
+      );
     }
 
     const { script } = parser.parseComponent(content, {
@@ -232,11 +281,12 @@ export class VueProgram {
         // For now, ignore the error when the src file is not found
         // since it will produce incorrect code location.
         // It's not a large problem since it's handled on webpack side.
-        content: '/* tslint:disable */\n'
-          + '// @ts-ignore\n'
-          + `export { default } from '${src}';\n`
-          + '// @ts-ignore\n'
-          + `export * from '${src}';\n`
+        content:
+          '/* tslint:disable */\n' +
+          '// @ts-ignore\n' +
+          `export { default } from '${src}';\n` +
+          '// @ts-ignore\n' +
+          `export * from '${src}';\n`
       };
     }
 
@@ -244,7 +294,8 @@ export class VueProgram {
     // We need to prepend `//` for each line to avoid
     // false positive of no-consecutive-blank-lines TSLint rule
     const offset = content.slice(0, script.start).split(/\r?\n/g).length;
-    const paddedContent = Array(offset).join('//\n') + script.content.slice(script.start);
+    const paddedContent =
+      Array(offset).join('//\n') + script.content.slice(script.start);
 
     return {
       scriptKind,

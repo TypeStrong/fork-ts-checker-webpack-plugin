@@ -4,7 +4,7 @@ var it = require('mocha').it;
 var expect = require('chai').expect;
 var VueProgram = require('../../lib/VueProgram').VueProgram;
 
-describe('[UNIT] VueProgram', function () {
+describe('[UNIT] VueProgram', function() {
   it('should determine if file is a Vue file', function() {
     expect(VueProgram.isVue('./test.vue')).to.be.true;
     expect(VueProgram.isVue('../test.vue')).to.be.true;
@@ -22,19 +22,18 @@ describe('[UNIT] VueProgram', function () {
     var options = {
       baseUrl: '/baseurl',
       paths: {
-        '@/*': [
-          'src/*'
-        ]
+        '@/*': ['src/*']
       }
-    }
-    var moduleNames = [
-      './test.vue',
-      '../test.vue',
-      '../../test.vue'
-    ];
+    };
+    var moduleNames = ['./test.vue', '../test.vue', '../../test.vue'];
 
     var resolvedModuleNames = moduleNames.map(function(moduleName) {
-      return VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
+      return VueProgram.resolveNonTsModuleName(
+        moduleName,
+        containingFile,
+        basedir,
+        options
+      );
     });
 
     expect(resolvedModuleNames[0]).to.be.equal('/con/tain/ing/test.vue');
@@ -48,21 +47,41 @@ describe('[UNIT] VueProgram', function () {
     var options = {};
     var moduleName = '@/test.vue';
 
-    var resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
+    var resolvedModuleName = VueProgram.resolveNonTsModuleName(
+      moduleName,
+      containingFile,
+      basedir,
+      options
+    );
     expect(resolvedModuleName).to.be.equal('/base/dir/src/test.vue');
 
     options.baseUrl = '/baseurl1';
-    resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
+    resolvedModuleName = VueProgram.resolveNonTsModuleName(
+      moduleName,
+      containingFile,
+      basedir,
+      options
+    );
     expect(resolvedModuleName).to.be.equal('/baseurl1/src/test.vue');
 
-    options.baseUrl = '/baseurl2';    
+    options.baseUrl = '/baseurl2';
     options.paths = { '@/*': ['src1/*'] };
-    resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
+    resolvedModuleName = VueProgram.resolveNonTsModuleName(
+      moduleName,
+      containingFile,
+      basedir,
+      options
+    );
     expect(resolvedModuleName).to.be.equal('/baseurl2/src1/test.vue');
 
-    options.baseUrl = '/baseurl3';    
+    options.baseUrl = '/baseurl3';
     options.paths = { '@/*': ['src1/src2/*'] };
-    resolvedModuleName = VueProgram.resolveNonTsModuleName(moduleName, containingFile, basedir, options);
+    resolvedModuleName = VueProgram.resolveNonTsModuleName(
+      moduleName,
+      containingFile,
+      basedir,
+      options
+    );
     expect(resolvedModuleName).to.be.equal('/baseurl3/src1/src2/test.vue');
   });
 
@@ -77,12 +96,11 @@ describe('[UNIT] VueProgram', function () {
     var result = VueProgram.resolveScriptBlock(content);
 
     expect(result.scriptKind).to.be.equal(ts.ScriptKind.TS);
-    expect(result.content).to.be.equal([
-      '',
-      'import Vue from "vue";',
-      'export default Vue.extend({});',
-      ''
-    ].join('\n'));
+    expect(result.content).to.be.equal(
+      ['', 'import Vue from "vue";', 'export default Vue.extend({});', ''].join(
+        '\n'
+      )
+    );
   });
 
   it('should pad lines', function() {
@@ -99,15 +117,17 @@ describe('[UNIT] VueProgram', function () {
 
     var result = VueProgram.resolveScriptBlock(content);
 
-    expect(result.content).to.be.equal([
-      '//',
-      '//',
-      '//',
-      '//',
-      '',
-      'import Vue from "vue";',
-      'export default Vue.extend({});',
-      ''
-    ].join('\n'));
+    expect(result.content).to.be.equal(
+      [
+        '//',
+        '//',
+        '//',
+        '//',
+        '',
+        'import Vue from "vue";',
+        'export default Vue.extend({});',
+        ''
+      ].join('\n')
+    );
   });
 });

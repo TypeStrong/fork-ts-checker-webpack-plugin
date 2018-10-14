@@ -1,5 +1,5 @@
 {
-    "extends": "tslint:latest",
+    "extends": ["tslint:latest", "tslint-config-prettier"],
     "rules": {
       "max-line-length": [false, 140],
       "object-literal-sort-keys": false,
@@ -8,12 +8,8 @@
         false
       ],
       "no-object-literal-type-assertion":false,
-      "no-unused-variable": [true, "check-parameters"],
       "no-var-requires": false,
       "no-string-literal": false,
-      "quotemark": [
-        "single"
-      ],
       "ordered-imports":false,
       "prefer-object-spread": false,
       "ban-types": false,
@@ -30,7 +26,8 @@
         "check-format",
         "allow-leading-underscore",
         "allow-pascal-case"
-      ]
+      ],
+      "no-namespace": false
     }
   }
   

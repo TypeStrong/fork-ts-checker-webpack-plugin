@@ -15,7 +15,9 @@ export class WorkResult {
 
   set(workName: number, result: any) {
     if (!this.supports(workName)) {
-      throw new Error('Cannot set result - work "' + workName + '" is not supported.');
+      throw new Error(
+        'Cannot set result - work "' + workName + '" is not supported.'
+      );
     }
 
     this.workResult[workName] = result;
@@ -27,7 +29,9 @@ export class WorkResult {
 
   get(workName: number) {
     if (!this.supports(workName)) {
-      throw new Error('Cannot get result - work "' + workName + '" is not supported.');
+      throw new Error(
+        'Cannot get result - work "' + workName + '" is not supported.'
+      );
     }
 
     return this.workResult[workName];

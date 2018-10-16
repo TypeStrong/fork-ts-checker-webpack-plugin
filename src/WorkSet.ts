@@ -8,7 +8,11 @@ export class WorkSet {
   workBegin: number;
   workEnd: number;
 
-  constructor(workDomain: ReadonlyArray<ts.SourceFile> | string[], workNumber: number, workDivision: number) {
+  constructor(
+    workDomain: ReadonlyArray<ts.SourceFile> | string[],
+    workNumber: number,
+    workDivision: number
+  ) {
     this.workDomain = workDomain;
     this.workNumber = workNumber;
     this.workDivision = workDivision;

@@ -1,6 +1,6 @@
 import { NormalizedMessage } from './NormalizedMessage';
 
 export interface Message {
-    diagnostics: NormalizedMessage[];
-    lints: NormalizedMessage[];
+  diagnostics: NormalizedMessage[];
+  lints: NormalizedMessage[];
 }

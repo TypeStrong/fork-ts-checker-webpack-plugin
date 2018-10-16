@@ -24,7 +24,7 @@ declare module 'vue-template-compiler' {
 
   interface CompiledResultFunctions {
     render: () => VNode;
-    staticRenderFns: (() => VNode)[];
+    staticRenderFns: Array<() => VNode>;
   }
 
   interface ModuleOptions {
@@ -36,7 +36,10 @@ declare module 'vue-template-compiler' {
     staticKeys?: string[];
   }
 
-  type DirectiveFunction = (node: ASTElement, directiveMeta: ASTDirective) => void;
+  type DirectiveFunction = (
+    node: ASTElement,
+    directiveMeta: ASTDirective
+  ) => void;
 
   /*
   * AST Types
@@ -49,7 +52,7 @@ declare module 'vue-template-compiler' {
    * - 3: CHILDREN - self un-optimizable but have fully optimizable children
    * - 4: PARTIAL - self un-optimizable with some un-optimizable children
    */
-  export type SSROptimizability = 0 | 1 | 2 | 3 | 4
+  export type SSROptimizability = 0 | 1 | 2 | 3 | 4;
 
   export interface ASTModifiers {
     [key: string]: boolean;
@@ -83,7 +86,7 @@ declare module 'vue-template-compiler' {
   export interface ASTElement {
     type: 1;
     tag: string;
-    attrsList: { name: string; value: any }[];
+    attrsList: Array<{ name: string; value: any }>;
     attrsMap: Record<string, any>;
     parent: ASTElement | undefined;
     children: ASTNode[];
@@ -97,8 +100,8 @@ declare module 'vue-template-compiler' {
     hasBindings?: boolean;
 
     text?: string;
-    attrs?: { name: string; value: any }[];
-    props?: { name: string; value: string }[];
+    attrs?: Array<{ name: string; value: any }>;
+    props?: Array<{ name: string; value: string }>;
     plain?: boolean;
     pre?: true;
     ns?: string;
@@ -162,7 +165,7 @@ declare module 'vue-template-compiler' {
     type: 2;
     expression: string;
     text: string;
-    tokens: (string | Record<string, any>)[];
+    tokens: Array<string | Record<string, any>>;
     static?: boolean;
     // 2.4 ssr optimization
     ssrOptimizability?: SSROptimizability;
@@ -218,7 +221,9 @@ declare module 'vue-template-compiler' {
     options?: CompilerOptions
   ): CompiledResult;
 
-  export function ssrCompileToFunctions(template: string): CompiledResultFunctions;
+  export function ssrCompileToFunctions(
+    template: string
+  ): CompiledResultFunctions;
 
   export function parseComponent(
     file: string,

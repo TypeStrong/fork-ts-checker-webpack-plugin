@@ -12,15 +12,11 @@ const workers: childProcess.ChildProcess[] = [];
 
 for (let num = 0; num < division; num++) {
   workers.push(
-    childProcess.fork(
-      path.resolve(__dirname, './service.js'),
-      [],
-      {
-        execArgv: ['--max-old-space-size=' + process.env.MEMORY_LIMIT],
-        env: Object.assign({}, process.env, { WORK_NUMBER: num }),
-        stdio: ['inherit', 'inherit', 'inherit', 'ipc']
-      }
-    )
+    childProcess.fork(path.resolve(__dirname, './service.js'), [], {
+      execArgv: ['--max-old-space-size=' + process.env.MEMORY_LIMIT],
+      env: Object.assign({}, process.env, { WORK_NUMBER: num }),
+      stdio: ['inherit', 'inherit', 'inherit', 'ipc']
+    })
   );
 }
 
@@ -46,13 +42,10 @@ process.on('message', (message: Message) => {
 workers.forEach(worker => {
   worker.on('message', (message: Message) => {
     // set result from worker
-    result.set(
-      worker.pid,
-      {
-        diagnostics: message.diagnostics.map(NormalizedMessage.createFromJSON),
-        lints: message.lints.map(NormalizedMessage.createFromJSON)
-      }
-    );
+    result.set(worker.pid, {
+      diagnostics: message.diagnostics.map(NormalizedMessage.createFromJSON),
+      lints: message.lints.map(NormalizedMessage.createFromJSON)
+    });
 
     // if we have result from all workers, send merged
     if (result.hasAll()) {

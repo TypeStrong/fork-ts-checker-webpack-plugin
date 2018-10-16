@@ -24,7 +24,7 @@ declare module 'vue-template-compiler' {
 
   interface CompiledResultFunctions {
     render: () => VNode;
-    staticRenderFns: Array<() => VNode>;
+    staticRenderFns: (() => VNode)[];
   }
 
   interface ModuleOptions {
@@ -86,7 +86,7 @@ declare module 'vue-template-compiler' {
   export interface ASTElement {
     type: 1;
     tag: string;
-    attrsList: Array<{ name: string; value: any }>;
+    attrsList: { name: string; value: any }[];
     attrsMap: Record<string, any>;
     parent: ASTElement | undefined;
     children: ASTNode[];
@@ -100,8 +100,8 @@ declare module 'vue-template-compiler' {
     hasBindings?: boolean;
 
     text?: string;
-    attrs?: Array<{ name: string; value: any }>;
-    props?: Array<{ name: string; value: string }>;
+    attrs?: { name: string; value: any }[];
+    props?: { name: string; value: string }[];
     plain?: boolean;
     pre?: true;
     ns?: string;
@@ -165,7 +165,7 @@ declare module 'vue-template-compiler' {
     type: 2;
     expression: string;
     text: string;
-    tokens: Array<string | Record<string, any>>;
+    tokens: (string | Record<string, any>)[];
     static?: boolean;
     // 2.4 ssr optimization
     ssrOptimizability?: SSROptimizability;

@@ -21,6 +21,7 @@
       "allow-leading-underscore",
       "allow-pascal-case"
     ],
-    "no-namespace": false
+    "no-namespace": false,
+    "array-type": [true, "array"]
   }
 }

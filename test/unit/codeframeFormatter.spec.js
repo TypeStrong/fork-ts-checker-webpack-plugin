@@ -1,4 +1,3 @@
-
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var os = require('os');
@@ -6,19 +5,20 @@ var beforeEach = require('mocha').beforeEach;
 var afterEach = require('mocha').afterEach;
 var expect = require('chai').expect;
 var mockFs = require('mock-fs');
-var NormalizedMessage = require('../../lib/NormalizedMessage').NormalizedMessage;
-var createCodeframeFormatter = require('../../lib/formatter/codeframeFormatter').createCodeframeFormatter;
+var NormalizedMessage = require('../../lib/NormalizedMessage')
+  .NormalizedMessage;
+var createCodeframeFormatter = require('../../lib/formatter/codeframeFormatter')
+  .createCodeframeFormatter;
 
-describe('[UNIT] formatter/codeframeFormatter', function () {
-
-  beforeEach(function () {
+describe('[UNIT] formatter/codeframeFormatter', function() {
+  beforeEach(function() {
     mockFs({
       some: {
         'file.ts': [
           'class SomeClass {',
           '  private someProperty: boolean;',
           '  constructor() {',
-          '    console.log(\'anything special\');',
+          "    console.log('anything special');",
           '  }',
           '}'
         ].join('\n')
@@ -26,11 +26,11 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     });
   });
 
-  afterEach(function () {
+  afterEach(function() {
     mockFs.restore();
   });
 
-  it('should format normalized diagnostic message', function () {
+  it('should format normalized diagnostic message', function() {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: 123,
@@ -47,15 +47,19 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'ERROR in some/file.ts' + os.EOL +
-      '1:7 Some diagnostic content' + os.EOL +
-      '  > 1 | class SomeClass {' + os.EOL +
-      '      |       ^' + os.EOL +
-      '    2 |   private someProperty: boolean;'
+      'ERROR in some/file.ts' +
+        os.EOL +
+        '1:7 Some diagnostic content' +
+        os.EOL +
+        '  > 1 | class SomeClass {' +
+        os.EOL +
+        '      |       ^' +
+        os.EOL +
+        '    2 |   private someProperty: boolean;'
     );
   });
 
-  it('should format normalized lint message', function () {
+  it('should format normalized lint message', function() {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: 'some-lint-rule',
@@ -72,16 +76,21 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING in some/file.ts' + os.EOL +
-      '2:11 Some lint content' + os.EOL +
-      '    1 | class SomeClass {' + os.EOL +
-      '  > 2 |   private someProperty: boolean;' + os.EOL +
-      '      |           ^' + os.EOL +
-      '    3 |   constructor() {'
+      'WARNING in some/file.ts' +
+        os.EOL +
+        '2:11 Some lint content' +
+        os.EOL +
+        '    1 | class SomeClass {' +
+        os.EOL +
+        '  > 2 |   private someProperty: boolean;' +
+        os.EOL +
+        '      |           ^' +
+        os.EOL +
+        '    3 |   constructor() {'
     );
   });
 
-  it('should format normalized message without file', function () {
+  it('should format normalized message without file', function() {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: 'some-lint-rule',
@@ -98,8 +107,7 @@ describe('[UNIT] formatter/codeframeFormatter', function () {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).to.be.equal(
-      'WARNING in some/unknown-file.ts' + os.EOL +
-      '2:11 Some lint content'
+      'WARNING in some/unknown-file.ts' + os.EOL + '2:11 Some lint content'
     );
   });
 });

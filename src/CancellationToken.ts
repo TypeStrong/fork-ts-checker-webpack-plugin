@@ -15,15 +15,13 @@ export class CancellationToken {
   lastCancellationCheckTime: number;
   constructor(cancellationFileName: string, isCancelled: boolean) {
     this.isCancelled = !!isCancelled;
-    this.cancellationFileName = cancellationFileName || crypto.randomBytes(64).toString('hex');
+    this.cancellationFileName =
+      cancellationFileName || crypto.randomBytes(64).toString('hex');
     this.lastCancellationCheckTime = 0;
   }
 
   static createFromJSON(json: CancellationTokenData) {
-    return new CancellationToken(
-      json.cancellationFileName,
-      json.isCancelled
-    );
+    return new CancellationToken(json.cancellationFileName, json.isCancelled);
   }
 
   toJSON() {

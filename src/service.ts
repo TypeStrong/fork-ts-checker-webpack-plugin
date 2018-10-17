@@ -46,7 +46,7 @@ function run(cancellationToken: CancellationToken) {
   }
 }
 
-process.on('message', (message) => {
+process.on('message', message => {
   run(CancellationToken.createFromJSON(message));
 });
 

@@ -7,7 +7,7 @@ interface DataShape {
 }
 
 export class FilesRegister {
-  files: { [filePath: string]: { mtime: number; data: DataShape; }};
+  files: { [filePath: string]: { mtime: number; data: DataShape } };
   dataFactory: (_data?: any) => DataShape; // It doesn't seem that the _data parameter is ever used?
 
   constructor(dataFactory: (_data?: any) => DataShape) {
@@ -74,4 +74,3 @@ export class FilesRegister {
     }
   }
 }
-

@@ -14,8 +14,8 @@
     "test": "npm run build && npm run test:unit && npm run test:integration",
     "test:watch": "mocha -R spec --watch ./test/unit",
     "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources mocha -- -R spec ./test/unit ./test/integration",
-    "lint": "eslint ./lib ./test",
-    "lint:fix": "eslint ./lib ./test --fix"
+    "lint": "tslint --project src/tsconfig.json && eslint ./test",
+    "lint:fix": "tslint --project src/tsconfig.json --fix && eslint ./test --fix"
   },
   "repository": {
     "url": "https://github.com/Realytics/fork-ts-checker-webpack-plugin.git",
@@ -61,15 +61,19 @@
     "@types/webpack": "^4.4.9",
     "chai": "^3.5.0",
     "css-loader": "^0.28.7",
-    "eslint": "^3.19.0",
+    "eslint": "^5.7.0",
+    "husky": "^1.1.2",
     "istanbul": "^0.4.5",
+    "lint-staged": "^7.3.0",
     "mocha": "^3.4.1",
     "mock-fs": "^4.3.0",
     "mock-require": "^2.0.2",
+    "prettier": "^1.14.3",
     "rimraf": "^2.5.4",
     "sinon": "^2.3.1",
     "ts-loader": "4.3.0",
-    "tslint": "^5.0.0",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
     "typescript": "^3.0.1",
     "vue": "^2.5.16",
     "vue-class-component": "^6.1.1",
@@ -93,5 +97,25 @@
     "minimatch": "^3.0.4",
     "resolve": "^1.5.0",
     "tapable": "^1.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "concurrent": false,
+    "linters": {
+      "*.js": [
+        "eslint --fix"
+      ],
+      "*.ts": [
+        "tslint --fix"
+      ],
+      "*.{js,ts}": [
+        "prettier --write",
+        "git add"
+      ]
+    }
   }
 }

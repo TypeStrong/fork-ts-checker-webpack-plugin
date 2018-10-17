@@ -1,4 +1,8 @@
-import { Diagnostic, DiagnosticCategory, flattenDiagnosticMessageText } from 'typescript';
+import {
+  Diagnostic,
+  DiagnosticCategory,
+  flattenDiagnosticMessageText
+} from 'typescript';
 import { RuleFailure } from 'tslint';
 
 type ErrorType = 'diagnostic' | 'lint';
@@ -47,7 +51,9 @@ export class NormalizedMessage {
     let character: number;
     if (diagnostic.file) {
       file = diagnostic.file.fileName;
-      const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+      const position = diagnostic.file.getLineAndCharacterOfPosition(
+        diagnostic.start
+      );
       line = position.line + 1;
       character = position.character + 1;
     }
@@ -55,11 +61,13 @@ export class NormalizedMessage {
     return new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: diagnostic.code,
-      severity: DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
+      severity: DiagnosticCategory[
+        diagnostic.category
+      ].toLowerCase() as Severity,
       content: flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-      file: file,
-      line: line,
-      character: character
+      file,
+      line,
+      character
     });
   }
 
@@ -91,13 +99,31 @@ export class NormalizedMessage {
 
     return (
       NormalizedMessage.compareTypes(messageA.getType(), messageB.getType()) ||
-      NormalizedMessage.compareOptionalStrings(messageA.getFile(), messageB.getFile()) ||
-      NormalizedMessage.compareSeverities(messageA.getSeverity(), messageB.getSeverity()) ||
-      NormalizedMessage.compareNumbers(messageA.getLine(), messageB.getLine()) ||
-      NormalizedMessage.compareNumbers(messageA.getCharacter(), messageB.getCharacter()) ||
+      NormalizedMessage.compareOptionalStrings(
+        messageA.getFile(),
+        messageB.getFile()
+      ) ||
+      NormalizedMessage.compareSeverities(
+        messageA.getSeverity(),
+        messageB.getSeverity()
+      ) ||
+      NormalizedMessage.compareNumbers(
+        messageA.getLine(),
+        messageB.getLine()
+      ) ||
+      NormalizedMessage.compareNumbers(
+        messageA.getCharacter(),
+        messageB.getCharacter()
+      ) ||
       // code can be string (lint failure) or number (typescript error) - should the following line cater for this in some way?
-      NormalizedMessage.compareOptionalStrings(messageA.getCode() as string, messageB.getCode() as string) ||
-      NormalizedMessage.compareOptionalStrings(messageA.getContent(), messageB.getContent()) ||
+      NormalizedMessage.compareOptionalStrings(
+        messageA.getCode() as string,
+        messageB.getCode() as string
+      ) ||
+      NormalizedMessage.compareOptionalStrings(
+        messageA.getContent(),
+        messageB.getContent()
+      ) ||
       0 /* EqualTo */
     );
   }
@@ -107,11 +133,11 @@ export class NormalizedMessage {
   }
 
   static deduplicate(messages: NormalizedMessage[]) {
-    return messages
-      .sort(NormalizedMessage.compare)
-      .filter((message, index) => {
-        return index === 0 || !NormalizedMessage.equals(message, messages[index - 1]);
-      });
+    return messages.sort(NormalizedMessage.compare).filter((message, index) => {
+      return (
+        index === 0 || !NormalizedMessage.equals(message, messages[index - 1])
+      );
+    });
   }
 
   static compareTypes(typeA: ErrorType, typeB: ErrorType) {
@@ -126,7 +152,7 @@ export class NormalizedMessage {
   }
 
   static compareSeverities(severityA: Severity, severityB: Severity) {
-    const priorities = [severityA, severityB].map((type) => {
+    const priorities = [severityA, severityB].map(type => {
       return [
         NormalizedMessage.SEVERITY_WARNING /* 0 */,
         NormalizedMessage.SEVERITY_ERROR /* 1 */

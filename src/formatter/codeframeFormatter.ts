@@ -11,12 +11,20 @@ import { NormalizedMessage } from '../NormalizedMessage';
  * @returns {codeframeFormatter}
  */
 export function createCodeframeFormatter(options: any) {
-  return function codeframeFormatter(message: NormalizedMessage, useColors: boolean) {
-    const colors = new chalk.constructor({enabled: useColors});
-    const messageColor = message.isWarningSeverity() ? colors.bold.yellow : colors.bold.red;
+  return function codeframeFormatter(
+    message: NormalizedMessage,
+    useColors: boolean
+  ) {
+    const colors = new chalk.constructor({ enabled: useColors });
+    const messageColor = message.isWarningSeverity()
+      ? colors.bold.yellow
+      : colors.bold.red;
     const positionColor = colors.dim;
 
-    const source = message.getFile() && fs.existsSync(message.getFile()) && fs.readFileSync(message.getFile(), 'utf-8');
+    const source =
+      message.getFile() &&
+      fs.existsSync(message.getFile()) &&
+      fs.readFileSync(message.getFile(), 'utf-8');
     let frame = '';
 
     if (source) {
@@ -26,15 +34,20 @@ export function createCodeframeFormatter(options: any) {
         message.character,
         Object.assign({}, options || {}, { highlightCode: useColors })
       )
-      .split('\n')
-      .map(str => '  ' + str)
-      .join(os.EOL);
+        .split('\n')
+        .map(str => '  ' + str)
+        .join(os.EOL);
     }
 
     return (
-      messageColor(message.getSeverity().toUpperCase() + ' in ' + message.getFile()) + os.EOL +
-      positionColor(message.getLine() + ':' + message.getCharacter()) + ' ' + message.getContent() +
+      messageColor(
+        message.getSeverity().toUpperCase() + ' in ' + message.getFile()
+      ) +
+      os.EOL +
+      positionColor(message.getLine() + ':' + message.getCharacter()) +
+      ' ' +
+      message.getContent() +
       (frame ? os.EOL + frame : '')
     );
   };
-};
+}

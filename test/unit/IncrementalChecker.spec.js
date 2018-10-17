@@ -4,20 +4,21 @@ var expect = require('chai').expect;
 var path = require('path');
 var minimatch = require('minimatch');
 
-var IncrementalChecker = require('../../lib/IncrementalChecker').IncrementalChecker;
+var IncrementalChecker = require('../../lib/IncrementalChecker')
+  .IncrementalChecker;
 
-describe('[UNIT] IncrementalChecker', function () {
+describe('[UNIT] IncrementalChecker', function() {
   describe('isFileExcluded', function() {
     it('should properly filter definition files and listed exclusions', function() {
       var linterConfig = {
         linterOptions: {
-          exclude: [
-            'src/formatter/**/*.ts'
-          ]
+          exclude: ['src/formatter/**/*.ts']
         }
       };
 
-      var exclusions = linterConfig.linterOptions.exclude.map(function(pattern) {
+      var exclusions = linterConfig.linterOptions.exclude.map(function(
+        pattern
+      ) {
         return new minimatch.Minimatch(path.resolve(pattern));
       });
 
@@ -25,7 +26,7 @@ describe('[UNIT] IncrementalChecker', function () {
         'src/formatter/codeframeFormatter.ts',
         'src/formatter/defaultFormatter.ts',
         'src/service.ts',
-        'node_modules/tslint/lib/configuration.d.ts',
+        'node_modules/tslint/lib/configuration.d.ts'
       ].map(function(p) {
         return path.resolve(p);
       });

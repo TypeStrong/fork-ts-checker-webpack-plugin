@@ -1,20 +1,18 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "noImplicitAny": true,
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "suppressImplicitAnyIndexErrors": true,
-        "strictNullChecks": false,
-        "lib": [
-            "es5", "es2015.core", "dom"
-        ],
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "declaration": true,
-        "outDir": "../lib",
-        "declarationDir": "../lib/types"
-    }
+  "compilerOptions": {
+    "target": "es5",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "strictNullChecks": false,
+    "lib": ["es5", "es2015.core", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "outDir": "../lib",
+    "declarationDir": "../lib/types"
+  }
 }

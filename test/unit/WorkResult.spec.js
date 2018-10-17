@@ -5,14 +5,14 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 var WorkResult = require('../../lib/WorkResult').WorkResult;
 
-describe('[UNIT] WorkResult', function () {
+describe('[UNIT] WorkResult', function() {
   var result;
 
-  beforeEach(function () {
+  beforeEach(function() {
     result = new WorkResult([1, 2, 3]);
   });
 
-  it('should allow result only from work domain', function () {
+  it('should allow result only from work domain', function() {
     expect(result.supports(1)).to.be.true;
     expect(result.supports(2)).to.be.true;
     expect(result.supports(3)).to.be.true;
@@ -21,14 +21,22 @@ describe('[UNIT] WorkResult', function () {
     expect(result.supports('something else')).to.be.false;
   });
 
-  it('should throw error if we want set or get result out of work domain', function () {
-    expect(function () { result.set(1, 'abc'); }).to.not.throw();
-    expect(function () { result.set(4, 'abc'); }).to.throw();
-    expect(function () { result.get(1); }).to.not.throw();
-    expect(function () { result.get(4); }).to.throw();
+  it('should throw error if we want set or get result out of work domain', function() {
+    expect(function() {
+      result.set(1, 'abc');
+    }).to.not.throw();
+    expect(function() {
+      result.set(4, 'abc');
+    }).to.throw();
+    expect(function() {
+      result.get(1);
+    }).to.not.throw();
+    expect(function() {
+      result.get(4);
+    }).to.throw();
   });
 
-  it('should set and get result', function () {
+  it('should set and get result', function() {
     result.set(1, 'test');
     expect(result.has(1)).to.be.true;
     expect(result.has(2)).to.be.false;
@@ -36,7 +44,7 @@ describe('[UNIT] WorkResult', function () {
     expect(result.get(2)).to.be.undefined;
   });
 
-  it('should check if we have all result', function () {
+  it('should check if we have all result', function() {
     expect(result.hasAll()).to.be.false;
     result.set(1, 'abc');
     expect(result.hasAll()).to.be.false;
@@ -50,8 +58,10 @@ describe('[UNIT] WorkResult', function () {
     expect(result.hasAll()).to.be.true;
   });
 
-  it('should clear work result', function () {
-    expect(function () { result.clear(); }).to.not.throw();
+  it('should clear work result', function() {
+    expect(function() {
+      result.clear();
+    }).to.not.throw();
     result.set(1, 'test');
     result.clear();
     expect(result.get(1)).to.be.undefined;
@@ -62,9 +72,9 @@ describe('[UNIT] WorkResult', function () {
     expect(result.hasAll()).to.be.false;
   });
 
-  it('should reduce work result', function () {
+  it('should reduce work result', function() {
     result.set(2, 'c');
-    var reducer = sinon.spy(function (reduced, current) {
+    var reducer = sinon.spy(function(reduced, current) {
       return reduced.concat(current);
     });
 

@@ -22,6 +22,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export class IncrementalChecker {
   programConfigFile: string;
+  compilerOptions: object;
   linterConfigFile: string | false;
   watchPaths: string[];
   workNumber: number;
@@ -41,6 +42,7 @@ export class IncrementalChecker {
 
   constructor(
     programConfigFile: string,
+    compilerOptions: object,
     linterConfigFile: string | false,
     watchPaths: string[],
     workNumber: number,
@@ -49,6 +51,7 @@ export class IncrementalChecker {
     vue: boolean
   ) {
     this.programConfigFile = programConfigFile;
+    this.compilerOptions = compilerOptions;
     this.linterConfigFile = linterConfigFile;
     this.watchPaths = watchPaths;
     this.workNumber = workNumber || 0;
@@ -68,8 +71,8 @@ export class IncrementalChecker {
     }));
   }
 
-  static loadProgramConfig(configFile: string) {
-    return ts.parseJsonConfigFileContent(
+  static loadProgramConfig(configFile: string, compilerOptions: object) {
+    const parsed = ts.parseJsonConfigFileContent(
       // Regardless of the setting in the tsconfig.json we want isolatedModules to be false
       Object.assign(ts.readConfigFile(configFile, ts.sys.readFile).config, {
         isolatedModules: false
@@ -77,6 +80,10 @@ export class IncrementalChecker {
       ts.sys,
       path.dirname(configFile)
     );
+
+    parsed.options = { ...parsed.options, ...compilerOptions };
+
+    return parsed;
   }
 
   static loadLinterConfig(configFile: string): ConfigurationFile {
@@ -189,7 +196,10 @@ export class IncrementalChecker {
   loadVueProgram() {
     this.programConfig =
       this.programConfig ||
-      VueProgram.loadProgramConfig(this.programConfigFile);
+      VueProgram.loadProgramConfig(
+        this.programConfigFile,
+        this.compilerOptions
+      );
 
     return VueProgram.createProgram(
       this.programConfig,
@@ -203,7 +213,10 @@ export class IncrementalChecker {
   loadDefaultProgram() {
     this.programConfig =
       this.programConfig ||
-      IncrementalChecker.loadProgramConfig(this.programConfigFile);
+      IncrementalChecker.loadProgramConfig(
+        this.programConfigFile,
+        this.compilerOptions
+      );
 
     return IncrementalChecker.createProgram(
       this.programConfig,

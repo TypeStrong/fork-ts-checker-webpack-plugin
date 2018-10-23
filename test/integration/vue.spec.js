@@ -76,6 +76,7 @@ describe('[INTEGRATION] vue', function() {
 
     checker = new IncrementalChecker(
       plugin.tsconfigPath,
+      {},
       plugin.tslintPath || false,
       [compiler.context],
       ForkTsCheckerWebpackPlugin.ONE_CPU,

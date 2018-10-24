@@ -1,3 +1,7 @@
+## v0.4.12
+
+* [Add `compilerOptions` option](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/173) (#173)
+
 ## v0.4.11
 
 * [Fix os.cpus is not a function](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/172) (#172)

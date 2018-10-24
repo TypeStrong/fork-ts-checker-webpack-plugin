@@ -39,6 +39,7 @@ interface Logger {
 
 interface Options {
   tsconfig: string;
+  compilerOptions: object;
   tslint: string | true;
   watch: string | string[];
   async: boolean;
@@ -71,6 +72,7 @@ class ForkTsCheckerWebpackPlugin {
 
   options: Partial<Options>;
   tsconfig: string;
+  compilerOptions: object;
   tslint: string | true;
   watch: string[];
   ignoreDiagnostics: number[];
@@ -114,6 +116,10 @@ class ForkTsCheckerWebpackPlugin {
     this.options = Object.assign({}, options);
 
     this.tsconfig = options.tsconfig || './tsconfig.json';
+    this.compilerOptions =
+      typeof options.compilerOptions === 'object'
+        ? options.compilerOptions
+        : {};
     this.tslint = options.tslint
       ? options.tslint === true
         ? './tslint.json'
@@ -554,6 +560,7 @@ class ForkTsCheckerWebpackPlugin {
             : ['--max-old-space-size=' + this.memoryLimit],
         env: Object.assign({}, process.env, {
           TSCONFIG: this.tsconfigPath,
+          COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
           TSLINT: this.tslintPath || '',
           WATCH: this.isWatching ? this.watchPaths.join('|') : '',
           WORK_DIVISION: Math.max(1, this.workersNumber),

@@ -6,6 +6,7 @@ import { NormalizedMessage } from './NormalizedMessage';
 
 const checker = new IncrementalChecker(
   process.env.TSCONFIG,
+  JSON.parse(process.env.COMPILER_OPTIONS),
   process.env.TSLINT === '' ? false : process.env.TSLINT,
   process.env.WATCH === '' ? [] : process.env.WATCH.split('|'),
   parseInt(process.env.WORK_NUMBER, 10),

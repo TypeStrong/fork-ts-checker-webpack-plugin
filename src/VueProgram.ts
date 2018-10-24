@@ -12,7 +12,7 @@ interface ResolvedScript {
 }
 
 export class VueProgram {
-  static loadProgramConfig(configFile: string) {
+  static loadProgramConfig(configFile: string, compilerOptions: object) {
     const extraExtensions = ['vue'];
 
     const parseConfigHost: ts.ParseConfigHost = {
@@ -40,6 +40,7 @@ export class VueProgram {
     );
 
     parsed.options.allowNonTsExtensions = true;
+    parsed.options = { ...parsed.options, ...compilerOptions };
 
     return parsed;
   }

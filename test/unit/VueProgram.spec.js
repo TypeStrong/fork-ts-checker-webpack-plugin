@@ -2,9 +2,36 @@ var ts = require('typescript');
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
-var VueProgram = require('../../lib/VueProgram').VueProgram;
+var mockRequire = require('mock-require');
+var sinon = require('sinon');
 
 describe('[UNIT] VueProgram', function() {
+  var VueProgram;
+
+  beforeEach(function() {
+    var parseJsonConfigFileContentStub = sinon.stub().returns({
+      options: {
+        foo: true
+      }
+    });
+    var readConfigFileStub = sinon.stub().returns({
+      config: {}
+    });
+
+    mockRequire('typescript', {
+      parseJsonConfigFileContent: parseJsonConfigFileContentStub,
+      readConfigFile: readConfigFileStub,
+      sys: {},
+      ScriptKind: ts.ScriptKind
+    });
+
+    VueProgram = mockRequire.reRequire('../../lib/VueProgram').VueProgram;
+  });
+
+  afterEach(function() {
+    mockRequire.stopAll();
+  });
+
   it('should determine if file is a Vue file', function() {
     expect(VueProgram.isVue('./test.vue')).to.be.true;
     expect(VueProgram.isVue('../test.vue')).to.be.true;
@@ -129,5 +156,25 @@ describe('[UNIT] VueProgram', function() {
         ''
       ].join('\n')
     );
+  });
+
+  describe('loadProgramConfig', function() {
+    it('sets allowNonTsExtensions to true on returned options', function() {
+      var result = VueProgram.loadProgramConfig('tsconfig.foo.json', {});
+
+      expect(result.options.allowNonTsExtensions).to.equal(true);
+    });
+
+    it('merges compilerOptions into returned options', function() {
+      var result = VueProgram.loadProgramConfig('tsconfig.foo.json', {
+        bar: false
+      });
+
+      expect(result.options).to.deep.equal({
+        foo: true,
+        bar: false,
+        allowNonTsExtensions: true
+      });
+    });
   });
 });

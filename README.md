@@ -60,7 +60,7 @@ It helps to distinguish lints from typescript's diagnostics.
 * **tsconfig** `string`:
 Path to *tsconfig.json* file. Default: `path.resolve(compiler.options.context, './tsconfig.json')`.
 
-* **compilerOptions** `string`:
+* **compilerOptions** `object`:
 Allows overriding TypeScript options. Should be specified in the same format as you would do for the `compilerOptions` property in tsconfig.json. Default: `{}`.
 
 * **tslint** `string | true`: 

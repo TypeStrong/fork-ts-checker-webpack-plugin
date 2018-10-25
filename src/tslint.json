@@ -22,6 +22,8 @@
       "allow-pascal-case"
     ],
     "no-namespace": false,
-    "array-type": [true, "array"]
+    "array-type": [true, "array"],
+    "no-submodule-imports": [true, "lodash"]
+
   }
 }

@@ -8,7 +8,7 @@
     "noUnusedParameters": true,
     "suppressImplicitAnyIndexErrors": true,
     "strictNullChecks": false,
-    "lib": ["es5", "es2015.core", "dom"],
+    "lib": ["es5", "es2015", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,

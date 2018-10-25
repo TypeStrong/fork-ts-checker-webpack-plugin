@@ -1,6 +1,6 @@
 import * as chokidar from 'chokidar';
 import * as path from 'path';
-import startsWith = require('lodash.startswith');
+import startsWith = require('lodash/startsWith');
 
 export class FilesWatcher {
   watchPaths: string[];

@@ -104,7 +104,7 @@
         "eslint --fix"
       ],
       "*.ts": [
-        "tslint --fix"
+        "tslint --fix --exclude test/integration/project/lintingError.ts"
       ],
       "*.{js,ts}": [
         "prettier --write",

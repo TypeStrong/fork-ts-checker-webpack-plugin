@@ -1,4 +1,3 @@
-// @ts-nocheck
 var fs = require('fs');
 var describe = require('mocha').describe;
 var it = require('mocha').it;

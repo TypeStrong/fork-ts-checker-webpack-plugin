@@ -115,6 +115,8 @@ describe('[INTEGRATION] index', function() {
   it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
     const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
 `;
+    const formattedFileContents = `function someFunctionName(param1, param2) {return param1 + param2; }
+`;
     const fileName = 'lintingError1';
     writeContentsToLintingErrorFile(fileName, lintErrorFileContents).then(
       () => {
@@ -126,11 +128,35 @@ describe('[INTEGRATION] index', function() {
           false,
           `./src/${fileName}.ts`
         );
-        compiler.run(function(err, stats) {
-          expect(stats.compilation.warnings.length).to.be.eq(0);
+        const deleteFile = () =>
           fs.unlinkSync(
             path.resolve(__dirname, `./project/src/${fileName}.ts`)
           );
+        compiler.run(function(err, stats) {
+          expect(stats.compilation.warnings.length).to.be.eq(0);
+          let fileContents;
+          try {
+            fileContents = fs.readFileSync(
+              path.resolve(__dirname, `./project/src/${fileName}.ts`),
+              {
+                encoding: 'utf-8'
+              }
+            );
+          } catch (e) {
+            throw e;
+          }
+          /*
+            Helpful to wrap this in a try catch.
+            If the assertion fails we still need to cleanup
+            the temporary file created as part of the test
+          */
+          try {
+            expect(fileContents).to.be.eq(formattedFileContents);
+          } catch (e) {
+            deleteFile();
+            throw e;
+          }
+          deleteFile();
           callback();
         });
       },
@@ -143,6 +169,8 @@ describe('[INTEGRATION] index', function() {
     const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
 `;
     const fileName = 'lintingError2';
+    const deleteFile = () =>
+      fs.unlinkSync(path.resolve(__dirname, `./project/src/${fileName}.ts`));
     writeContentsToLintingErrorFile(fileName, lintErrorFileContents).then(
       () => {
         var compiler = createCompiler(
@@ -151,10 +179,18 @@ describe('[INTEGRATION] index', function() {
           `./src/${fileName}.ts`
         );
         compiler.run(function(err, stats) {
-          expect(stats.compilation.warnings.length).to.be.eq(6);
-          fs.unlinkSync(
-            path.resolve(__dirname, `./project/src/${fileName}.ts`)
-          );
+          /*
+            Helpful to wrap this in a try catch.
+            If the assertion fails we still need to cleanup
+            the temporary file created as part of the test
+          */
+          try {
+            expect(stats.compilation.warnings.length).to.be.eq(7);
+          } catch (e) {
+            deleteFile();
+            throw e;
+          }
+          deleteFile();
           callback();
         });
       },

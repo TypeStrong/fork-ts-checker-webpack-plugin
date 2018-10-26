@@ -7,20 +7,28 @@ var sinon = require('sinon');
 
 describe('[UNIT] VueProgram', function() {
   var VueProgram;
+  var parseJsonConfigFileContentStub;
 
   beforeEach(function() {
-    var parseJsonConfigFileContentStub = sinon.stub().returns({
-      options: {
-        foo: true
-      }
+    parseJsonConfigFileContentStub = sinon.spy(function(tsconfig) {
+      return {
+        options: tsconfig.compilerOptions
+      };
     });
-    var readConfigFileStub = sinon.stub().returns({
-      config: {}
-    });
+
+    var readConfigFile = function() {
+      return {
+        config: {
+          compilerOptions: {
+            foo: true
+          }
+        }
+      };
+    };
 
     mockRequire('typescript', {
       parseJsonConfigFileContent: parseJsonConfigFileContentStub,
-      readConfigFile: readConfigFileStub,
+      readConfigFile,
       sys: {},
       ScriptKind: ts.ScriptKind
     });
@@ -165,15 +173,18 @@ describe('[UNIT] VueProgram', function() {
       expect(result.options.allowNonTsExtensions).to.equal(true);
     });
 
-    it('merges compilerOptions into returned options', function() {
-      var result = VueProgram.loadProgramConfig('tsconfig.foo.json', {
+    it('merges compilerOptions into config file options', function() {
+      VueProgram.loadProgramConfig('tsconfig.foo.json', {
         bar: false
       });
 
-      expect(result.options).to.deep.equal({
-        foo: true,
-        bar: false,
-        allowNonTsExtensions: true
+      expect(parseJsonConfigFileContentStub.calledOnce).to.equal(true);
+      expect(parseJsonConfigFileContentStub.args[0][0]).to.deep.equal({
+        compilerOptions: {
+          allowNonTsExtensions: true,
+          foo: true,
+          bar: false
+        }
       });
     });
   });

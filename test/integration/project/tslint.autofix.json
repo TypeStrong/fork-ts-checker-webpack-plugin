@@ -1,0 +1,14 @@
+{
+  "defaultSeverity": "warning",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "linterOptions": {
+    "exclude": [
+      "src/index.ts"
+    ]
+  },
+  "jsRules": {},
+  "rules": {},
+  "rulesDirectory": []
+}

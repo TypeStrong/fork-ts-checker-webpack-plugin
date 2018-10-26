@@ -123,7 +123,8 @@ describe('[INTEGRATION] index', function() {
         var compiler = createCompiler(
           {
             tslintAutoFix: true,
-            tslint: true
+            tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+            tsconfig: false
           },
           false,
           `./src/${fileName}.ts`

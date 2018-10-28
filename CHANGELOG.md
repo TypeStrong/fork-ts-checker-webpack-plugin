@@ -1,3 +1,7 @@
+## v0.4.14
+
+* [Add support for `reportFiles` option](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/179) (#179)
+
 ## v0.4.13
 
 * [Merge in `compilerOptions` prior to calling `parseJsonConfigFileContent`](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/176) (#176)

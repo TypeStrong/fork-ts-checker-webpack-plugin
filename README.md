@@ -79,6 +79,14 @@ List of typescript diagnostic codes to ignore.
 * **ignoreLints** `string[]`: 
 List of tslint rule names to ignore.
 
+* **reportFiles** `string[]`: 
+Only report errors on files matching these glob patterns. This can be useful when certain types definitions have errors that are not fatal to your application. Default: `[]`.
+
+```js
+  // in webpack.config.js
+  new ForkTsCheckerWebpackPlugin({ reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] })
+```
+
 * **colors** `boolean`:
 If `false`, disables built-in colors in logger messages. Default: `true`.
 

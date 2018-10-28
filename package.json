@@ -52,6 +52,7 @@
     "@types/babel-code-frame": "^6.20.1",
     "@types/chokidar": "^1.7.5",
     "@types/lodash": "^4.14.117",
+    "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",
     "@types/node": "^8.0.26",
     "@types/resolve": "0.0.4",
@@ -88,6 +89,7 @@
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
     "lodash": "^4.17.11",
+    "micromatch": "^3.1.10",
     "minimatch": "^3.0.4",
     "resolve": "^1.5.0",
     "tapable": "^1.0.0"

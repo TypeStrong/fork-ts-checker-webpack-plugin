@@ -61,26 +61,26 @@ describe('[INTEGRATION] index', function() {
   it('should detect paths', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
-    expect(plugin.tsconfig).to.be.equal('./tsconfig.json');
-    expect(plugin.tslint).to.be.equal('./tslint.json');
+    expect(plugin.tsconfig).to.equal('./tsconfig.json');
+    expect(plugin.tslint).to.equal('./tslint.json');
   });
 
   it('should set logger to console by default', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({});
 
-    expect(plugin.logger).to.be.equal(console);
+    expect(plugin.logger).to.equal(console);
   });
 
   it('should set watch to empty array by default', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({});
 
-    expect(plugin.watch).to.be.deep.equal([]);
+    expect(plugin.watch).to.deep.equal([]);
   });
 
   it('should set watch to one element array for string', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
 
-    expect(plugin.watch).to.be.deep.equal(['/test']);
+    expect(plugin.watch).to.deep.equal(['/test']);
   });
 
   it('should work without configuration', function(callback) {
@@ -227,8 +227,8 @@ describe('[INTEGRATION] index', function() {
     });
 
     function compareResults() {
-      expect(errorsA).to.be.deep.equal(errorsB);
-      expect(warningsA).to.be.deep.equal(warningsB);
+      expect(errorsA).to.deep.equal(errorsB);
+      expect(warningsA).to.deep.equal(warningsB);
       callback();
     }
   });
@@ -284,7 +284,7 @@ describe('[INTEGRATION] index', function() {
     var compiler = createCompiler({}, true);
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(1);
+      expect(stats.compilation.errors.length).to.equal(1);
       callback();
     });
   });
@@ -293,7 +293,20 @@ describe('[INTEGRATION] index', function() {
     var compiler = createCompiler({ checkSyntacticErrors: true }, true);
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(2);
+      expect(stats.compilation.errors.length).to.equal(2);
+      callback();
+    });
+  });
+
+  it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
+    var compiler = createCompiler(
+      { checkSyntacticErrors: true, reportFiles: ['**/index.ts'] },
+      true
+    );
+
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.equal(1);
+      expect(stats.compilation.errors[0].file.endsWith('index.ts')).to.be.true;
       callback();
     });
   });

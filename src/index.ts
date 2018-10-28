@@ -3,6 +3,7 @@ import * as process from 'process';
 import * as childProcess from 'child_process';
 import chalk, { Chalk } from 'chalk';
 import * as fs from 'fs';
+import * as micromatch from 'micromatch';
 import * as os from 'os';
 import * as webpack from 'webpack';
 import isString = require('lodash/isString');
@@ -45,6 +46,7 @@ interface Options {
   async: boolean;
   ignoreDiagnostics: number[];
   ignoreLints: string[];
+  reportFiles: string[];
   colors: boolean;
   logger: Logger;
   formatter: 'default' | 'codeframe' | Formatter;
@@ -77,6 +79,7 @@ class ForkTsCheckerWebpackPlugin {
   watch: string[];
   ignoreDiagnostics: number[];
   ignoreLints: string[];
+  reportFiles: string[];
   logger: Logger;
   silent: boolean;
   async: boolean;
@@ -130,6 +133,7 @@ class ForkTsCheckerWebpackPlugin {
       : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
     this.ignoreLints = options.ignoreLints || [];
+    this.reportFiles = options.reportFiles || [];
     this.logger = options.logger || console;
     this.silent = options.silent === true; // default false
     this.async = options.async !== false; // default true
@@ -672,6 +676,26 @@ class ForkTsCheckerWebpackPlugin {
       this.lints = this.lints.filter(
         lint => this.ignoreLints.indexOf(lint.getCode() as string) === -1
       );
+    }
+
+    if (this.reportFiles.length) {
+      const reportFilesPredicate = (diagnostic: NormalizedMessage): boolean => {
+        if (diagnostic.file) {
+          const relativeFileName = path.relative(
+            this.compiler.options.context,
+            diagnostic.file
+          );
+          const matchResult = micromatch([relativeFileName], this.reportFiles);
+
+          if (matchResult.length === 0) {
+            return false;
+          }
+        }
+        return true;
+      };
+
+      this.diagnostics = this.diagnostics.filter(reportFilesPredicate);
+      this.lints = this.lints.filter(reportFilesPredicate);
     }
 
     if ('hooks' in this.compiler) {

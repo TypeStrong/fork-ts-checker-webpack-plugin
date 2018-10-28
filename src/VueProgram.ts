@@ -30,17 +30,21 @@ export class VueProgram {
       }
     };
 
+    const tsconfig = ts.readConfigFile(configFile, ts.sys.readFile).config;
+
+    tsconfig.compilerOptions = tsconfig.compilerOptions || {};
+    tsconfig.compilerOptions = {
+      ...tsconfig.compilerOptions,
+      ...compilerOptions
+    };
+
     const parsed = ts.parseJsonConfigFileContent(
-      // Regardless of the setting in the tsconfig.json we want isolatedModules to be false
-      Object.assign(ts.readConfigFile(configFile, ts.sys.readFile).config, {
-        isolatedModules: false
-      }),
+      tsconfig,
       parseConfigHost,
       path.dirname(configFile)
     );
 
     parsed.options.allowNonTsExtensions = true;
-    parsed.options = { ...parsed.options, ...compilerOptions };
 
     return parsed;
   }

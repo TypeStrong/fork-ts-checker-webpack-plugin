@@ -42,6 +42,7 @@ interface Options {
   tsconfig: string;
   compilerOptions: object;
   tslint: string | true;
+  tslintAutoFix: boolean;
   watch: string | string[];
   async: boolean;
   ignoreDiagnostics: number[];
@@ -76,6 +77,7 @@ class ForkTsCheckerWebpackPlugin {
   tsconfig: string;
   compilerOptions: object;
   tslint: string | true;
+  tslintAutoFix: boolean;
   watch: string[];
   ignoreDiagnostics: number[];
   ignoreLints: string[];
@@ -128,6 +130,7 @@ class ForkTsCheckerWebpackPlugin {
         ? './tslint.json'
         : options.tslint
       : undefined;
+    this.tslintAutoFix = options.tslintAutoFix || false;
     this.watch = isString(options.watch)
       ? [options.watch]
       : options.watch || [];
@@ -566,6 +569,7 @@ class ForkTsCheckerWebpackPlugin {
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
           TSLINT: this.tslintPath || '',
+          TSLINTAUTOFIX: this.tslintAutoFix,
           WATCH: this.isWatching ? this.watchPaths.join('|') : '',
           WORK_DIVISION: Math.max(1, this.workersNumber),
           MEMORY_LIMIT: this.memoryLimit,

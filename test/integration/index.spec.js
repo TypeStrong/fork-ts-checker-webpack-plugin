@@ -1,3 +1,4 @@
+var fs = require('fs');
 var describe = require('mocha').describe;
 var it = require('mocha').it;
 var chai = require('chai');
@@ -9,12 +10,31 @@ chai.config.truncateThreshold = 0;
 var expect = chai.expect;
 
 var webpackMajorVersion = require('./webpackVersion')();
+const writeContentsToLintingErrorFile = (fileName, data) => {
+  const promise = new Promise((resolve, reject) => {
+    try {
+      fs.writeFileSync(
+        path.resolve(__dirname, `./project/src/${fileName}.ts`),
+        data,
+        { flag: 'w' }
+      );
+    } catch (e) {
+      return reject(e);
+    }
+    return resolve();
+  });
+  return promise;
+};
 
 describe('[INTEGRATION] index', function() {
   this.timeout(60000);
   var plugin;
 
-  function createCompiler(options, happyPackMode) {
+  function createCompiler(
+    options,
+    happyPackMode,
+    entryPoint = './src/index.ts'
+  ) {
     plugin = new ForkTsCheckerWebpackPlugin(
       Object.assign({}, options, { silent: true })
     );
@@ -26,7 +46,7 @@ describe('[INTEGRATION] index', function() {
     return webpack({
       ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
       context: path.resolve(__dirname, './project'),
-      entry: './src/index.ts',
+      entry: entryPoint,
       output: {
         path: path.resolve(__dirname, '../../tmp')
       },
@@ -90,6 +110,95 @@ describe('[INTEGRATION] index', function() {
       expect(stats.compilation.errors.length).to.be.at.least(1);
       callback();
     });
+  });
+
+  it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
+    const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
+`;
+    const formattedFileContents = `function someFunctionName(param1, param2) {return param1 + param2; }
+`;
+    const fileName = 'lintingError1';
+    writeContentsToLintingErrorFile(fileName, lintErrorFileContents).then(
+      () => {
+        var compiler = createCompiler(
+          {
+            tslintAutoFix: true,
+            tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+            tsconfig: false
+          },
+          false,
+          `./src/${fileName}.ts`
+        );
+        const deleteFile = () =>
+          fs.unlinkSync(
+            path.resolve(__dirname, `./project/src/${fileName}.ts`)
+          );
+        compiler.run(function(err, stats) {
+          expect(stats.compilation.warnings.length).to.be.eq(0);
+          let fileContents;
+          try {
+            fileContents = fs.readFileSync(
+              path.resolve(__dirname, `./project/src/${fileName}.ts`),
+              {
+                encoding: 'utf-8'
+              }
+            );
+          } catch (e) {
+            throw e;
+          }
+          /*
+            Helpful to wrap this in a try catch.
+            If the assertion fails we still need to cleanup
+            the temporary file created as part of the test
+          */
+          try {
+            expect(fileContents).to.be.eq(formattedFileContents);
+          } catch (e) {
+            deleteFile();
+            throw e;
+          }
+          deleteFile();
+          callback();
+        });
+      },
+      err => {
+        throw err;
+      }
+    );
+  });
+  it('should not fix linting by default', function(callback) {
+    const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
+`;
+    const fileName = 'lintingError2';
+    const deleteFile = () =>
+      fs.unlinkSync(path.resolve(__dirname, `./project/src/${fileName}.ts`));
+    writeContentsToLintingErrorFile(fileName, lintErrorFileContents).then(
+      () => {
+        var compiler = createCompiler(
+          { tslint: true },
+          false,
+          `./src/${fileName}.ts`
+        );
+        compiler.run(function(err, stats) {
+          /*
+            Helpful to wrap this in a try catch.
+            If the assertion fails we still need to cleanup
+            the temporary file created as part of the test
+          */
+          try {
+            expect(stats.compilation.warnings.length).to.be.eq(7);
+          } catch (e) {
+            deleteFile();
+            throw e;
+          }
+          deleteFile();
+          callback();
+        });
+      },
+      err => {
+        throw err;
+      }
+    );
   });
 
   it('should block emit on build mode', function(callback) {

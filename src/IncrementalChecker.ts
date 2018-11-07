@@ -24,6 +24,7 @@ export class IncrementalChecker {
   programConfigFile: string;
   compilerOptions: object;
   linterConfigFile: string | false;
+  linterAutoFix: boolean;
   watchPaths: string[];
   workNumber: number;
   workDivision: number;
@@ -44,6 +45,7 @@ export class IncrementalChecker {
     programConfigFile: string,
     compilerOptions: object,
     linterConfigFile: string | false,
+    linterAutoFix: boolean,
     watchPaths: string[],
     workNumber: number,
     workDivision: number,
@@ -53,6 +55,7 @@ export class IncrementalChecker {
     this.programConfigFile = programConfigFile;
     this.compilerOptions = compilerOptions;
     this.linterConfigFile = linterConfigFile;
+    this.linterAutoFix = linterAutoFix;
     this.watchPaths = watchPaths;
     this.workNumber = workNumber || 0;
     this.workDivision = workDivision || 1;
@@ -137,10 +140,10 @@ export class IncrementalChecker {
     );
   }
 
-  static createLinter(program: ts.Program) {
+  createLinter(program: ts.Program) {
     const tslint = require('tslint');
 
-    return new tslint.Linter({ fix: false }, program);
+    return new tslint.Linter({ fix: this.linterAutoFix }, program);
   }
 
   static isFileExcluded(
@@ -192,7 +195,7 @@ export class IncrementalChecker {
     this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
 
     if (this.linterConfig) {
-      this.linter = IncrementalChecker.createLinter(this.program);
+      this.linter = this.createLinter(this.program);
     }
   }
 

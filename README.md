@@ -66,6 +66,9 @@ Allows overriding TypeScript options. Should be specified in the same format as 
 * **tslint** `string | true`: 
 Path to *tslint.json* file or `true`. If `true`, uses `path.resolve(compiler.options.context, './tslint.json')`. Default: `undefined`.
 
+* **tslintAutoFix** `boolean `:
+Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.
+
 * **watch** `string | string[]`: 
 Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls).
 

@@ -78,6 +78,7 @@ describe('[INTEGRATION] vue', function() {
       plugin.tsconfigPath,
       {},
       plugin.tslintPath || false,
+      plugin.tslintAutoFix || false,
       [compiler.context],
       ForkTsCheckerWebpackPlugin.ONE_CPU,
       1,

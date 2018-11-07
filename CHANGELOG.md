@@ -1,3 +1,7 @@
+## v0.4.15
+
+* [Add `tslintAutoFix` option to be passed on to tslint to auto format typescript files](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/174) (#174)
+
 ## v0.4.14
 
 * [Add support for `reportFiles` option](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/179) (#179)

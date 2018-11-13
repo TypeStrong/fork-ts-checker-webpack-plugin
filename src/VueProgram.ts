@@ -93,7 +93,7 @@ export class VueProgram {
         ? options.paths[`${correctWildcard}/*`]
         : undefined;
       const substitution = pattern
-        ? options.paths[`${correctWildcard}/*`][0].replace('*', '')
+        ? options.paths![`${correctWildcard}/*`][0].replace('*', '')
         : 'src';
       moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
     } else if (isRelative) {
@@ -234,7 +234,7 @@ export class VueProgram {
     );
   }
 
-  private static getScriptKindByLang(lang: string) {
+  private static getScriptKindByLang(lang?: string) {
     if (lang === 'ts') {
       return ts.ScriptKind.TS;
     } else if (lang === 'tsx') {

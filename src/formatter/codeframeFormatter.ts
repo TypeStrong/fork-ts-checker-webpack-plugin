@@ -21,17 +21,18 @@ export function createCodeframeFormatter(options: any) {
       : colors.bold.red;
     const positionColor = colors.dim;
 
+    const file = message.getFile();
     const source =
-      message.getFile() &&
-      fs.existsSync(message.getFile()) &&
-      fs.readFileSync(message.getFile(), 'utf-8');
+    file &&
+      fs.existsSync(file) &&
+      fs.readFileSync(file, 'utf-8');
     let frame = '';
 
     if (source) {
       frame = codeFrame(
         source,
-        message.line,
-        message.character,
+        message.line!, // Assetions: `codeFrame` allows passing undefined, typings are incorrect
+        message.character!,
         Object.assign({}, options || {}, { highlightCode: useColors })
       )
         .split('\n')

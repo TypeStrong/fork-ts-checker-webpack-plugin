@@ -13,7 +13,7 @@ export class CancellationToken {
   isCancelled: boolean;
   cancellationFileName: string;
   lastCancellationCheckTime: number;
-  constructor(cancellationFileName: string, isCancelled: boolean) {
+  constructor(cancellationFileName?: string, isCancelled?: boolean) {
     this.isCancelled = !!isCancelled;
     this.cancellationFileName =
       cancellationFileName || crypto.randomBytes(64).toString('hex');

@@ -1,8 +1,7 @@
 import * as fs from 'fs';
-import endsWith = require('lodash/endsWith');
 import * as path from 'path';
 import * as ts from 'typescript';
-import { Configuration, Linter } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+import { Configuration, Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
 import { WorkSet } from './WorkSet';
@@ -31,13 +30,13 @@ export class IncrementalChecker {
   checkSyntacticErrors: boolean;
   files: FilesRegister;
 
-  linter: Linter;
-  linterConfig: ConfigurationFile;
+  linter?: Linter;
+  linterConfig?: ConfigurationFile;
   linterExclusions: minimatch.IMinimatch[];
 
-  program: ts.Program;
-  programConfig: ts.ParsedCommandLine;
-  watcher: FilesWatcher;
+  program?: ts.Program;
+  programConfig?: ts.ParsedCommandLine;
+  watcher?: FilesWatcher;
 
   vue: boolean;
 
@@ -146,12 +145,16 @@ export class IncrementalChecker {
     return new tslint.Linter({ fix: this.linterAutoFix }, program);
   }
 
+  hasLinter(): boolean {
+    return !!this.linter;
+  }
+
   static isFileExcluded(
     filePath: string,
     linterExclusions: minimatch.IMinimatch[]
   ): boolean {
     return (
-      endsWith(filePath, '.d.ts') ||
+      filePath.endsWith('.d.ts') ||
       linterExclusions.some(matcher => matcher.match(filePath))
     );
   }
@@ -195,7 +198,7 @@ export class IncrementalChecker {
     this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
 
     if (this.linterConfig) {
-      this.linter = this.createLinter(this.program);
+      this.linter = this.createLinter(this.program!);
     }
   }
 
@@ -211,8 +214,8 @@ export class IncrementalChecker {
       this.programConfig,
       path.dirname(this.programConfigFile),
       this.files,
-      this.watcher,
-      this.program
+      this.watcher!,
+      this.program!
     );
   }
 
@@ -227,19 +230,19 @@ export class IncrementalChecker {
     return IncrementalChecker.createProgram(
       this.programConfig,
       this.files,
-      this.watcher,
-      this.program
+      this.watcher!,
+      this.program!
     );
   }
 
-  hasLinter() {
-    return this.linter !== undefined;
-  }
-
   getDiagnostics(cancellationToken: CancellationToken) {
+    const { program } = this;
+    if (!program) {
+      throw new Error('Invoked called before program initialized');
+    }
     const diagnostics: ts.Diagnostic[] = [];
     // select files to check (it's semantic check - we have to include all files :/)
-    const filesToCheck = this.program.getSourceFiles();
+    const filesToCheck = program.getSourceFiles();
 
     // calculate subset of work to do
     const workSet = new WorkSet(
@@ -256,17 +259,14 @@ export class IncrementalChecker {
 
       const diagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
         .checkSyntacticErrors
-        ? []
-            .concat(
-              this.program.getSemanticDiagnostics(sourceFile, cancellationToken)
-            )
-            .concat(
-              this.program.getSyntacticDiagnostics(
-                sourceFile,
-                cancellationToken
+        ? program.getSemanticDiagnostics(sourceFile, cancellationToken)
+          .concat(
+              program.getSyntacticDiagnostics(
+              sourceFile,
+              cancellationToken
               )
-            )
-        : this.program.getSemanticDiagnostics(sourceFile, cancellationToken);
+          )
+        : program.getSemanticDiagnostics(sourceFile, cancellationToken);
 
       diagnostics.push.apply(diagnostics, diagnosticsToRegister);
     });
@@ -278,7 +278,7 @@ export class IncrementalChecker {
   }
 
   getLints(cancellationToken: CancellationToken) {
-    if (!this.hasLinter()) {
+    if (!this.linter) {
       throw new Error('Cannot get lints - checker has no linter.');
     }
 
@@ -303,7 +303,7 @@ export class IncrementalChecker {
       cancellationToken.throwIfCancellationRequested();
 
       try {
-        this.linter.lint(fileName, undefined, this.linterConfig);
+        this.linter!.lint(fileName, undefined!, this.linterConfig); // REVIEW: this shouldn't work?
       } catch (e) {
         if (
           fs.existsSync(fileName) &&
@@ -341,7 +341,7 @@ export class IncrementalChecker {
       .reduce(
         (innerLints, filePath) =>
           innerLints.concat(this.files.getData(filePath).lints),
-        []
+        [] as RuleFailure[]
       );
 
     // normalize and deduplicate lints

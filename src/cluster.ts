@@ -7,7 +7,7 @@ import { NormalizedMessage } from './NormalizedMessage';
 import { Message } from './Message';
 
 // fork workers...
-const division = parseInt(process.env.WORK_DIVISION, 10);
+const division = parseInt(process.env.WORK_DIVISION || '', 10);
 const workers: childProcess.ChildProcess[] = [];
 
 for (let num = 0; num < division; num++) {
@@ -61,7 +61,7 @@ workers.forEach(worker => {
       merged.lints = NormalizedMessage.deduplicate(merged.lints);
 
       try {
-        process.send(merged);
+        process.send!(merged);
       } catch (e) {
         // channel closed...
         process.exit();

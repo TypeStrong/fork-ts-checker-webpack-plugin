@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
       "jsx": "preserve",
-      "noUnusedLocals": true
+      "noUnusedLocals": true,
+      "lib": ["es2016", "dom"]
   },
   "include": [
       "src/langs/*.ts",

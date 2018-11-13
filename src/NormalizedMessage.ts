@@ -13,9 +13,9 @@ interface NormalizedMessageJson {
   code: string | number;
   severity: Severity;
   content: string;
-  file: string;
-  line: number;
-  character: number;
+  file?: string;
+  line?: number;
+  character?: number;
 }
 
 export class NormalizedMessage {
@@ -30,9 +30,9 @@ export class NormalizedMessage {
   code: string | number;
   severity: Severity;
   content: string;
-  file: string;
-  line: number;
-  character: number;
+  file?: string;
+  line?: number;
+  character?: number;
 
   constructor(data: NormalizedMessageJson) {
     this.type = data.type;
@@ -46,11 +46,14 @@ export class NormalizedMessage {
 
   // message types
   static createFromDiagnostic(diagnostic: Diagnostic) {
-    let file: string;
-    let line: number;
-    let character: number;
+    let file: string | undefined;
+    let line: number | undefined;
+    let character: number | undefined;
     if (diagnostic.file) {
       file = diagnostic.file.fileName;
+      if (!diagnostic.start) {
+        throw new Error('Expected diagnostics to have start');
+      }
       const position = diagnostic.file.getLineAndCharacterOfPosition(
         diagnostic.start
       );
@@ -162,7 +165,7 @@ export class NormalizedMessage {
     return priorities[0] - priorities[1];
   }
 
-  static compareOptionalStrings(stringA: string, stringB: string) {
+  static compareOptionalStrings(stringA?: string, stringB?: string) {
     if (stringA === stringB) {
       return 0;
     }
@@ -176,7 +179,16 @@ export class NormalizedMessage {
     return stringA.toString().localeCompare(stringB.toString());
   }
 
-  static compareNumbers(numberA: number, numberB: number) {
+  static compareNumbers(numberA?: number, numberB?: number) {
+    if (numberA === numberB) {
+      return 0;
+    }
+    if (numberA === undefined || numberA === null) {
+      return -1;
+    }
+    if (numberB === undefined || numberB === null) {
+      return 1;
+    }
     return numberA - numberB;
   }
 

@@ -13,6 +13,7 @@
     "moduleResolution": "node",
     "declaration": true,
     "outDir": "../lib",
-    "declarationDir": "../lib/types"
+    "declarationDir": "../lib/types",
+    "allowSyntheticDefaultImports": true 
   }
 }

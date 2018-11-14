@@ -6,8 +6,7 @@ import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as os from 'os';
 import * as webpack from 'webpack';
-import isString = require('lodash/isString');
-import isFunction = require('lodash/isFunction');
+import { isString, isFunction } from 'lodash';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
@@ -66,7 +65,7 @@ interface Options {
  *
  * Options description in README.md
  */
-class ForkTsCheckerWebpackPlugin {
+export class ForkTsCheckerWebpackPlugin {
   static DEFAULT_MEMORY_LIMIT = 2048;
   static ONE_CPU = 1;
   static ALL_CPUS = os.cpus && os.cpus() ? os.cpus().length : 1;
@@ -853,10 +852,4 @@ class ForkTsCheckerWebpackPlugin {
       }
     };
   }
-}
-
-export = ForkTsCheckerWebpackPlugin;
-
-namespace ForkTsCheckerWebpackPlugin {
-
 }

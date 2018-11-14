@@ -25,3 +25,7 @@ package-lock.json
 # Editor directories and files
 .idea
 .vscode
+/.vs/slnx.sqlite
+/.vs/ProjectSettings.json
+/.vs/fork-ts-checker-webpack-plugin/v15/.suo
+/.vs/config/applicationhost.config

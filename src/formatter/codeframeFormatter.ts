@@ -1,5 +1,5 @@
 import * as os from 'os';
-import codeFrame = require('babel-code-frame');
+import codeFrame from 'babel-code-frame';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import { NormalizedMessage } from '../NormalizedMessage';

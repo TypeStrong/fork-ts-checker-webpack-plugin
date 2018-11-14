@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import endsWith = require('lodash/endsWith');
+import { endsWith } from 'lodash';
 import * as path from 'path';
 import * as ts from 'typescript';
 import { Configuration, Linter } from 'tslint'; // Imported for types alone; actual requires take place in methods below

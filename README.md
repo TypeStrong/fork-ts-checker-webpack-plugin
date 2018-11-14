@@ -11,7 +11,7 @@ npm install --save-dev fork-ts-checker-webpack-plugin
 ```
 Basic webpack config (with [ts-loader](https://github.com/TypeStrong/ts-loader))
 ```js
-var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin').ForkTsCheckerWebpackPlugin;
 
 var webpackConfig = {
   context: __dirname, // to automatically find tsconfig.json

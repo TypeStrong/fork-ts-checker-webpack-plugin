@@ -31,7 +31,7 @@ export function createCodeframeFormatter(options: any) {
     if (source) {
       frame = codeFrame(
         source,
-        message.line!, // Assetions: `codeFrame` allows passing undefined, typings are incorrect
+        message.line!, // Assertion: `codeFrame` allows passing undefined, typings are incorrect
         message.character!,
         Object.assign({}, options || {}, { highlightCode: useColors })
       )

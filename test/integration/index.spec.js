@@ -75,7 +75,7 @@ describe('[INTEGRATION] index', function() {
   it('should allow to pass no options', function() {
     expect(function() {
       new ForkTsCheckerWebpackPlugin();
-    }).to.not.throw.error;
+    }).to.not.throw();
   });
 
   it('should detect paths', function() {
@@ -299,7 +299,7 @@ describe('[INTEGRATION] index', function() {
       createCompiler({
         tsconfig: '/some/path/that/not/exists/tsconfig.json'
       });
-    }).to.throw.error;
+    }).to.throw();
   });
 
   it('should throw error if config container wrong tslint.json path', function() {
@@ -307,7 +307,7 @@ describe('[INTEGRATION] index', function() {
       createCompiler({
         tslint: '/some/path/that/not/exists/tslint.json'
       });
-    }).to.throw.error;
+    }).to.throw();
   });
 
   it('should find the same errors on multi-process mode', function(callback) {
@@ -345,7 +345,7 @@ describe('[INTEGRATION] index', function() {
   it('should detect tslint path for true option', function() {
     expect(function() {
       createCompiler({ tslint: true });
-    }).to.not.throw.error;
+    }).to.not.throw();
   });
 
   it('should allow delaying service-start', function(callback) {

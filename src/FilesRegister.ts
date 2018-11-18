@@ -1,16 +1,17 @@
 import * as ts from 'typescript';
+import { RuleFailure } from 'tslint';
 
 export interface DataShape {
   source?: ts.SourceFile;
   linted: boolean;
-  lints: any[];
+  lints: RuleFailure[];
 }
 
 export class FilesRegister {
   files: { [filePath: string]: { mtime?: number; data: DataShape } };
-  dataFactory: (_data?: any) => DataShape; // It doesn't seem that the _data parameter is ever used?
+  dataFactory: (_data?: DataShape) => DataShape; // It doesn't seem that the _data parameter is ever used?
 
-  constructor(dataFactory: (_data?: any) => DataShape) {
+  constructor(dataFactory: (_data?: DataShape) => DataShape) {
     this.files = {};
     this.dataFactory = dataFactory;
   }

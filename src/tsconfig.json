@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2017",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "suppressImplicitAnyIndexErrors": true,
     "strict": true,
-    "lib": ["es6", "dom"],
+    "lib": ["es2017", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
-    "outDir": "../lib",
-    "declarationDir": "../lib/types"
+    "outDir": "../lib"
   }
 }

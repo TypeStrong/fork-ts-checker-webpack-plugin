@@ -1,11 +1,12 @@
 import { Message } from './Message';
 
 export class WorkResult {
-  workResult: {};
-  workDomain: any[];
+  workResult: {
+    [key: string]: Message;
+  } = {};
+  workDomain: number[];
 
-  constructor(workDomain: any[]) {
-    this.workResult = {};
+  constructor(workDomain: number[]) {
     this.workDomain = workDomain;
   }
 
@@ -13,7 +14,7 @@ export class WorkResult {
     return -1 !== this.workDomain.indexOf(workName);
   }
 
-  set(workName: number, result: any) {
+  set(workName: number, result: Message) {
     if (!this.supports(workName)) {
       throw new Error(
         'Cannot set result - work "' + workName + '" is not supported.'

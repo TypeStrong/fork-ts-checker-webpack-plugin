@@ -44,7 +44,7 @@ describe('[UNIT] NormalizedMessage', function() {
   it('should serialize and create from json', function() {
     var json = diagnosticMessage.toJSON();
 
-    expect(json).to.be.object;
+    expect(json).to.be.an('object');
 
     var jsonMessage = NormalizedMessage.createFromJSON(json);
 

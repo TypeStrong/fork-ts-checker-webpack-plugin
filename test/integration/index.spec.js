@@ -43,24 +43,26 @@ describe('[INTEGRATION] index', function() {
       ? { happyPackMode: true, silent: true }
       : { transpileOnly: true, silent: true };
 
-    return webpack({
-      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
-      context: path.resolve(__dirname, './project'),
-      entry: entryPoint,
-      output: {
-        path: path.resolve(__dirname, '../../tmp')
-      },
-      module: {
-        rules: [
-          {
-            test: /\.tsx?$/,
-            loader: 'ts-loader',
-            options: tsLoaderOptions
-          }
-        ]
-      },
-      plugins: [plugin]
-    });
+    return webpack(Object.assign(
+      webpackMajorVersion >= 4 ? { mode: 'development' } : {},
+      {
+        context: path.resolve(__dirname, './project'),
+        entry: entryPoint,
+        output: {
+            path: path.resolve(__dirname, '../../tmp')
+        },
+        module: {
+            rules: [
+            {
+                test: /\.tsx?$/,
+                loader: 'ts-loader',
+                options: tsLoaderOptions
+            }
+            ]
+        },
+        plugins: [plugin]
+      }
+    ));
   }
 
   /**

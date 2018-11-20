@@ -37,7 +37,7 @@
     "webpack-plugin"
   ],
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=6.11.5"
   },
   "author": "Piotr Oleś <piotrek.oles@gmail.com>",
   "contributors": [

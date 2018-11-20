@@ -20,60 +20,39 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 }
 
 export class IncrementalChecker {
-  programConfigFile: string;
-  compilerOptions: object;
-  linterConfigFile: string | false;
-  linterAutoFix: boolean;
-  watchPaths: string[];
-  workNumber: number;
-  workDivision: number;
-  checkSyntacticErrors: boolean;
-  files: FilesRegister;
+  // it's shared between compilations
+  private files = new FilesRegister(() => ({
+    // data shape
+    source: undefined,
+    linted: false,
+    lints: []
+  }));
 
-  linter?: Linter;
-  linterConfig?: ConfigurationFile;
-  linterExclusions: minimatch.IMinimatch[];
+  private linter?: Linter;
+  private linterConfig?: ConfigurationFile;
 
-  program?: ts.Program;
-  programConfig?: ts.ParsedCommandLine;
-  watcher?: FilesWatcher;
+  // Use empty array of exclusions in general to avoid having
+  // to check of its existence later on.
+  private linterExclusions: minimatch.IMinimatch[] = [];
 
-  vue: boolean;
+  private program?: ts.Program;
+  private programConfig?: ts.ParsedCommandLine;
+  private watcher?: FilesWatcher;
 
   constructor(
-    programConfigFile: string,
-    compilerOptions: object,
-    linterConfigFile: string | false,
-    linterAutoFix: boolean,
-    watchPaths: string[],
-    workNumber: number,
-    workDivision: number,
-    checkSyntacticErrors: boolean,
-    vue: boolean
+    private programConfigFile: string,
+    private compilerOptions: object,
+    private linterConfigFile: string | false,
+    private linterAutoFix: boolean,
+    private watchPaths: string[],
+    private workNumber: number = 0,
+    private workDivision: number = 1,
+    private checkSyntacticErrors: boolean = false,
+    private vue: boolean = false,
   ) {
-    this.programConfigFile = programConfigFile;
-    this.compilerOptions = compilerOptions;
-    this.linterConfigFile = linterConfigFile;
-    this.linterAutoFix = linterAutoFix;
-    this.watchPaths = watchPaths;
-    this.workNumber = workNumber || 0;
-    this.workDivision = workDivision || 1;
-    this.checkSyntacticErrors = checkSyntacticErrors || false;
-    this.vue = vue || false;
-    // Use empty array of exclusions in general to avoid having
-    // to check of its existence later on.
-    this.linterExclusions = [];
-
-    // it's shared between compilations
-    this.files = new FilesRegister(() => ({
-      // data shape
-      source: undefined,
-      linted: false,
-      lints: []
-    }));
   }
 
-  static loadProgramConfig(configFile: string, compilerOptions: object) {
+  public static loadProgramConfig(configFile: string, compilerOptions: object) {
     const tsconfig = ts.readConfigFile(configFile, ts.sys.readFile).config;
 
     tsconfig.compilerOptions = tsconfig.compilerOptions || {};
@@ -91,7 +70,7 @@ export class IncrementalChecker {
     return parsed;
   }
 
-  static loadLinterConfig(configFile: string): ConfigurationFile {
+  private static loadLinterConfig(configFile: string): ConfigurationFile {
     const tslint = require('tslint');
 
     return tslint.Configuration.loadConfigurationFromPath(
@@ -99,7 +78,7 @@ export class IncrementalChecker {
     ) as ConfigurationFile;
   }
 
-  static createProgram(
+  private static createProgram(
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
     watcher: FilesWatcher,
@@ -139,17 +118,17 @@ export class IncrementalChecker {
     );
   }
 
-  createLinter(program: ts.Program) {
+  private createLinter(program: ts.Program) {
     const tslint = require('tslint');
 
     return new tslint.Linter({ fix: this.linterAutoFix }, program);
   }
 
-  hasLinter(): boolean {
+  public hasLinter(): boolean {
     return !!this.linter;
   }
 
-  static isFileExcluded(
+  public static isFileExcluded(
     filePath: string,
     linterExclusions: minimatch.IMinimatch[]
   ): boolean {
@@ -159,7 +138,7 @@ export class IncrementalChecker {
     );
   }
 
-  nextIteration() {
+  public nextIteration() {
     if (!this.watcher) {
       const watchExtensions = this.vue
         ? ['.ts', '.tsx', '.vue']
@@ -202,7 +181,7 @@ export class IncrementalChecker {
     }
   }
 
-  loadVueProgram() {
+  private loadVueProgram() {
     this.programConfig =
       this.programConfig ||
       VueProgram.loadProgramConfig(
@@ -219,7 +198,7 @@ export class IncrementalChecker {
     );
   }
 
-  loadDefaultProgram() {
+  private loadDefaultProgram() {
     this.programConfig =
       this.programConfig ||
       IncrementalChecker.loadProgramConfig(
@@ -235,7 +214,7 @@ export class IncrementalChecker {
     );
   }
 
-  getDiagnostics(cancellationToken: CancellationToken) {
+  public getDiagnostics(cancellationToken: CancellationToken) {
     const { program } = this;
     if (!program) {
       throw new Error('Invoked called before program initialized');
@@ -277,7 +256,7 @@ export class IncrementalChecker {
     );
   }
 
-  getLints(cancellationToken: CancellationToken) {
+  public getLints(cancellationToken: CancellationToken) {
     if (!this.linter) {
       throw new Error('Cannot get lints - checker has no linter.');
     }

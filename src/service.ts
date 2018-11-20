@@ -10,8 +10,8 @@ const checker = new IncrementalChecker(
   process.env.TSLINT === '' ? false : process.env.TSLINT!,
   process.env.TSLINTAUTOFIX === 'true',
   process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
-  parseInt(process.env.WORK_NUMBER!, 10),
-  parseInt(process.env.WORK_DIVISION!, 10),
+  parseInt(process.env.WORK_NUMBER!, 10) || 0,
+  parseInt(process.env.WORK_DIVISION!, 10) || 1,
   process.env.CHECK_SYNTACTIC_ERRORS === 'true',
   process.env.VUE === 'true'
 );

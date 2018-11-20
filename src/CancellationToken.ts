@@ -10,9 +10,9 @@ interface CancellationTokenData {
 }
 
 export class CancellationToken {
-  isCancelled: boolean;
-  cancellationFileName: string;
-  lastCancellationCheckTime: number;
+  private isCancelled: boolean;
+  private cancellationFileName: string;
+  private lastCancellationCheckTime: number;
   constructor(cancellationFileName?: string, isCancelled?: boolean) {
     this.isCancelled = !!isCancelled;
     this.cancellationFileName =
@@ -20,22 +20,22 @@ export class CancellationToken {
     this.lastCancellationCheckTime = 0;
   }
 
-  static createFromJSON(json: CancellationTokenData) {
+  public static createFromJSON(json: CancellationTokenData) {
     return new CancellationToken(json.cancellationFileName, json.isCancelled);
   }
 
-  toJSON() {
+  public toJSON() {
     return {
       cancellationFileName: this.cancellationFileName,
       isCancelled: this.isCancelled
     };
   }
 
-  getCancellationFilePath() {
+  public getCancellationFilePath() {
     return path.join(os.tmpdir(), this.cancellationFileName);
   }
 
-  isCancellationRequested() {
+  public isCancellationRequested() {
     if (this.isCancelled) {
       return true;
     }
@@ -52,18 +52,18 @@ export class CancellationToken {
     return this.isCancelled;
   }
 
-  throwIfCancellationRequested() {
+  public throwIfCancellationRequested() {
     if (this.isCancellationRequested()) {
       throw new ts.OperationCanceledException();
     }
   }
 
-  requestCancellation() {
+  public requestCancellation() {
     fs.writeFileSync(this.getCancellationFilePath(), '');
     this.isCancelled = true;
   }
 
-  cleanupCancellation() {
+  public cleanupCancellation() {
     if (this.isCancelled && fs.existsSync(this.getCancellationFilePath())) {
       fs.unlinkSync(this.getCancellationFilePath());
       this.isCancelled = false;

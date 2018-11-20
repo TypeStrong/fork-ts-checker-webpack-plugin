@@ -21,7 +21,7 @@ export function createCodeframeFormatter(options: any) {
       : colors.bold.red;
     const positionColor = colors.dim;
 
-    const file = message.getFile();
+    const file = message.file;
     const source =
     file &&
       fs.existsSync(file) &&
@@ -42,12 +42,12 @@ export function createCodeframeFormatter(options: any) {
 
     return (
       messageColor(
-        message.getSeverity().toUpperCase() + ' in ' + message.getFile()
+        message.severity.toUpperCase() + ' in ' + message.file
       ) +
       os.EOL +
-      positionColor(message.getLine() + ':' + message.getCharacter()) +
+      positionColor(message.line + ':' + message.character) +
       ' ' +
-      message.getContent() +
+      message.content +
       (frame ? os.EOL + frame : '')
     );
   };

@@ -2,22 +2,19 @@ import * as chokidar from 'chokidar';
 import * as path from 'path';
 
 export class FilesWatcher {
-  watchPaths: string[];
-  watchExtensions: string[];
-  watchers: chokidar.FSWatcher[];
-  listeners: { [eventName: string]: Function[] };
-  constructor(watchPaths: string[], watchExtensions: string[]) {
-    this.watchPaths = watchPaths;
+  private watchers: chokidar.FSWatcher[];
+  private listeners: { [eventName: string]: Function[] };
+  constructor(private watchPaths: string[], private watchExtensions: string[]) {
     this.watchExtensions = watchExtensions;
     this.watchers = [];
     this.listeners = {};
   }
 
-  isFileSupported(filePath: string) {
+  public isFileSupported(filePath: string) {
     return this.watchExtensions.indexOf(path.extname(filePath)) !== -1;
   }
 
-  watch() {
+  public watch() {
     if (this.isWatching()) {
       throw new Error('Cannot watch again - already watching.');
     }
@@ -42,7 +39,7 @@ export class FilesWatcher {
     });
   }
 
-  isWatchingFile(filePath: string) {
+  public isWatchingFile(filePath: string) {
     return (
       this.isWatching() &&
       this.isFileSupported(filePath) &&
@@ -50,11 +47,11 @@ export class FilesWatcher {
     );
   }
 
-  isWatching() {
+  public isWatching() {
     return this.watchers.length > 0;
   }
 
-  on(event: string, listener: Function) {
+  public on(event: string, listener: Function) {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
@@ -62,7 +59,7 @@ export class FilesWatcher {
     this.listeners[event].push(listener);
   }
 
-  off(event: string, listener: Function) {
+  public off(event: string, listener: Function) {
     if (this.listeners[event]) {
       this.listeners[event] = this.listeners[event].filter(
         oldListener => oldListener !== listener

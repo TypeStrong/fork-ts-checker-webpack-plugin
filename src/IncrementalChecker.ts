@@ -257,7 +257,8 @@ export class IncrementalChecker {
   }
 
   public getLints(cancellationToken: CancellationToken) {
-    if (!this.linter) {
+    const { linter } = this;
+    if (!linter) {
       throw new Error('Cannot get lints - checker has no linter.');
     }
 
@@ -282,7 +283,8 @@ export class IncrementalChecker {
       cancellationToken.throwIfCancellationRequested();
 
       try {
-        this.linter!.lint(fileName, undefined!, this.linterConfig); // REVIEW: this shouldn't work?
+        // Assertion: `.lint` second parameter can be undefined
+        linter.lint(fileName, undefined!, this.linterConfig);
       } catch (e) {
         if (
           fs.existsSync(fileName) &&

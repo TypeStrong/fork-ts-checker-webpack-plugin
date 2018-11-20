@@ -1,9 +1,7 @@
-## v0.5.0
+## next
  * Removed unused dependency `resolve`.
  * Replace `lodash` usage with native calls.
  * Test against ts-loader v5
- * **Breaking changes**:
-   * Dropped support for node v6, minimum is now v8.9
  * **Internal**:
    * Enable all strict type checks
    * Update dev dependencies

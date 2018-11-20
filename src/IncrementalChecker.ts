@@ -300,7 +300,7 @@ export class IncrementalChecker {
     });
 
     // set lints in files register
-    this.linter.getResult().failures.forEach(lint => {
+    linter.getResult().failures.forEach(lint => {
       const filePath = lint.getFileName();
 
       this.files.mutateData(filePath, data => {

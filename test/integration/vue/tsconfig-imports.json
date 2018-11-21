@@ -8,7 +8,8 @@
               "imports/foo1/*",
               "imports/foo2/*"
           ]
-      }
+      },
+      "lib": ["es2016", "dom"]
   },
   "include": [
       "imports/Test.vue"

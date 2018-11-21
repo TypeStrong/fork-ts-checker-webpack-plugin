@@ -3,6 +3,7 @@
   "rules": {
     "object-literal-sort-keys": false,
     "interface-name": [true, "never-prefix"],
+    "no-this-assignment": [true, { "allow-destructuring": true }],
     "member-ordering": [false],
     "no-object-literal-type-assertion": false,
     "no-var-requires": false,
@@ -11,7 +12,7 @@
     "prefer-object-spread": false,
     "ban-types": false,
     "arrow-parens": false,
-    "member-access": [false],
+    "member-access": [true],
     "trailing-comma": [false],
     "triple-equals": [true],
     "variable-name": [
@@ -22,8 +23,6 @@
       "allow-pascal-case"
     ],
     "no-namespace": false,
-    "array-type": [true, "array"],
-    "no-submodule-imports": [true, "lodash"]
-
+    "array-type": [true, "array"]
   }
 }

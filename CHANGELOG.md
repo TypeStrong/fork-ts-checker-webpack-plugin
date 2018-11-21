@@ -1,3 +1,14 @@
+## 0.5.0
+ * Removed unused dependency `resolve`.
+ * Replace `lodash` usage with native calls.
+ * ** Breaking Changes**:
+   * Removed all getters from `NormalizedMessage`, use direct property access instead.
+ * **Internal**:
+   * Test against ts-loader v5
+   * Enable all strict type checks
+   * Update dev dependencies
+
+
 ## v0.4.15
 
 * [Add `tslintAutoFix` option to be passed on to tslint to auto format typescript files](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/174) (#174)

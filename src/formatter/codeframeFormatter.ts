@@ -21,17 +21,18 @@ export function createCodeframeFormatter(options: any) {
       : colors.bold.red;
     const positionColor = colors.dim;
 
+    const file = message.file;
     const source =
-      message.getFile() &&
-      fs.existsSync(message.getFile()) &&
-      fs.readFileSync(message.getFile(), 'utf-8');
+    file &&
+      fs.existsSync(file) &&
+      fs.readFileSync(file, 'utf-8');
     let frame = '';
 
     if (source) {
       frame = codeFrame(
         source,
-        message.line,
-        message.character,
+        message.line!, // Assertion: `codeFrame` allows passing undefined, typings are incorrect
+        message.character!,
         Object.assign({}, options || {}, { highlightCode: useColors })
       )
         .split('\n')
@@ -41,12 +42,12 @@ export function createCodeframeFormatter(options: any) {
 
     return (
       messageColor(
-        message.getSeverity().toUpperCase() + ' in ' + message.getFile()
+        message.severity.toUpperCase() + ' in ' + message.file
       ) +
       os.EOL +
-      positionColor(message.getLine() + ':' + message.getCharacter()) +
+      positionColor(message.line + ':' + message.character) +
       ' ' +
-      message.getContent() +
+      message.content +
       (frame ? os.EOL + frame : '')
     );
   };

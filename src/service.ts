@@ -5,13 +5,13 @@ import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 
 const checker = new IncrementalChecker(
-  process.env.TSCONFIG,
-  JSON.parse(process.env.COMPILER_OPTIONS),
-  process.env.TSLINT === '' ? false : process.env.TSLINT,
+  process.env.TSCONFIG!,
+  JSON.parse(process.env.COMPILER_OPTIONS!),
+  process.env.TSLINT === '' ? false : process.env.TSLINT!,
   process.env.TSLINTAUTOFIX === 'true',
-  process.env.WATCH === '' ? [] : process.env.WATCH.split('|'),
-  parseInt(process.env.WORK_NUMBER, 10),
-  parseInt(process.env.WORK_DIVISION, 10),
+  process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
+  parseInt(process.env.WORK_NUMBER!, 10) || 0,
+  parseInt(process.env.WORK_DIVISION!, 10) || 1,
   process.env.CHECK_SYNTACTIC_ERRORS === 'true',
   process.env.VUE === 'true'
 );
@@ -37,7 +37,7 @@ function run(cancellationToken: CancellationToken) {
 
   if (!cancellationToken.isCancellationRequested()) {
     try {
-      process.send({
+      process.send!({
         diagnostics,
         lints
       });

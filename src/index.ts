@@ -6,8 +6,6 @@ import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as os from 'os';
 import * as webpack from 'webpack';
-import isString = require('lodash/isString');
-import isFunction = require('lodash/isFunction');
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
@@ -67,54 +65,54 @@ interface Options {
  * Options description in README.md
  */
 class ForkTsCheckerWebpackPlugin {
-  static DEFAULT_MEMORY_LIMIT = 2048;
-  static ONE_CPU = 1;
-  static ALL_CPUS = os.cpus && os.cpus() ? os.cpus().length : 1;
-  static ONE_CPU_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 1);
-  static TWO_CPUS_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 2);
+  public static readonly DEFAULT_MEMORY_LIMIT = 2048;
+  public static readonly ONE_CPU = 1;
+  public static readonly ALL_CPUS = os.cpus && os.cpus() ? os.cpus().length : 1;
+  public static readonly ONE_CPU_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 1);
+  public static readonly TWO_CPUS_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 2);
 
-  options: Partial<Options>;
-  tsconfig: string;
-  compilerOptions: object;
-  tslint: string | true;
-  tslintAutoFix: boolean;
-  watch: string[];
-  ignoreDiagnostics: number[];
-  ignoreLints: string[];
-  reportFiles: string[];
-  logger: Logger;
-  silent: boolean;
-  async: boolean;
-  checkSyntacticErrors: boolean;
-  workersNumber: number;
-  memoryLimit: number;
-  useColors: boolean;
-  colors: Chalk;
-  formatter: Formatter;
+  public readonly options: Partial<Options>;
+  private tsconfig: string;
+  private compilerOptions: object;
+  private tslint?: string | true;
+  private tslintAutoFix: boolean;
+  private watch: string[];
+  private ignoreDiagnostics: number[];
+  private ignoreLints: string[];
+  private reportFiles: string[];
+  private logger: Logger;
+  private silent: boolean;
+  private async: boolean;
+  private checkSyntacticErrors: boolean;
+  private workersNumber: number;
+  private memoryLimit: number;
+  private useColors: boolean;
+  private colors: Chalk;
+  private formatter: Formatter;
 
-  tsconfigPath: string;
-  tslintPath: string;
-  watchPaths: string[];
+  private tsconfigPath?: string;
+  private tslintPath?: string;
+  private watchPaths: string[];
 
-  compiler: any;
-  started: [number, number];
-  elapsed: [number, number];
-  cancellationToken: CancellationToken;
+  private compiler: any;
+  private started?: [number, number];
+  private elapsed?: [number, number];
+  private cancellationToken?: CancellationToken;
 
-  isWatching: boolean;
-  checkDone: boolean;
-  compilationDone: boolean;
-  diagnostics: NormalizedMessage[];
-  lints: NormalizedMessage[];
+  private isWatching: boolean;
+  private checkDone: boolean;
+  private compilationDone: boolean;
+  private diagnostics: NormalizedMessage[];
+  private lints: NormalizedMessage[];
 
-  emitCallback: () => void;
-  doneCallback: () => void;
-  typescriptVersion: any;
-  tslintVersion: any;
+  private emitCallback: () => void;
+  private doneCallback: () => void;
+  private typescriptVersion: any;
+  private tslintVersion: any;
 
-  service: childProcess.ChildProcess;
+  private service?: childProcess.ChildProcess;
 
-  vue: boolean;
+  private vue: boolean;
 
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
@@ -131,7 +129,7 @@ class ForkTsCheckerWebpackPlugin {
         : options.tslint
       : undefined;
     this.tslintAutoFix = options.tslintAutoFix || false;
-    this.watch = isString(options.watch)
+    this.watch = (typeof options.watch === 'string')
       ? [options.watch]
       : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
@@ -147,7 +145,7 @@ class ForkTsCheckerWebpackPlugin {
     this.useColors = options.colors !== false; // default true
     this.colors = new chalk.constructor({ enabled: this.useColors });
     this.formatter =
-      options.formatter && isFunction(options.formatter)
+      options.formatter && (typeof options.formatter === 'function')
         ? options.formatter
         : ForkTsCheckerWebpackPlugin.createFormatter(
             (options.formatter as 'default' | 'codeframe') || 'default',
@@ -180,7 +178,7 @@ class ForkTsCheckerWebpackPlugin {
     this.vue = options.vue === true; // default false
   }
 
-  static createFormatter(type: 'default' | 'codeframe', options: any) {
+  private static createFormatter(type: 'default' | 'codeframe', options: any) {
     switch (type) {
       case 'default':
         return createDefaultFormatter();
@@ -193,13 +191,13 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  apply(compiler: webpack.Compiler) {
+  public apply(compiler: webpack.Compiler) {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
     this.tslintPath = this.tslint
       ? this.computeContextPath(this.tslint as string)
-      : null;
+      : undefined;
     this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
@@ -254,13 +252,13 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  computeContextPath(filePath: string) {
+  private computeContextPath(filePath: string) {
     return path.isAbsolute(filePath)
       ? filePath
       : path.resolve(this.compiler.options.context, filePath);
   }
 
-  pluginStart() {
+  private pluginStart() {
     const run = (_compiler: webpack.Compiler, callback: () => void) => {
       this.isWatching = false;
       callback();
@@ -282,7 +280,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  pluginStop() {
+  private pluginStop() {
     const watchClose = () => {
       this.killService();
     };
@@ -308,7 +306,7 @@ class ForkTsCheckerWebpackPlugin {
     });
   }
 
-  registerCustomHooks() {
+  private registerCustomHooks() {
     if (
       this.compiler.hooks.forkTsCheckerServiceBeforeStart ||
       this.compiler.hooks.forkTsCheckerCancel ||
@@ -378,7 +376,7 @@ class ForkTsCheckerWebpackPlugin {
     });
   }
 
-  pluginCompile() {
+  private pluginCompile() {
     if ('hooks' in this.compiler) {
       // webpack 4
       this.compiler.hooks.compile.tap(checkerPluginName, () => {
@@ -396,13 +394,13 @@ class ForkTsCheckerWebpackPlugin {
           this.started = process.hrtime();
 
           // create new token for current job
-          this.cancellationToken = new CancellationToken(undefined, undefined);
+          this.cancellationToken = new CancellationToken();
           if (!this.service || !this.service.connected) {
             this.spawnService();
           }
 
           try {
-            this.service.send(this.cancellationToken);
+            this.service!.send(this.cancellationToken);
           } catch (error) {
             if (!this.silent && this.logger) {
               this.logger.error(
@@ -446,7 +444,7 @@ class ForkTsCheckerWebpackPlugin {
             }
 
             try {
-              this.service.send(this.cancellationToken);
+              this.service!.send(this.cancellationToken);
             } catch (error) {
               if (!this.silent && this.logger) {
                 this.logger.error(
@@ -468,7 +466,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  pluginEmit() {
+  private pluginEmit() {
     const emit = (compilation: any, callback: () => void) => {
       if (this.isWatching && this.async) {
         callback();
@@ -493,7 +491,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  pluginDone() {
+  private pluginDone() {
     if ('hooks' in this.compiler) {
       // webpack 4
       this.compiler.hooks.done.tap(
@@ -553,7 +551,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  spawnService() {
+  private spawnService() {
     this.service = childProcess.fork(
       path.resolve(
         __dirname,
@@ -636,24 +634,25 @@ class ForkTsCheckerWebpackPlugin {
     );
   }
 
-  killService() {
-    if (this.service) {
-      try {
-        if (this.cancellationToken) {
-          this.cancellationToken.cleanupCancellation();
-        }
+  private killService() {
+    if (!this.service) {
+      return;
+    }
+    try {
+      if (this.cancellationToken) {
+        this.cancellationToken.cleanupCancellation();
+      }
 
-        this.service.kill();
-        this.service = undefined;
-      } catch (e) {
-        if (this.logger && !this.silent) {
-          this.logger.error(e);
-        }
+      this.service.kill();
+      this.service = undefined;
+    } catch (e) {
+      if (this.logger && !this.silent) {
+        this.logger.error(e);
       }
     }
   }
 
-  handleServiceMessage(message: Message) {
+  private handleServiceMessage(message: Message): void {
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
       // job is done - nothing to cancel
@@ -670,15 +669,15 @@ class ForkTsCheckerWebpackPlugin {
     if (this.ignoreDiagnostics.length) {
       this.diagnostics = this.diagnostics.filter(
         diagnostic =>
-          this.ignoreDiagnostics.indexOf(
-            parseInt(diagnostic.getCode() as string, 10)
-          ) === -1
+          !this.ignoreDiagnostics.includes(
+            parseInt(diagnostic.code as string, 10)
+          )
       );
     }
 
     if (this.ignoreLints.length) {
       this.lints = this.lints.filter(
-        lint => this.ignoreLints.indexOf(lint.getCode() as string) === -1
+        lint => !this.ignoreLints.includes(lint.code as string)
       );
     }
 
@@ -722,31 +721,35 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  handleServiceExit(_code: string | number, signal: string) {
-    if (signal === 'SIGABRT') {
-      // probably out of memory :/
-      if (this.compiler) {
-        if ('hooks' in this.compiler) {
-          // webpack 4
-          this.compiler.hooks.forkTsCheckerServiceOutOfMemory.call();
-        } else {
-          // webpack 2 / 3
-          this.compiler.applyPlugins('fork-ts-checker-service-out-of-memory');
-        }
+  private handleServiceExit(_code: string | number, signal: string) {
+    if (signal !== 'SIGABRT') {
+      return;
+    }
+    // probably out of memory :/
+    if (this.compiler) {
+      if ('hooks' in this.compiler) {
+        // webpack 4
+        this.compiler.hooks.forkTsCheckerServiceOutOfMemory.call();
+      } else {
+        // webpack 2 / 3
+        this.compiler.applyPlugins('fork-ts-checker-service-out-of-memory');
       }
-      if (!this.silent && this.logger) {
-        this.logger.error(
-          this.colors.red(
-            'Type checking and linting aborted - probably out of memory. ' +
-              'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
-          )
-        );
-      }
+    }
+    if (!this.silent && this.logger) {
+      this.logger.error(
+        this.colors.red(
+          'Type checking and linting aborted - probably out of memory. ' +
+            'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
+        )
+      );
     }
   }
 
-  createEmitCallback(compilation: any, callback: () => void) {
+  private createEmitCallback(compilation: webpack.compilation.Compilation, callback: () => void) {
     return function emitCallback(this: ForkTsCheckerWebpackPlugin) {
+      if (!this.elapsed) {
+        throw new Error('Execution order error');
+      }
       const elapsed = Math.round(this.elapsed[0] * 1e9 + this.elapsed[1]);
 
       if ('hooks' in this.compiler) {
@@ -770,17 +773,17 @@ class ForkTsCheckerWebpackPlugin {
         // webpack message format
         const formatted = {
           rawMessage:
-            message.getSeverity().toUpperCase() +
+            message.severity.toUpperCase() +
             ' ' +
             message.getFormattedCode() +
             ': ' +
-            message.getContent(),
+            message.content,
           message: this.formatter(message, this.useColors),
           location: {
-            line: message.getLine(),
-            character: message.getCharacter()
+            line: message.line,
+            character: message.character
           },
-          file: message.getFile()
+          file: message.file
         };
 
         if (message.isWarningSeverity()) {
@@ -794,13 +797,16 @@ class ForkTsCheckerWebpackPlugin {
     };
   }
 
-  createNoopEmitCallback() {
+  private createNoopEmitCallback() {
     // tslint:disable-next-line:no-empty
     return function noopEmitCallback() {};
   }
 
-  createDoneCallback() {
+  private createDoneCallback() {
     return function doneCallback(this: ForkTsCheckerWebpackPlugin) {
+      if (!this.elapsed) {
+        throw new Error('Execution order error');
+      }
       const elapsed = Math.round(this.elapsed[0] * 1e9 + this.elapsed[1]);
 
       if (this.compiler) {

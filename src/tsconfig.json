@@ -1,18 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "noImplicitAny": true,
+    "target": "es6",
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "suppressImplicitAnyIndexErrors": true,
-    "strictNullChecks": false,
-    "lib": ["es5", "es2015", "dom"],
+    "strict": true,
+    "lib": ["es2015", "es2016.array.include", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
-    "outDir": "../lib",
-    "declarationDir": "../lib/types"
+    "outDir": "../lib"
   }
 }

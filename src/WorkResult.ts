@@ -1,19 +1,18 @@
 import { Message } from './Message';
 
 export class WorkResult {
-  workResult: {};
-  workDomain: any[];
+  private workResult: {
+    [key: string]: Message;
+  } = {};
 
-  constructor(workDomain: any[]) {
-    this.workResult = {};
-    this.workDomain = workDomain;
+  constructor(private workDomain: number[]) {
   }
 
-  supports(workName: number) {
-    return -1 !== this.workDomain.indexOf(workName);
+  public supports(workName: number) {
+    return this.workDomain.includes(workName);
   }
 
-  set(workName: number, result: any) {
+  public set(workName: number, result: Message) {
     if (!this.supports(workName)) {
       throw new Error(
         'Cannot set result - work "' + workName + '" is not supported.'
@@ -23,11 +22,11 @@ export class WorkResult {
     this.workResult[workName] = result;
   }
 
-  has(workName: number) {
+  public has(workName: number) {
     return this.supports(workName) && undefined !== this.workResult[workName];
   }
 
-  get(workName: number) {
+  public get(workName: number) {
     if (!this.supports(workName)) {
       throw new Error(
         'Cannot get result - work "' + workName + '" is not supported.'
@@ -37,15 +36,15 @@ export class WorkResult {
     return this.workResult[workName];
   }
 
-  hasAll() {
+  public hasAll() {
     return this.workDomain.every(key => this.has(key));
   }
 
-  clear() {
+  public clear() {
     this.workResult = {};
   }
 
-  reduce(reducer: (m1: Message, m2: Message) => Message, initial: Message) {
+  public reduce(reducer: (m1: Message, m2: Message) => Message, initial: Message) {
     return this.workDomain.reduce((reduced, workName) => {
       return reducer(reduced, this.workResult[workName]);
     }, initial);

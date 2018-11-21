@@ -72,7 +72,7 @@ describe('[UNIT] CancellationToken', function() {
     var tokenB = new CancellationToken('rgeer#R23r$#T$3t#$t43', true);
     expect(function() {
       tokenB.throwIfCancellationRequested();
-    }).to.throw(ts.OperationCanceledException);
+    }).to.throw().instanceOf(ts.OperationCanceledException);
   });
 
   it('should write file in filesystem on requestCancellation', function() {

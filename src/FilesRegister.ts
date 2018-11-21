@@ -1,42 +1,42 @@
 import * as ts from 'typescript';
+import { RuleFailure } from 'tslint';
 
-interface DataShape {
-  source: ts.SourceFile;
+export interface DataShape {
+  source?: ts.SourceFile;
   linted: boolean;
-  lints: any[];
+  lints: RuleFailure[];
 }
 
 export class FilesRegister {
-  files: { [filePath: string]: { mtime: number; data: DataShape } };
-  dataFactory: (_data?: any) => DataShape; // It doesn't seem that the _data parameter is ever used?
+  private files: { [filePath: string]: { mtime?: number; data: DataShape } };
 
-  constructor(dataFactory: (_data?: any) => DataShape) {
+  constructor(private dataFactory: (_data?: DataShape) => DataShape) {
     this.files = {};
     this.dataFactory = dataFactory;
   }
 
-  keys() {
+  public keys() {
     return Object.keys(this.files);
   }
 
-  add(filePath: string) {
+  public add(filePath: string) {
     this.files[filePath] = {
       mtime: undefined,
       data: this.dataFactory(undefined)
     };
   }
 
-  remove(filePath: string) {
+  public remove(filePath: string) {
     if (this.has(filePath)) {
       delete this.files[filePath];
     }
   }
 
-  has(filePath: string) {
+  public has(filePath: string) {
     return this.files.hasOwnProperty(filePath);
   }
 
-  get(filePath: string) {
+  public get(filePath: string) {
     if (!this.has(filePath)) {
       throw new Error('File "' + filePath + '" not found in register.');
     }
@@ -44,27 +44,27 @@ export class FilesRegister {
     return this.files[filePath];
   }
 
-  ensure(filePath: string) {
+  public ensure(filePath: string) {
     if (!this.has(filePath)) {
       this.add(filePath);
     }
   }
 
-  getData(filePath: string) {
+  public getData(filePath: string) {
     return this.get(filePath).data;
   }
 
-  mutateData(filePath: string, mutator: (data: DataShape) => void) {
+  public mutateData(filePath: string, mutator: (data: DataShape) => void) {
     this.ensure(filePath);
 
     mutator(this.files[filePath].data);
   }
 
-  getMtime(filePath: string) {
+  public getMtime(filePath: string) {
     return this.get(filePath).mtime;
   }
 
-  setMtime(filePath: string, mtime: number) {
+  public setMtime(filePath: string, mtime: number) {
     this.ensure(filePath);
 
     if (this.files[filePath].mtime !== mtime) {

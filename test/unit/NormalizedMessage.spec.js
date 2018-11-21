@@ -32,35 +32,35 @@ describe('[UNIT] NormalizedMessage', function() {
   });
 
   it('should create new message', function() {
-    expect(diagnosticMessage.getType()).to.be.equal('diagnostic');
-    expect(diagnosticMessage.getCode()).to.be.equal(123);
-    expect(diagnosticMessage.getSeverity()).to.be.equal('error');
-    expect(diagnosticMessage.getContent()).to.be.equal('foo');
-    expect(diagnosticMessage.getFile()).to.be.equal('/foo/bar.ts');
-    expect(diagnosticMessage.getLine()).to.be.equal(532);
-    expect(diagnosticMessage.getCharacter()).to.be.equal(12);
+    expect(diagnosticMessage.type).to.be.equal('diagnostic');
+    expect(diagnosticMessage.code).to.be.equal(123);
+    expect(diagnosticMessage.severity).to.be.equal('error');
+    expect(diagnosticMessage.content).to.be.equal('foo');
+    expect(diagnosticMessage.file).to.be.equal('/foo/bar.ts');
+    expect(diagnosticMessage.line).to.be.equal(532);
+    expect(diagnosticMessage.character).to.be.equal(12);
   });
 
   it('should serialize and create from json', function() {
     var json = diagnosticMessage.toJSON();
 
-    expect(json).to.be.object;
+    expect(json).to.be.an('object');
 
     var jsonMessage = NormalizedMessage.createFromJSON(json);
 
     expect(jsonMessage).to.be.instanceof(NormalizedMessage);
-    expect(jsonMessage.getType()).to.be.equal(diagnosticMessage.getType());
-    expect(jsonMessage.getCode()).to.be.equal(diagnosticMessage.getCode());
-    expect(jsonMessage.getSeverity()).to.be.equal(
-      diagnosticMessage.getSeverity()
+    expect(jsonMessage.type).to.be.equal(diagnosticMessage.type);
+    expect(jsonMessage.code).to.be.equal(diagnosticMessage.code);
+    expect(jsonMessage.severity).to.be.equal(
+      diagnosticMessage.severity
     );
-    expect(jsonMessage.getContent()).to.be.equal(
-      diagnosticMessage.getContent()
+    expect(jsonMessage.content).to.be.equal(
+      diagnosticMessage.content
     );
-    expect(jsonMessage.getFile()).to.be.equal(diagnosticMessage.getFile());
-    expect(jsonMessage.getLine()).to.be.equal(diagnosticMessage.getLine());
-    expect(jsonMessage.getCharacter()).to.be.equal(
-      diagnosticMessage.getCharacter()
+    expect(jsonMessage.file).to.be.equal(diagnosticMessage.file);
+    expect(jsonMessage.line).to.be.equal(diagnosticMessage.line);
+    expect(jsonMessage.character).to.be.equal(
+      diagnosticMessage.character
     );
   });
 
@@ -73,9 +73,9 @@ describe('[UNIT] NormalizedMessage', function() {
 
   it('should return formatted code', function() {
     expect(diagnosticMessage.getFormattedCode()).to.be.equal(
-      'TS' + diagnosticMessage.getCode()
+      'TS' + diagnosticMessage.code
     );
-    expect(lintMessage.getFormattedCode()).to.be.equal(lintMessage.getCode());
+    expect(lintMessage.getFormattedCode()).to.be.equal(lintMessage.code);
   });
 
   it('should check severity', function() {

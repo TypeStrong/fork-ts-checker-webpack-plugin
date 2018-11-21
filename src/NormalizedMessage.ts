@@ -13,26 +13,26 @@ interface NormalizedMessageJson {
   code: string | number;
   severity: Severity;
   content: string;
-  file: string;
-  line: number;
-  character: number;
+  file?: string;
+  line?: number;
+  character?: number;
 }
 
 export class NormalizedMessage {
-  static TYPE_DIAGNOSTIC: ErrorType = 'diagnostic';
-  static TYPE_LINT: ErrorType = 'lint';
+  public static readonly TYPE_DIAGNOSTIC: ErrorType = 'diagnostic';
+  public static readonly TYPE_LINT: ErrorType = 'lint';
 
   // severity types
-  static SEVERITY_ERROR: Severity = 'error';
-  static SEVERITY_WARNING: Severity = 'warning';
+  public static readonly SEVERITY_ERROR: Severity = 'error';
+  public static readonly SEVERITY_WARNING: Severity = 'warning';
 
-  type: ErrorType;
-  code: string | number;
-  severity: Severity;
-  content: string;
-  file: string;
-  line: number;
-  character: number;
+  public readonly type: ErrorType;
+  public readonly code: string | number;
+  public readonly severity: Severity;
+  public readonly content: string;
+  public readonly file?: string;
+  public readonly line?: number;
+  public readonly character?: number;
 
   constructor(data: NormalizedMessageJson) {
     this.type = data.type;
@@ -45,12 +45,15 @@ export class NormalizedMessage {
   }
 
   // message types
-  static createFromDiagnostic(diagnostic: Diagnostic) {
-    let file: string;
-    let line: number;
-    let character: number;
+  public static createFromDiagnostic(diagnostic: Diagnostic) {
+    let file: string | undefined;
+    let line: number | undefined;
+    let character: number | undefined;
     if (diagnostic.file) {
       file = diagnostic.file.fileName;
+      if (!diagnostic.start) {
+        throw new Error('Expected diagnostics to have start');
+      }
       const position = diagnostic.file.getLineAndCharacterOfPosition(
         diagnostic.start
       );
@@ -71,7 +74,7 @@ export class NormalizedMessage {
     });
   }
 
-  static createFromLint(lint: RuleFailure) {
+  public static createFromLint(lint: RuleFailure) {
     const position = lint.getStartPosition().getLineAndCharacter();
 
     return new NormalizedMessage({
@@ -85,11 +88,11 @@ export class NormalizedMessage {
     });
   }
 
-  static createFromJSON(json: NormalizedMessageJson) {
+  public static createFromJSON(json: NormalizedMessageJson) {
     return new NormalizedMessage(json);
   }
 
-  static compare(messageA: NormalizedMessage, messageB: NormalizedMessage) {
+  public static compare(messageA: NormalizedMessage, messageB: NormalizedMessage) {
     if (!(messageA instanceof NormalizedMessage)) {
       return -1;
     }
@@ -98,41 +101,41 @@ export class NormalizedMessage {
     }
 
     return (
-      NormalizedMessage.compareTypes(messageA.getType(), messageB.getType()) ||
+      NormalizedMessage.compareTypes(messageA.type, messageB.type) ||
       NormalizedMessage.compareOptionalStrings(
-        messageA.getFile(),
-        messageB.getFile()
+        messageA.file,
+        messageB.file
       ) ||
       NormalizedMessage.compareSeverities(
-        messageA.getSeverity(),
-        messageB.getSeverity()
+        messageA.severity,
+        messageB.severity
       ) ||
       NormalizedMessage.compareNumbers(
-        messageA.getLine(),
-        messageB.getLine()
+        messageA.line,
+        messageB.line
       ) ||
       NormalizedMessage.compareNumbers(
-        messageA.getCharacter(),
-        messageB.getCharacter()
+        messageA.character,
+        messageB.character
       ) ||
       // code can be string (lint failure) or number (typescript error) - should the following line cater for this in some way?
       NormalizedMessage.compareOptionalStrings(
-        messageA.getCode() as string,
-        messageB.getCode() as string
+        messageA.code as string,
+        messageB.code as string
       ) ||
       NormalizedMessage.compareOptionalStrings(
-        messageA.getContent(),
-        messageB.getContent()
+        messageA.content,
+        messageB.content
       ) ||
       0 /* EqualTo */
     );
   }
 
-  static equals(messageA: NormalizedMessage, messageB: NormalizedMessage) {
+  public static equals(messageA: NormalizedMessage, messageB: NormalizedMessage) {
     return this.compare(messageA, messageB) === 0;
   }
 
-  static deduplicate(messages: NormalizedMessage[]) {
+  public static deduplicate(messages: NormalizedMessage[]) {
     return messages.sort(NormalizedMessage.compare).filter((message, index) => {
       return (
         index === 0 || !NormalizedMessage.equals(message, messages[index - 1])
@@ -140,7 +143,7 @@ export class NormalizedMessage {
     });
   }
 
-  static compareTypes(typeA: ErrorType, typeB: ErrorType) {
+  public static compareTypes(typeA: ErrorType, typeB: ErrorType) {
     const priorities = [typeA, typeB].map(type => {
       return [
         NormalizedMessage.TYPE_LINT /* 0 */,
@@ -151,7 +154,7 @@ export class NormalizedMessage {
     return priorities[0] - priorities[1];
   }
 
-  static compareSeverities(severityA: Severity, severityB: Severity) {
+  public static compareSeverities(severityA: Severity, severityB: Severity) {
     const priorities = [severityA, severityB].map(type => {
       return [
         NormalizedMessage.SEVERITY_WARNING /* 0 */,
@@ -162,7 +165,7 @@ export class NormalizedMessage {
     return priorities[0] - priorities[1];
   }
 
-  static compareOptionalStrings(stringA: string, stringB: string) {
+  public static compareOptionalStrings(stringA?: string, stringB?: string) {
     if (stringA === stringB) {
       return 0;
     }
@@ -176,11 +179,20 @@ export class NormalizedMessage {
     return stringA.toString().localeCompare(stringB.toString());
   }
 
-  static compareNumbers(numberA: number, numberB: number) {
+  public static compareNumbers(numberA?: number, numberB?: number) {
+    if (numberA === numberB) {
+      return 0;
+    }
+    if (numberA === undefined || numberA === null) {
+      return -1;
+    }
+    if (numberB === undefined || numberB === null) {
+      return 1;
+    }
     return numberA - numberB;
   }
 
-  toJSON() {
+  public toJSON() {
     return {
       type: this.type,
       code: this.code,
@@ -192,51 +204,23 @@ export class NormalizedMessage {
     } as NormalizedMessageJson;
   }
 
-  getType() {
-    return this.type;
+  public isDiagnosticType() {
+    return NormalizedMessage.TYPE_DIAGNOSTIC === this.type;
   }
 
-  isDiagnosticType() {
-    return NormalizedMessage.TYPE_DIAGNOSTIC === this.getType();
+  public isLintType() {
+    return NormalizedMessage.TYPE_LINT === this.type;
   }
 
-  isLintType() {
-    return NormalizedMessage.TYPE_LINT === this.getType();
+  public getFormattedCode() {
+    return this.isDiagnosticType() ? 'TS' + this.code : this.code;
   }
 
-  getCode() {
-    return this.code;
+  public isErrorSeverity() {
+    return this.severity === NormalizedMessage.SEVERITY_ERROR;
   }
 
-  getFormattedCode() {
-    return this.isDiagnosticType() ? 'TS' + this.getCode() : this.getCode();
-  }
-
-  getSeverity() {
-    return this.severity;
-  }
-
-  isErrorSeverity() {
-    return this.getSeverity() === NormalizedMessage.SEVERITY_ERROR;
-  }
-
-  isWarningSeverity() {
-    return this.getSeverity() === NormalizedMessage.SEVERITY_WARNING;
-  }
-
-  getContent() {
-    return this.content;
-  }
-
-  getFile() {
-    return this.file;
-  }
-
-  getLine() {
-    return this.line;
-  }
-
-  getCharacter() {
-    return this.character;
+  public isWarningSeverity() {
+    return this.severity === NormalizedMessage.SEVERITY_WARNING;
   }
 }

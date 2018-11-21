@@ -1,4 +1,5 @@
 {
   "compilerOptions": {
+      "lib": ["es2016"],
   }
 }

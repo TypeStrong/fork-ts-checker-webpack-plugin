@@ -20,12 +20,12 @@ export function createDefaultFormatter() {
     const codeColor = colors.grey;
 
     return [
-      messageColor(`${message.getSeverity().toUpperCase()} in `) +
+      messageColor(`${message.severity.toUpperCase()} in `) +
         fileAndNumberColor(
-          `${message.getFile()}(${message.getLine()},${message.getCharacter()})`
+          `${message.file}(${message.line},${message.character})`
         ) +
         messageColor(':'),
-      codeColor(message.getFormattedCode() + ': ') + message.getContent()
+      codeColor(message.getFormattedCode() + ': ') + message.content
     ].join(os.EOL);
   };
 }

@@ -1,5 +1,7 @@
 {
-  "compilerOptions": {},
+  "compilerOptions": {
+      "lib": ["es2016", "dom"]
+  },
   "include": [
       "src/attrs/Test.vue",
       "src/attrs/NotFound.vue"

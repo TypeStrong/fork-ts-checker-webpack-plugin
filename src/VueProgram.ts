@@ -12,7 +12,7 @@ interface ResolvedScript {
 }
 
 export class VueProgram {
-  static loadProgramConfig(configFile: string, compilerOptions: object) {
+  public static loadProgramConfig(configFile: string, compilerOptions: object) {
     const extraExtensions = ['vue'];
 
     const parseConfigHost: ts.ParseConfigHost = {
@@ -93,7 +93,7 @@ export class VueProgram {
         ? options.paths[`${correctWildcard}/*`]
         : undefined;
       const substitution = pattern
-        ? options.paths[`${correctWildcard}/*`][0].replace('*', '')
+        ? options.paths![`${correctWildcard}/*`][0].replace('*', '')
         : 'src';
       moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
     } else if (isRelative) {
@@ -106,7 +106,7 @@ export class VueProgram {
     return path.extname(filePath) === '.vue';
   }
 
-  static createProgram(
+  public static createProgram(
     programConfig: ts.ParsedCommandLine,
     basedir: string,
     files: FilesRegister,
@@ -234,7 +234,7 @@ export class VueProgram {
     );
   }
 
-  private static getScriptKindByLang(lang: string) {
+  private static getScriptKindByLang(lang?: string) {
     if (lang === 'ts') {
       return ts.ScriptKind.TS;
     } else if (lang === 'tsx') {
@@ -247,7 +247,7 @@ export class VueProgram {
     }
   }
 
-  static resolveScriptBlock(content: string): ResolvedScript {
+  public static resolveScriptBlock(content: string): ResolvedScript {
     // We need to import vue-template-compiler lazily because it cannot be included it
     // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
     // Since its version must not mismatch with user-installed Vue.js,

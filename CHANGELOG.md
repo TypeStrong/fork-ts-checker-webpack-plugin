@@ -1,8 +1,10 @@
-## next
+## 0.5.0
  * Removed unused dependency `resolve`.
  * Replace `lodash` usage with native calls.
- * Test against ts-loader v5
+ * ** Breaking Changes**:
+   * Removed all getters from `NormalizedMessage`, use direct property access instead.
  * **Internal**:
+   * Test against ts-loader v5
    * Enable all strict type checks
    * Update dev dependencies
 

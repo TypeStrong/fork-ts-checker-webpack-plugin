@@ -1,4 +1,5 @@
 ## 0.5.0
+
  * Removed unused dependency `resolve`.
  * Replace `lodash` usage with native calls.
  * ** Breaking Changes**:
@@ -7,7 +8,6 @@
    * Test against ts-loader v5
    * Enable all strict type checks
    * Update dev dependencies
-
 
 ## v0.4.15
 

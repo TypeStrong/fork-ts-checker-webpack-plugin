@@ -48,9 +48,8 @@ export class IncrementalChecker {
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false,
-  ) {
-  }
+    private vue: boolean = false
+  ) {}
 
   public static loadProgramConfig(configFile: string, compilerOptions: object) {
     const tsconfig = ts.readConfigFile(configFile, ts.sys.readFile).config;
@@ -238,16 +237,14 @@ export class IncrementalChecker {
 
       const diagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
         .checkSyntacticErrors
-        ? program.getSemanticDiagnostics(sourceFile, cancellationToken)
-          .concat(
-              program.getSyntacticDiagnostics(
-              sourceFile,
-              cancellationToken
-              )
-          )
+        ? program
+            .getSemanticDiagnostics(sourceFile, cancellationToken)
+            .concat(
+              program.getSyntacticDiagnostics(sourceFile, cancellationToken)
+            )
         : program.getSemanticDiagnostics(sourceFile, cancellationToken);
 
-      diagnostics.push.apply(diagnostics, diagnosticsToRegister);
+      diagnostics.push(...diagnosticsToRegister);
     });
 
     // normalize and deduplicate diagnostics

@@ -1,3 +1,7 @@
+## v0.5.1
+
+* [Make the checker compile with TypeScript 3.2](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/189)
+
 ## 0.5.0
 
  * Removed unused dependency `resolve`.

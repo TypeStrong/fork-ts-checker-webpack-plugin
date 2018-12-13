@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import { FsHelper } from './FsHelper';
+
 interface CancellationTokenData {
   isCancelled: boolean;
   cancellationFileName: string;
@@ -46,7 +48,7 @@ export class CancellationToken {
     if (duration > 10) {
       // check no more than once every 10ms
       this.lastCancellationCheckTime = time;
-      this.isCancelled = fs.existsSync(this.getCancellationFilePath());
+      this.isCancelled = FsHelper.existsSync(this.getCancellationFilePath());
     }
 
     return this.isCancelled;
@@ -64,7 +66,10 @@ export class CancellationToken {
   }
 
   public cleanupCancellation() {
-    if (this.isCancelled && fs.existsSync(this.getCancellationFilePath())) {
+    if (
+      this.isCancelled &&
+      FsHelper.existsSync(this.getCancellationFilePath())
+    ) {
       fs.unlinkSync(this.getCancellationFilePath());
       this.isCancelled = false;
     }

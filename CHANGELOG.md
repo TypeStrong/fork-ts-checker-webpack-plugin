@@ -1,3 +1,7 @@
+## v0.5.2
+
+* [Fix erroneous error on diagnostics at 0 line; remove deprecated fs.existsSync](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/190) (#190)
+
 ## v0.5.1
 
 * [Make the checker compile with TypeScript 3.2](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/189)

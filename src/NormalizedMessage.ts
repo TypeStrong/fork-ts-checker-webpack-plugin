@@ -51,7 +51,7 @@ export class NormalizedMessage {
     let character: number | undefined;
     if (diagnostic.file) {
       file = diagnostic.file.fileName;
-      if (typeof diagnostic.start === 'undefined') {
+      if (diagnostic.start === undefined) {
         throw new Error('Expected diagnostics to have start');
       }
       const position = diagnostic.file.getLineAndCharacterOfPosition(

@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as process from 'process';
 import * as childProcess from 'child_process';
 import chalk, { Chalk } from 'chalk';
-import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as os from 'os';
 import * as webpack from 'webpack';
@@ -10,6 +9,7 @@ import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
 import { createCodeframeFormatter } from './formatter/codeframeFormatter';
+import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
 import { AsyncSeriesHook, SyncHook } from 'tapable';
@@ -68,8 +68,14 @@ class ForkTsCheckerWebpackPlugin {
   public static readonly DEFAULT_MEMORY_LIMIT = 2048;
   public static readonly ONE_CPU = 1;
   public static readonly ALL_CPUS = os.cpus && os.cpus() ? os.cpus().length : 1;
-  public static readonly ONE_CPU_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 1);
-  public static readonly TWO_CPUS_FREE = Math.max(1, ForkTsCheckerWebpackPlugin.ALL_CPUS - 2);
+  public static readonly ONE_CPU_FREE = Math.max(
+    1,
+    ForkTsCheckerWebpackPlugin.ALL_CPUS - 1
+  );
+  public static readonly TWO_CPUS_FREE = Math.max(
+    1,
+    ForkTsCheckerWebpackPlugin.ALL_CPUS - 2
+  );
 
   public readonly options: Partial<Options>;
   private tsconfig: string;
@@ -129,9 +135,8 @@ class ForkTsCheckerWebpackPlugin {
         : options.tslint
       : undefined;
     this.tslintAutoFix = options.tslintAutoFix || false;
-    this.watch = (typeof options.watch === 'string')
-      ? [options.watch]
-      : options.watch || [];
+    this.watch =
+      typeof options.watch === 'string' ? [options.watch] : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
     this.ignoreLints = options.ignoreLints || [];
     this.reportFiles = options.reportFiles || [];
@@ -145,7 +150,7 @@ class ForkTsCheckerWebpackPlugin {
     this.useColors = options.colors !== false; // default true
     this.colors = new chalk.constructor({ enabled: this.useColors });
     this.formatter =
-      options.formatter && (typeof options.formatter === 'function')
+      options.formatter && typeof options.formatter === 'function'
         ? options.formatter
         : ForkTsCheckerWebpackPlugin.createFormatter(
             (options.formatter as 'default' | 'codeframe') || 'default',
@@ -201,8 +206,8 @@ class ForkTsCheckerWebpackPlugin {
     this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
-    const tsconfigOk = fs.existsSync(this.tsconfigPath);
-    const tslintOk = !this.tslintPath || fs.existsSync(this.tslintPath);
+    const tsconfigOk = FsHelper.existsSync(this.tsconfigPath);
+    const tslintOk = !this.tslintPath || FsHelper.existsSync(this.tslintPath);
 
     // validate logger
     if (this.logger) {
@@ -745,7 +750,10 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  private createEmitCallback(compilation: webpack.compilation.Compilation, callback: () => void) {
+  private createEmitCallback(
+    compilation: webpack.compilation.Compilation,
+    callback: () => void
+  ) {
     return function emitCallback(this: ForkTsCheckerWebpackPlugin) {
       if (!this.elapsed) {
         throw new Error('Execution order error');

@@ -51,7 +51,7 @@ export class NormalizedMessage {
     let character: number | undefined;
     if (diagnostic.file) {
       file = diagnostic.file.fileName;
-      if (!diagnostic.start) {
+      if (diagnostic.start === undefined) {
         throw new Error('Expected diagnostics to have start');
       }
       const position = diagnostic.file.getLineAndCharacterOfPosition(
@@ -92,7 +92,10 @@ export class NormalizedMessage {
     return new NormalizedMessage(json);
   }
 
-  public static compare(messageA: NormalizedMessage, messageB: NormalizedMessage) {
+  public static compare(
+    messageA: NormalizedMessage,
+    messageB: NormalizedMessage
+  ) {
     if (!(messageA instanceof NormalizedMessage)) {
       return -1;
     }
@@ -102,18 +105,12 @@ export class NormalizedMessage {
 
     return (
       NormalizedMessage.compareTypes(messageA.type, messageB.type) ||
-      NormalizedMessage.compareOptionalStrings(
-        messageA.file,
-        messageB.file
-      ) ||
+      NormalizedMessage.compareOptionalStrings(messageA.file, messageB.file) ||
       NormalizedMessage.compareSeverities(
         messageA.severity,
         messageB.severity
       ) ||
-      NormalizedMessage.compareNumbers(
-        messageA.line,
-        messageB.line
-      ) ||
+      NormalizedMessage.compareNumbers(messageA.line, messageB.line) ||
       NormalizedMessage.compareNumbers(
         messageA.character,
         messageB.character
@@ -131,7 +128,10 @@ export class NormalizedMessage {
     );
   }
 
-  public static equals(messageA: NormalizedMessage, messageB: NormalizedMessage) {
+  public static equals(
+    messageA: NormalizedMessage,
+    messageB: NormalizedMessage
+  ) {
     return this.compare(messageA, messageB) === 0;
   }
 

@@ -9,6 +9,7 @@ import { NormalizedMessage } from './NormalizedMessage';
 import { CancellationToken } from './CancellationToken';
 import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
+import { FsHelper } from './FsHelper';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
@@ -284,7 +285,7 @@ export class IncrementalChecker {
         linter.lint(fileName, undefined!, this.linterConfig);
       } catch (e) {
         if (
-          fs.existsSync(fileName) &&
+          FsHelper.existsSync(fileName) &&
           // check the error type due to file system lag
           !(e instanceof Error) &&
           !(e.constructor.name === 'FatalError') &&

@@ -3,6 +3,7 @@ import codeFrame = require('babel-code-frame');
 import chalk from 'chalk';
 import * as fs from 'fs';
 import { NormalizedMessage } from '../NormalizedMessage';
+import { FsHelper } from '../FsHelper';
 
 /**
  * Create new code frame formatter.
@@ -23,9 +24,7 @@ export function createCodeframeFormatter(options: any) {
 
     const file = message.file;
     const source =
-    file &&
-      fs.existsSync(file) &&
-      fs.readFileSync(file, 'utf-8');
+      file && FsHelper.existsSync(file) && fs.readFileSync(file, 'utf-8');
     let frame = '';
 
     if (source) {
@@ -41,9 +40,7 @@ export function createCodeframeFormatter(options: any) {
     }
 
     return (
-      messageColor(
-        message.severity.toUpperCase() + ' in ' + message.file
-      ) +
+      messageColor(message.severity.toUpperCase() + ' in ' + message.file) +
       os.EOL +
       positionColor(message.line + ':' + message.character) +
       ' ' +

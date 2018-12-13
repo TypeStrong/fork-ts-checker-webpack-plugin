@@ -2,13 +2,13 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var os = require('os');
 var ts = require('typescript');
-var fs = require('fs');
 var beforeEach = require('mocha').beforeEach;
 var afterEach = require('mocha').afterEach;
 var expect = require('chai').expect;
 var mockFs = require('mock-fs');
 var CancellationToken = require('../../lib/CancellationToken')
   .CancellationToken;
+var FsHelper = require('../../lib/FsHelper').FsHelper;
 
 describe('[UNIT] CancellationToken', function() {
   beforeEach(function() {
@@ -72,7 +72,9 @@ describe('[UNIT] CancellationToken', function() {
     var tokenB = new CancellationToken('rgeer#R23r$#T$3t#$t43', true);
     expect(function() {
       tokenB.throwIfCancellationRequested();
-    }).to.throw().instanceOf(ts.OperationCanceledException);
+    })
+      .to.throw()
+      .instanceOf(ts.OperationCanceledException);
   });
 
   it('should write file in filesystem on requestCancellation', function() {
@@ -80,7 +82,7 @@ describe('[UNIT] CancellationToken', function() {
     tokenA.requestCancellation();
 
     expect(tokenA.isCancellationRequested()).to.be.true;
-    expect(fs.existsSync(tokenA.getCancellationFilePath())).to.be.true;
+    expect(FsHelper.existsSync(tokenA.getCancellationFilePath())).to.be.true;
   });
 
   it('should cleanup file on cleanupCancellation', function() {
@@ -89,7 +91,7 @@ describe('[UNIT] CancellationToken', function() {
     tokenA.cleanupCancellation();
 
     expect(tokenA.isCancellationRequested()).to.be.false;
-    expect(fs.existsSync(tokenA.getCancellationFilePath())).to.be.false;
+    expect(FsHelper.existsSync(tokenA.getCancellationFilePath())).to.be.false;
 
     // make sure we can call it as many times as we want to
     expect(function() {

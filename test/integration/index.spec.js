@@ -43,26 +43,25 @@ describe('[INTEGRATION] index', function() {
       ? { happyPackMode: true, silent: true }
       : { transpileOnly: true, silent: true };
 
-    return webpack(Object.assign(
-      webpackMajorVersion >= 4 ? { mode: 'development' } : {},
-      {
+    return webpack(
+      Object.assign(webpackMajorVersion >= 4 ? { mode: 'development' } : {}, {
         context: path.resolve(__dirname, './project'),
         entry: entryPoint,
         output: {
-            path: path.resolve(__dirname, '../../tmp')
+          path: path.resolve(__dirname, '../../tmp')
         },
         module: {
-            rules: [
+          rules: [
             {
-                test: /\.tsx?$/,
-                loader: 'ts-loader',
-                options: tsLoaderOptions
+              test: /\.tsx?$/,
+              loader: 'ts-loader',
+              options: tsLoaderOptions
             }
-            ]
+          ]
         },
         plugins: [plugin]
-      }
-    ));
+      })
+    );
   }
 
   /**
@@ -207,7 +206,8 @@ describe('[INTEGRATION] index', function() {
     var compiler = createCompiler();
 
     if ('hooks' in compiler) {
-      compiler.hooks.forkTsCheckerEmit.tap(
+      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+      hooks.forkTsCheckerEmit.tap(
         'should block emit on build mode',
         function() {
           expect(true).to.be.true;
@@ -229,7 +229,8 @@ describe('[INTEGRATION] index', function() {
     var watching = compiler.watch({}, function() {});
 
     if ('hooks' in compiler) {
-      compiler.hooks.forkTsCheckerDone.tap(
+      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+      hooks.forkTsCheckerDone.tap(
         'should not block emit on watch mode',
         function() {
           watching.close(function() {
@@ -253,7 +254,8 @@ describe('[INTEGRATION] index', function() {
     var watching = compiler.watch({}, function() {});
 
     if ('hooks' in compiler) {
-      compiler.hooks.forkTsCheckerEmit.tap(
+      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+      hooks.forkTsCheckerEmit.tap(
         'should block emit if async flag is false',
         function() {
           watching.close(function() {
@@ -277,7 +279,8 @@ describe('[INTEGRATION] index', function() {
     var watching = compiler.watch({}, function() {});
 
     if ('hooks' in compiler) {
-      compiler.hooks.forkTsCheckerDone.tap(
+      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+      hooks.forkTsCheckerDone.tap(
         'kills the service when the watch is done',
         function() {
           watching.close(function() {
@@ -355,7 +358,8 @@ describe('[INTEGRATION] index', function() {
     var delayed = false;
 
     if ('hooks' in compiler) {
-      compiler.hooks.forkTsCheckerServiceBeforeStart.tapAsync(
+      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+      hooks.forkTsCheckerServiceBeforeStart.tapAsync(
         'should allow delaying service-start',
         function(cb) {
           setTimeout(function() {
@@ -366,7 +370,7 @@ describe('[INTEGRATION] index', function() {
         }
       );
 
-      compiler.hooks.forkTsCheckerServiceStart.tap(
+      hooks.forkTsCheckerServiceStart.tap(
         'should allow delaying service-start',
         function() {
           expect(delayed).to.be.true;

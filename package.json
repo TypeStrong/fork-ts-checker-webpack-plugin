@@ -75,7 +75,7 @@
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
     "vue-template-compiler": "^2.5.16",
-    "webpack": "^4.16.5"
+    "webpack": "^5.0.0-alpha.0"
   },
   "peerDependencies": {
     "tslint": "^4.0.0 || ^5.0.0",

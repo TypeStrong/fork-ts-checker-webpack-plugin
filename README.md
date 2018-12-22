@@ -250,5 +250,14 @@ import Hello from '@/components/hello.vue'
 
 7. If you are working in **VSCode**, you can get extensions [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) and [TSLint Vue](https://marketplace.visualstudio.com/items?itemName=prograhammer.tslint-vue) to complete the developer workflow.
 
+## Migration
+### From `0.5.x` to `0.6.x`
+Version `0.6.x` additionally supports webpack 5 alongside webpack 4, whose hooks are now tapped differently:
+```diff
+-  compiler.hooks.forkTsCheckerDone.tap(...args)
++  const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler)
++  hooks.forkTsCheckerDone.tap(...args)  
+```
+
 ## License
 MIT

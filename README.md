@@ -255,8 +255,8 @@ import Hello from '@/components/hello.vue'
 Version `0.6.x` additionally supports webpack 5 alongside webpack 4, whose hooks are now tapped differently:
 ```diff
 -  compiler.hooks.forkTsCheckerDone.tap(...args)
-+  const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler)
-+  hooks.forkTsCheckerDone.tap(...args)  
++  const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler)
++  forkTsCheckerHooks.done.tap(...args)  
 ```
 
 ## License

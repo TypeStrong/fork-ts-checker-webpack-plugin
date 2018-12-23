@@ -1,48 +1,58 @@
 import * as webpack from 'webpack';
 import { AsyncSeriesHook, SyncHook } from 'tapable';
 
-const compilerHookMap = new WeakMap();
+type ForkTsCheckerHooks =
+  | 'serviceBeforeStart'
+  | 'cancel'
+  | 'serviceStartError'
+  | 'waiting'
+  | 'serviceStart'
+  | 'receive'
+  | 'serviceOutOfMemory'
+  | 'emit'
+  | 'done';
+type ForkTsCheckerHookMap = Record<
+  ForkTsCheckerHooks,
+  SyncHook | AsyncSeriesHook
+>;
+type ForkTsCheckerLegacyHookMap = Record<ForkTsCheckerHooks, string>;
 
-export const customHooks = {
-  forkTsCheckerServiceBeforeStart: 'fork-ts-checker-service-before-start',
-  forkTsCheckerCancel: 'fork-ts-checker-cancel',
-  forkTsCheckerServiceStartError: 'fork-ts-checker-service-start-error',
-  forkTsCheckerWaiting: 'fork-ts-checker-waiting',
-  forkTsCheckerServiceStart: 'fork-ts-checker-service-start',
-  forkTsCheckerReceive: 'fork-ts-checker-receive',
-  forkTsCheckerServiceOutOfMemory: 'fork-ts-checker-service-out-of-memory',
-  forkTsCheckerEmit: 'fork-ts-checker-emit',
-  forkTsCheckerDone: 'fork-ts-checker-done'
+const compilerHookMap = new WeakMap<webpack.Compiler, ForkTsCheckerHookMap>();
+
+export const legacyHookMap: ForkTsCheckerLegacyHookMap = {
+  serviceBeforeStart: 'fork-ts-checker-service-before-start',
+  cancel: 'fork-ts-checker-cancel',
+  serviceStartError: 'fork-ts-checker-service-start-error',
+  waiting: 'fork-ts-checker-waiting',
+  serviceStart: 'fork-ts-checker-service-start',
+  receive: 'fork-ts-checker-receive',
+  serviceOutOfMemory: 'fork-ts-checker-service-out-of-memory',
+  emit: 'fork-ts-checker-emit',
+  done: 'fork-ts-checker-done'
 };
 
-function createForkTsCheckerWebpackPluginHooks(): Record<
-  keyof typeof customHooks,
-  SyncHook | AsyncSeriesHook
-> {
+function createForkTsCheckerWebpackPluginHooks(): ForkTsCheckerHookMap {
   return {
-    forkTsCheckerServiceBeforeStart: new AsyncSeriesHook([]),
-    forkTsCheckerCancel: new SyncHook(['cancellationToken']),
-    forkTsCheckerServiceStartError: new SyncHook(['error']),
-    forkTsCheckerWaiting: new SyncHook(['hasTsLint']),
-    forkTsCheckerServiceStart: new SyncHook([
+    serviceBeforeStart: new AsyncSeriesHook([]),
+    cancel: new SyncHook(['cancellationToken']),
+    serviceStartError: new SyncHook(['error']),
+    waiting: new SyncHook(['hasTsLint']),
+    serviceStart: new SyncHook([
       'tsconfigPath',
       'tslintPath',
       'watchPaths',
       'workersNumber',
       'memoryLimit'
     ]),
-    forkTsCheckerReceive: new SyncHook(['diagnostics', 'lints']),
-    forkTsCheckerServiceOutOfMemory: new SyncHook([]),
-    forkTsCheckerEmit: new SyncHook(['diagnostics', 'lints', 'elapsed']),
-    forkTsCheckerDone: new SyncHook(['diagnostics', 'lints', 'elapsed'])
+    receive: new SyncHook(['diagnostics', 'lints']),
+    serviceOutOfMemory: new SyncHook([]),
+    emit: new SyncHook(['diagnostics', 'lints', 'elapsed']),
+    done: new SyncHook(['diagnostics', 'lints', 'elapsed'])
   };
 }
 
 export function getForkTsCheckerWebpackPluginHooks(compiler: webpack.Compiler) {
-  let hooks: Record<
-    keyof typeof customHooks,
-    SyncHook | AsyncSeriesHook
-  > = compilerHookMap.get(compiler);
+  let hooks = compilerHookMap.get(compiler);
   if (hooks === undefined) {
     hooks = createForkTsCheckerWebpackPluginHooks();
     compilerHookMap.set(compiler, hooks);

@@ -206,8 +206,10 @@ describe('[INTEGRATION] index', function() {
     var compiler = createCompiler();
 
     if ('hooks' in compiler) {
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-      hooks.forkTsCheckerEmit.tap(
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.emit.tap(
         'should block emit on build mode',
         function() {
           expect(true).to.be.true;
@@ -229,8 +231,10 @@ describe('[INTEGRATION] index', function() {
     var watching = compiler.watch({}, function() {});
 
     if ('hooks' in compiler) {
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-      hooks.forkTsCheckerDone.tap(
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.done.tap(
         'should not block emit on watch mode',
         function() {
           watching.close(function() {
@@ -254,8 +258,10 @@ describe('[INTEGRATION] index', function() {
     var watching = compiler.watch({}, function() {});
 
     if ('hooks' in compiler) {
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-      hooks.forkTsCheckerEmit.tap(
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.emit.tap(
         'should block emit if async flag is false',
         function() {
           watching.close(function() {
@@ -279,8 +285,10 @@ describe('[INTEGRATION] index', function() {
     var watching = compiler.watch({}, function() {});
 
     if ('hooks' in compiler) {
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-      hooks.forkTsCheckerDone.tap(
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.done.tap(
         'kills the service when the watch is done',
         function() {
           watching.close(function() {
@@ -358,8 +366,10 @@ describe('[INTEGRATION] index', function() {
     var delayed = false;
 
     if ('hooks' in compiler) {
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-      hooks.forkTsCheckerServiceBeforeStart.tapAsync(
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.serviceBeforeStart.tapAsync(
         'should allow delaying service-start',
         function(cb) {
           setTimeout(function() {
@@ -370,7 +380,7 @@ describe('[INTEGRATION] index', function() {
         }
       );
 
-      hooks.forkTsCheckerServiceStart.tap(
+      forkTsCheckerHooks.serviceBeforeStart.tap(
         'should allow delaying service-start',
         function() {
           expect(delayed).to.be.true;

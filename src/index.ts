@@ -12,7 +12,7 @@ import { createCodeframeFormatter } from './formatter/codeframeFormatter';
 import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
-import { getForkTsCheckerWebpackPluginHooks } from './hooks';
+import { getForkTsCheckerWebpackPluginHooks, legacyHookMap } from './hooks';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -303,14 +303,16 @@ class ForkTsCheckerWebpackPlugin {
   private pluginCompile() {
     if ('hooks' in this.compiler) {
       // webpack 4+
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(this.compiler);
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        this.compiler
+      );
       this.compiler.hooks.compile.tap(checkerPluginName, () => {
         this.compilationDone = false;
-        hooks.forkTsCheckerServiceBeforeStart.callAsync(() => {
+        forkTsCheckerHooks.serviceBeforeStart.callAsync(() => {
           if (this.cancellationToken) {
             // request cancellation if there is not finished job
             this.cancellationToken.requestCancellation();
-            hooks.forkTsCheckerCancel.call(this.cancellationToken);
+            forkTsCheckerHooks.cancel.call(this.cancellationToken);
           }
           this.checkDone = false;
 
@@ -334,7 +336,7 @@ class ForkTsCheckerWebpackPlugin {
               );
             }
 
-            hooks.forkTsCheckerServiceStartError.call(error);
+            forkTsCheckerHooks.serviceStartError.call(error);
           }
         });
       });
@@ -343,13 +345,13 @@ class ForkTsCheckerWebpackPlugin {
       this.compiler.plugin('compile', () => {
         this.compilationDone = false;
         this.compiler.applyPluginsAsync(
-          'fork-ts-checker-service-before-start',
+          legacyHookMap.serviceBeforeStart,
           () => {
             if (this.cancellationToken) {
               // request cancellation if there is not finished job
               this.cancellationToken.requestCancellation();
               this.compiler.applyPlugins(
-                'fork-ts-checker-cancel',
+                legacyHookMap.cancel,
                 this.cancellationToken
               );
             }
@@ -379,7 +381,7 @@ class ForkTsCheckerWebpackPlugin {
               }
 
               this.compiler.applyPlugins(
-                'fork-ts-checker-service-start-error',
+                legacyHookMap.serviceStartError,
                 error
               );
             }
@@ -417,7 +419,9 @@ class ForkTsCheckerWebpackPlugin {
   private pluginDone() {
     if ('hooks' in this.compiler) {
       // webpack 4+
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(this.compiler);
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        this.compiler
+      );
       this.compiler.hooks.done.tap(
         checkerPluginName,
         (_stats: webpack.Stats) => {
@@ -429,7 +433,7 @@ class ForkTsCheckerWebpackPlugin {
             this.doneCallback();
           } else {
             if (this.compiler) {
-              hooks.forkTsCheckerWaiting.call(this.tslint !== false);
+              forkTsCheckerHooks.waiting.call(this.tslint !== false);
             }
             if (!this.silent && this.logger) {
               this.logger.info(
@@ -455,7 +459,7 @@ class ForkTsCheckerWebpackPlugin {
         } else {
           if (this.compiler) {
             this.compiler.applyPlugins(
-              'fork-ts-checker-waiting',
+              legacyHookMap.waiting,
               this.tslint !== false
             );
           }
@@ -502,8 +506,10 @@ class ForkTsCheckerWebpackPlugin {
 
     if ('hooks' in this.compiler) {
       // webpack 4+
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(this.compiler);
-      hooks.forkTsCheckerServiceStart.call(
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        this.compiler
+      );
+      forkTsCheckerHooks.serviceStart.call(
         this.tsconfigPath,
         this.tslintPath,
         this.watchPaths,
@@ -513,7 +519,7 @@ class ForkTsCheckerWebpackPlugin {
     } else {
       // webpack 2 / 3
       this.compiler.applyPlugins(
-        'fork-ts-checker-service-start',
+        legacyHookMap.serviceStart,
         this.tsconfigPath,
         this.tslintPath,
         this.watchPaths,
@@ -626,12 +632,14 @@ class ForkTsCheckerWebpackPlugin {
 
     if ('hooks' in this.compiler) {
       // webpack 4+
-      const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(this.compiler);
-      hooks.forkTsCheckerReceive.call(this.diagnostics, this.lints);
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        this.compiler
+      );
+      forkTsCheckerHooks.receive.call(this.diagnostics, this.lints);
     } else {
       // webpack 2 / 3
       this.compiler.applyPlugins(
-        'fork-ts-checker-receive',
+        legacyHookMap.receive,
         this.diagnostics,
         this.lints
       );
@@ -650,13 +658,13 @@ class ForkTsCheckerWebpackPlugin {
     if (this.compiler) {
       if ('hooks' in this.compiler) {
         // webpack 4+
-        const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
           this.compiler
         );
-        hooks.forkTsCheckerServiceOutOfMemory.call();
+        forkTsCheckerHooks.serviceOutOfMemory.call();
       } else {
         // webpack 2 / 3
-        this.compiler.applyPlugins('fork-ts-checker-service-out-of-memory');
+        this.compiler.applyPlugins(legacyHookMap.serviceOutOfMemory);
       }
     }
     if (!this.silent && this.logger) {
@@ -681,14 +689,14 @@ class ForkTsCheckerWebpackPlugin {
 
       if ('hooks' in this.compiler) {
         // webpack 4+
-        const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
           this.compiler
         );
-        hooks.forkTsCheckerEmit.call(this.diagnostics, this.lints, elapsed);
+        forkTsCheckerHooks.emit.call(this.diagnostics, this.lints, elapsed);
       } else {
         // webpack 2 / 3
         this.compiler.applyPlugins(
-          'fork-ts-checker-emit',
+          legacyHookMap.emit,
           this.diagnostics,
           this.lints,
           elapsed
@@ -738,14 +746,14 @@ class ForkTsCheckerWebpackPlugin {
       if (this.compiler) {
         if ('hooks' in this.compiler) {
           // webpack 4+
-          const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
             this.compiler
           );
-          hooks.forkTsCheckerDone.call(this.diagnostics, this.lints, elapsed);
+          forkTsCheckerHooks.done.call(this.diagnostics, this.lints, elapsed);
         } else {
           // webpack 2 / 3
           this.compiler.applyPlugins(
-            'fork-ts-checker-done',
+            legacyHookMap.done,
             this.diagnostics,
             this.lints,
             elapsed

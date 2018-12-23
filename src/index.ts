@@ -65,6 +65,10 @@ class ForkTsCheckerWebpackPlugin {
     ForkTsCheckerWebpackPlugin.ALL_CPUS - 2
   );
 
+  public static getCompilerHooks(compiler: webpack.Compiler) {
+    return getForkTsCheckerWebpackPluginHooks(compiler);
+  }
+
   public readonly options: Partial<Options>;
   private tsconfig: string;
   private compilerOptions: object;
@@ -169,10 +173,6 @@ class ForkTsCheckerWebpackPlugin {
       : undefined;
 
     this.vue = options.vue === true; // default false
-  }
-
-  private static getCompilerHooks(compiler: webpack.Compiler) {
-    return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
   private static createFormatter(type: 'default' | 'codeframe', options: any) {

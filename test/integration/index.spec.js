@@ -35,33 +35,30 @@ describe('[INTEGRATION] index', function() {
     happyPackMode,
     entryPoint = './src/index.ts'
   ) {
-    plugin = new ForkTsCheckerWebpackPlugin(
-      Object.assign({}, options, { silent: true })
-    );
+    plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
 
     var tsLoaderOptions = happyPackMode
       ? { happyPackMode: true, silent: true }
       : { transpileOnly: true, silent: true };
 
-    return webpack(
-      Object.assign(webpackMajorVersion >= 4 ? { mode: 'development' } : {}, {
-        context: path.resolve(__dirname, './project'),
-        entry: entryPoint,
-        output: {
-          path: path.resolve(__dirname, '../../tmp')
-        },
-        module: {
-          rules: [
-            {
-              test: /\.tsx?$/,
-              loader: 'ts-loader',
-              options: tsLoaderOptions
-            }
-          ]
-        },
-        plugins: [plugin]
-      })
-    );
+    return webpack({
+      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
+      context: path.resolve(__dirname, './project'),
+      entry: entryPoint,
+      output: {
+        path: path.resolve(__dirname, '../../tmp')
+      },
+      module: {
+        rules: [
+          {
+            test: /\.tsx?$/,
+            loader: 'ts-loader',
+            options: tsLoaderOptions
+          }
+        ]
+      },
+      plugins: [plugin]
+    });
   }
 
   /**

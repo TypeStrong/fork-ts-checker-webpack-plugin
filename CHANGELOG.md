@@ -1,3 +1,19 @@
+## v1.0.0-alpha.0
+
+* [Add support for webpack 5](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/166)
+
+### Breaking Changes
+
+Version `1.x` additionally supports webpack 5 alongside webpack 4, whose hooks are now tapped differently:
+
+```diff
+-  compiler.hooks.forkTsCheckerDone.tap(...args)
++  const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler)
++  forkTsCheckerHooks.done.tap(...args)  
+```
+
+v1.0.0-alpha.0 drops support for node 6.
+
 ## v0.5.2
 
 * [Fix erroneous error on diagnostics at 0 line; remove deprecated fs.existsSync](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/190) (#190)

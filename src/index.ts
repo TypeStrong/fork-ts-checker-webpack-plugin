@@ -114,7 +114,7 @@ class ForkTsCheckerWebpackPlugin {
 
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
-    this.options = Object.assign({}, options);
+    this.options = { ...options };
 
     this.tsconfig = options.tsconfig || './tsconfig.json';
     this.compilerOptions =
@@ -489,7 +489,8 @@ class ForkTsCheckerWebpackPlugin {
           this.workersNumber > 1
             ? []
             : ['--max-old-space-size=' + this.memoryLimit],
-        env: Object.assign({}, process.env, {
+        env: {
+          ...process.env,
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
           TSLINT: this.tslintPath || '',
@@ -499,7 +500,7 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           VUE: this.vue
-        }),
+        },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     );

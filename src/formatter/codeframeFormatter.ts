@@ -32,7 +32,10 @@ export function createCodeframeFormatter(options: any) {
         source,
         message.line!, // Assertion: `codeFrame` allows passing undefined, typings are incorrect
         message.character!,
-        Object.assign({}, options || {}, { highlightCode: useColors })
+        {
+          ...(options || {}),
+          highlightCode: useColors
+        }
       )
         .split('\n')
         .map(str => '  ' + str)

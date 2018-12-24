@@ -22,49 +22,45 @@ describe('[INTEGRATION] vue', function() {
   var checker;
 
   function createCompiler(options) {
-    plugin = new ForkTsCheckerWebpackPlugin(
-      Object.assign({}, options, { silent: true })
-    );
+    plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
 
-    compiler = webpack(
-      Object.assign(
-        webpackMajorVersion >= 4 ? { mode: 'development' } : {},
-        {
-        context: path.resolve(__dirname, './vue'),
-        entry: './src/index.ts',
-        output: {
-          path: path.resolve(__dirname, '../../tmp')
-        },
-        resolve: {
-          extensions: ['.ts', '.js', '.vue', '.json'],
-          alias: {
-            '@': path.resolve(__dirname, './vue/src')
-          }
-        },
-        module: {
-          rules: [
-            {
-              test: /\.vue$/,
-              loader: 'vue-loader'
-            },
-            {
-              test: /\.ts$/,
-              loader: 'ts-loader',
-              options: {
-                appendTsSuffixTo: [/\.vue$/],
-                transpileOnly: true,
-                silent: true
-              }
-            },
-            {
-              test: /\.css$/,
-              loader: 'css-loader'
+    compiler = webpack({
+      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
+      context: path.resolve(__dirname, './vue'),
+      entry: './src/index.ts',
+      output: {
+        path: path.resolve(__dirname, '../../tmp')
+      },
+      resolve: {
+        extensions: ['.ts', '.js', '.vue', '.json'],
+        alias: {
+          '@': path.resolve(__dirname, './vue/src')
+        }
+      },
+      module: {
+        rules: [
+          {
+            test: /\.vue$/,
+            loader: 'vue-loader'
+          },
+          {
+            test: /\.ts$/,
+            loader: 'ts-loader',
+            options: {
+              appendTsSuffixTo: [/\.vue$/],
+              transpileOnly: true,
+              silent: true
             }
-          ]
-        },
-        plugins: webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin],
-      }
-    ));
+          },
+          {
+            test: /\.css$/,
+            loader: 'css-loader'
+          }
+        ]
+      },
+      plugins:
+        webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin]
+    });
 
     files = {
       'example.vue': path.resolve(compiler.context, 'src/example.vue'),

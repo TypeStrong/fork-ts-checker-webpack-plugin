@@ -51,17 +51,11 @@ describe('[UNIT] NormalizedMessage', function() {
     expect(jsonMessage).to.be.instanceof(NormalizedMessage);
     expect(jsonMessage.type).to.be.equal(diagnosticMessage.type);
     expect(jsonMessage.code).to.be.equal(diagnosticMessage.code);
-    expect(jsonMessage.severity).to.be.equal(
-      diagnosticMessage.severity
-    );
-    expect(jsonMessage.content).to.be.equal(
-      diagnosticMessage.content
-    );
+    expect(jsonMessage.severity).to.be.equal(diagnosticMessage.severity);
+    expect(jsonMessage.content).to.be.equal(diagnosticMessage.content);
     expect(jsonMessage.file).to.be.equal(diagnosticMessage.file);
     expect(jsonMessage.line).to.be.equal(diagnosticMessage.line);
-    expect(jsonMessage.character).to.be.equal(
-      diagnosticMessage.character
-    );
+    expect(jsonMessage.character).to.be.equal(diagnosticMessage.character);
   });
 
   it('should check type', function() {
@@ -176,9 +170,10 @@ describe('[UNIT] NormalizedMessage', function() {
   it('should compare messages', function() {
     var messageA = diagnosticMessage;
     function buildMessage(diff) {
-      return NormalizedMessage.createFromJSON(
-        Object.assign({}, messageA.toJSON(), diff)
-      );
+      return NormalizedMessage.createFromJSON({
+        ...messageA.toJSON(),
+        ...diff
+      });
     }
 
     expect(NormalizedMessage.compare(messageA, undefined)).to.be.greaterThan(0);

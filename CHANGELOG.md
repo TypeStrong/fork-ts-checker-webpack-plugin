@@ -1,3 +1,7 @@
+## v1.0.0-alpha.1
+
+* [Use object-spread instead of `Object.assign`](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/194) (#194)
+
 ## v1.0.0-alpha.0
 
 * [Add support for webpack 5](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/166)

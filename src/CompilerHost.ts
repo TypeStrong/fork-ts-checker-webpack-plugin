@@ -16,6 +16,9 @@ export class CompilerHost
     ts.WatchCompilerHostOfConfigFile<
       ts.EmitAndSemanticDiagnosticsBuilderProgram
     > {
+  public getFiles() {
+    return this.knownFiles;
+  }
   public configFileName: string;
   public optionsToExtend: ts.CompilerOptions;
 
@@ -23,7 +26,9 @@ export class CompilerHost
   private directoryWatchers = new LinkedList<DirectoryWatchDelaySlot>();
   private fileWatchers = new LinkedList<FileWatchDelaySlot>();
 
-  private _gatheredDiagnostic: ts.Diagnostic[] = [];
+  private knownFiles = new Set<string>();
+
+  private gatheredDiagnostic: ts.Diagnostic[] = [];
   private afterCompile = () => {
     /* do nothing */
   };
@@ -42,7 +47,7 @@ export class CompilerHost
       ts.sys,
       ts.createEmitAndSemanticDiagnosticsBuilderProgram,
       (diag: ts.Diagnostic) => {
-        this._gatheredDiagnostic.push(diag);
+        this.gatheredDiagnostic.push(diag);
       },
       () => {
         this.compilationStarted = true;
@@ -57,7 +62,7 @@ export class CompilerHost
     if (!this.lastProcessing) {
       const initialCompile = new Promise<ts.Diagnostic[]>(resolve => {
         this.afterCompile = () => {
-          resolve(this._gatheredDiagnostic);
+          resolve(this.gatheredDiagnostic);
           this.afterCompile = () => {
             /* do nothing */
           };
@@ -73,10 +78,10 @@ export class CompilerHost
     // we just wait until previous compilation finishes.
     await this.lastProcessing;
 
-    this._gatheredDiagnostic.length = 0;
+    this.gatheredDiagnostic.length = 0;
     const result = new Promise<ts.Diagnostic[]>(resolve => {
       this.afterCompile = () => {
-        resolve(this._gatheredDiagnostic);
+        resolve(this.gatheredDiagnostic);
         this.afterCompile = () => {
           /* do nothing */
         };
@@ -159,9 +164,15 @@ export class CompilerHost
   ): ts.FileWatcher {
     const slot: FileWatchDelaySlot = { callback, events: [] };
     const node = this.fileWatchers.add(slot);
+    this.knownFiles.add(path);
     this.tsHost.watchFile(
       path,
       (fileName, eventKind) => {
+        if (eventKind === ts.FileWatcherEventKind.Created) {
+          this.knownFiles.add(fileName);
+        } else if (eventKind === ts.FileWatcherEventKind.Deleted) {
+          this.knownFiles.delete(fileName);
+        }
         slot.events.push({ fileName, eventKind });
       },
       _pollingInterval

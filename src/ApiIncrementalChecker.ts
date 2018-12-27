@@ -1,10 +1,13 @@
 import * as ts from 'typescript';
 import * as minimatch from 'minimatch';
+import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { Configuration, Linter } from 'tslint';
 import { CompilerHost } from './CompilerHost';
+import { WorkSet } from './WorkSet';
+import { FsHelper } from './FsHelper';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
@@ -24,12 +27,15 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   // private linterExclusions: minimatch.IMinimatch[] = [];
 
   private readonly proxyFilesystem: CompilerHost;
+  private linterExclusions: minimatch.IMinimatch[] = [];
 
   constructor(
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     private linterConfigFile: string | false,
-    private linterAutoFix: boolean
+    private linterAutoFix: boolean,
+    private workNumber: number,
+    private workDivision: number
   ) {
     this.initLinterConfig();
 
@@ -49,9 +55,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         // Pre-build minimatch patterns to avoid additional overhead later on.
         // Note: Resolving the path is required to properly match against the full file paths,
         // and also deals with potential cross-platform problems regarding path separators.
-        // this.linterExclusions = this.linterConfig.linterOptions.exclude.map(
-        //   pattern => new minimatch.Minimatch(path.resolve(pattern))
-        // );
+        this.linterExclusions = this.linterConfig.linterOptions.exclude.map(
+          pattern => new minimatch.Minimatch(path.resolve(pattern))
+        );
       }
     }
   }
@@ -97,79 +103,53 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public getLints(_cancellationToken: CancellationToken) {
-    return [];
-    // const { linter } = this;
-    // if (!linter) {
-    //   throw new Error('Cannot get lints - checker has no linter.');
-    // }
-    //
-    // // select files to lint
-    // const filesToLint = this.files
-    //   .keys()
-    //   .filter(
-    //     filePath =>
-    //       !this.files.getData(filePath).linted &&
-    //       !ApiIncrementalChecker.isFileExcluded(filePath, this.linterExclusions)
-    //   );
-    //
-    // // calculate subset of work to do
-    // const workSet = new WorkSet(
-    //   filesToLint,
-    //   this.workNumber,
-    //   this.workDivision
-    // );
-    //
-    // // lint given work set
-    // workSet.forEach(fileName => {
-    //   cancellationToken.throwIfCancellationRequested();
-    //
-    //   try {
-    //     // Assertion: `.lint` second parameter can be undefined
-    //     linter.lint(fileName, undefined!, this.linterConfig);
-    //   } catch (e) {
-    //     if (
-    //       FsHelper.existsSync(fileName) &&
-    //       // check the error type due to file system lag
-    //       !(e instanceof Error) &&
-    //       !(e.constructor.name === 'FatalError') &&
-    //       !(e.message && e.message.trim().startsWith('Invalid source file'))
-    //     ) {
-    //       // it's not because file doesn't exist - throw error
-    //       throw e;
-    //     }
-    //   }
-    // });
-    //
-    // // set lints in files register
-    // linter.getResult().failures.forEach(lint => {
-    //   const filePath = lint.getFileName();
-    //
-    //   this.files.mutateData(filePath, data => {
-    //     data.linted = true;
-    //     data.lints.push(lint);
-    //   });
-    // });
-    //
-    // // set all files as linted
-    // this.files.keys().forEach(filePath => {
-    //   this.files.mutateData(filePath, data => {
-    //     data.linted = true;
-    //   });
-    // });
-    //
-    // // get all lints
-    // const lints = this.files
-    //   .keys()
-    //   .reduce(
-    //     (innerLints, filePath) =>
-    //       innerLints.concat(this.files.getData(filePath).lints),
-    //     [] as RuleFailure[]
-    //   );
-    //
-    // // normalize and deduplicate lints
-    // return NormalizedMessage.deduplicate(
-    //   lints.map(NormalizedMessage.createFromLint)
-    // );
+  public getLints(cancellationToken: CancellationToken) {
+    const { linter } = this;
+    if (!linter) {
+      throw new Error('Cannot get lints - checker has no linter.');
+    }
+
+    const files = this.proxyFilesystem.getFiles();
+
+    // calculate subset of work to do
+    const workSet = new WorkSet(
+      Array.from(files.keys()),
+      this.workNumber,
+      this.workDivision
+    );
+
+    // lint given work set
+    workSet.forEach(fileName => {
+      cancellationToken.throwIfCancellationRequested();
+
+      if (
+        !ApiIncrementalChecker.isFileExcluded(fileName, this.linterExclusions)
+      ) {
+        return;
+      }
+
+      try {
+        // Assertion: `.lint` second parameter can be undefined
+        linter.lint(fileName, undefined!, this.linterConfig);
+      } catch (e) {
+        if (
+          FsHelper.existsSync(fileName) &&
+          // check the error type due to file system lag
+          !(e instanceof Error) &&
+          !(e.constructor.name === 'FatalError') &&
+          !(e.message && e.message.trim().startsWith('Invalid source file'))
+        ) {
+          // it's not because file doesn't exist - throw error
+          throw e;
+        }
+      }
+    });
+
+    const lints = linter.getResult().failures;
+
+    // normalize and deduplicate lints
+    return NormalizedMessage.deduplicate(
+      lints.map(NormalizedMessage.createFromLint)
+    );
   }
 }

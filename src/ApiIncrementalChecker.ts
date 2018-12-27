@@ -23,67 +23,17 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   // to check of its existence later on.
   // private linterExclusions: minimatch.IMinimatch[] = [];
 
-  private readonly program: ts.Program;
-  private resolveCompilationPromise: () => void;
-  private _gatheredDiagnostics: ts.Diagnostic[] = [];
-  private readonly watchProgram: ts.WatchOfConfigFile<
-    ts.SemanticDiagnosticsBuilderProgram
-  >;
-  private _compilationPromise = Promise.resolve();
   private readonly proxyFilesystem: CompilerHost;
 
   constructor(
-    private programConfigFile: string,
-    private compilerOptions: ts.CompilerOptions,
+    programConfigFile: string,
+    compilerOptions: ts.CompilerOptions,
     private linterConfigFile: string | false,
-    private linterAutoFix: boolean,
-    watchPaths: string[]
+    private linterAutoFix: boolean
   ) {
     this.initLinterConfig();
 
-    const host = ts.createWatchCompilerHost(
-      this.programConfigFile,
-      this.compilerOptions,
-      ts.sys,
-      ts.createSemanticDiagnosticsBuilderProgram,
-      (diag: ts.Diagnostic) => {
-        this._gatheredDiagnostics.push(diag);
-      },
-      () => {
-        // do not report watch status changes
-      }
-    );
-
-    this.proxyFilesystem = new CompilerHost(watchPaths);
-
-    const methods = [
-      'fileExists',
-      'readFile',
-      'directoryExists',
-      'getDirectories',
-      'readDirectory',
-      'watchDirectory',
-      'watchFile',
-      'setTimeout',
-      'clearTimeout',
-      'realpath',
-      'onWatchStatusChange'
-    ];
-    for (const m of methods) {
-      host[m] = this.proxyFilesystem[m].bind(this.proxyFilesystem);
-    }
-
-    this.resolveCompilationPromise = () => {
-      // do nothing
-    };
-
-    const originalAfterProgramCreate = host.afterProgramCreate;
-    host.afterProgramCreate = p => {
-      originalAfterProgramCreate!(p);
-      this.resolveCompilationPromise();
-    };
-    this.watchProgram = ts.createWatchProgram(host);
-    this.program = this.watchProgram.getProgram().getProgram();
+    this.proxyFilesystem = new CompilerHost(programConfigFile, compilerOptions);
   }
 
   private initLinterConfig() {
@@ -135,28 +85,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public nextIteration() {
-    this._compilationPromise = new Promise<void>(resolve => {
-      this.resolveCompilationPromise = () => {
-        resolve();
-      };
-    });
-
-    if (!this.proxyFilesystem.fireWatchEvents()) {
-      // everything is updated and compiler was not triggered at all
-      this.resolveCompilationPromise();
-    }
-
     if (this.linterConfig) {
-      this.linter = this.createLinter(this.program);
+      this.linter = this.createLinter(undefined as any);
     }
   }
 
   public async getDiagnostics(_cancellationToken: CancellationToken) {
-    await this._compilationPromise;
-
-    const diagnostics = this._gatheredDiagnostics;
-    this._gatheredDiagnostics = [];
-    // normalize and deduplicate diagnostics
+    const diagnostics = await this.proxyFilesystem.processChanges();
     return NormalizedMessage.deduplicate(
       diagnostics.map(NormalizedMessage.createFromDiagnostic)
     );

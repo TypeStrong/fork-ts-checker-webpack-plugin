@@ -1,34 +1,111 @@
 import * as ts from 'typescript';
-import { FilesWatcher } from './FilesWatcher';
-import * as fs from 'fs';
-import { Dictionary } from 'typescript-collections';
+import { LinkedList } from './LinkedList';
+
+interface DirectoryWatchDelaySlot {
+  events: { fileName: string }[];
+  callback: ts.DirectoryWatcherCallback;
+}
+
+interface FileWatchDelaySlot {
+  events: { fileName: string; eventKind: ts.FileWatcherEventKind }[];
+  callback: ts.FileWatcherCallback;
+}
 
 export class CompilerHost
   implements
-    ts.WatchCompilerHostOfConfigFile<ts.SemanticDiagnosticsBuilderProgram> {
-  private _changed = new Map<{ path: string }, { stats: fs.Stats }>();
-  private _removed = new Set<{ path: string }>();
+    ts.WatchCompilerHostOfConfigFile<
+      ts.EmitAndSemanticDiagnosticsBuilderProgram
+    > {
+  public configFileName: string;
+  public optionsToExtend: ts.CompilerOptions;
 
-  private _directoryWatchers = new Dictionary<
-    { path: string; recursive: boolean },
-    { callback: ts.DirectoryWatcherCallback }
-  >(key => key.path + key.recursive);
-  private _fileWatchers = new Dictionary<
-    { path: string },
-    { callback: ts.FileWatcherCallback }
-  >(key => key.path);
+  // intercept all watch events and collect them until we get notification to start compilation
+  private directoryWatchers = new LinkedList<DirectoryWatchDelaySlot>();
+  private fileWatchers = new LinkedList<FileWatchDelaySlot>();
 
-  constructor() {
-    const watchExtensions = ['.ts', '.tsx'];
-    const watcher = new FilesWatcher(this.watchPaths, watchExtensions);
+  private _gatheredDiagnostic: ts.Diagnostic[] = [];
+  private afterCompile = () => {
+    /* do nothing */
+  };
 
-    watcher.on('change', (filePath: string, stats: fs.Stats) => {
-      this._changed.set({ path: filePath }, { stats });
+  private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
+    ts.EmitAndSemanticDiagnosticsBuilderProgram
+  >;
+  private lastProcessing?: Promise<ts.Diagnostic[]>;
+
+  private compilationStarted = false;
+
+  constructor(programConfigFile: string, compilerOptions: ts.CompilerOptions) {
+    this.tsHost = ts.createWatchCompilerHost(
+      programConfigFile,
+      compilerOptions,
+      ts.sys,
+      ts.createEmitAndSemanticDiagnosticsBuilderProgram,
+      (diag: ts.Diagnostic) => {
+        this._gatheredDiagnostic.push(diag);
+      },
+      () => {
+        this.compilationStarted = true;
+      }
+    );
+
+    this.configFileName = this.tsHost.configFileName;
+    this.optionsToExtend = this.tsHost.optionsToExtend || {};
+  }
+
+  public async processChanges(): Promise<ts.Diagnostic[]> {
+    if (!this.lastProcessing) {
+      const initialCompile = new Promise<ts.Diagnostic[]>(resolve => {
+        this.afterCompile = () => {
+          resolve(this._gatheredDiagnostic);
+          this.afterCompile = () => {
+            /* do nothing */
+          };
+          this.compilationStarted = false;
+        };
+      });
+      this.lastProcessing = initialCompile;
+      ts.createWatchProgram(this);
+      return initialCompile;
+    }
+
+    // since we do not have a way to pass cancellation token to typescript,
+    // we just wait until previous compilation finishes.
+    await this.lastProcessing;
+
+    this._gatheredDiagnostic.length = 0;
+    const result = new Promise<ts.Diagnostic[]>(resolve => {
+      this.afterCompile = () => {
+        resolve(this._gatheredDiagnostic);
+        this.afterCompile = () => {
+          /* do nothing */
+        };
+        this.compilationStarted = false;
+      };
     });
-    watcher.on('unlink', (filePath: string) => {
-      this._removed.add({ path: filePath });
+    this.lastProcessing = result;
+
+    this.directoryWatchers.forEach(item => {
+      for (const e of item.events) {
+        item.callback(e.fileName);
+      }
+      item.events.length = 0;
     });
-    watcher.watch();
+
+    this.fileWatchers.forEach(item => {
+      for (const e of item.events) {
+        item.callback(e.fileName, e.eventKind);
+      }
+      item.events.length = 0;
+    });
+
+    // if the files are not relevant to typescript it may choose not to compile
+    // in this case we need to trigger promise resolution from here
+    if (!this.compilationStarted) {
+      this.afterCompile();
+    }
+
+    return result;
   }
 
   public setTimeout(
@@ -59,11 +136,18 @@ export class CompilerHost
     callback: ts.DirectoryWatcherCallback,
     recursive?: boolean
   ): ts.FileWatcher {
-    const key = { path, recursive: recursive === true };
-    this._directoryWatchers.setValue(key, { callback });
+    const slot: DirectoryWatchDelaySlot = { callback, events: [] };
+    const node = this.directoryWatchers.add(slot);
+    this.tsHost.watchDirectory(
+      path,
+      fileName => {
+        slot.events.push({ fileName });
+      },
+      recursive
+    );
     return {
       close: () => {
-        this._directoryWatchers.remove(key);
+        node.detachSelf();
       }
     };
   }
@@ -73,29 +157,41 @@ export class CompilerHost
     callback: ts.FileWatcherCallback,
     _pollingInterval?: number
   ): ts.FileWatcher {
-    const key = { path };
-    this._fileWatchers.setValue(key, { callback });
+    const slot: FileWatchDelaySlot = { callback, events: [] };
+    const node = this.fileWatchers.add(slot);
+    this.tsHost.watchFile(
+      path,
+      (fileName, eventKind) => {
+        slot.events.push({ fileName, eventKind });
+      },
+      _pollingInterval
+    );
     return {
       close: () => {
-        this._fileWatchers.remove(key);
+        node.detachSelf();
       }
     };
   }
 
   public fileExists(path: string): boolean {
-    return ts.sys.fileExists(path);
+    return this.tsHost.fileExists(path);
   }
 
   public readFile(path: string, encoding?: string) {
-    return ts.sys.readFile(path, encoding);
+    return this.tsHost.readFile(path, encoding);
   }
 
-  public directoryExists(path: string) {
-    return ts.sys.directoryExists(path);
+  public directoryExists(path: string): boolean {
+    return (
+      (this.tsHost.directoryExists && this.tsHost.directoryExists(path)) ||
+      false
+    );
   }
 
   public getDirectories(path: string): string[] {
-    return ts.sys.getDirectories(path);
+    return (
+      (this.tsHost.getDirectories && this.tsHost.getDirectories(path)) || []
+    );
   }
 
   public readDirectory(
@@ -108,63 +204,35 @@ export class CompilerHost
     return ts.sys.readDirectory(path, extensions, exclude, include, depth);
   }
 
-  public fireWatchEvents() {
-    let anythingFired = false;
-    for (const [key] of this._changed) {
-      const watcher = this._fileWatchers.getValue({ path: key.path });
-      if (watcher) {
-        anythingFired = true;
-        watcher.callback(key.path, ts.FileWatcherEventKind.Changed);
-      }
-    }
-
-    // todo support for directories watching
-
-    this._removed.clear();
-    this._changed.clear();
-    return anythingFired;
-  }
-
-  public configFileName: string;
-  public createProgram: ts.CreateProgram<ts.SemanticDiagnosticsBuilderProgram>;
-  public optionsToExtend: ts.CompilerOptions;
-
-  public afterProgramCreate(
-    program: ts.SemanticDiagnosticsBuilderProgram
-  ): void {
-    // do nothing
-  }
-
-  public createHash(data: string): string {
-    return '';
-  }
+  public createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
 
   public getCurrentDirectory(): string {
-    return '';
+    return this.tsHost.getCurrentDirectory();
   }
 
   public getDefaultLibFileName(options: ts.CompilerOptions): string {
-    return '';
-  }
-
-  public getDefaultLibLocation(): string {
-    return '';
+    return this.tsHost.getDefaultLibFileName(options);
   }
 
   public getEnvironmentVariable(name: string): string | undefined {
-    return undefined;
+    return (
+      this.tsHost.getEnvironmentVariable &&
+      this.tsHost.getEnvironmentVariable(name)
+    );
   }
 
   public getNewLine(): string {
-    return '';
+    return this.tsHost.getNewLine();
   }
 
   public realpath(path: string): string {
-    return ts.sys.realpath!(path);
+    return this.tsHost.realpath!(path);
   }
 
   public trace(s: string): void {
-    // do nothing
+    if (this.tsHost.trace) {
+      this.tsHost.trace(s);
+    }
   }
 
   public useCaseSensitiveFileNames(): boolean {
@@ -173,5 +241,32 @@ export class CompilerHost
 
   public onUnRecoverableConfigFileDiagnostic(_diag: ts.Diagnostic) {
     // do nothing
+  }
+
+  public afterProgramCreate(
+    program: ts.EmitAndSemanticDiagnosticsBuilderProgram
+  ): void {
+    // all actual diagnostics happens here
+    this.tsHost.afterProgramCreate!(program);
+    this.afterCompile();
+  }
+
+  // the functions below are use internally by typescript. we cannot use non-emitting version of incremental watching API
+  // because it is
+  // - much slower for some reason,
+  // - writes files anyway (o_O)
+  // - has different way of providing diagnostics. (with this version we can at least reliably get it from afterProgramCreate)
+  public createDirectory(_path: string): void {
+    // pretend everything was ok
+  }
+  public writeFile(
+    _path: string,
+    _data: string,
+    _writeByteOrderMark?: boolean
+  ): void {
+    // pretend everything was ok
+  }
+  public onCachedDirectoryStructureHostCreate?(_host: any): void {
+    // pretend everything was ok
   }
 }

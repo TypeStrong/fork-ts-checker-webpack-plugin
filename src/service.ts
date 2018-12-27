@@ -12,8 +12,7 @@ const checker: IncrementalCheckerInterface =
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.TSLINT === '' ? false : process.env.TSLINT!,
-        process.env.TSLINTAUTOFIX === 'true',
-        process.env.WATCH === '' ? [] : process.env.WATCH!.split('|')
+        process.env.TSLINTAUTOFIX === 'true'
       )
     : new IncrementalChecker(
         process.env.TSCONFIG!,

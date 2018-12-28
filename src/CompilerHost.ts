@@ -12,13 +12,15 @@ interface FileWatchDelaySlot {
 }
 
 export class CompilerHost
-  implements
-    ts.WatchCompilerHostOfConfigFile<
-      ts.EmitAndSemanticDiagnosticsBuilderProgram
-    > {
+  implements ts.WatchCompilerHostOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram> {
+  private program?: ts.WatchOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram>;
+  public getProgram(): ts.Program {
+    return this.program!.getProgram().getProgram();
+  }
   public getFiles() {
     return this.knownFiles;
   }
+
   public configFileName: string;
   public optionsToExtend: ts.CompilerOptions;
 
@@ -33,20 +35,21 @@ export class CompilerHost
     /* do nothing */
   };
 
-  private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
-    ts.EmitAndSemanticDiagnosticsBuilderProgram
-  >;
+  private readonly tsHost: ts.WatchCompilerHostOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram>;
   private lastProcessing?: Promise<ts.Diagnostic[]>;
 
   private compilationStarted = false;
 
-  constructor(programConfigFile: string, compilerOptions: ts.CompilerOptions) {
+  constructor(programConfigFile: string, compilerOptions: ts.CompilerOptions, checkSyntacticErrors: boolean) {
     this.tsHost = ts.createWatchCompilerHost(
       programConfigFile,
       compilerOptions,
       ts.sys,
       ts.createEmitAndSemanticDiagnosticsBuilderProgram,
       (diag: ts.Diagnostic) => {
+        if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
+          return;
+        }
         this.gatheredDiagnostic.push(diag);
       },
       () => {
@@ -70,7 +73,7 @@ export class CompilerHost
         };
       });
       this.lastProcessing = initialCompile;
-      ts.createWatchProgram(this);
+      this.program = ts.createWatchProgram(this);
       return initialCompile;
     }
 
@@ -270,6 +273,7 @@ export class CompilerHost
   public createDirectory(_path: string): void {
     // pretend everything was ok
   }
+
   public writeFile(
     _path: string,
     _data: string,
@@ -277,6 +281,7 @@ export class CompilerHost
   ): void {
     // pretend everything was ok
   }
+
   public onCachedDirectoryStructureHostCreate?(_host: any): void {
     // pretend everything was ok
   }

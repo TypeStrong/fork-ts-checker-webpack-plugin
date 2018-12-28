@@ -19,14 +19,13 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 }
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
-  private linter?: Linter;
   private linterConfig?: ConfigurationFile;
 
   // Use empty array of exclusions in general to avoid having
   // to check of its existence later on.
   // private linterExclusions: minimatch.IMinimatch[] = [];
 
-  private readonly proxyFilesystem: CompilerHost;
+  private readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   constructor(
@@ -35,11 +34,12 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private linterConfigFile: string | false,
     private linterAutoFix: boolean,
     private workNumber: number,
-    private workDivision: number
+    private workDivision: number,
+    checkSyntacticErrors: boolean
   ) {
     this.initLinterConfig();
 
-    this.proxyFilesystem = new CompilerHost(programConfigFile, compilerOptions);
+    this.tsIncrementalCompiler = new CompilerHost(programConfigFile, compilerOptions, checkSyntacticErrors);
   }
 
   private initLinterConfig() {
@@ -70,14 +70,14 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     ) as ConfigurationFile;
   }
 
-  private createLinter(program: ts.Program) {
+  private createLinter(program: ts.Program): Linter {
     const tslint = require('tslint');
 
     return new tslint.Linter({ fix: this.linterAutoFix }, program);
   }
 
   public hasLinter(): boolean {
-    return !!this.linter;
+    return !!this.linterConfig;
   }
 
   public static isFileExcluded(
@@ -91,25 +91,24 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public nextIteration() {
-    if (this.linterConfig) {
-      this.linter = this.createLinter(undefined as any);
-    }
+    // do nothing
   }
 
   public async getDiagnostics(_cancellationToken: CancellationToken) {
-    const diagnostics = await this.proxyFilesystem.processChanges();
+    const diagnostics = await this.tsIncrementalCompiler.processChanges();
     return NormalizedMessage.deduplicate(
       diagnostics.map(NormalizedMessage.createFromDiagnostic)
     );
   }
 
   public getLints(cancellationToken: CancellationToken) {
-    const { linter } = this;
-    if (!linter) {
-      throw new Error('Cannot get lints - checker has no linter.');
+    if (!this.linterConfig) {
+      return [];
     }
 
-    const files = this.proxyFilesystem.getFiles();
+    const linter = this.createLinter(this.tsIncrementalCompiler.getProgram());
+
+    const files = this.tsIncrementalCompiler.getFiles();
 
     // calculate subset of work to do
     const workSet = new WorkSet(
@@ -122,9 +121,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     workSet.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
 
-      if (
-        !ApiIncrementalChecker.isFileExcluded(fileName, this.linterExclusions)
-      ) {
+      if (ApiIncrementalChecker.isFileExcluded(fileName, this.linterExclusions)) {
         return;
       }
 

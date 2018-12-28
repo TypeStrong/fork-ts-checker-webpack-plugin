@@ -12,8 +12,13 @@ interface FileWatchDelaySlot {
 }
 
 export class CompilerHost
-  implements ts.WatchCompilerHostOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram> {
-  private program?: ts.WatchOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram>;
+  implements
+    ts.WatchCompilerHostOfConfigFile<
+      ts.EmitAndSemanticDiagnosticsBuilderProgram
+    > {
+  private program?: ts.WatchOfConfigFile<
+    ts.EmitAndSemanticDiagnosticsBuilderProgram
+  >;
   public getProgram(): ts.Program {
     return this.program!.getProgram().getProgram();
   }
@@ -35,12 +40,18 @@ export class CompilerHost
     /* do nothing */
   };
 
-  private readonly tsHost: ts.WatchCompilerHostOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram>;
+  private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
+    ts.EmitAndSemanticDiagnosticsBuilderProgram
+  >;
   private lastProcessing?: Promise<ts.Diagnostic[]>;
 
   private compilationStarted = false;
 
-  constructor(programConfigFile: string, compilerOptions: ts.CompilerOptions, checkSyntacticErrors: boolean) {
+  constructor(
+    programConfigFile: string,
+    compilerOptions: ts.CompilerOptions,
+    checkSyntacticErrors: boolean
+  ) {
     this.tsHost = ts.createWatchCompilerHost(
       programConfigFile,
       compilerOptions,
@@ -53,7 +64,7 @@ export class CompilerHost
         this.gatheredDiagnostic.push(diag);
       },
       () => {
-        this.compilationStarted = true;
+        // do nothing
       }
     );
 
@@ -124,6 +135,9 @@ export class CompilerHost
     // this is only called from watch program to wait until all files are updated
     // since we notify it of update when they are already updated, we do not need to waste additional time
     // this could be fixed nicer, but 250 is hardcoded in watch.ts in TypeScript
+    // also it seems to be only reliable way to intercept a moment when TypeScript actually
+    // starts compilation.
+    this.compilationStarted = true;
     return ts.sys.setTimeout!(callback, 1, args);
   }
 

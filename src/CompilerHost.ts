@@ -92,7 +92,8 @@ export class CompilerHost
     // we just wait until previous compilation finishes.
     await this.lastProcessing;
 
-    this.gatheredDiagnostic.length = 0;
+    const previousDiagnostic = this.gatheredDiagnostic;
+    this.gatheredDiagnostic = [];
     const result = new Promise<ts.Diagnostic[]>(resolve => {
       this.afterCompile = () => {
         resolve(this.gatheredDiagnostic);
@@ -121,7 +122,10 @@ export class CompilerHost
     // if the files are not relevant to typescript it may choose not to compile
     // in this case we need to trigger promise resolution from here
     if (!this.compilationStarted) {
+      // keep diagnostic from previous run
+      this.gatheredDiagnostic = previousDiagnostic;
       this.afterCompile();
+      return this.gatheredDiagnostic;
     }
 
     return result;

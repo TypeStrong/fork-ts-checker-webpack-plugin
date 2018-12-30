@@ -2,87 +2,21 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
 var path = require('path');
-var webpack = require('webpack');
 var process = require('process');
-var ForkTsCheckerWebpackPlugin = require('../../lib/index');
-var IncrementalChecker = require('../../lib/IncrementalChecker')
-  .IncrementalChecker;
-
-var webpackMajorVersion = require('./webpackVersion')();
-
-var VueLoaderPlugin =
-  webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
+var helpers = require('./helpers');
 
 describe('[INTEGRATION] vue', function() {
   this.timeout(60000);
   process.setMaxListeners(0);
-  var plugin;
   var files;
   var compiler;
   var checker;
 
   function createCompiler(options) {
-    plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
-
-    compiler = webpack({
-      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
-      context: path.resolve(__dirname, './vue'),
-      entry: './src/index.ts',
-      output: {
-        path: path.resolve(__dirname, '../../tmp')
-      },
-      resolve: {
-        extensions: ['.ts', '.js', '.vue', '.json'],
-        alias: {
-          '@': path.resolve(__dirname, './vue/src')
-        }
-      },
-      module: {
-        rules: [
-          {
-            test: /\.vue$/,
-            loader: 'vue-loader'
-          },
-          {
-            test: /\.ts$/,
-            loader: 'ts-loader',
-            options: {
-              appendTsSuffixTo: [/\.vue$/],
-              transpileOnly: true,
-              silent: true
-            }
-          },
-          {
-            test: /\.css$/,
-            loader: 'css-loader'
-          }
-        ]
-      },
-      plugins:
-        webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin]
-    });
-
-    files = {
-      'example.vue': path.resolve(compiler.context, 'src/example.vue'),
-      'syntacticError.ts': path.resolve(
-        compiler.context,
-        'src/syntacticError.ts'
-      )
-    };
-
-    checker = new IncrementalChecker(
-      plugin.tsconfigPath,
-      {},
-      plugin.tslintPath || false,
-      plugin.tslintAutoFix || false,
-      [compiler.context],
-      ForkTsCheckerWebpackPlugin.ONE_CPU,
-      1,
-      plugin.checkSyntacticErrors,
-      plugin.vue
-    );
-
-    checker.nextIteration();
+    var vueCompiler = helpers.createVueCompiler(options);
+    files = vueCompiler.files;
+    compiler = vueCompiler.compiler;
+    checker = vueCompiler.checker;
   }
 
   it('should create a Vue program config if vue=true', function() {

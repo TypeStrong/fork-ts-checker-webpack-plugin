@@ -19,10 +19,12 @@ export class CompilerHost
   private program?: ts.WatchOfConfigFile<
     ts.EmitAndSemanticDiagnosticsBuilderProgram
   >;
+
   public getProgram(): ts.Program {
     return this.program!.getProgram().getProgram();
   }
-  public getFiles() {
+
+  public getAllKnownFiles() {
     return this.knownFiles;
   }
 
@@ -72,7 +74,11 @@ export class CompilerHost
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
   }
 
-  public async processChanges(): Promise<ts.Diagnostic[]> {
+  public async processChanges(): Promise<{
+    results: ts.Diagnostic[];
+    updatedFiles: string[];
+    removedFiles: string[];
+  }> {
     if (!this.lastProcessing) {
       const initialCompile = new Promise<ts.Diagnostic[]>(resolve => {
         this.afterCompile = () => {
@@ -85,7 +91,12 @@ export class CompilerHost
       });
       this.lastProcessing = initialCompile;
       this.program = ts.createWatchProgram(this);
-      return initialCompile;
+      const errors = await initialCompile;
+      return {
+        results: errors,
+        updatedFiles: Array.from(this.knownFiles),
+        removedFiles: []
+      };
     }
 
     // since we do not have a way to pass cancellation token to typescript,
@@ -94,7 +105,7 @@ export class CompilerHost
 
     const previousDiagnostic = this.gatheredDiagnostic;
     this.gatheredDiagnostic = [];
-    const result = new Promise<ts.Diagnostic[]>(resolve => {
+    const resultPromise = new Promise<ts.Diagnostic[]>(resolve => {
       this.afterCompile = () => {
         resolve(this.gatheredDiagnostic);
         this.afterCompile = () => {
@@ -103,7 +114,9 @@ export class CompilerHost
         this.compilationStarted = false;
       };
     });
-    this.lastProcessing = result;
+    this.lastProcessing = resultPromise;
+
+    const files = [];
 
     this.directoryWatchers.forEach(item => {
       for (const e of item.events) {
@@ -112,9 +125,20 @@ export class CompilerHost
       item.events.length = 0;
     });
 
+    const updatedFiles: string[] = [];
+    const removedFiles: string[] = [];
     this.fileWatchers.forEach(item => {
       for (const e of item.events) {
         item.callback(e.fileName, e.eventKind);
+        files.push(e.fileName);
+        if (
+          e.eventKind === ts.FileWatcherEventKind.Created ||
+          e.eventKind === ts.FileWatcherEventKind.Changed
+        ) {
+          updatedFiles.push(e.fileName);
+        } else if (e.eventKind === ts.FileWatcherEventKind.Deleted) {
+          removedFiles.push(e.fileName);
+        }
       }
       item.events.length = 0;
     });
@@ -125,10 +149,15 @@ export class CompilerHost
       // keep diagnostic from previous run
       this.gatheredDiagnostic = previousDiagnostic;
       this.afterCompile();
-      return this.gatheredDiagnostic;
+      return {
+        results: this.gatheredDiagnostic,
+        updatedFiles: [],
+        removedFiles: []
+      };
     }
 
-    return result;
+    const results = await resultPromise;
+    return { results, updatedFiles, removedFiles };
   }
 
   public setTimeout(

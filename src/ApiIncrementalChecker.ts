@@ -4,9 +4,8 @@ import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
-import { Configuration, Linter } from 'tslint';
+import { Configuration, Linter, LintResult } from 'tslint';
 import { CompilerHost } from './CompilerHost';
-import { WorkSet } from './WorkSet';
 import { FsHelper } from './FsHelper';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
@@ -21,25 +20,27 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
 
-  // Use empty array of exclusions in general to avoid having
-  // to check of its existence later on.
-  // private linterExclusions: minimatch.IMinimatch[] = [];
-
   private readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
+
+  private currentLintErrors = new Map<string, LintResult>();
+  private lastUpdatedFiles: string[] = [];
+  private lastRemovedFiles: string[] = [];
 
   constructor(
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     private linterConfigFile: string | false,
     private linterAutoFix: boolean,
-    private workNumber: number,
-    private workDivision: number,
     checkSyntacticErrors: boolean
   ) {
     this.initLinterConfig();
 
-    this.tsIncrementalCompiler = new CompilerHost(programConfigFile, compilerOptions, checkSyntacticErrors);
+    this.tsIncrementalCompiler = new CompilerHost(
+      programConfigFile,
+      compilerOptions,
+      checkSyntacticErrors
+    );
   }
 
   private initLinterConfig() {
@@ -80,13 +81,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     return !!this.linterConfig;
   }
 
-  public static isFileExcluded(
-    filePath: string,
-    linterExclusions: minimatch.IMinimatch[]
-  ): boolean {
+  public isFileExcluded(filePath: string): boolean {
     return (
       filePath.endsWith('.d.ts') ||
-      linterExclusions.some(matcher => matcher.match(filePath))
+      this.linterExclusions.some(matcher => matcher.match(filePath))
     );
   }
 
@@ -96,41 +94,35 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   public async getDiagnostics(_cancellationToken: CancellationToken) {
     const diagnostics = await this.tsIncrementalCompiler.processChanges();
+    this.lastUpdatedFiles = diagnostics.updatedFiles;
+    this.lastRemovedFiles = diagnostics.removedFiles;
+
     return NormalizedMessage.deduplicate(
-      diagnostics.map(NormalizedMessage.createFromDiagnostic)
+      diagnostics.results.map(NormalizedMessage.createFromDiagnostic)
     );
   }
 
-  public getLints(cancellationToken: CancellationToken) {
+  public getLints(_cancellationToken: CancellationToken) {
     if (!this.linterConfig) {
       return [];
     }
 
-    const linter = this.createLinter(this.tsIncrementalCompiler.getProgram());
-
-    const files = this.tsIncrementalCompiler.getFiles();
-
-    // calculate subset of work to do
-    const workSet = new WorkSet(
-      Array.from(files.keys()),
-      this.workNumber,
-      this.workDivision
-    );
-
-    // lint given work set
-    workSet.forEach(fileName => {
-      cancellationToken.throwIfCancellationRequested();
-
-      if (ApiIncrementalChecker.isFileExcluded(fileName, this.linterExclusions)) {
-        return;
+    for (const updatedFile of this.lastUpdatedFiles) {
+      if (this.isFileExcluded(updatedFile)) {
+        continue;
       }
 
       try {
-        // Assertion: `.lint` second parameter can be undefined
-        linter.lint(fileName, undefined!, this.linterConfig);
+        const linter = this.createLinter(
+          this.tsIncrementalCompiler.getProgram()
+        );
+        // const source = fs.readFileSync(updatedFile, 'utf-8');
+        linter.lint(updatedFile, undefined!, this.linterConfig);
+        const lints = linter.getResult();
+        this.currentLintErrors.set(updatedFile, lints);
       } catch (e) {
         if (
-          FsHelper.existsSync(fileName) &&
+          FsHelper.existsSync(updatedFile) &&
           // check the error type due to file system lag
           !(e instanceof Error) &&
           !(e.constructor.name === 'FatalError') &&
@@ -140,13 +132,19 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
           throw e;
         }
       }
-    });
 
-    const lints = linter.getResult().failures;
+      for (const removedFile of this.lastRemovedFiles) {
+        this.currentLintErrors.delete(removedFile);
+      }
+    }
 
-    // normalize and deduplicate lints
+    const allLints = [];
+    for (const [, value] of this.currentLintErrors) {
+      allLints.push(...value.failures);
+    }
+
     return NormalizedMessage.deduplicate(
-      lints.map(NormalizedMessage.createFromLint)
+      allLints.map(NormalizedMessage.createFromLint)
     );
   }
 }

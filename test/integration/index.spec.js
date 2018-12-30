@@ -3,13 +3,12 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var chai = require('chai');
 var path = require('path');
-var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
+var helpers = require('./helpers');
 
 chai.config.truncateThreshold = 0;
 var expect = chai.expect;
 
-var webpackMajorVersion = require('./webpackVersion')();
 const writeContentsToLintingErrorFile = (fileName, data) => {
   const promise = new Promise((resolve, reject) => {
     try {
@@ -35,30 +34,9 @@ describe('[INTEGRATION] index', function() {
     happyPackMode,
     entryPoint = './src/index.ts'
   ) {
-    plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
-
-    var tsLoaderOptions = happyPackMode
-      ? { happyPackMode: true, silent: true }
-      : { transpileOnly: true, silent: true };
-
-    return webpack({
-      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
-      context: path.resolve(__dirname, './project'),
-      entry: entryPoint,
-      output: {
-        path: path.resolve(__dirname, '../../tmp')
-      },
-      module: {
-        rules: [
-          {
-            test: /\.tsx?$/,
-            loader: 'ts-loader',
-            options: tsLoaderOptions
-          }
-        ]
-      },
-      plugins: [plugin]
-    });
+    var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+    plugin = compiler.plugin;
+    return compiler.webpack;
   }
 
   /**
@@ -87,6 +65,15 @@ describe('[INTEGRATION] index', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({});
 
     expect(plugin.logger).to.equal(console);
+  });
+
+  it('should not allow multiple workers with incremental API', function() {
+    expect(() => {
+      createCompiler({
+        useTypescriptIncrementalApi: true,
+        workers: 5
+      });
+    }).to.throw();
   });
 
   it('should set watch to empty array by default', function() {

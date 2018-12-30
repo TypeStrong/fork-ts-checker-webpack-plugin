@@ -13,8 +13,6 @@ const checker: IncrementalCheckerInterface =
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.TSLINT === '' ? false : process.env.TSLINT!,
         process.env.TSLINTAUTOFIX === 'true',
-        parseInt(process.env.WORK_NUMBER!, 10) || 0,
-        parseInt(process.env.WORK_DIVISION!, 10) || 1,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true'
       )
     : new IncrementalChecker(

@@ -1,3 +1,3 @@
-import "./syntacticError";
+import './syntacticError.ts';
 // Semantic error
-const x: number =   '1';
+const x: number = '1';

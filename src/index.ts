@@ -88,6 +88,7 @@ class ForkTsCheckerWebpackPlugin {
   private useColors: boolean;
   private colors: Chalk;
   private formatter: Formatter;
+  private useTypescriptIncrementalApi: boolean;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -150,6 +151,9 @@ class ForkTsCheckerWebpackPlugin {
             options.formatterOptions || {}
           );
 
+    this.useTypescriptIncrementalApi =
+      options.useTypescriptIncrementalApi || false;
+
     this.tsconfigPath = undefined;
     this.tslintPath = undefined;
     this.watchPaths = [];
@@ -201,6 +205,13 @@ class ForkTsCheckerWebpackPlugin {
     // validate config
     const tsconfigOk = FsHelper.existsSync(this.tsconfigPath);
     const tslintOk = !this.tslintPath || FsHelper.existsSync(this.tslintPath);
+
+    if (this.useTypescriptIncrementalApi && this.workersNumber !== 1) {
+      throw new Error(
+        'Using typescript incremental compilation API ' +
+          'is currently only allowed with a single worker.'
+      );
+    }
 
     // validate logger
     if (this.logger) {

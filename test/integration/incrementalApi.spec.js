@@ -89,4 +89,20 @@ describe('[INTEGRATION] index', function() {
       callback();
     });
   });
+
+  it('should get syntactic diagnostics from Vue program', function() {
+    var { checker } = helpers.createVueCompiler({ vue: true });
+
+    const diagnostics = checker.program.getSyntacticDiagnostics();
+    expect(diagnostics.length).to.be.equal(1);
+  });
+
+  it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', function(callback) {
+    var { compiler } = helpers.createVueCompiler({ vue: true });
+
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.be.equal(1);
+      callback();
+    });
+  });
 });

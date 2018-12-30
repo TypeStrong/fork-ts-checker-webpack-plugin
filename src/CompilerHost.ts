@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { LinkedList } from './LinkedList';
+import { VueProgram } from './VueProgram';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -239,7 +240,15 @@ export class CompilerHost
   }
 
   public readFile(path: string, encoding?: string) {
-    return this.tsHost.readFile(path, encoding);
+    const content = this.tsHost.readFile(path, encoding);
+
+    // get typescript contents from Vue file
+    if (content && VueProgram.isVue(path)) {
+      const resolved = VueProgram.resolveScriptBlock(content);
+      return resolved.content;
+    }
+
+    return content;
   }
 
   public directoryExists(path: string): boolean {

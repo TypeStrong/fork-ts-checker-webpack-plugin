@@ -337,6 +337,7 @@ class ForkTsCheckerWebpackPlugin {
           }
 
           try {
+            console.time('fork-ts-checker-webpack-plugin: compilation');
             this.service!.send(this.cancellationToken);
           } catch (error) {
             if (!this.silent && this.logger) {
@@ -597,6 +598,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private handleServiceMessage(message: Message): void {
+    console.timeEnd('fork-ts-checker-webpack-plugin: compilation');
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
       // job is done - nothing to cancel

@@ -122,6 +122,15 @@ number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_
 If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the 
 [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
+* **useTypescriptIncrementalApi** `boolean`:
+If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1 
+worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation 
+may be much faster, even compared to multi-threaded compilation. 
+
+* **measureCompilationTime** `boolean`:
+If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
+especially if there are other loaders/plugins involved in the compilation.
+
 ### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
   * `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)

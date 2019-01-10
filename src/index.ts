@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as process from 'process';
+import { performance } from 'perf_hooks';
 import * as childProcess from 'child_process';
 import chalk, { Chalk } from 'chalk';
 import * as micromatch from 'micromatch';
@@ -44,6 +45,7 @@ interface Options {
   workers: number;
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
+  measureCompilationTime: boolean;
 }
 
 /**
@@ -114,6 +116,8 @@ class ForkTsCheckerWebpackPlugin {
 
   private vue: boolean;
 
+  private measureTime: boolean;
+  private startAt: number = 0;
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
     this.options = { ...options };
@@ -178,6 +182,7 @@ class ForkTsCheckerWebpackPlugin {
       : undefined;
 
     this.vue = options.vue === true; // default false
+    this.measureTime = options.measureCompilationTime === true;
   }
 
   private static createFormatter(type: 'default' | 'codeframe', options: any) {
@@ -337,7 +342,9 @@ class ForkTsCheckerWebpackPlugin {
           }
 
           try {
-            console.time('fork-ts-checker-webpack-plugin: compilation');
+            if (this.measureTime) {
+              this.startAt = performance.now();
+            }
             this.service!.send(this.cancellationToken);
           } catch (error) {
             if (!this.silent && this.logger) {
@@ -598,7 +605,10 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private handleServiceMessage(message: Message): void {
-    console.timeEnd('fork-ts-checker-webpack-plugin: compilation');
+    if (this.measureTime) {
+      const delta = performance.now() - this.startAt;
+      this.logger.info(`compilation took: ${delta} ms.`);
+    }
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
       // job is done - nothing to cancel

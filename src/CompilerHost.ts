@@ -166,11 +166,25 @@ export class CompilerHost
     _ms: number,
     ...args: any[]
   ): any {
-    // this is only called from watch program to wait until all files are updated
-    // since we notify it of update when they are already updated, we do not need to waste additional time
-    // this could be fixed nicer, but 250 is hardcoded in watch.ts in TypeScript
-    // also it seems to be only reliable way to intercept a moment when TypeScript actually
-    // starts compilation.
+    // There are 2 things we are hacking here:
+    // 1. This method only called from watch program to wait until all files
+    // are written to filesystem (for example, when doing 'save all')
+    // We are intercepting all change notifications, and letting
+    // them through only when webpack starts processing changes.
+    // Therefore, at this point normally files are already all saved,
+    // so we do not need to waste another 250ms (hardcoded in TypeScript).
+    // On the other hand there may be occasional glitch, when our incremental
+    // compiler will receive the notification too late, and process it when
+    // next compilation would start.
+    // 2. It seems to be only reliable way to intercept a moment when TypeScript
+    // actually starts compilation.
+    //
+    // Ideally we probably should not let TypeScript call all those watching
+    // methods by itself, and instead forward changes from webpack.
+    // Unfortunately, at the moment TypeScript incremental API is quite
+    // immature (for example, minor changes in how you use it cause
+    // dramatic compilation time increase), so we have to stick with these
+    // hacks for now.
     this.compilationStarted = true;
     return ts.sys.setTimeout!(callback, 1, args);
   }

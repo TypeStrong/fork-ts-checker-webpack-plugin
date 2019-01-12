@@ -39,6 +39,14 @@ describe('[INTEGRATION] incrementalApi', function() {
     return helpers.createVueCompiler(options, happyPackMode, entryPoint);
   }
 
+  it('should not allow multiple workers with incremental API', function() {
+    expect(() => {
+      createCompiler({
+        workers: 5
+      });
+    }).to.throw();
+  });
+
   it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
     const fileName = 'lintingError1';
     helpers.testLintAutoFixTest(

@@ -18,6 +18,7 @@ describe('[INTEGRATION] index', function() {
     happyPackMode,
     entryPoint = './src/index.ts'
   ) {
+    options = options || {};
     var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
     plugin = compiler.plugin;
     return compiler.webpack;
@@ -51,15 +52,6 @@ describe('[INTEGRATION] index', function() {
     expect(plugin.logger).to.equal(console);
   });
 
-  it('should not allow multiple workers with incremental API', function() {
-    expect(() => {
-      createCompiler({
-        useTypescriptIncrementalApi: true,
-        workers: 5
-      });
-    }).to.throw();
-  });
-
   it('should set watch to empty array by default', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({});
 
@@ -70,15 +62,6 @@ describe('[INTEGRATION] index', function() {
     var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
 
     expect(plugin.watch).to.deep.equal(['/test']);
-  });
-
-  it('should work without configuration', function(callback) {
-    var compiler = createCompiler();
-
-    compiler.run(function(err, stats) {
-      expect(stats.compilation.errors.length).to.be.at.least(1);
-      callback();
-    });
   });
 
   it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
@@ -240,38 +223,6 @@ describe('[INTEGRATION] index', function() {
     }).to.throw();
   });
 
-  it('should find the same errors on multi-process mode', function(callback) {
-    var compilerA = createCompiler({ workers: 1, tslint: true });
-    var compilerB = createCompiler({ workers: 4, tslint: true });
-    var errorsA, errorsB, warningsA, warningsB;
-    var done = 0;
-
-    compilerA.run(function(error, stats) {
-      errorsA = stats.compilation.errors;
-      warningsA = stats.compilation.warnings;
-      done++;
-
-      if (done === 2) {
-        compareResults();
-      }
-    });
-    compilerB.run(function(error, stats) {
-      errorsB = stats.compilation.errors;
-      warningsB = stats.compilation.warnings;
-      done++;
-
-      if (done === 2) {
-        compareResults();
-      }
-    });
-
-    function compareResults() {
-      expect(errorsA).to.deep.equal(errorsB);
-      expect(warningsA).to.deep.equal(warningsB);
-      callback();
-    }
-  });
-
   it('should detect tslint path for true option', function() {
     expect(function() {
       createCompiler({ tslint: true });
@@ -322,34 +273,97 @@ describe('[INTEGRATION] index', function() {
     compiler.run(function() {});
   });
 
-  it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
-    var compiler = createCompiler({}, true);
+  describe('useTypescriptIncrementalApi: false', function() {
+    it('should work without configuration', function(callback) {
+      var compiler = createCompiler({ useTypescriptIncrementalApi: false });
 
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(1);
-      callback();
+      compiler.run(function(err, stats) {
+        expect(stats.compilation.errors.length).to.be.at.least(1);
+        callback();
+      });
     });
-  });
 
-  it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
-    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
+    it('should find the same errors on multi-process mode', function(callback) {
+      var compilerA = createCompiler({
+        useTypescriptIncrementalApi: false,
+        workers: 1,
+        tslint: true
+      });
+      var compilerB = createCompiler({
+        useTypescriptIncrementalApi: false,
+        workers: 4,
+        tslint: true
+      });
+      var errorsA, errorsB, warningsA, warningsB;
+      var done = 0;
 
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(2);
-      callback();
+      compilerA.run(function(error, stats) {
+        errorsA = stats.compilation.errors;
+        warningsA = stats.compilation.warnings;
+        done++;
+
+        if (done === 2) {
+          compareResults();
+        }
+      });
+      compilerB.run(function(error, stats) {
+        errorsB = stats.compilation.errors;
+        warningsB = stats.compilation.warnings;
+        done++;
+
+        if (done === 2) {
+          compareResults();
+        }
+      });
+
+      function compareResults() {
+        expect(errorsA).to.deep.equal(errorsB);
+        expect(warningsA).to.deep.equal(warningsB);
+        callback();
+      }
     });
-  });
 
-  it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
-    var compiler = createCompiler(
-      { checkSyntacticErrors: true, reportFiles: ['**/index.ts'] },
-      true
-    );
+    it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
+      var compiler = createCompiler(
+        { useTypescriptIncrementalApi: false },
+        true
+      );
 
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(1);
-      expect(stats.compilation.errors[0].file.endsWith('index.ts')).to.be.true;
-      callback();
+      compiler.run(function(error, stats) {
+        expect(stats.compilation.errors.length).to.equal(1);
+        callback();
+      });
+    });
+
+    it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
+      var compiler = createCompiler(
+        { useTypescriptIncrementalApi: false, checkSyntacticErrors: true },
+        true
+      );
+
+      compiler.run(function(error, stats) {
+        expect(stats.compilation.errors.length).to.equal(2);
+        callback();
+      });
+    });
+
+    it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
+      var compiler = createCompiler(
+        {
+          useTypescriptIncrementalApi: false,
+          checkSyntacticErrors: true,
+          reportFiles: ['**/index.ts']
+        },
+        true
+      );
+
+      compiler.run(function(error, stats) {
+        expect(stats.compilation.errors.length).to.equal(1);
+        expect(
+          stats.compilation.errors[0].file.endsWith('index.ts')
+        ).to.be.true;
+        callback();
+      });
     });
   });
 });

@@ -1,3 +1,4 @@
+var fs = require('fs');
 var path = require('path');
 var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
@@ -102,4 +103,20 @@ exports.createCompiler = function(
   });
 
   return { webpack: webpackInstance, plugin };
+};
+
+exports.writeContentsToLintingErrorFile = (fileName, data) => {
+  const promise = new Promise((resolve, reject) => {
+    try {
+      fs.writeFileSync(
+        path.resolve(__dirname, `./project/src/${fileName}.ts`),
+        data,
+        { flag: 'w' }
+      );
+    } catch (e) {
+      return reject(e);
+    }
+    return resolve();
+  });
+  return promise;
 };

@@ -225,7 +225,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     const filesToCheck = program.getSourceFiles();
 
     // calculate subset of work to do
-    const workSet = new WorkSet(
+    const workSet = new WorkSet<ts.SourceFile>(
       filesToCheck,
       this.workNumber,
       this.workDivision
@@ -273,7 +273,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       );
 
     // calculate subset of work to do
-    const workSet = new WorkSet(
+    const workSet = new WorkSet<string>(
       filesToLint,
       this.workNumber,
       this.workDivision

@@ -1,12 +1,10 @@
-import * as ts from 'typescript';
-
-export class WorkSet {
+export class WorkSet<T> {
   private workSize: number;
   private workBegin: number;
   private workEnd: number;
 
   constructor(
-    private workDomain: ReadonlyArray<ts.SourceFile> | string[],
+    private workDomain: ReadonlyArray<T>,
     private workNumber: number,
     private workDivision: number
   ) {
@@ -20,7 +18,7 @@ export class WorkSet {
     }
   }
 
-  public forEach(callback: (workDomainItem: any, index: number) => void) {
+  public forEach(callback: (workDomainItem: T, index: number) => void) {
     for (let i = this.workBegin; i < this.workEnd; ++i) {
       callback(this.workDomain[i], i);
     }

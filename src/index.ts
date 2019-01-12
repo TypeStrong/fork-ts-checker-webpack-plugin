@@ -109,8 +109,8 @@ class ForkTsCheckerWebpackPlugin {
 
   private emitCallback: () => void;
   private doneCallback: () => void;
-  private typescriptVersion: any;
-  private tslintVersion: any;
+  private typescriptVersion: string;
+  private tslintVersion: string;
 
   private service?: childProcess.ChildProcess;
 

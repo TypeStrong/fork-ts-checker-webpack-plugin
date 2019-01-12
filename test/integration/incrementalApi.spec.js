@@ -16,7 +16,7 @@ var helpers = require('./helpers');
 chai.config.truncateThreshold = 0;
 var expect = chai.expect;
 
-describe('[INTEGRATION] incrementalApi', function() {
+describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', function() {
   this.timeout(60000);
 
   function createCompiler(

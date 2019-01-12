@@ -272,98 +272,100 @@ describe('[INTEGRATION] index', function() {
 
     compiler.run(function() {});
   });
+});
 
-  describe('useTypescriptIncrementalApi: false', function() {
-    it('should work without configuration', function(callback) {
-      var compiler = createCompiler({ useTypescriptIncrementalApi: false });
+describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', function() {
+  this.timeout(60000);
 
-      compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).to.be.at.least(1);
-        callback();
-      });
+  function createCompiler(
+    options,
+    happyPackMode,
+    entryPoint = './src/index.ts'
+  ) {
+    options = options || {};
+    options.useTypescriptIncrementalApi = false;
+    var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+    return compiler.webpack;
+  }
+
+  it('should work without configuration', function(callback) {
+    var compiler = createCompiler();
+
+    compiler.run(function(err, stats) {
+      expect(stats.compilation.errors.length).to.be.at.least(1);
+      callback();
     });
+  });
 
-    it('should find the same errors on multi-process mode', function(callback) {
-      var compilerA = createCompiler({
-        useTypescriptIncrementalApi: false,
-        workers: 1,
-        tslint: true
-      });
-      var compilerB = createCompiler({
-        useTypescriptIncrementalApi: false,
-        workers: 4,
-        tslint: true
-      });
-      var errorsA, errorsB, warningsA, warningsB;
-      var done = 0;
+  it('should find the same errors on multi-process mode', function(callback) {
+    var compilerA = createCompiler({
+      workers: 1,
+      tslint: true
+    });
+    var compilerB = createCompiler({
+      workers: 4,
+      tslint: true
+    });
+    var errorsA, errorsB, warningsA, warningsB;
+    var done = 0;
 
-      compilerA.run(function(error, stats) {
-        errorsA = stats.compilation.errors;
-        warningsA = stats.compilation.warnings;
-        done++;
+    compilerA.run(function(error, stats) {
+      errorsA = stats.compilation.errors;
+      warningsA = stats.compilation.warnings;
+      done++;
 
-        if (done === 2) {
-          compareResults();
-        }
-      });
-      compilerB.run(function(error, stats) {
-        errorsB = stats.compilation.errors;
-        warningsB = stats.compilation.warnings;
-        done++;
+      if (done === 2) {
+        compareResults();
+      }
+    });
+    compilerB.run(function(error, stats) {
+      errorsB = stats.compilation.errors;
+      warningsB = stats.compilation.warnings;
+      done++;
 
-        if (done === 2) {
-          compareResults();
-        }
-      });
-
-      function compareResults() {
-        expect(errorsA).to.deep.equal(errorsB);
-        expect(warningsA).to.deep.equal(warningsB);
-        callback();
+      if (done === 2) {
+        compareResults();
       }
     });
 
-    it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
-      var compiler = createCompiler(
-        { useTypescriptIncrementalApi: false },
-        true
-      );
+    function compareResults() {
+      expect(errorsA).to.deep.equal(errorsB);
+      expect(warningsA).to.deep.equal(warningsB);
+      callback();
+    }
+  });
 
-      compiler.run(function(error, stats) {
-        expect(stats.compilation.errors.length).to.equal(1);
-        callback();
-      });
+  it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
+    var compiler = createCompiler({ checkSyntacticErrors: false }, true);
+
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.equal(1);
+      callback();
     });
+  });
 
-    it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
-      var compiler = createCompiler(
-        { useTypescriptIncrementalApi: false, checkSyntacticErrors: true },
-        true
-      );
+  it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
+    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
 
-      compiler.run(function(error, stats) {
-        expect(stats.compilation.errors.length).to.equal(2);
-        callback();
-      });
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.equal(2);
+      callback();
     });
+  });
 
-    it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
-      var compiler = createCompiler(
-        {
-          useTypescriptIncrementalApi: false,
-          checkSyntacticErrors: true,
-          reportFiles: ['**/index.ts']
-        },
-        true
-      );
+  it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
+    var compiler = createCompiler(
+      {
+        checkSyntacticErrors: true,
+        reportFiles: ['**/index.ts']
+      },
+      true
+    );
 
-      compiler.run(function(error, stats) {
-        expect(stats.compilation.errors.length).to.equal(1);
-        expect(
-          stats.compilation.errors[0].file.endsWith('index.ts')
-        ).to.be.true;
-        callback();
-      });
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.equal(1);
+      expect(stats.compilation.errors[0].file.endsWith('index.ts')).to.be.true;
+      callback();
     });
   });
 });

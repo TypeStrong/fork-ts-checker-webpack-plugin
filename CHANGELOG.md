@@ -1,3 +1,7 @@
+## v1.0.0-alpha.2
+
+* [Add `useTypescriptIncrementalApi`](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/198) (#196)
+
 ## v1.0.0-alpha.1
 
 * [Use object-spread instead of `Object.assign`](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/194) (#194)

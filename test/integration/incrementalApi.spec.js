@@ -28,6 +28,17 @@ describe('[INTEGRATION] incrementalApi', function() {
     return helpers.createCompiler(options, happyPackMode, entryPoint).webpack;
   }
 
+  function createVueCompiler(
+    options,
+    happyPackMode,
+    entryPoint = './src/index.ts'
+  ) {
+    options = options || {};
+    options.useTypescriptIncrementalApi = true;
+    options.vue = true;
+    return helpers.createVueCompiler(options, happyPackMode, entryPoint);
+  }
+
   it('should not fix linting by default', function(callback) {
     const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
 `;
@@ -84,18 +95,20 @@ describe('[INTEGRATION] incrementalApi', function() {
     });
   });
 
-  it('should get syntactic diagnostics from Vue program', function() {
-    var { checker } = helpers.createVueCompiler({ vue: true });
-
-    const diagnostics = checker.program.getSyntacticDiagnostics();
-    expect(diagnostics.length).to.be.equal(1);
-  });
-
-  it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', function(callback) {
-    var { compiler } = helpers.createVueCompiler({ vue: true });
+  it('should get syntactic diagnostics from Vue program', function(callback) {
+    var { compiler } = createVueCompiler({ checkSyntacticErrors: true });
 
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.be.equal(1);
+      callback();
+    });
+  });
+
+  it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', function(callback) {
+    var { compiler } = createVueCompiler();
+
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.be.equal(0);
       callback();
     });
   });

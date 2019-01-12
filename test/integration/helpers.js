@@ -120,3 +120,42 @@ exports.writeContentsToLintingErrorFile = (fileName, data) => {
   });
   return promise;
 };
+
+exports.testLintAutoFixTest = (
+  testCallback,
+  fileName,
+  options,
+  afterCompilerRan
+) => {
+  const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
+`;
+  const formattedFileContents = `function someFunctionName(param1, param2) {return param1 + param2; }
+`;
+  exports.writeContentsToLintingErrorFile(fileName, lintErrorFileContents).then(
+    () => {
+      var compiler = exports.createCompiler(
+        options,
+        false,
+        `./src/${fileName}.ts`
+      ).webpack;
+      const deleteFile = () =>
+        fs.unlinkSync(path.resolve(__dirname, `./project/src/${fileName}.ts`));
+      compiler.run(function(err, stats) {
+        /*
+            Helpful to wrap this in a try catch.
+            If the assertion fails we still need to cleanup
+            the temporary file created as part of the test
+            */
+        try {
+          afterCompilerRan(err, stats, formattedFileContents);
+        } finally {
+          deleteFile();
+        }
+        testCallback();
+      });
+    },
+    err => {
+      throw err;
+    }
+  );
+};

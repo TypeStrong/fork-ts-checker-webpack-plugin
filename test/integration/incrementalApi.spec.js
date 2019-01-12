@@ -39,41 +39,44 @@ describe('[INTEGRATION] incrementalApi', function() {
     return helpers.createVueCompiler(options, happyPackMode, entryPoint);
   }
 
+  it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
+    const fileName = 'lintingError1';
+    helpers.testLintAutoFixTest(
+      callback,
+      fileName,
+      {
+        useTypescriptIncrementalApi: true,
+        tslintAutoFix: true,
+        tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+        tsconfig: false
+      },
+      (err, stats, formattedFileContents) => {
+        expect(stats.compilation.warnings.length).to.be.eq(0);
+
+        var fileContents = fs.readFileSync(
+          path.resolve(__dirname, `./project/src/${fileName}.ts`),
+          {
+            encoding: 'utf-8'
+          }
+        );
+        expect(fileContents).to.be.eq(formattedFileContents);
+      }
+    );
+  });
+
   it('should not fix linting by default', function(callback) {
-    const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
-`;
     const fileName = 'lintingError2';
-    const deleteFile = () =>
-      fs.unlinkSync(path.resolve(__dirname, `./project/src/${fileName}.ts`));
-    helpers
-      .writeContentsToLintingErrorFile(fileName, lintErrorFileContents)
-      .then(
-        () => {
-          var compiler = createCompiler(
-            { tslint: true },
-            false,
-            `./src/${fileName}.ts`
-          );
-          compiler.run(function(err, stats) {
-            /*
-            Helpful to wrap this in a try catch.
-            If the assertion fails we still need to cleanup
-            the temporary file created as part of the test
-          */
-            try {
-              expect(stats.compilation.warnings.length).to.be.eq(7);
-            } catch (e) {
-              deleteFile();
-              throw e;
-            }
-            deleteFile();
-            callback();
-          });
-        },
-        err => {
-          throw err;
-        }
-      );
+    helpers.testLintAutoFixTest(
+      callback,
+      fileName,
+      {
+        useTypescriptIncrementalApi: true,
+        tslint: true
+      },
+      (err, stats) => {
+        expect(stats.compilation.warnings.length).to.be.eq(7);
+      }
+    );
   });
 
   it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {

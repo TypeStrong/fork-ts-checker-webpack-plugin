@@ -82,96 +82,41 @@ describe('[INTEGRATION] index', function() {
   });
 
   it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
-    const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
-`;
-    const formattedFileContents = `function someFunctionName(param1, param2) {return param1 + param2; }
-`;
     const fileName = 'lintingError1';
-    helpers
-      .writeContentsToLintingErrorFile(fileName, lintErrorFileContents)
-      .then(
-        () => {
-          var compiler = createCompiler(
-            {
-              tslintAutoFix: true,
-              tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
-              tsconfig: false
-            },
-            false,
-            `./src/${fileName}.ts`
-          );
-          const deleteFile = () =>
-            fs.unlinkSync(
-              path.resolve(__dirname, `./project/src/${fileName}.ts`)
-            );
-          compiler.run(function(err, stats) {
-            expect(stats.compilation.warnings.length).to.be.eq(0);
-            let fileContents;
-            try {
-              fileContents = fs.readFileSync(
-                path.resolve(__dirname, `./project/src/${fileName}.ts`),
-                {
-                  encoding: 'utf-8'
-                }
-              );
-            } catch (e) {
-              throw e;
-            }
-            /*
-            Helpful to wrap this in a try catch.
-            If the assertion fails we still need to cleanup
-            the temporary file created as part of the test
-          */
-            try {
-              expect(fileContents).to.be.eq(formattedFileContents);
-            } catch (e) {
-              deleteFile();
-              throw e;
-            }
-            deleteFile();
-            callback();
-          });
-        },
-        err => {
-          throw err;
-        }
-      );
+    helpers.testLintAutoFixTest(
+      callback,
+      fileName,
+      {
+        tslintAutoFix: true,
+        tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+        tsconfig: false
+      },
+      (err, stats, formattedFileContents) => {
+        expect(stats.compilation.warnings.length).to.be.eq(0);
+
+        var fileContents = fs.readFileSync(
+          path.resolve(__dirname, `./project/src/${fileName}.ts`),
+          {
+            encoding: 'utf-8'
+          }
+        );
+        expect(fileContents).to.be.eq(formattedFileContents);
+      }
+    );
   });
+
   it('should not fix linting by default', function(callback) {
-    const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
-`;
     const fileName = 'lintingError2';
-    const deleteFile = () =>
-      fs.unlinkSync(path.resolve(__dirname, `./project/src/${fileName}.ts`));
-    helpers
-      .writeContentsToLintingErrorFile(fileName, lintErrorFileContents)
-      .then(
-        () => {
-          var compiler = createCompiler(
-            { tslint: true },
-            false,
-            `./src/${fileName}.ts`
-          );
-          compiler.run(function(err, stats) {
-            /*
-            Helpful to wrap this in a try catch.
-            If the assertion fails we still need to cleanup
-            the temporary file created as part of the test
-          */
-            try {
-              expect(stats.compilation.warnings.length).to.be.eq(7);
-            } catch (e) {
-              deleteFile();
-              throw e;
-            }
-            deleteFile();
-            callback();
-          });
-        },
-        err => {
-          throw err;
-        }
-      );
+    helpers.testLintAutoFixTest(
+      callback,
+      fileName,
+      {
+        tslint: true
+      },
+      (err, stats) => {
+        expect(stats.compilation.warnings.length).to.be.eq(7);
+      }
+    );
   });
 
   it('should block emit on build mode', function(callback) {

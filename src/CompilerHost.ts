@@ -320,7 +320,7 @@ export class CompilerHost
   }
 
   public useCaseSensitiveFileNames(): boolean {
-    return false;
+    return this.tsHost.useCaseSensitiveFileNames();
   }
 
   public onUnRecoverableConfigFileDiagnostic(_diag: ts.Diagnostic) {

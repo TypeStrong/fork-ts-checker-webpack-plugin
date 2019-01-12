@@ -9,270 +9,282 @@ var helpers = require('./helpers');
 chai.config.truncateThreshold = 0;
 var expect = chai.expect;
 
-describe('[INTEGRATION] index', function() {
-  this.timeout(60000);
-  var plugin;
+describe(
+  '[INTEGRATION] common - useTypescriptIncrementalApi: true',
+  makeCommonTests(true)
+);
+describe(
+  '[INTEGRATION] common - useTypescriptIncrementalApi: false',
+  makeCommonTests(false)
+);
 
-  function createCompiler(
-    options,
-    happyPackMode,
-    entryPoint = './src/index.ts'
-  ) {
-    options = options || {};
-    var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
-    plugin = compiler.plugin;
-    return compiler.webpack;
-  }
+function makeCommonTests(useTypescriptIncrementalApi) {
+  return function() {
+    this.timeout(60000);
+    var plugin;
 
-  /**
-   * Implicitly check whether killService was called by checking that
-   * the service property was set to undefined.
-   * @returns [boolean] true if killService was called
-   */
-  function killServiceWasCalled() {
-    return plugin.service === undefined;
-  }
+    function createCompiler(
+      options,
+      happyPackMode,
+      entryPoint = './src/index.ts'
+    ) {
+      options = options || {};
+      options.useTypescriptIncrementalApi = useTypescriptIncrementalApi;
+      var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+      plugin = compiler.plugin;
+      return compiler.webpack;
+    }
 
-  it('should allow to pass no options', function() {
-    expect(function() {
-      new ForkTsCheckerWebpackPlugin();
-    }).to.not.throw();
-  });
+    /**
+     * Implicitly check whether killService was called by checking that
+     * the service property was set to undefined.
+     * @returns [boolean] true if killService was called
+     */
+    function killServiceWasCalled() {
+      return plugin.service === undefined;
+    }
 
-  it('should detect paths', function() {
-    var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
+    it('should allow to pass no options', function() {
+      expect(function() {
+        new ForkTsCheckerWebpackPlugin();
+      }).to.not.throw();
+    });
 
-    expect(plugin.tsconfig).to.equal('./tsconfig.json');
-    expect(plugin.tslint).to.equal('./tslint.json');
-  });
+    it('should detect paths', function() {
+      var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
-  it('should set logger to console by default', function() {
-    var plugin = new ForkTsCheckerWebpackPlugin({});
+      expect(plugin.tsconfig).to.equal('./tsconfig.json');
+      expect(plugin.tslint).to.equal('./tslint.json');
+    });
 
-    expect(plugin.logger).to.equal(console);
-  });
+    it('should set logger to console by default', function() {
+      var plugin = new ForkTsCheckerWebpackPlugin({});
 
-  it('should set watch to empty array by default', function() {
-    var plugin = new ForkTsCheckerWebpackPlugin({});
+      expect(plugin.logger).to.equal(console);
+    });
 
-    expect(plugin.watch).to.deep.equal([]);
-  });
+    it('should set watch to empty array by default', function() {
+      var plugin = new ForkTsCheckerWebpackPlugin({});
 
-  it('should set watch to one element array for string', function() {
-    var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
+      expect(plugin.watch).to.deep.equal([]);
+    });
 
-    expect(plugin.watch).to.deep.equal(['/test']);
-  });
+    it('should set watch to one element array for string', function() {
+      var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
 
-  it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
-    const fileName = 'lintingError1';
-    helpers.testLintAutoFixTest(
-      callback,
-      fileName,
-      {
-        tslintAutoFix: true,
-        tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
-        tsconfig: false
-      },
-      (err, stats, formattedFileContents) => {
-        expect(stats.compilation.warnings.length).to.be.eq(0);
+      expect(plugin.watch).to.deep.equal(['/test']);
+    });
 
-        var fileContents = fs.readFileSync(
-          path.resolve(__dirname, `./project/src/${fileName}.ts`),
-          {
-            encoding: 'utf-8'
+    it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
+      const fileName = 'lintingError1';
+      helpers.testLintAutoFixTest(
+        callback,
+        fileName,
+        {
+          tslintAutoFix: true,
+          tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+          tsconfig: false
+        },
+        (err, stats, formattedFileContents) => {
+          expect(stats.compilation.warnings.length).to.be.eq(0);
+
+          var fileContents = fs.readFileSync(
+            path.resolve(__dirname, `./project/src/${fileName}.ts`),
+            {
+              encoding: 'utf-8'
+            }
+          );
+          expect(fileContents).to.be.eq(formattedFileContents);
+        }
+      );
+    });
+
+    it('should not fix linting by default', function(callback) {
+      const fileName = 'lintingError2';
+      helpers.testLintAutoFixTest(
+        callback,
+        fileName,
+        {
+          tslint: true
+        },
+        (err, stats) => {
+          expect(stats.compilation.warnings.length).to.be.eq(7);
+        }
+      );
+    });
+
+    it('should block emit on build mode', function(callback) {
+      var compiler = createCompiler();
+
+      if ('hooks' in compiler) {
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          compiler
+        );
+        forkTsCheckerHooks.emit.tap(
+          'should block emit on build mode',
+          function() {
+            expect(true).to.be.true;
+            callback();
           }
         );
-        expect(fileContents).to.be.eq(formattedFileContents);
-      }
-    );
-  });
-
-  it('should not fix linting by default', function(callback) {
-    const fileName = 'lintingError2';
-    helpers.testLintAutoFixTest(
-      callback,
-      fileName,
-      {
-        tslint: true
-      },
-      (err, stats) => {
-        expect(stats.compilation.warnings.length).to.be.eq(7);
-      }
-    );
-  });
-
-  it('should block emit on build mode', function(callback) {
-    var compiler = createCompiler();
-
-    if ('hooks' in compiler) {
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        compiler
-      );
-      forkTsCheckerHooks.emit.tap(
-        'should block emit on build mode',
-        function() {
+      } else {
+        compiler.plugin('fork-ts-checker-emit', function() {
           expect(true).to.be.true;
           callback();
-        }
-      );
-    } else {
-      compiler.plugin('fork-ts-checker-emit', function() {
-        expect(true).to.be.true;
-        callback();
-      });
-    }
+        });
+      }
 
-    compiler.run(function() {});
-  });
+      compiler.run(function() {});
+    });
 
-  it('should not block emit on watch mode', function(callback) {
-    var compiler = createCompiler();
-    var watching = compiler.watch({}, function() {});
+    it('should not block emit on watch mode', function(callback) {
+      var compiler = createCompiler();
+      var watching = compiler.watch({}, function() {});
 
-    if ('hooks' in compiler) {
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        compiler
-      );
-      forkTsCheckerHooks.done.tap(
-        'should not block emit on watch mode',
-        function() {
+      if ('hooks' in compiler) {
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          compiler
+        );
+        forkTsCheckerHooks.done.tap(
+          'should not block emit on watch mode',
+          function() {
+            watching.close(function() {
+              expect(true).to.be.true;
+              callback();
+            });
+          }
+        );
+      } else {
+        compiler.plugin('fork-ts-checker-done', function() {
           watching.close(function() {
             expect(true).to.be.true;
             callback();
           });
-        }
-      );
-    } else {
-      compiler.plugin('fork-ts-checker-done', function() {
-        watching.close(function() {
-          expect(true).to.be.true;
-          callback();
         });
-      });
-    }
-  });
+      }
+    });
 
-  it('should block emit if async flag is false', function(callback) {
-    var compiler = createCompiler({ async: false });
-    var watching = compiler.watch({}, function() {});
+    it('should block emit if async flag is false', function(callback) {
+      var compiler = createCompiler({ async: false });
+      var watching = compiler.watch({}, function() {});
 
-    if ('hooks' in compiler) {
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        compiler
-      );
-      forkTsCheckerHooks.emit.tap(
-        'should block emit if async flag is false',
-        function() {
+      if ('hooks' in compiler) {
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          compiler
+        );
+        forkTsCheckerHooks.emit.tap(
+          'should block emit if async flag is false',
+          function() {
+            watching.close(function() {
+              expect(true).to.be.true;
+              callback();
+            });
+          }
+        );
+      } else {
+        compiler.plugin('fork-ts-checker-emit', function() {
           watching.close(function() {
             expect(true).to.be.true;
             callback();
           });
-        }
-      );
-    } else {
-      compiler.plugin('fork-ts-checker-emit', function() {
-        watching.close(function() {
-          expect(true).to.be.true;
-          callback();
         });
-      });
-    }
-  });
+      }
+    });
 
-  it('kills the service when the watch is done', function(done) {
-    var compiler = createCompiler();
-    var watching = compiler.watch({}, function() {});
+    it('kills the service when the watch is done', function(done) {
+      var compiler = createCompiler();
+      var watching = compiler.watch({}, function() {});
 
-    if ('hooks' in compiler) {
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        compiler
-      );
-      forkTsCheckerHooks.done.tap(
-        'kills the service when the watch is done',
-        function() {
+      if ('hooks' in compiler) {
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          compiler
+        );
+        forkTsCheckerHooks.done.tap(
+          'kills the service when the watch is done',
+          function() {
+            watching.close(function() {
+              expect(killServiceWasCalled()).to.be.true;
+              done();
+            });
+          }
+        );
+      } else {
+        compiler.plugin('fork-ts-checker-done', function() {
           watching.close(function() {
             expect(killServiceWasCalled()).to.be.true;
             done();
           });
-        }
-      );
-    } else {
-      compiler.plugin('fork-ts-checker-done', function() {
-        watching.close(function() {
-          expect(killServiceWasCalled()).to.be.true;
-          done();
         });
-      });
-    }
-  });
+      }
+    });
 
-  it('should throw error if config container wrong tsconfig.json path', function() {
-    expect(function() {
-      createCompiler({
-        tsconfig: '/some/path/that/not/exists/tsconfig.json'
-      });
-    }).to.throw();
-  });
+    it('should throw error if config container wrong tsconfig.json path', function() {
+      expect(function() {
+        createCompiler({
+          tsconfig: '/some/path/that/not/exists/tsconfig.json'
+        });
+      }).to.throw();
+    });
 
-  it('should throw error if config container wrong tslint.json path', function() {
-    expect(function() {
-      createCompiler({
-        tslint: '/some/path/that/not/exists/tslint.json'
-      });
-    }).to.throw();
-  });
+    it('should throw error if config container wrong tslint.json path', function() {
+      expect(function() {
+        createCompiler({
+          tslint: '/some/path/that/not/exists/tslint.json'
+        });
+      }).to.throw();
+    });
 
-  it('should detect tslint path for true option', function() {
-    expect(function() {
-      createCompiler({ tslint: true });
-    }).to.not.throw();
-  });
+    it('should detect tslint path for true option', function() {
+      expect(function() {
+        createCompiler({ tslint: true });
+      }).to.not.throw();
+    });
 
-  it('should allow delaying service-start', function(callback) {
-    var compiler = createCompiler();
-    var delayed = false;
+    it('should allow delaying service-start', function(callback) {
+      var compiler = createCompiler();
+      var delayed = false;
 
-    if ('hooks' in compiler) {
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        compiler
-      );
-      forkTsCheckerHooks.serviceBeforeStart.tapAsync(
-        'should allow delaying service-start',
-        function(cb) {
+      if ('hooks' in compiler) {
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          compiler
+        );
+        forkTsCheckerHooks.serviceBeforeStart.tapAsync(
+          'should allow delaying service-start',
+          function(cb) {
+            setTimeout(function() {
+              delayed = true;
+
+              cb();
+            }, 0);
+          }
+        );
+
+        forkTsCheckerHooks.serviceBeforeStart.tap(
+          'should allow delaying service-start',
+          function() {
+            expect(delayed).to.be.true;
+            callback();
+          }
+        );
+      } else {
+        compiler.plugin('fork-ts-checker-service-before-start', function(cb) {
           setTimeout(function() {
             delayed = true;
 
             cb();
           }, 0);
-        }
-      );
+        });
 
-      forkTsCheckerHooks.serviceBeforeStart.tap(
-        'should allow delaying service-start',
-        function() {
+        compiler.plugin('fork-ts-checker-service-start', function() {
           expect(delayed).to.be.true;
           callback();
-        }
-      );
-    } else {
-      compiler.plugin('fork-ts-checker-service-before-start', function(cb) {
-        setTimeout(function() {
-          delayed = true;
+        });
+      }
 
-          cb();
-        }, 0);
-      });
-
-      compiler.plugin('fork-ts-checker-service-start', function() {
-        expect(delayed).to.be.true;
-        callback();
-      });
-    }
-
-    compiler.run(function() {});
-  });
-});
+      compiler.run(function() {});
+    });
+  };
+}
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', function() {
   this.timeout(60000);

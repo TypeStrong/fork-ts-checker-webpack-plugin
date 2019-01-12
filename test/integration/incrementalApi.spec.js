@@ -1,3 +1,11 @@
+/*
+ * This file includes tests related to useTypescriptIncrementalApi flag.
+ * Since we are using different compiler API in that case, we cannot
+ * force exactly same behavior, hence the differences between same cases
+ * here vs. other files.
+ *
+ * */
+
 var fs = require('fs');
 var describe = require('mocha').describe;
 var it = require('mocha').it;

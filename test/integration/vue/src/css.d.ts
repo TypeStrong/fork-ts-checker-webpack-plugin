@@ -1,5 +1,5 @@
 declare module '*.css' {
-    const css = '';
+  const css = '';
 
-    export default css;
+  export default css;
 }

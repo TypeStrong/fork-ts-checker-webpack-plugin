@@ -1,2 +1,2 @@
-const a: number = "";
-export default { a }
+const a: number = '';
+export default { a };

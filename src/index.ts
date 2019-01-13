@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as process from 'process';
+import { performance } from 'perf_hooks';
 import * as childProcess from 'child_process';
 import chalk, { Chalk } from 'chalk';
 import * as micromatch from 'micromatch';
@@ -43,6 +44,8 @@ interface Options {
   memoryLimit: number;
   workers: number;
   vue: boolean;
+  useTypescriptIncrementalApi: boolean;
+  measureCompilationTime: boolean;
 }
 
 /**
@@ -87,6 +90,7 @@ class ForkTsCheckerWebpackPlugin {
   private useColors: boolean;
   private colors: Chalk;
   private formatter: Formatter;
+  private useTypescriptIncrementalApi: boolean;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -105,13 +109,15 @@ class ForkTsCheckerWebpackPlugin {
 
   private emitCallback: () => void;
   private doneCallback: () => void;
-  private typescriptVersion: any;
-  private tslintVersion: any;
+  private typescriptVersion: string;
+  private tslintVersion: string;
 
   private service?: childProcess.ChildProcess;
 
   private vue: boolean;
 
+  private measureTime: boolean;
+  private startAt: number = 0;
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
     this.options = { ...options };
@@ -149,6 +155,9 @@ class ForkTsCheckerWebpackPlugin {
             options.formatterOptions || {}
           );
 
+    this.useTypescriptIncrementalApi =
+      options.useTypescriptIncrementalApi || false;
+
     this.tsconfigPath = undefined;
     this.tslintPath = undefined;
     this.watchPaths = [];
@@ -173,6 +182,7 @@ class ForkTsCheckerWebpackPlugin {
       : undefined;
 
     this.vue = options.vue === true; // default false
+    this.measureTime = options.measureCompilationTime === true;
   }
 
   private static createFormatter(type: 'default' | 'codeframe', options: any) {
@@ -200,6 +210,13 @@ class ForkTsCheckerWebpackPlugin {
     // validate config
     const tsconfigOk = FsHelper.existsSync(this.tsconfigPath);
     const tslintOk = !this.tslintPath || FsHelper.existsSync(this.tslintPath);
+
+    if (this.useTypescriptIncrementalApi && this.workersNumber !== 1) {
+      throw new Error(
+        'Using typescript incremental compilation API ' +
+          'is currently only allowed with a single worker.'
+      );
+    }
 
     // validate logger
     if (this.logger) {
@@ -325,6 +342,9 @@ class ForkTsCheckerWebpackPlugin {
           }
 
           try {
+            if (this.measureTime) {
+              this.startAt = performance.now();
+            }
             this.service!.send(this.cancellationToken);
           } catch (error) {
             if (!this.silent && this.logger) {
@@ -499,6 +519,8 @@ class ForkTsCheckerWebpackPlugin {
           WORK_DIVISION: Math.max(1, this.workersNumber),
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
+          USE_INCREMENTAL_API:
+            this.options.useTypescriptIncrementalApi === true,
           VUE: this.vue
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
@@ -583,6 +605,10 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private handleServiceMessage(message: Message): void {
+    if (this.measureTime) {
+      const delta = performance.now() - this.startAt;
+      this.logger.info(`compilation took: ${delta} ms.`);
+    }
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
       // job is done - nothing to cancel

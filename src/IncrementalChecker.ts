@@ -10,6 +10,7 @@ import { CancellationToken } from './CancellationToken';
 import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
+import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
@@ -20,7 +21,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
   };
 }
 
-export class IncrementalChecker {
+export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
   private files = new FilesRegister(() => ({
     // data shape
@@ -224,7 +225,7 @@ export class IncrementalChecker {
     const filesToCheck = program.getSourceFiles();
 
     // calculate subset of work to do
-    const workSet = new WorkSet(
+    const workSet = new WorkSet<ts.SourceFile>(
       filesToCheck,
       this.workNumber,
       this.workDivision
@@ -249,8 +250,10 @@ export class IncrementalChecker {
     });
 
     // normalize and deduplicate diagnostics
-    return NormalizedMessage.deduplicate(
-      diagnostics.map(NormalizedMessage.createFromDiagnostic)
+    return Promise.resolve(
+      NormalizedMessage.deduplicate(
+        diagnostics.map(NormalizedMessage.createFromDiagnostic)
+      )
     );
   }
 
@@ -270,7 +273,7 @@ export class IncrementalChecker {
       );
 
     // calculate subset of work to do
-    const workSet = new WorkSet(
+    const workSet = new WorkSet<string>(
       filesToLint,
       this.workNumber,
       this.workDivision

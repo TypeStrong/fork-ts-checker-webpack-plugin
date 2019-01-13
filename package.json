@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -15,7 +15,8 @@
     "test:watch": "mocha -R spec --watch ./test/unit",
     "test:coverage": "rimraf coverage && istanbul cover -root lib --include-all-sources mocha -- -R spec ./test/unit ./test/integration",
     "lint": "tslint --project src/tsconfig.json && eslint ./test",
-    "lint:fix": "tslint --project src/tsconfig.json --fix && eslint ./test --fix"
+    "lint:fix": "tslint --project src/tsconfig.json --fix && eslint ./test --fix",
+    "watch": "tsc --version && tsc --project \"./src\" --watch"
   },
   "repository": {
     "url": "https://github.com/Realytics/fork-ts-checker-webpack-plugin.git",

@@ -10,6 +10,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
-    "outDir": "../lib"
+    "outDir": "../lib",
+    "sourceMap": true
   }
 }

@@ -107,7 +107,7 @@ Options passed to formatters (currently only `codeframe` - see [available option
 If `true`, logger will not be used. Default: `false`.
 
 * **checkSyntacticErrors** `boolean`: 
-This option is useful if you're using ts-loader in `happyPackMode` with [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds.  It will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`).  By default the plugin only checks for semantic errors.  This is because when ts-loader is used in `transpileOnly` mode, ts-loader will still report syntactic errors. When used in `happyPackMode` it does not. Default: `false`.
+This option is useful if you're using ts-loader in `happyPackMode` with [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds.  If `true` it will ensure that the plugin checks for *both* syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`).  By default the plugin only checks for semantic errors.  This is because when ts-loader is used in `transpileOnly` mode, ts-loader will still report syntactic errors. When used in `happyPackMode` it does not. Default: `false`.
 
 * **memoryLimit** `number`: 
 Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
@@ -121,6 +121,15 @@ number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_
 * **vue** `boolean`:
 If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the 
 [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
+
+* **useTypescriptIncrementalApi** `boolean`:
+If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1 
+worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation 
+may be much faster, even compared to multi-threaded compilation. 
+
+* **measureCompilationTime** `boolean`:
+If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
+especially if there are other loaders/plugins involved in the compilation.
 
 ### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU

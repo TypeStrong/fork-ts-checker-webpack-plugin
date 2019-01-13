@@ -8,7 +8,7 @@ install:
  - yarn add $WEBPACK $TSLOADER $VUELOADER -D
  - yarn lint
 env:
- - WEBPACK=webpack@^5.0.0-alpha.0 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
+ - WEBPACK=webpack@^5.0.0-alpha.5 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
  - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
  - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
  - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0

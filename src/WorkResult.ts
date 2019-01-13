@@ -5,8 +5,7 @@ export class WorkResult {
     [key: string]: Message;
   } = {};
 
-  constructor(private workDomain: number[]) {
-  }
+  constructor(private workDomain: number[]) {}
 
   public supports(workName: number) {
     return this.workDomain.includes(workName);
@@ -44,7 +43,10 @@ export class WorkResult {
     this.workResult = {};
   }
 
-  public reduce(reducer: (m1: Message, m2: Message) => Message, initial: Message) {
+  public reduce(
+    reducer: (m1: Message, m2: Message) => Message,
+    initial: Message
+  ) {
     return this.workDomain.reduce((reduced, workName) => {
       return reducer(reduced, this.workResult[workName]);
     }, initial);

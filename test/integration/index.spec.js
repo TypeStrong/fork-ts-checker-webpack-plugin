@@ -10,11 +10,11 @@ chai.config.truncateThreshold = 0;
 var expect = chai.expect;
 
 describe(
-  '[INTEGRATION] common - useTypescriptIncrementalApi: true',
+  '[INTEGRATION] common tests - useTypescriptIncrementalApi: true',
   makeCommonTests(true)
 );
 describe(
-  '[INTEGRATION] common - useTypescriptIncrementalApi: false',
+  '[INTEGRATION] common tests - useTypescriptIncrementalApi: false',
   makeCommonTests(false)
 );
 
@@ -73,6 +73,17 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
 
       expect(plugin.watch).to.deep.equal(['/test']);
+    });
+
+    it('should find semantic errors', function(callback) {
+      var compiler = createCompiler({
+        tsconfig: 'tsconfig-semantic-error-only.json'
+      });
+
+      compiler.run(function(err, stats) {
+        expect(stats.compilation.errors.length).to.be.at.least(1);
+        callback();
+      });
     });
 
     it('should fix linting errors with tslintAutofix flag set to true', function(callback) {

@@ -1,3 +1,7 @@
+## v1.0.0-alpha.3
+
+* [replace peerDeps with runtime checks](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/201)
+
 ## v1.0.0-alpha.2
 
 * [Add `useTypescriptIncrementalApi`](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/198) (#196)

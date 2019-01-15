@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as process from 'process';
 import { performance } from 'perf_hooks';
 import * as childProcess from 'child_process';
+import * as semver from 'semver';
 import chalk, { Chalk } from 'chalk';
 import * as micromatch from 'micromatch';
 import * as os from 'os';
@@ -181,8 +182,26 @@ class ForkTsCheckerWebpackPlugin {
       ? require('tslint').Linter.VERSION
       : undefined;
 
+    this.validateVersions();
+
     this.vue = options.vue === true; // default false
     this.measureTime = options.measureCompilationTime === true;
+  }
+
+  private validateVersions() {
+    if (semver.lt(this.typescriptVersion, '2.1.0')) {
+      throw new Error(
+        `Cannot use current typescript version of ${
+          this.typescriptVersion
+        }, the minimum required version is 2.1.0`
+      );
+    } else if (this.tslintVersion && semver.lt(this.tslintVersion, '4.0.0')) {
+      throw new Error(
+        `Cannot use current tslint version of ${
+          this.tslintVersion
+        }, the minimum required version is 4.0.0`
+      );
+    }
   }
 
   private static createFormatter(type: 'default' | 'codeframe', options: any) {
@@ -823,6 +842,4 @@ class ForkTsCheckerWebpackPlugin {
 
 export = ForkTsCheckerWebpackPlugin;
 
-namespace ForkTsCheckerWebpackPlugin {
-
-}
+namespace ForkTsCheckerWebpackPlugin {}

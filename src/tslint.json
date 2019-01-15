@@ -23,6 +23,7 @@
       "allow-pascal-case"
     ],
     "no-namespace": false,
+    "no-implicit-dependencies": false,
     "array-type": [true, "array"]
   }
 }

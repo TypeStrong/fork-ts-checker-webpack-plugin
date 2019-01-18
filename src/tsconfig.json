@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
     "strict": true,
-    "lib": ["es2015", "es2016.array.include", "dom"],
+    "lib": ["es2015", "es2016.array.include"],
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,

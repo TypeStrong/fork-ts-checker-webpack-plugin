@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "Runs typescript type checker and linter on separate process.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -38,7 +38,7 @@
     "webpack-plugin"
   ],
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=6.11.5"
   },
   "author": "Piotr Oleś <piotrek.oles@gmail.com>",
   "contributors": [

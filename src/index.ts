@@ -208,6 +208,22 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
+  private validateVersions() {
+    if (semver.lt(this.typescriptVersion, '2.1.0')) {
+      throw new Error(
+        `Cannot use current typescript version of ${
+          this.typescriptVersion
+        }, the minimum required version is 2.1.0`
+      );
+    } else if (this.tslintVersion && semver.lt(this.tslintVersion, '4.0.0')) {
+      throw new Error(
+        `Cannot use current tslint version of ${
+          this.tslintVersion
+        }, the minimum required version is 4.0.0`
+      );
+    }
+  }
+
   private static createFormatter(type: 'default' | 'codeframe', options: any) {
     switch (type) {
       case 'default':

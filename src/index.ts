@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as process from 'process';
-import { performance } from 'perf_hooks';
 import * as childProcess from 'child_process';
 import * as semver from 'semver';
 import chalk, { Chalk } from 'chalk';
@@ -118,6 +117,7 @@ class ForkTsCheckerWebpackPlugin {
   private vue: boolean;
 
   private measureTime: boolean;
+  private performance: any;
   private startAt: number = 0;
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
@@ -186,6 +186,10 @@ class ForkTsCheckerWebpackPlugin {
 
     this.vue = options.vue === true; // default false
     this.measureTime = options.measureCompilationTime === true;
+    if (this.measureTime) {
+      // Node 8+ only
+      this.performance = require('perf_hooks').performance;
+    }
   }
 
   private validateVersions() {
@@ -362,7 +366,7 @@ class ForkTsCheckerWebpackPlugin {
 
           try {
             if (this.measureTime) {
-              this.startAt = performance.now();
+              this.startAt = this.performance.now();
             }
             this.service!.send(this.cancellationToken);
           } catch (error) {
@@ -625,7 +629,7 @@ class ForkTsCheckerWebpackPlugin {
 
   private handleServiceMessage(message: Message): void {
     if (this.measureTime) {
-      const delta = performance.now() - this.startAt;
+      const delta = this.performance.now() - this.startAt;
       this.logger.info(`compilation took: ${delta} ms.`);
     }
     if (this.cancellationToken) {

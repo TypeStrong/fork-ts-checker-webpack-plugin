@@ -1,3 +1,7 @@
+## v1.0.0-alpha.4
+
+* [make node 6 compatible](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/202)
+
 ## v1.0.0-alpha.3
 
 * [replace peerDeps with runtime checks](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/201)

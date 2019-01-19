@@ -1,3 +1,7 @@
+## v1.0.0-alpha.5
+
+* [can now provide path where typescript can be found](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/204)
+
 ## v1.0.0-alpha.4
 
 * [make node 6 compatible](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/202)

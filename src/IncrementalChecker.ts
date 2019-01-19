@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
+// tslint:disable-next-line:no-implicit-dependencies
 import { Configuration, Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
@@ -42,6 +44,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private watcher?: FilesWatcher;
 
   constructor(
+    private typescript: typeof ts,
     private programConfigFile: string,
     private compilerOptions: object,
     private linterConfigFile: string | false,
@@ -53,8 +56,15 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private vue: boolean = false
   ) {}
 
-  public static loadProgramConfig(configFile: string, compilerOptions: object) {
-    const tsconfig = ts.readConfigFile(configFile, ts.sys.readFile).config;
+  public static loadProgramConfig(
+    typescript: typeof ts,
+    configFile: string,
+    compilerOptions: object
+  ) {
+    const tsconfig = typescript.readConfigFile(
+      configFile,
+      typescript.sys.readFile
+    ).config;
 
     tsconfig.compilerOptions = tsconfig.compilerOptions || {};
     tsconfig.compilerOptions = {
@@ -62,9 +72,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       ...compilerOptions
     };
 
-    const parsed = ts.parseJsonConfigFileContent(
+    const parsed = typescript.parseJsonConfigFileContent(
       tsconfig,
-      ts.sys,
+      typescript.sys,
       path.dirname(configFile)
     );
 
@@ -72,6 +82,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private static loadLinterConfig(configFile: string): ConfigurationFile {
+    // tslint:disable-next-line:no-implicit-dependencies
     const tslint = require('tslint');
 
     return tslint.Configuration.loadConfigurationFromPath(
@@ -80,12 +91,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private static createProgram(
+    typescript: typeof ts,
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
     watcher: FilesWatcher,
     oldProgram: ts.Program
   ) {
-    const host = ts.createCompilerHost(programConfig.options);
+    const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
     host.getSourceFile = (filePath, languageVersion, onError) => {
@@ -111,7 +123,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       return files.getData(filePath).source;
     };
 
-    return ts.createProgram(
+    return typescript.createProgram(
       programConfig.fileNames,
       programConfig.options,
       host,
@@ -120,6 +132,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private createLinter(program: ts.Program) {
+    // tslint:disable-next-line:no-implicit-dependencies
     const tslint = require('tslint');
 
     return new tslint.Linter({ fix: this.linterAutoFix }, program);
@@ -186,11 +199,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     this.programConfig =
       this.programConfig ||
       VueProgram.loadProgramConfig(
+        this.typescript,
         this.programConfigFile,
         this.compilerOptions
       );
 
     return VueProgram.createProgram(
+      this.typescript,
       this.programConfig,
       path.dirname(this.programConfigFile),
       this.files,
@@ -203,11 +218,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     this.programConfig =
       this.programConfig ||
       IncrementalChecker.loadProgramConfig(
+        this.typescript,
         this.programConfigFile,
         this.compilerOptions
       );
 
     return IncrementalChecker.createProgram(
+      this.typescript,
       this.programConfig,
       this.files,
       this.watcher!,

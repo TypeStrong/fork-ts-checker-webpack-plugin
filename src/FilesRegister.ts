@@ -1,5 +1,7 @@
-import * as ts from 'typescript';
-import { RuleFailure } from 'tslint';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // import for types alone
+// tslint:disable-next-line:no-implicit-dependencies
+import { RuleFailure } from 'tslint'; // import for types alone
 
 export interface DataShape {
   source?: ts.SourceFile;

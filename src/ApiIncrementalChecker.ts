@@ -1,10 +1,12 @@
-import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // Imported for types alone
+// tslint:disable-next-line:no-implicit-dependencies
+import { Configuration, Linter, LintResult } from 'tslint';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
-import { Configuration, Linter, LintResult } from 'tslint';
 import { CompilerHost } from './CompilerHost';
 import { FsHelper } from './FsHelper';
 
@@ -28,6 +30,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private lastRemovedFiles: string[] = [];
 
   constructor(
+    typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     private linterConfigFile: string | false,
@@ -37,6 +40,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.initLinterConfig();
 
     this.tsIncrementalCompiler = new CompilerHost(
+      typescript,
       programConfigFile,
       compilerOptions,
       checkSyntacticErrors
@@ -64,6 +68,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private static loadLinterConfig(configFile: string): ConfigurationFile {
+    // tslint:disable-next-line:no-implicit-dependencies
     const tslint = require('tslint');
 
     return tslint.Configuration.loadConfigurationFromPath(
@@ -72,6 +77,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private createLinter(program: ts.Program): Linter {
+    // tslint:disable-next-line:no-implicit-dependencies
     const tslint = require('tslint');
 
     return new tslint.Linter({ fix: this.linterAutoFix }, program);

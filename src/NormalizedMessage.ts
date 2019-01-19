@@ -2,7 +2,9 @@ import {
   Diagnostic,
   DiagnosticCategory,
   flattenDiagnosticMessageText
+  // tslint:disable-next-line:no-implicit-dependencies
 } from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
 import { RuleFailure } from 'tslint';
 
 type ErrorType = 'diagnostic' | 'lint';

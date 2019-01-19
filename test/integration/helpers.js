@@ -56,6 +56,7 @@ exports.createVueCompiler = function(options) {
   };
 
   var checker = new IncrementalChecker(
+    require('typescript'),
     plugin.tsconfigPath,
     {},
     plugin.tslintPath || false,

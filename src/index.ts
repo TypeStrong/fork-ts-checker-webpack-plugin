@@ -5,7 +5,10 @@ import * as semver from 'semver';
 import chalk, { Chalk } from 'chalk';
 import * as micromatch from 'micromatch';
 import * as os from 'os';
+// tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
@@ -26,6 +29,7 @@ interface Logger {
 }
 
 interface Options {
+  typescript: string;
   tsconfig: string;
   compilerOptions: object;
   tslint: string | true;
@@ -109,6 +113,8 @@ class ForkTsCheckerWebpackPlugin {
 
   private emitCallback: () => void;
   private doneCallback: () => void;
+  private typescriptPath: string;
+  private typescript: typeof ts;
   private typescriptVersion: string;
   private tslintVersion: string;
 
@@ -177,10 +183,25 @@ class ForkTsCheckerWebpackPlugin {
     this.emitCallback = this.createNoopEmitCallback();
     this.doneCallback = this.createDoneCallback();
 
-    this.typescriptVersion = require('typescript').version;
-    this.tslintVersion = this.tslint
-      ? require('tslint').Linter.VERSION
-      : undefined;
+    this.typescriptPath = options.typescript || require.resolve('typescript');
+    try {
+      this.typescript = require(this.typescriptPath);
+      this.typescriptVersion = this.typescript.version;
+    } catch (_ignored) {
+      throw new Error(
+        'When you use this plugin you must install `typescript`.'
+      );
+    }
+    try {
+      this.tslintVersion = this.tslint
+        ? // tslint:disable-next-line:no-implicit-dependencies
+          require('tslint').Linter.VERSION
+        : undefined;
+    } catch (_ignored) {
+      throw new Error(
+        'When you use `tslint` option, make sure to install `tslint`.'
+      );
+    }
 
     this.validateVersions();
 
@@ -228,7 +249,7 @@ class ForkTsCheckerWebpackPlugin {
     this.tslintPath = this.tslint
       ? this.computeContextPath(this.tslint as string)
       : undefined;
-    this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
+    this.watchPaths = this.watch.map(this.computeContextPath);
 
     // validate config
     const tsconfigOk = FsHelper.existsSync(this.tsconfigPath);
@@ -286,11 +307,10 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  private computeContextPath(filePath: string) {
-    return path.isAbsolute(filePath)
+  private computeContextPath = (filePath: string) =>
+    path.isAbsolute(filePath)
       ? filePath
       : path.resolve(this.compiler.options.context, filePath);
-  }
 
   private pluginStart() {
     const run = (_compiler: webpack.Compiler, callback: () => void) => {
@@ -359,7 +379,7 @@ class ForkTsCheckerWebpackPlugin {
           this.started = process.hrtime();
 
           // create new token for current job
-          this.cancellationToken = new CancellationToken();
+          this.cancellationToken = new CancellationToken(this.typescript);
           if (!this.service || !this.service.connected) {
             this.spawnService();
           }
@@ -404,6 +424,7 @@ class ForkTsCheckerWebpackPlugin {
 
             // create new token for current job
             this.cancellationToken = new CancellationToken(
+              this.typescript,
               undefined,
               undefined
             );
@@ -534,6 +555,7 @@ class ForkTsCheckerWebpackPlugin {
             : ['--max-old-space-size=' + this.memoryLimit],
         env: {
           ...process.env,
+          TYPESCRIPT_PATH: this.typescriptPath,
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
           TSLINT: this.tslintPath || '',

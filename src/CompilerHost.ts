@@ -1,4 +1,5 @@
-import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
 
@@ -51,15 +52,16 @@ export class CompilerHost
   private compilationStarted = false;
 
   constructor(
+    private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean
   ) {
-    this.tsHost = ts.createWatchCompilerHost(
+    this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
       compilerOptions,
-      ts.sys,
-      ts.createEmitAndSemanticDiagnosticsBuilderProgram,
+      typescript.sys,
+      typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
       (diag: ts.Diagnostic) => {
         if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
           return;
@@ -133,11 +135,13 @@ export class CompilerHost
         item.callback(e.fileName, e.eventKind);
         files.push(e.fileName);
         if (
-          e.eventKind === ts.FileWatcherEventKind.Created ||
-          e.eventKind === ts.FileWatcherEventKind.Changed
+          e.eventKind === this.typescript.FileWatcherEventKind.Created ||
+          e.eventKind === this.typescript.FileWatcherEventKind.Changed
         ) {
           updatedFiles.push(e.fileName);
-        } else if (e.eventKind === ts.FileWatcherEventKind.Deleted) {
+        } else if (
+          e.eventKind === this.typescript.FileWatcherEventKind.Deleted
+        ) {
           removedFiles.push(e.fileName);
         }
       }
@@ -186,11 +190,11 @@ export class CompilerHost
     // dramatic compilation time increase), so we have to stick with these
     // hacks for now.
     this.compilationStarted = true;
-    return ts.sys.setTimeout!(callback, 1, args);
+    return this.typescript.sys.setTimeout!(callback, 1, args);
   }
 
   public clearTimeout(timeoutId: any): void {
-    ts.sys.clearTimeout!(timeoutId);
+    this.typescript.sys.clearTimeout!(timeoutId);
   }
 
   public onWatchStatusChange(
@@ -258,7 +262,7 @@ export class CompilerHost
 
     // get typescript contents from Vue file
     if (content && VueProgram.isVue(path)) {
-      const resolved = VueProgram.resolveScriptBlock(content);
+      const resolved = VueProgram.resolveScriptBlock(this.typescript, content);
       return resolved.content;
     }
 
@@ -285,10 +289,17 @@ export class CompilerHost
     include?: ReadonlyArray<string>,
     depth?: number
   ): string[] {
-    return ts.sys.readDirectory(path, extensions, exclude, include, depth);
+    return this.typescript.sys.readDirectory(
+      path,
+      extensions,
+      exclude,
+      include,
+      depth
+    );
   }
 
-  public createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
+  public createProgram = this.typescript
+    .createEmitAndSemanticDiagnosticsBuilderProgram;
 
   public getCurrentDirectory(): string {
     return this.tsHost.getCurrentDirectory();

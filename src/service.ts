@@ -1,14 +1,18 @@
 import * as process from 'process';
-import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // import for types alone
 import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 
+const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
+
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
     ? new ApiIncrementalChecker(
+        typescript,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.TSLINT === '' ? false : process.env.TSLINT!,
@@ -16,6 +20,7 @@ const checker: IncrementalCheckerInterface =
         process.env.CHECK_SYNTACTIC_ERRORS === 'true'
       )
     : new IncrementalChecker(
+        typescript,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.TSLINT === '' ? false : process.env.TSLINT!,
@@ -39,7 +44,7 @@ async function run(cancellationToken: CancellationToken) {
       lints = checker.getLints(cancellationToken);
     }
   } catch (error) {
-    if (error instanceof ts.OperationCanceledException) {
+    if (error instanceof typescript.OperationCanceledException) {
       return;
     }
 
@@ -60,7 +65,7 @@ async function run(cancellationToken: CancellationToken) {
 }
 
 process.on('message', message => {
-  run(CancellationToken.createFromJSON(message));
+  run(CancellationToken.createFromJSON(typescript, message));
 });
 
 process.on('SIGINT', () => {

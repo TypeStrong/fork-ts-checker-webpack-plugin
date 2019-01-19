@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // import for types alone
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
-// tslint:disable-next-line
+// tslint:disable-next-line:no-implicit-dependencies
 import * as vueCompiler from 'vue-template-compiler';
 
 interface ResolvedScript {
@@ -12,15 +13,19 @@ interface ResolvedScript {
 }
 
 export class VueProgram {
-  public static loadProgramConfig(configFile: string, compilerOptions: object) {
+  public static loadProgramConfig(
+    typescript: typeof ts,
+    configFile: string,
+    compilerOptions: object
+  ) {
     const extraExtensions = ['vue'];
 
     const parseConfigHost: ts.ParseConfigHost = {
-      fileExists: ts.sys.fileExists,
-      readFile: ts.sys.readFile,
-      useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+      fileExists: typescript.sys.fileExists,
+      readFile: typescript.sys.readFile,
+      useCaseSensitiveFileNames: typescript.sys.useCaseSensitiveFileNames,
       readDirectory: (rootDir, extensions, excludes, includes, depth) => {
-        return ts.sys.readDirectory(
+        return typescript.sys.readDirectory(
           rootDir,
           extensions.concat(extraExtensions),
           excludes,
@@ -30,7 +35,10 @@ export class VueProgram {
       }
     };
 
-    const tsconfig = ts.readConfigFile(configFile, ts.sys.readFile).config;
+    const tsconfig = typescript.readConfigFile(
+      configFile,
+      typescript.sys.readFile
+    ).config;
 
     tsconfig.compilerOptions = tsconfig.compilerOptions || {};
     tsconfig.compilerOptions = {
@@ -38,7 +46,7 @@ export class VueProgram {
       ...compilerOptions
     };
 
-    const parsed = ts.parseJsonConfigFileContent(
+    const parsed = typescript.parseJsonConfigFileContent(
       tsconfig,
       parseConfigHost,
       path.dirname(configFile)
@@ -107,13 +115,14 @@ export class VueProgram {
   }
 
   public static createProgram(
+    typescript: typeof ts,
     programConfig: ts.ParsedCommandLine,
     basedir: string,
     files: FilesRegister,
     watcher: FilesWatcher,
     oldProgram: ts.Program
   ) {
-    const host = ts.createCompilerHost(programConfig.options);
+    const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
     // We need a host that can parse Vue SFCs (single file components).
@@ -141,8 +150,8 @@ export class VueProgram {
 
       // get typescript contents from Vue file
       if (source && VueProgram.isVue(filePath)) {
-        const resolved = VueProgram.resolveScriptBlock(source.text);
-        source = ts.createSourceFile(
+        const resolved = VueProgram.resolveScriptBlock(typescript, source.text);
+        source = typescript.createSourceFile(
           filePath,
           resolved.content,
           languageVersion,
@@ -160,7 +169,7 @@ export class VueProgram {
 
       for (const moduleName of moduleNames) {
         // Try to use standard resolution.
-        const { resolvedModule } = ts.resolveModuleName(
+        const { resolvedModule } = typescript.resolveModuleName(
           moduleName,
           containingFile,
           programConfig.options,
@@ -226,7 +235,7 @@ export class VueProgram {
       return resolvedModules;
     };
 
-    return ts.createProgram(
+    return typescript.createProgram(
       programConfig.fileNames,
       programConfig.options,
       host,
@@ -234,20 +243,23 @@ export class VueProgram {
     );
   }
 
-  private static getScriptKindByLang(lang?: string) {
+  private static getScriptKindByLang(typescript: typeof ts, lang?: string) {
     if (lang === 'ts') {
-      return ts.ScriptKind.TS;
+      return typescript.ScriptKind.TS;
     } else if (lang === 'tsx') {
-      return ts.ScriptKind.TSX;
+      return typescript.ScriptKind.TSX;
     } else if (lang === 'jsx') {
-      return ts.ScriptKind.JSX;
+      return typescript.ScriptKind.JSX;
     } else {
       // when lang is "js" or no lang specified
-      return ts.ScriptKind.JS;
+      return typescript.ScriptKind.JS;
     }
   }
 
-  public static resolveScriptBlock(content: string): ResolvedScript {
+  public static resolveScriptBlock(
+    typescript: typeof ts,
+    content: string
+  ): ResolvedScript {
     // We need to import vue-template-compiler lazily because it cannot be included it
     // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
     // Since its version must not mismatch with user-installed Vue.js,
@@ -269,12 +281,12 @@ export class VueProgram {
     // No <script> block
     if (!script) {
       return {
-        scriptKind: ts.ScriptKind.JS,
+        scriptKind: typescript.ScriptKind.JS,
         content: '/* tslint:disable */\nexport default {};\n'
       };
     }
 
-    const scriptKind = VueProgram.getScriptKindByLang(script.lang);
+    const scriptKind = VueProgram.getScriptKindByLang(typescript, script.lang);
 
     // There is src attribute
     if (script.attrs.src) {

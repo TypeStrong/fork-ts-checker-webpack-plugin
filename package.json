@@ -73,6 +73,7 @@
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",
     "typescript": "^3.0.1",
+    "unixify": "^1.0.0",
     "vue": "^2.5.16",
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",

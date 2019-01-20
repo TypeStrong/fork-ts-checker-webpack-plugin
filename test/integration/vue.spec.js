@@ -3,6 +3,7 @@ var it = require('mocha').it;
 var expect = require('chai').expect;
 var path = require('path');
 var process = require('process');
+var unixify = require('unixify');
 var helpers = require('./helpers');
 
 describe('[INTEGRATION] vue', function() {
@@ -23,13 +24,16 @@ describe('[INTEGRATION] vue', function() {
     createCompiler({ vue: true });
 
     var fileFound;
-
-    fileFound =
-      checker.programConfig.fileNames.indexOf(files['example.vue']) >= 0;
+    var fileWeWant = unixify(files['example.vue']);
+    fileFound = checker.programConfig.fileNames.some(
+      filename => unixify(filename) === fileWeWant
+    );
     expect(fileFound).to.be.true;
 
-    fileFound =
-      checker.programConfig.fileNames.indexOf(files['syntacticError.ts']) >= 0;
+    fileWeWant = unixify(files['syntacticError.ts']);
+    fileFound = checker.programConfig.fileNames.some(
+      filename => unixify(filename) === fileWeWant
+    );
     expect(fileFound).to.be.true;
   });
 
@@ -37,13 +41,17 @@ describe('[INTEGRATION] vue', function() {
     createCompiler();
 
     var fileFound;
+    var fileWeWant = unixify(files['example.vue']);
 
-    fileFound =
-      checker.programConfig.fileNames.indexOf(files['example.vue']) >= 0;
+    fileFound = checker.programConfig.fileNames.some(
+      filename => unixify(filename) === fileWeWant
+    );
     expect(fileFound).to.be.false;
 
-    fileFound =
-      checker.programConfig.fileNames.indexOf(files['syntacticError.ts']) >= 0;
+    fileWeWant = unixify(files['syntacticError.ts']);
+    fileFound = checker.programConfig.fileNames.some(
+      filename => unixify(filename) === fileWeWant
+    );
     expect(fileFound).to.be.true;
   });
 

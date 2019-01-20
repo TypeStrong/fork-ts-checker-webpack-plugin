@@ -23,21 +23,32 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should create valid cancellation token', function() {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(require('typescript'));
     expect(tokenA.isCancellationRequested()).to.be.false;
 
-    var tokenB = new CancellationToken('FA#FERgSERgRT$rA$#rA#Ea@RweFRgERG');
+    var tokenB = new CancellationToken(
+      require('typescript'),
+      'FA#FERgSERgRT$rA$#rA#Ea@RweFRgERG'
+    );
     expect(tokenB.isCancellationRequested()).to.be.false;
 
-    var tokenC = new CancellationToken('GFERWgEgeF#R2erwreWrweWER', false);
+    var tokenC = new CancellationToken(
+      require('typescript'),
+      'GFERWgEgeF#R2erwreWrweWER',
+      false
+    );
     expect(tokenC.isCancellationRequested()).to.be.false;
 
-    var tokenD = new CancellationToken('REGg$#R2$#@r@#R$#T43T$#t43t', true);
+    var tokenD = new CancellationToken(
+      require('typescript'),
+      'REGg$#R2$#@r@#R$#T43T$#t43t',
+      true
+    );
     expect(tokenD.isCancellationRequested()).to.be.true;
   });
 
   it('should serialize to JSON', function() {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(require('typescript'));
     var json = JSON.stringify(tokenA);
 
     expect(json).to.be.a('string');
@@ -46,7 +57,10 @@ describe('[UNIT] CancellationToken', function() {
     }).to.not.throw(Error);
     expect(JSON.parse(json)).to.be.a('object');
 
-    var tokenB = CancellationToken.createFromJSON(JSON.parse(json));
+    var tokenB = CancellationToken.createFromJSON(
+      require('typescript'),
+      JSON.parse(json)
+    );
     expect(tokenA.getCancellationFilePath()).to.be.equal(
       tokenB.getCancellationFilePath()
     );
@@ -56,7 +70,7 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should generate path in os.tmpdir() directory', function() {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(require('typescript'));
 
     expect(tokenA.getCancellationFilePath().indexOf(os.tmpdir())).to.be.equal(
       0
@@ -64,12 +78,16 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should throw ts.OperationCanceledException error on cancelled', function() {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(require('typescript'));
     expect(function() {
       tokenA.throwIfCancellationRequested();
     }).to.not.throw();
 
-    var tokenB = new CancellationToken('rgeer#R23r$#T$3t#$t43', true);
+    var tokenB = new CancellationToken(
+      require('typescript'),
+      'rgeer#R23r$#T$3t#$t43',
+      true
+    );
     expect(function() {
       tokenB.throwIfCancellationRequested();
     })
@@ -78,7 +96,7 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should write file in filesystem on requestCancellation', function() {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(require('typescript'));
     tokenA.requestCancellation();
 
     expect(tokenA.isCancellationRequested()).to.be.true;
@@ -86,7 +104,7 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should cleanup file on cleanupCancellation', function() {
-    var tokenA = new CancellationToken();
+    var tokenA = new CancellationToken(require('typescript'));
     tokenA.requestCancellation();
     tokenA.cleanupCancellation();
 
@@ -101,7 +119,11 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should not throw error on cleanupCancellation with no file exists', function() {
-    var tokenA = new CancellationToken('some_file_that_doesnt_exists', true);
+    var tokenA = new CancellationToken(
+      require('typescript'),
+      'some_file_that_doesnt_exists',
+      true
+    );
 
     expect(function() {
       tokenA.cleanupCancellation();
@@ -112,8 +134,11 @@ describe('[UNIT] CancellationToken', function() {
   });
 
   it('should throttle check for 10ms', function(done) {
-    var tokenA = new CancellationToken();
-    var tokenB = CancellationToken.createFromJSON(tokenA.toJSON());
+    var tokenA = new CancellationToken(require('typescript'));
+    var tokenB = CancellationToken.createFromJSON(
+      require('typescript'),
+      tokenA.toJSON()
+    );
     var start = Date.now();
 
     expect(tokenA.isCancellationRequested()).to.be.false;

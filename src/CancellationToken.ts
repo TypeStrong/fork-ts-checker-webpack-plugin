@@ -2,7 +2,8 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // Imported for types alone
 
 import { FsHelper } from './FsHelper';
 
@@ -15,15 +16,26 @@ export class CancellationToken {
   private isCancelled: boolean;
   private cancellationFileName: string;
   private lastCancellationCheckTime: number;
-  constructor(cancellationFileName?: string, isCancelled?: boolean) {
+  constructor(
+    private typescript: typeof ts,
+    cancellationFileName?: string,
+    isCancelled?: boolean
+  ) {
     this.isCancelled = !!isCancelled;
     this.cancellationFileName =
       cancellationFileName || crypto.randomBytes(64).toString('hex');
     this.lastCancellationCheckTime = 0;
   }
 
-  public static createFromJSON(json: CancellationTokenData) {
-    return new CancellationToken(json.cancellationFileName, json.isCancelled);
+  public static createFromJSON(
+    typescript: typeof ts,
+    json: CancellationTokenData
+  ) {
+    return new CancellationToken(
+      typescript,
+      json.cancellationFileName,
+      json.isCancelled
+    );
   }
 
   public toJSON() {
@@ -56,7 +68,7 @@ export class CancellationToken {
 
   public throwIfCancellationRequested() {
     if (this.isCancellationRequested()) {
-      throw new ts.OperationCanceledException();
+      throw new this.typescript.OperationCanceledException();
     }
   }
 

@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
 import { AsyncSeriesHook, SyncHook } from 'tapable';
 

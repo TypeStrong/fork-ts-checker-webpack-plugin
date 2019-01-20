@@ -129,7 +129,10 @@ may be much faster, even compared to multi-threaded compilation.
 
 * **measureCompilationTime** `boolean`:
 If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
-especially if there are other loaders/plugins involved in the compilation.
+especially if there are other loaders/plugins involved in the compilation. **requires node 8+**
+
+* **typescript** `string`:
+If supplied this is a custom path where `typescript` can be found. Defaults to `require.resolve('typescript')`.
 
 ### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU

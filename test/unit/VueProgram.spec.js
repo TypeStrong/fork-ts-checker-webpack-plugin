@@ -4,6 +4,7 @@ var it = require('mocha').it;
 var expect = require('chai').expect;
 var mockRequire = require('mock-require');
 var sinon = require('sinon');
+var unixify = require('unixify');
 
 describe('[UNIT] VueProgram', function() {
   var VueProgram;
@@ -71,9 +72,11 @@ describe('[UNIT] VueProgram', function() {
       );
     });
 
-    expect(resolvedModuleNames[0]).to.be.equal('/con/tain/ing/test.vue');
-    expect(resolvedModuleNames[1]).to.be.equal('/con/tain/test.vue');
-    expect(resolvedModuleNames[2]).to.be.equal('/con/test.vue');
+    expect(unixify(resolvedModuleNames[0])).to.be.equal(
+      '/con/tain/ing/test.vue'
+    );
+    expect(unixify(resolvedModuleNames[1])).to.be.equal('/con/tain/test.vue');
+    expect(unixify(resolvedModuleNames[2])).to.be.equal('/con/test.vue');
   });
 
   it('should properly resolve wildcard module names', function() {
@@ -88,7 +91,7 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(resolvedModuleName).to.be.equal('/base/dir/src/test.vue');
+    expect(unixify(resolvedModuleName)).to.be.equal('/base/dir/src/test.vue');
 
     options.baseUrl = '/baseurl1';
     resolvedModuleName = VueProgram.resolveNonTsModuleName(
@@ -97,7 +100,7 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(resolvedModuleName).to.be.equal('/baseurl1/src/test.vue');
+    expect(unixify(resolvedModuleName)).to.be.equal('/baseurl1/src/test.vue');
 
     options.baseUrl = '/baseurl2';
     options.paths = { '@/*': ['src1/*'] };
@@ -107,7 +110,7 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(resolvedModuleName).to.be.equal('/baseurl2/src1/test.vue');
+    expect(unixify(resolvedModuleName)).to.be.equal('/baseurl2/src1/test.vue');
 
     options.baseUrl = '/baseurl3';
     options.paths = { '@/*': ['src1/src2/*'] };
@@ -117,7 +120,9 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(resolvedModuleName).to.be.equal('/baseurl3/src1/src2/test.vue');
+    expect(unixify(resolvedModuleName)).to.be.equal(
+      '/baseurl3/src1/src2/test.vue'
+    );
   });
 
   it('should extract script block', function() {

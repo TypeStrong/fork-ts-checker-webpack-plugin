@@ -1,3 +1,7 @@
+os:
+  - linux
+  - osx
+  # - windows - travis isn't windows ready yet; tests fail for meaningless reasons
 language: node_js
 node_js:
  - '10'

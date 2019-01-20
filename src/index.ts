@@ -205,8 +205,6 @@ class ForkTsCheckerWebpackPlugin {
 
     this.validateVersions();
 
-    this.validateVersions();
-
     this.vue = options.vue === true; // default false
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {

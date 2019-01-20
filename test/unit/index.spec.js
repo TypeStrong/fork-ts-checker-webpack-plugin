@@ -36,7 +36,10 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', function() {
 
     expect(function() {
       new ForkTsCheckerWebpackPlugin();
-    }).to.throw();
+    }).to.throw(
+      Error,
+      'Cannot use current typescript version of 2.0.8, the minimum required version is 2.1.0'
+    );
   });
 
   it('should throw if tslint not present', function() {
@@ -69,6 +72,9 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', function() {
 
     expect(function() {
       new ForkTsCheckerWebpackPlugin({ tslint: true });
-    }).to.throw();
+    }).to.throw(
+      Error,
+      'Cannot use current tslint version of 3.15.1, the minimum required version is 4.0.0'
+    );
   });
 });

@@ -5,6 +5,8 @@ var expect = require('chai').expect;
 var mockRequire = require('mock-require');
 
 describe('[UNIT] ForkTsCheckerWebpackPlugin', function() {
+  this.timeout(60000);
+
   afterEach(function() {
     mockRequire.stopAll();
   });

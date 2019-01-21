@@ -4,6 +4,7 @@ var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker')
   .IncrementalChecker;
+var NormalizedMessageFactories = require('../../lib/NormalizedMessageFactories');
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
@@ -57,6 +58,10 @@ exports.createVueCompiler = function(options) {
 
   var checker = new IncrementalChecker(
     require('typescript'),
+    NormalizedMessageFactories.makeCreateNormalizedMessageFromDiagnostic(
+      require('typescript')
+    ),
+    NormalizedMessageFactories.makeCreateNormalizedMessageFromRuleFailure,
     plugin.tsconfigPath,
     {},
     plugin.tslintPath || false,

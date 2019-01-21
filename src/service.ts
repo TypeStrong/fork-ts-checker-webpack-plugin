@@ -6,13 +6,25 @@ import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
+import {
+  makeCreateNormalizedMessageFromDiagnostic,
+  makeCreateNormalizedMessageFromRuleFailure
+} from './NormalizedMessageFactories';
 
 const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
+
+// message factories
+export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessageFromDiagnostic(
+  typescript
+);
+export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
 
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
     ? new ApiIncrementalChecker(
         typescript,
+        createNormalizedMessageFromDiagnostic,
+        createNormalizedMessageFromRuleFailure,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.TSLINT === '' ? false : process.env.TSLINT!,
@@ -21,6 +33,8 @@ const checker: IncrementalCheckerInterface =
       )
     : new IncrementalChecker(
         typescript,
+        createNormalizedMessageFromDiagnostic,
+        createNormalizedMessageFromRuleFailure,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.TSLINT === '' ? false : process.env.TSLINT!,

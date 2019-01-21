@@ -1,14 +1,5 @@
-import {
-  Diagnostic,
-  DiagnosticCategory,
-  flattenDiagnosticMessageText
-  // tslint:disable-next-line:no-implicit-dependencies
-} from 'typescript';
-// tslint:disable-next-line:no-implicit-dependencies
-import { RuleFailure } from 'tslint';
-
-type ErrorType = 'diagnostic' | 'lint';
-type Severity = 'error' | 'warning';
+export type ErrorType = 'diagnostic' | 'lint';
+export type Severity = 'error' | 'warning';
 
 interface NormalizedMessageJson {
   type: ErrorType;
@@ -44,50 +35,6 @@ export class NormalizedMessage {
     this.file = data.file;
     this.line = data.line;
     this.character = data.character;
-  }
-
-  // message types
-  public static createFromDiagnostic(diagnostic: Diagnostic) {
-    let file: string | undefined;
-    let line: number | undefined;
-    let character: number | undefined;
-    if (diagnostic.file) {
-      file = diagnostic.file.fileName;
-      if (diagnostic.start === undefined) {
-        throw new Error('Expected diagnostics to have start');
-      }
-      const position = diagnostic.file.getLineAndCharacterOfPosition(
-        diagnostic.start
-      );
-      line = position.line + 1;
-      character = position.character + 1;
-    }
-
-    return new NormalizedMessage({
-      type: NormalizedMessage.TYPE_DIAGNOSTIC,
-      code: diagnostic.code,
-      severity: DiagnosticCategory[
-        diagnostic.category
-      ].toLowerCase() as Severity,
-      content: flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-      file,
-      line,
-      character
-    });
-  }
-
-  public static createFromLint(lint: RuleFailure) {
-    const position = lint.getStartPosition().getLineAndCharacter();
-
-    return new NormalizedMessage({
-      type: NormalizedMessage.TYPE_LINT,
-      code: lint.getRuleName(),
-      severity: lint.getRuleSeverity() as Severity,
-      content: lint.getFailure(),
-      file: lint.getFileName(),
-      line: position.line + 1,
-      character: position.character + 1
-    });
   }
 
   public static createFromJSON(json: NormalizedMessageJson) {

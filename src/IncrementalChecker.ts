@@ -45,6 +45,12 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   constructor(
     private typescript: typeof ts,
+    private createNormalizedMessageFromDiagnostic: (
+      diagnostic: ts.Diagnostic
+    ) => NormalizedMessage,
+    private createNormalizedMessageFromRuleFailure: (
+      ruleFailure: RuleFailure
+    ) => NormalizedMessage,
     private programConfigFile: string,
     private compilerOptions: object,
     private linterConfigFile: string | false,
@@ -269,7 +275,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // normalize and deduplicate diagnostics
     return Promise.resolve(
       NormalizedMessage.deduplicate(
-        diagnostics.map(NormalizedMessage.createFromDiagnostic)
+        diagnostics.map(this.createNormalizedMessageFromDiagnostic)
       )
     );
   }
@@ -345,7 +351,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
     // normalize and deduplicate lints
     return NormalizedMessage.deduplicate(
-      lints.map(NormalizedMessage.createFromLint)
+      lints.map(this.createNormalizedMessageFromRuleFailure)
     );
   }
 }

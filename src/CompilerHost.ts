@@ -93,7 +93,7 @@ export class CompilerHost
         };
       });
       this.lastProcessing = initialCompile;
-      this.program = ts.createWatchProgram(this);
+      this.program = this.typescript.createWatchProgram(this);
       const errors = await initialCompile;
       return {
         results: errors,
@@ -237,9 +237,9 @@ export class CompilerHost
     this.tsHost.watchFile(
       path,
       (fileName, eventKind) => {
-        if (eventKind === ts.FileWatcherEventKind.Created) {
+        if (eventKind === this.typescript.FileWatcherEventKind.Created) {
           this.knownFiles.add(fileName);
-        } else if (eventKind === ts.FileWatcherEventKind.Deleted) {
+        } else if (eventKind === this.typescript.FileWatcherEventKind.Deleted) {
           this.knownFiles.delete(fileName);
         }
         slot.events.push({ fileName, eventKind });

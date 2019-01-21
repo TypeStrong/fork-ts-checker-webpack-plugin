@@ -1,7 +1,7 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { Configuration, Linter, LintResult } from 'tslint';
+import { Configuration, Linter, LintResult, RuleFailure } from 'tslint';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
@@ -31,6 +31,12 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   constructor(
     typescript: typeof ts,
+    private createNormalizedMessageFromDiagnostic: (
+      diagnostic: ts.Diagnostic
+    ) => NormalizedMessage,
+    private createNormalizedMessageFromRuleFailure: (
+      ruleFailure: RuleFailure
+    ) => NormalizedMessage,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     private linterConfigFile: string | false,
@@ -104,7 +110,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.lastRemovedFiles = diagnostics.removedFiles;
 
     return NormalizedMessage.deduplicate(
-      diagnostics.results.map(NormalizedMessage.createFromDiagnostic)
+      diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
     );
   }
 
@@ -150,7 +156,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     }
 
     return NormalizedMessage.deduplicate(
-      allLints.map(NormalizedMessage.createFromLint)
+      allLints.map(this.createNormalizedMessageFromRuleFailure)
     );
   }
 }

@@ -44,6 +44,7 @@ interface Options {
   formatter: 'default' | 'codeframe' | Formatter;
   formatterOptions: any;
   silent: boolean;
+  ignoreLintWarnings: boolean;
   checkSyntacticErrors: boolean;
   memoryLimit: number;
   workers: number;
@@ -87,6 +88,7 @@ class ForkTsCheckerWebpackPlugin {
   private reportFiles: string[];
   private logger: Logger;
   private silent: boolean;
+  private ignoreLintWarnings: boolean;
   private async: boolean;
   private checkSyntacticErrors: boolean;
   private workersNumber: number;
@@ -147,6 +149,7 @@ class ForkTsCheckerWebpackPlugin {
     this.reportFiles = options.reportFiles || [];
     this.logger = options.logger || console;
     this.silent = options.silent === true; // default false
+    this.ignoreLintWarnings = options.ignoreLintWarnings === true;
     this.async = options.async !== false; // default true
     this.checkSyntacticErrors = options.checkSyntacticErrors === true; // default false
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
@@ -792,7 +795,7 @@ class ForkTsCheckerWebpackPlugin {
           file: message.file
         };
 
-        if (message.isWarningSeverity()) {
+        if (message.isWarningSeverity() && !this.ignoreLintWarnings) {
           compilation.warnings.push(formatted);
         } else {
           compilation.errors.push(formatted);
@@ -838,7 +841,7 @@ class ForkTsCheckerWebpackPlugin {
           (this.lints || []).concat(this.diagnostics).forEach(message => {
             const formattedMessage = this.formatter(message, this.useColors);
 
-            message.isWarningSeverity()
+            message.isWarningSeverity() && !this.ignoreLintWarnings
               ? this.logger.warn(formattedMessage)
               : this.logger.error(formattedMessage);
           });
@@ -868,4 +871,6 @@ class ForkTsCheckerWebpackPlugin {
 
 export = ForkTsCheckerWebpackPlugin;
 
-namespace ForkTsCheckerWebpackPlugin {}
+namespace ForkTsCheckerWebpackPlugin {
+
+}

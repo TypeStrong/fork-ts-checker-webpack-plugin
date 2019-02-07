@@ -38,13 +38,13 @@ interface Options {
   async: boolean;
   ignoreDiagnostics: number[];
   ignoreLints: string[];
+  ignoreLintWarnings: boolean;
   reportFiles: string[];
   colors: boolean;
   logger: Logger;
   formatter: 'default' | 'codeframe' | Formatter;
   formatterOptions: any;
   silent: boolean;
-  ignoreLintWarnings: boolean;
   checkSyntacticErrors: boolean;
   memoryLimit: number;
   workers: number;
@@ -85,10 +85,10 @@ class ForkTsCheckerWebpackPlugin {
   private watch: string[];
   private ignoreDiagnostics: number[];
   private ignoreLints: string[];
+  private ignoreLintWarnings: boolean;
   private reportFiles: string[];
   private logger: Logger;
   private silent: boolean;
-  private ignoreLintWarnings: boolean;
   private async: boolean;
   private checkSyntacticErrors: boolean;
   private workersNumber: number;
@@ -146,10 +146,10 @@ class ForkTsCheckerWebpackPlugin {
       typeof options.watch === 'string' ? [options.watch] : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
     this.ignoreLints = options.ignoreLints || [];
+    this.ignoreLintWarnings = options.ignoreLintWarnings === true;
     this.reportFiles = options.reportFiles || [];
     this.logger = options.logger || console;
     this.silent = options.silent === true; // default false
-    this.ignoreLintWarnings = options.ignoreLintWarnings === true;
     this.async = options.async !== false; // default true
     this.checkSyntacticErrors = options.checkSyntacticErrors === true; // default false
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;

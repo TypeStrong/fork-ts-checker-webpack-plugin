@@ -25,7 +25,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
-  private static linterConfigs: Record<string, ConfigurationFile> = {};
+  private linterConfigs: Record<string, ConfigurationFile> = {};
   private files = new FilesRegister(() => ({
     // data shape
     source: undefined,
@@ -88,15 +88,23 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return parsed;
   }
 
-  private static getLinterConfig(file: string): ConfigurationFile {
+  private getLinterConfig(file: string): ConfigurationFile {
     const dirname = path.dirname(file);
     if (dirname in this.linterConfigs) {
       return this.linterConfigs[dirname];
     }
     if (FsHelper.existsSync(path.join(dirname, 'tslint.json'))) {
-      this.linterConfigs[dirname] = this.loadLinterConfig(
+      const config = IncrementalChecker.loadLinterConfig(
         path.join(dirname, 'tslint.json')
       );
+      if (config.linterOptions && config.linterOptions.exclude) {
+        this.linterExclusions.concat(
+          config.linterOptions.exclude.map(
+            pattern => new minimatch.Minimatch(path.resolve(pattern))
+          )
+        );
+      }
+      this.linterConfigs[dirname] = config;
     } else {
       if (dirname === '.') {
         throw new Error('no root tslint config file');
@@ -330,7 +338,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         linter.lint(
           fileName,
           undefined!,
-          this.linterConfig || IncrementalChecker.getLinterConfig(fileName)
+          this.linterConfig || this.getLinterConfig(fileName)
         );
       } catch (e) {
         if (

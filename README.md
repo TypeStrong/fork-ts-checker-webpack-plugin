@@ -65,8 +65,7 @@ Allows overriding TypeScript options. Should be specified in the same format as 
 
 * **tslint** `string | true | undefined`: 
   - If `string`, path to *tslint.json* file to check source files against.
-  - If `true`, uses `path.resolve(compiler.options.context, './tslint.json')`.
-  - If `undefined`, path to `tslint.json` file will be computed with respect to currently checked file, just like TSLint
+  - If `true`, path to `tslint.json` file will be computed with respect to currently checked file, just like TSLint
     CLI would do. Suppose you have a project:
     ```
     ./

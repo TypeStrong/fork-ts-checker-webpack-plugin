@@ -4,6 +4,7 @@ logs
 npm-debug.log*
 
 lib
+!test/**/lib
 
 # Coverage directory used by tools like istanbul
 coverage

@@ -87,6 +87,25 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return parsed;
   }
 
+  private static linterConfigs: Record<string, ConfigurationFile> = {};
+
+  private static getLinterConfig(file: string): ConfigurationFile {
+    const dirname = path.dirname(file);
+    if (dirname in this.linterConfigs) {
+      return this.linterConfigs[dirname];
+    }
+    if (fs.existsSync(path.join(dirname, 'tslint.json'))) {
+      this.linterConfigs[dirname] = this.loadLinterConfig(
+        path.join(dirname, 'tslint.json')
+      );
+      return this.linterConfigs[dirname];
+    }
+    if (file === '.') {
+      throw new Error('no tslint config file');
+    }
+    return this.getLinterConfig(dirname);
+  }
+
   private static loadLinterConfig(configFile: string): ConfigurationFile {
     // tslint:disable-next-line:no-implicit-dependencies
     const tslint = require('tslint');
@@ -308,7 +327,11 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
       try {
         // Assertion: `.lint` second parameter can be undefined
-        linter.lint(fileName, undefined!, this.linterConfig);
+        linter.lint(
+          fileName,
+          undefined!,
+          IncrementalChecker.getLinterConfig(fileName)
+        );
       } catch (e) {
         if (
           FsHelper.existsSync(fileName) &&

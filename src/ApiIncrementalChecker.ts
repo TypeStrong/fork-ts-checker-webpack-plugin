@@ -30,6 +30,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private lastUpdatedFiles: string[] = [];
   private lastRemovedFiles: string[] = [];
 
+  private readonly hasFixedConfig: boolean;
+
   constructor(
     typescript: typeof ts,
     private createNormalizedMessageFromDiagnostic: (
@@ -40,10 +42,12 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    private linterConfigFile: string | false,
+    private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean
   ) {
+    this.hasFixedConfig = typeof this.linterConfigFile === 'string';
+
     this.initLinterConfig();
 
     this.tsIncrementalCompiler = new CompilerHost(
@@ -55,10 +59,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private initLinterConfig() {
-    if (!this.linterConfig && this.linterConfigFile) {
-      this.linterConfig = ApiIncrementalChecker.loadLinterConfig(
-        this.linterConfigFile
-      );
+    if (!this.linterConfig && this.hasFixedConfig) {
+      this.linterConfig = ApiIncrementalChecker.loadLinterConfig(this
+        .linterConfigFile as string);
 
       if (
         this.linterConfig.linterOptions &&
@@ -117,7 +120,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public hasLinter(): boolean {
-    return true;
+    return !!this.linterConfigFile;
   }
 
   public isFileExcluded(filePath: string): boolean {
@@ -155,7 +158,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         linter.lint(
           updatedFile,
           undefined!,
-          this.linterConfig || this.getLinterConfig(updatedFile)
+          this.hasFixedConfig
+            ? this.linterConfig
+            : this.getLinterConfig(updatedFile)
         );
         const lints = linter.getResult();
         this.currentLintErrors.set(updatedFile, lints);

@@ -44,6 +44,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private programConfig?: ts.ParsedCommandLine;
   private watcher?: FilesWatcher;
 
+  private readonly hasFixedConfig: boolean;
+
   constructor(
     private typescript: typeof ts,
     private createNormalizedMessageFromDiagnostic: (
@@ -54,14 +56,16 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     private programConfigFile: string,
     private compilerOptions: object,
-    private linterConfigFile: string | false,
+    private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     private watchPaths: string[],
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
     private vue: boolean = false
-  ) {}
+  ) {
+    this.hasFixedConfig = typeof this.linterConfigFile === 'string';
+  }
 
   public static loadProgramConfig(
     typescript: typeof ts,
@@ -203,10 +207,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.watcher.watch();
     }
 
-    if (!this.linterConfig && this.linterConfigFile) {
-      this.linterConfig = IncrementalChecker.loadLinterConfig(
-        this.linterConfigFile
-      );
+    if (!this.linterConfig && this.hasFixedConfig) {
+      this.linterConfig = IncrementalChecker.loadLinterConfig(this
+        .linterConfigFile as string);
 
       if (
         this.linterConfig.linterOptions &&
@@ -223,7 +226,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
     this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
 
-    this.linter = this.createLinter(this.program!);
+    if (this.linterConfigFile) {
+      this.linter = this.createLinter(this.program!);
+    }
   }
 
   private loadVueProgram() {
@@ -336,7 +341,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         linter.lint(
           fileName,
           undefined!,
-          this.linterConfig || this.getLinterConfig(fileName)
+          this.hasFixedConfig
+            ? this.linterConfig
+            : this.getLinterConfig(fileName)
         );
       } catch (e) {
         if (

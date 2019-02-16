@@ -559,7 +559,7 @@ class ForkTsCheckerWebpackPlugin {
           TYPESCRIPT_PATH: this.typescriptPath,
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
-          TSLINT: this.tslintPath || '',
+          TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
           TSLINTAUTOFIX: this.tslintAutoFix,
           WATCH: this.isWatching ? this.watchPaths.join('|') : '',
           WORK_DIVISION: Math.max(1, this.workersNumber),

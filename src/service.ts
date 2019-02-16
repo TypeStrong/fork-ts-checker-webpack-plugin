@@ -27,7 +27,7 @@ const checker: IncrementalCheckerInterface =
         createNormalizedMessageFromRuleFailure,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
-        process.env.TSLINT === '' ? false : process.env.TSLINT!,
+        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         process.env.CHECK_SYNTACTIC_ERRORS === 'true'
       )
@@ -37,7 +37,7 @@ const checker: IncrementalCheckerInterface =
         createNormalizedMessageFromRuleFailure,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
-        process.env.TSLINT === '' ? false : process.env.TSLINT!,
+        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
         parseInt(process.env.WORK_NUMBER!, 10) || 0,

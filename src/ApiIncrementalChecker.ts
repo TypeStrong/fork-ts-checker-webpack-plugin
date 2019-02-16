@@ -21,6 +21,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
+  private linterConfigs: Record<string, ConfigurationFile> = {};
 
   private readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
@@ -73,6 +74,32 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     }
   }
 
+  private getLinterConfig(file: string): ConfigurationFile {
+    const dirname = path.dirname(file);
+    if (dirname in this.linterConfigs) {
+      return this.linterConfigs[dirname];
+    }
+    if (FsHelper.existsSync(path.join(dirname, 'tslint.json'))) {
+      const config = ApiIncrementalChecker.loadLinterConfig(
+        path.join(dirname, 'tslint.json')
+      );
+      if (config.linterOptions && config.linterOptions.exclude) {
+        this.linterExclusions.concat(
+          config.linterOptions.exclude.map(
+            pattern => new minimatch.Minimatch(path.resolve(pattern))
+          )
+        );
+      }
+      this.linterConfigs[dirname] = config;
+    } else {
+      if (dirname === '.') {
+        throw new Error('no root tslint config file');
+      }
+      this.linterConfigs[dirname] = this.getLinterConfig(dirname);
+    }
+    return this.linterConfigs[dirname];
+  }
+
   private static loadLinterConfig(configFile: string): ConfigurationFile {
     // tslint:disable-next-line:no-implicit-dependencies
     const tslint = require('tslint');
@@ -90,7 +117,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public hasLinter(): boolean {
-    return !!this.linterConfig;
+    return true;
   }
 
   public isFileExcluded(filePath: string): boolean {
@@ -115,10 +142,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public getLints(_cancellationToken: CancellationToken) {
-    if (!this.linterConfig) {
-      return [];
-    }
-
     for (const updatedFile of this.lastUpdatedFiles) {
       if (this.isFileExcluded(updatedFile)) {
         continue;
@@ -129,7 +152,11 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
           this.tsIncrementalCompiler.getProgram()
         );
         // const source = fs.readFileSync(updatedFile, 'utf-8');
-        linter.lint(updatedFile, undefined!, this.linterConfig);
+        linter.lint(
+          updatedFile,
+          undefined!,
+          this.linterConfig || this.getLinterConfig(updatedFile)
+        );
         const lints = linter.getResult();
         this.currentLintErrors.set(updatedFile, lints);
       } catch (e) {

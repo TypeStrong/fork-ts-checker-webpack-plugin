@@ -54,7 +54,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
       expect(plugin.tsconfig).to.equal('./tsconfig.json');
-      expect(plugin.tslint).to.equal('./tslint.json');
+      expect(plugin.tslint).to.equal(true);
     });
 
     it('should set logger to console by default', function() {

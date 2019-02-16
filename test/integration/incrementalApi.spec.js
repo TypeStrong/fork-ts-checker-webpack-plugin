@@ -123,21 +123,4 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
       callback();
     });
   });
-
-  it('should respect "tslint.json"s hierarchy when config-file not specified', function(callback) {
-    helpers.testLintHierarchicalConfigs(
-      callback,
-      {
-        tslint: true
-      },
-      (err, stats) => {
-        /*
-         * there are two identical arrow functions in index.ts and lib/func.ts
-         * and plugin should warn only once on typedef-rule
-         * because this rule is overriden inside lib/tslint.json
-         * */
-        expect(stats.compilation.warnings.length).to.equal(1);
-      }
-    );
-  });
 });

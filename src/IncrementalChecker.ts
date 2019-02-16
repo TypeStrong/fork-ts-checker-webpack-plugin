@@ -54,7 +54,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     private programConfigFile: string,
     private compilerOptions: object,
-    private linterConfigFile: string | false | undefined,
+    private linterConfigFile: string | false,
     private linterAutoFix: boolean,
     private watchPaths: string[],
     private workNumber: number = 0,
@@ -223,9 +223,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
     this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
 
-    if (this.linterConfig) {
-      this.linter = this.createLinter(this.program!);
-    }
+    this.linter = this.createLinter(this.program!);
   }
 
   private loadVueProgram() {

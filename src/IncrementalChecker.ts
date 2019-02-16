@@ -25,6 +25,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
+  private static linterConfigs: Record<string, ConfigurationFile> = {};
   private files = new FilesRegister(() => ({
     // data shape
     source: undefined,
@@ -53,7 +54,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     private programConfigFile: string,
     private compilerOptions: object,
-    private linterConfigFile: string | false,
+    private linterConfigFile: string | false | undefined,
     private linterAutoFix: boolean,
     private watchPaths: string[],
     private workNumber: number = 0,
@@ -87,23 +88,22 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return parsed;
   }
 
-  private static linterConfigs: Record<string, ConfigurationFile> = {};
-
   private static getLinterConfig(file: string): ConfigurationFile {
     const dirname = path.dirname(file);
     if (dirname in this.linterConfigs) {
       return this.linterConfigs[dirname];
     }
-    if (fs.existsSync(path.join(dirname, 'tslint.json'))) {
+    if (FsHelper.existsSync(path.join(dirname, 'tslint.json'))) {
       this.linterConfigs[dirname] = this.loadLinterConfig(
         path.join(dirname, 'tslint.json')
       );
-      return this.linterConfigs[dirname];
+    } else {
+      if (dirname === '.') {
+        throw new Error('no root tslint config file');
+      }
+      this.linterConfigs[dirname] = this.getLinterConfig(dirname);
     }
-    if (file === '.') {
-      throw new Error('no tslint config file');
-    }
-    return this.getLinterConfig(dirname);
+    return this.linterConfigs[dirname];
   }
 
   private static loadLinterConfig(configFile: string): ConfigurationFile {
@@ -330,7 +330,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         linter.lint(
           fileName,
           undefined!,
-          IncrementalChecker.getLinterConfig(fileName)
+          this.linterConfig || IncrementalChecker.getLinterConfig(fileName)
         );
       } catch (e) {
         if (

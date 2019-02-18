@@ -212,7 +212,7 @@ import Hello from '@/components/hello.vue'
 ```
 4. Add rules to your `tslint.json` and they will be applied to Vue files. For example, you could apply the Standard JS rules [tslint-config-standard](https://github.com/blakeembrey/tslint-config-standard) like this:  
 
-```js
+```json
 {
   "defaultSeverity": "error",
   "extends": [

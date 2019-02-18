@@ -811,6 +811,20 @@ class ForkTsCheckerWebpackPlugin {
     return function noopEmitCallback() {};
   }
 
+  private getLoggerMessage(
+    message: NormalizedMessage,
+    formattedMessage: string
+  ): string | void {
+    if (message.isWarningSeverity()) {
+      if (this.ignoreLintWarnings) {
+        return;
+      }
+      this.logger.warn(formattedMessage);
+    } else {
+      this.logger.error(formattedMessage);
+    }
+  }
+
   private createDoneCallback() {
     return function doneCallback(this: ForkTsCheckerWebpackPlugin) {
       if (!this.elapsed) {
@@ -841,9 +855,7 @@ class ForkTsCheckerWebpackPlugin {
           (this.lints || []).concat(this.diagnostics).forEach(message => {
             const formattedMessage = this.formatter(message, this.useColors);
 
-            message.isWarningSeverity() && !this.ignoreLintWarnings
-              ? this.logger.warn(formattedMessage)
-              : this.logger.error(formattedMessage);
+            this.getLoggerMessage(message, formattedMessage);
           });
         }
         if (!this.diagnostics.length) {
@@ -871,6 +883,4 @@ class ForkTsCheckerWebpackPlugin {
 
 export = ForkTsCheckerWebpackPlugin;
 
-namespace ForkTsCheckerWebpackPlugin {
-
-}
+namespace ForkTsCheckerWebpackPlugin {}

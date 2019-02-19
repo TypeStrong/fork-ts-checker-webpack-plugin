@@ -811,10 +811,10 @@ class ForkTsCheckerWebpackPlugin {
     return function noopEmitCallback() {};
   }
 
-  private getLoggerMessage(
+  private printLoggerMessage(
     message: NormalizedMessage,
     formattedMessage: string
-  ): string | void {
+  ): void {
     if (message.isWarningSeverity()) {
       if (this.ignoreLintWarnings) {
         return;
@@ -855,7 +855,7 @@ class ForkTsCheckerWebpackPlugin {
           (this.lints || []).concat(this.diagnostics).forEach(message => {
             const formattedMessage = this.formatter(message, this.useColors);
 
-            this.getLoggerMessage(message, formattedMessage);
+            this.printLoggerMessage(message, formattedMessage);
           });
         }
         if (!this.diagnostics.length) {

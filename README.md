@@ -174,11 +174,11 @@ This plugin provides some custom webpack hooks (all are sync):
 ## Vue
 1. Turn on the vue option in the plugin in your webpack config:
 
-```
-    new ForkTsCheckerWebpackPlugin({
-      tslint: true,
-      vue: true
-    })
+```js
+new ForkTsCheckerWebpackPlugin({
+  tslint: true,
+  vue: true
+})
 ```
 
 2. To activate TypeScript in your `.vue` files, you need to ensure your script tag's language attribute is set
@@ -189,13 +189,12 @@ to `ts` or `tsx` (also make sure you include the `.vue` extension in all your im
 import Hello from '@/components/hello.vue'
 
 // ...
-
 </script>
 ```
 
 3. Ideally you are also using `ts-loader` (in transpileOnly mode). Your Webpack config rules may look something like this:  
 
-```
+```js
 {
   test: /\.ts$/,
   loader: 'ts-loader',
@@ -215,15 +214,15 @@ import Hello from '@/components/hello.vue'
 
 ```json
 {
-    "defaultSeverity": "error",
-    "extends": [
-      "tslint-config-standard"
-    ]
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint-config-standard"
+  ]
 }
 ```
 5. Ensure your `tsconfig.json` includes .vue files:  
 
-```
+```js
 // tsconfig.json
 {
   "include": [
@@ -231,13 +230,13 @@ import Hello from '@/components/hello.vue'
     "src/**/*.vue"
   ],
   "exclude": [
-      "node_modules"
+    "node_modules"
   ]
 }
 ```
 
 6. It accepts any wildcard in your TypeScript configuration:  
-```
+```js
 // tsconfig.json
 {
   "compilerOptions": {

@@ -82,6 +82,9 @@ List of typescript diagnostic codes to ignore.
 * **ignoreLints** `string[]`: 
 List of tslint rule names to ignore.
 
+* **ignoreLintWarnings** `boolean`:
+If true, will ignore all lint warnings.
+
 * **reportFiles** `string[]`: 
 Only report errors on files matching these glob patterns. This can be useful when certain types definitions have errors that are not fatal to your application. Default: `[]`.
 

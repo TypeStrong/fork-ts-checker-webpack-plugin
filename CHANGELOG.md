@@ -1,3 +1,7 @@
+## v1.0.0-alpha.7
+
+* [Add ignoreLintWarnings option](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/213)
+
 ## v1.0.0-alpha.6
 
 * [don't directly depend upon typescript](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/208)

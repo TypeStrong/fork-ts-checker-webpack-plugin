@@ -38,6 +38,7 @@ interface Options {
   async: boolean;
   ignoreDiagnostics: number[];
   ignoreLints: string[];
+  ignoreLintWarnings: boolean;
   reportFiles: string[];
   colors: boolean;
   logger: Logger;
@@ -84,6 +85,7 @@ class ForkTsCheckerWebpackPlugin {
   private watch: string[];
   private ignoreDiagnostics: number[];
   private ignoreLints: string[];
+  private ignoreLintWarnings: boolean;
   private reportFiles: string[];
   private logger: Logger;
   private silent: boolean;
@@ -144,6 +146,7 @@ class ForkTsCheckerWebpackPlugin {
       typeof options.watch === 'string' ? [options.watch] : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
     this.ignoreLints = options.ignoreLints || [];
+    this.ignoreLintWarnings = options.ignoreLintWarnings === true;
     this.reportFiles = options.reportFiles || [];
     this.logger = options.logger || console;
     this.silent = options.silent === true; // default false
@@ -792,7 +795,7 @@ class ForkTsCheckerWebpackPlugin {
           file: message.file
         };
 
-        if (message.isWarningSeverity()) {
+        if (message.isWarningSeverity() && !this.ignoreLintWarnings) {
           compilation.warnings.push(formatted);
         } else {
           compilation.errors.push(formatted);
@@ -806,6 +809,20 @@ class ForkTsCheckerWebpackPlugin {
   private createNoopEmitCallback() {
     // tslint:disable-next-line:no-empty
     return function noopEmitCallback() {};
+  }
+
+  private printLoggerMessage(
+    message: NormalizedMessage,
+    formattedMessage: string
+  ): void {
+    if (message.isWarningSeverity()) {
+      if (this.ignoreLintWarnings) {
+        return;
+      }
+      this.logger.warn(formattedMessage);
+    } else {
+      this.logger.error(formattedMessage);
+    }
   }
 
   private createDoneCallback() {
@@ -838,9 +855,7 @@ class ForkTsCheckerWebpackPlugin {
           (this.lints || []).concat(this.diagnostics).forEach(message => {
             const formattedMessage = this.formatter(message, this.useColors);
 
-            message.isWarningSeverity()
-              ? this.logger.warn(formattedMessage)
-              : this.logger.error(formattedMessage);
+            this.printLoggerMessage(message, formattedMessage);
           });
         }
         if (!this.diagnostics.length) {

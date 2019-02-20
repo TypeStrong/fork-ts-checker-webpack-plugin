@@ -1,3 +1,7 @@
+## v1.0.0-alpha.8
+
+* [Respect tslint configs hierarchical order](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/214)
+
 ## v1.0.0-alpha.7
 
 * [Add ignoreLintWarnings option](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/213)

@@ -318,11 +318,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         },
         (err, stats) => {
           /*
-           * there are two identical arrow functions in index.ts and lib/func.ts
-           * and plugin should warn only once on typedef-rule
+           * there are three identical arrow functions
+           * in index.ts, lib/func.ts and lib/utils/func.ts
+           * and plugin should warn three times on typedef-rule
+           * twice on "arrow-call-signature" and once on "arrow-parameter"
            * because this rule is overriden inside lib/tslint.json
            * */
-          expect(stats.compilation.warnings.length).to.equal(1);
+          expect(stats.compilation.warnings.length).to.equal(3);
         }
       );
     });

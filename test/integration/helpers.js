@@ -64,6 +64,7 @@ exports.createVueCompiler = function(options) {
     NormalizedMessageFactories.makeCreateNormalizedMessageFromRuleFailure,
     plugin.tsconfigPath,
     {},
+    path.resolve(__dirname, './vue'),
     plugin.tslintPath || false,
     plugin.tslintAutoFix || false,
     [compiler.context],

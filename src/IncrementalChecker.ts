@@ -25,7 +25,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
-  private linterConfigs: Record<string, ConfigurationFile> = {};
+  private linterConfigs: Record<string, ConfigurationFile | undefined> = {};
   private files = new FilesRegister(() => ({
     // data shape
     source: undefined,
@@ -56,6 +56,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     private programConfigFile: string,
     private compilerOptions: object,
+    private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     private watchPaths: string[],
@@ -92,11 +93,12 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return parsed;
   }
 
-  private getLinterConfig(file: string): ConfigurationFile {
+  private getLinterConfig(file: string): ConfigurationFile | undefined {
     const dirname = path.dirname(file);
     if (dirname in this.linterConfigs) {
       return this.linterConfigs[dirname];
     }
+
     if (FsHelper.existsSync(path.join(dirname, 'tslint.json'))) {
       const config = IncrementalChecker.loadLinterConfig(
         path.join(dirname, 'tslint.json')
@@ -110,10 +112,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       }
       this.linterConfigs[dirname] = config;
     } else {
-      if (dirname === '.') {
-        throw new Error('no root tslint config file');
+      if (dirname !== this.context && dirname !== file) {
+        this.linterConfigs[dirname] = this.getLinterConfig(dirname);
       }
-      this.linterConfigs[dirname] = this.getLinterConfig(dirname);
     }
     return this.linterConfigs[dirname];
   }
@@ -335,16 +336,16 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // lint given work set
     workSet.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
+      const config = this.hasFixedConfig
+        ? this.linterConfig
+        : this.getLinterConfig(fileName);
+      if (!config) {
+        return;
+      }
 
       try {
         // Assertion: `.lint` second parameter can be undefined
-        linter.lint(
-          fileName,
-          undefined!,
-          this.hasFixedConfig
-            ? this.linterConfig
-            : this.getLinterConfig(fileName)
-        );
+        linter.lint(fileName, undefined!, config);
       } catch (e) {
         if (
           FsHelper.existsSync(fileName) &&

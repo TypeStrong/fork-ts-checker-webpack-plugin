@@ -563,6 +563,7 @@ class ForkTsCheckerWebpackPlugin {
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
           TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
+          CONTEXT: this.compiler.options.context,
           TSLINTAUTOFIX: this.tslintAutoFix,
           WATCH: this.isWatching ? this.watchPaths.join('|') : '',
           WORK_DIVISION: Math.max(1, this.workersNumber),

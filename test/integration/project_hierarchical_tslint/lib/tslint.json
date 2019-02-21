@@ -1,9 +1,11 @@
 {
+  "defaultSeverity": "warning",
   "extends": [
-    "../tslint.json"
+    "tslint:recommended"
   ],
   "jsRules": {},
   "rules": {
     "typedef": [true, "arrow-call-signature"]
-  }
+  },
+  "rulesDirectory": []
 }

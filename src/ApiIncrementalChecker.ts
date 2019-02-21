@@ -21,7 +21,7 @@ interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
-  private linterConfigs: Record<string, ConfigurationFile> = {};
+  private linterConfigs: Record<string, ConfigurationFile | undefined> = {};
 
   private readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
@@ -42,6 +42,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
+    private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean
@@ -77,7 +78,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     }
   }
 
-  private getLinterConfig(file: string): ConfigurationFile {
+  private getLinterConfig(file: string): ConfigurationFile | undefined {
     const dirname = path.dirname(file);
     if (dirname in this.linterConfigs) {
       return this.linterConfigs[dirname];
@@ -95,10 +96,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       }
       this.linterConfigs[dirname] = config;
     } else {
-      if (dirname === '.') {
-        throw new Error('no root tslint config file');
+      if (dirname !== this.context) {
+        this.linterConfigs[dirname] = this.getLinterConfig(dirname);
       }
-      this.linterConfigs[dirname] = this.getLinterConfig(dirname);
     }
     return this.linterConfigs[dirname];
   }
@@ -154,14 +154,14 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         const linter = this.createLinter(
           this.tsIncrementalCompiler.getProgram()
         );
+        const config = this.hasFixedConfig
+          ? this.linterConfig
+          : this.getLinterConfig(updatedFile);
+        if (!config) {
+          continue;
+        }
         // const source = fs.readFileSync(updatedFile, 'utf-8');
-        linter.lint(
-          updatedFile,
-          undefined!,
-          this.hasFixedConfig
-            ? this.linterConfig
-            : this.getLinterConfig(updatedFile)
-        );
+        linter.lint(updatedFile, undefined!, config);
         const lints = linter.getResult();
         this.currentLintErrors.set(updatedFile, lints);
       } catch (e) {

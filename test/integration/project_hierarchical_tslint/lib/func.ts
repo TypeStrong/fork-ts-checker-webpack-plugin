@@ -1,1 +1,1 @@
-export const func = () => undefined;
+export const func = a => a; // one error here

@@ -5,7 +5,8 @@
   ],
   "jsRules": {},
   "rules": {
-    "typedef": [true, "arrow-call-signature"]
+    "typedef": [true, "arrow-call-signature"],
+    "arrow-parens": false
   },
   "rulesDirectory": []
 }

@@ -1,26 +1,23 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { Configuration, Linter, LintResult, RuleFailure } from 'tslint';
+import { Linter, LintResult, RuleFailure } from 'tslint';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
+import {
+  ConfigurationFile,
+  loadLinterConfig,
+  makeGetLinterConfig
+} from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { FsHelper } from './FsHelper';
 
-// Need some augmentation here - linterOptions.exclude is not (yet) part of the official
-// types for tslint.
-interface ConfigurationFile extends Configuration.IConfigurationFile {
-  linterOptions?: {
-    typeCheck?: boolean;
-    exclude?: string[];
-  };
-}
-
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
+  private linterConfigs: Record<string, ConfigurationFile | undefined> = {};
 
   private readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
@@ -28,6 +25,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private currentLintErrors = new Map<string, LintResult>();
   private lastUpdatedFiles: string[] = [];
   private lastRemovedFiles: string[] = [];
+
+  private readonly hasFixedConfig: boolean;
 
   constructor(
     typescript: typeof ts,
@@ -39,10 +38,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    private linterConfigFile: string | false,
+    private context: string,
+    private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean
   ) {
+    this.hasFixedConfig = typeof this.linterConfigFile === 'string';
+
     this.initLinterConfig();
 
     this.tsIncrementalCompiler = new CompilerHost(
@@ -54,10 +56,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private initLinterConfig() {
-    if (!this.linterConfig && this.linterConfigFile) {
-      this.linterConfig = ApiIncrementalChecker.loadLinterConfig(
-        this.linterConfigFile
-      );
+    if (!this.linterConfig && this.hasFixedConfig) {
+      this.linterConfig = loadLinterConfig(this.linterConfigFile as string);
 
       if (
         this.linterConfig.linterOptions &&
@@ -73,14 +73,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     }
   }
 
-  private static loadLinterConfig(configFile: string): ConfigurationFile {
-    // tslint:disable-next-line:no-implicit-dependencies
-    const tslint = require('tslint');
-
-    return tslint.Configuration.loadConfigurationFromPath(
-      configFile
-    ) as ConfigurationFile;
-  }
+  private getLinterConfig: (
+    file: string
+  ) => ConfigurationFile | undefined = makeGetLinterConfig(
+    this.linterConfigs,
+    this.linterExclusions,
+    this.context
+  );
 
   private createLinter(program: ts.Program): Linter {
     // tslint:disable-next-line:no-implicit-dependencies
@@ -90,7 +89,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public hasLinter(): boolean {
-    return !!this.linterConfig;
+    return !!this.linterConfigFile;
   }
 
   public isFileExcluded(filePath: string): boolean {
@@ -115,10 +114,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public getLints(_cancellationToken: CancellationToken) {
-    if (!this.linterConfig) {
-      return [];
-    }
-
     for (const updatedFile of this.lastUpdatedFiles) {
       if (this.isFileExcluded(updatedFile)) {
         continue;
@@ -128,8 +123,14 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         const linter = this.createLinter(
           this.tsIncrementalCompiler.getProgram()
         );
+        const config = this.hasFixedConfig
+          ? this.linterConfig
+          : this.getLinterConfig(updatedFile);
+        if (!config) {
+          continue;
+        }
         // const source = fs.readFileSync(updatedFile, 'utf-8');
-        linter.lint(updatedFile, undefined!, this.linterConfig);
+        linter.lint(updatedFile, undefined!, config);
         const lints = linter.getResult();
         this.currentLintErrors.set(updatedFile, lints);
       } catch (e) {

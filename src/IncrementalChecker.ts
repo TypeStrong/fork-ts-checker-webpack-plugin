@@ -3,9 +3,14 @@ import * as path from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
 // tslint:disable-next-line:no-implicit-dependencies
-import { Configuration, Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+import { Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
+import {
+  ConfigurationFile,
+  loadLinterConfig,
+  makeGetLinterConfig
+} from './linterConfigHelpers';
 import { WorkSet } from './WorkSet';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CancellationToken } from './CancellationToken';
@@ -14,17 +19,9 @@ import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 
-// Need some augmentation here - linterOptions.exclude is not (yet) part of the official
-// types for tslint.
-interface ConfigurationFile extends Configuration.IConfigurationFile {
-  linterOptions?: {
-    typeCheck?: boolean;
-    exclude?: string[];
-  };
-}
-
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
+  private linterConfigs: Record<string, ConfigurationFile | undefined> = {};
   private files = new FilesRegister(() => ({
     // data shape
     source: undefined,
@@ -43,6 +40,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private programConfig?: ts.ParsedCommandLine;
   private watcher?: FilesWatcher;
 
+  private readonly hasFixedConfig: boolean;
+
   constructor(
     private typescript: typeof ts,
     private createNormalizedMessageFromDiagnostic: (
@@ -53,14 +52,17 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     private programConfigFile: string,
     private compilerOptions: object,
-    private linterConfigFile: string | false,
+    private context: string,
+    private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     private watchPaths: string[],
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
     private vue: boolean = false
-  ) {}
+  ) {
+    this.hasFixedConfig = typeof this.linterConfigFile === 'string';
+  }
 
   public static loadProgramConfig(
     typescript: typeof ts,
@@ -87,14 +89,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return parsed;
   }
 
-  private static loadLinterConfig(configFile: string): ConfigurationFile {
-    // tslint:disable-next-line:no-implicit-dependencies
-    const tslint = require('tslint');
-
-    return tslint.Configuration.loadConfigurationFromPath(
-      configFile
-    ) as ConfigurationFile;
-  }
+  private getLinterConfig: (
+    file: string
+  ) => ConfigurationFile | undefined = makeGetLinterConfig(
+    this.linterConfigs,
+    this.linterExclusions,
+    this.context
+  );
 
   private static createProgram(
     typescript: typeof ts,
@@ -176,10 +177,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.watcher.watch();
     }
 
-    if (!this.linterConfig && this.linterConfigFile) {
-      this.linterConfig = IncrementalChecker.loadLinterConfig(
-        this.linterConfigFile
-      );
+    if (!this.linterConfig && this.hasFixedConfig) {
+      this.linterConfig = loadLinterConfig(this.linterConfigFile as string);
 
       if (
         this.linterConfig.linterOptions &&
@@ -196,7 +195,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
     this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
 
-    if (this.linterConfig) {
+    if (this.linterConfigFile) {
       this.linter = this.createLinter(this.program!);
     }
   }
@@ -305,10 +304,16 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // lint given work set
     workSet.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
+      const config = this.hasFixedConfig
+        ? this.linterConfig
+        : this.getLinterConfig(fileName);
+      if (!config) {
+        return;
+      }
 
       try {
         // Assertion: `.lint` second parameter can be undefined
-        linter.lint(fileName, undefined!, this.linterConfig);
+        linter.lint(fileName, undefined!, config);
       } catch (e) {
         if (
           FsHelper.existsSync(fileName) &&

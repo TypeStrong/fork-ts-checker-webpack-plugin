@@ -63,8 +63,26 @@ Path to *tsconfig.json* file. Default: `path.resolve(compiler.options.context, '
 * **compilerOptions** `object`:
 Allows overriding TypeScript options. Should be specified in the same format as you would do for the `compilerOptions` property in tsconfig.json. Default: `{}`.
 
-* **tslint** `string | true`: 
-Path to *tslint.json* file or `true`. If `true`, uses `path.resolve(compiler.options.context, './tslint.json')`. Default: `undefined`.
+* **tslint** `string | true | undefined`: 
+  - If `string`, path to *tslint.json* file to check source files against.
+  - If `true`, path to `tslint.json` file will be computed with respect to currently checked file, just like TSLint
+    CLI would do. Suppose you have a project:
+    ```
+    ./
+      tslint.json
+
+      src/
+        file.ts
+        anotherFile.ts
+
+        lib/
+          tslint.json
+          someHelperFile.ts
+    ```
+    In such a case `src/file.ts` and `src/anotherFile.ts` would be checked against root `tslint.json`, and
+    `src/lib/someHelperFile.ts` would be checked against `src/lib/tslint.json`.
+  
+  Default: `undefined`.
 
 * **tslintAutoFix** `boolean `:
 Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.

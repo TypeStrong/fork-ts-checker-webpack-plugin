@@ -138,7 +138,7 @@ class ForkTsCheckerWebpackPlugin {
         : {};
     this.tslint = options.tslint
       ? options.tslint === true
-        ? './tslint.json'
+        ? true
         : options.tslint
       : undefined;
     this.tslintAutoFix = options.tslintAutoFix || false;
@@ -249,9 +249,10 @@ class ForkTsCheckerWebpackPlugin {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
-    this.tslintPath = this.tslint
-      ? this.computeContextPath(this.tslint as string)
-      : undefined;
+    this.tslintPath =
+      typeof this.tslint === 'string'
+        ? this.computeContextPath(this.tslint as string)
+        : undefined;
     this.watchPaths = this.watch.map(this.computeContextPath);
 
     // validate config
@@ -561,7 +562,8 @@ class ForkTsCheckerWebpackPlugin {
           TYPESCRIPT_PATH: this.typescriptPath,
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
-          TSLINT: this.tslintPath || '',
+          TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
+          CONTEXT: this.compiler.options.context,
           TSLINTAUTOFIX: this.tslintAutoFix,
           WATCH: this.isWatching ? this.watchPaths.join('|') : '',
           WORK_DIVISION: Math.max(1, this.workersNumber),

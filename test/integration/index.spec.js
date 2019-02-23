@@ -54,7 +54,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
       expect(plugin.tsconfig).to.equal('./tsconfig.json');
-      expect(plugin.tslint).to.equal('./tslint.json');
+      expect(plugin.tslint).to.equal(true);
     });
 
     it('should set logger to console by default', function() {
@@ -308,6 +308,25 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       }
 
       compiler.run(function() {});
+    });
+
+    it('should respect "tslint.json"s hierarchy when config-file not specified', function(callback) {
+      helpers.testLintHierarchicalConfigs(
+        callback,
+        {
+          tslint: true
+        },
+        (err, stats) => {
+          /*
+           * there are three identical arrow functions
+           * in index.ts, lib/func.ts and lib/utils/func.ts
+           * and plugin should warn three times on typedef-rule
+           * twice on "arrow-call-signature" and once on "arrow-parameter"
+           * because this rule is overriden inside lib/tslint.json
+           * */
+          expect(stats.compilation.warnings.length).to.equal(3);
+        }
+      );
     });
   };
 }

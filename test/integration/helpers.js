@@ -64,6 +64,7 @@ exports.createVueCompiler = function(options) {
     NormalizedMessageFactories.makeCreateNormalizedMessageFromRuleFailure,
     plugin.tsconfigPath,
     {},
+    path.resolve(__dirname, './vue'),
     plugin.tslintPath || false,
     plugin.tslintAutoFix || false,
     [compiler.context],
@@ -81,7 +82,8 @@ exports.createVueCompiler = function(options) {
 exports.createCompiler = function(
   options,
   happyPackMode,
-  entryPoint = './src/index.ts'
+  entryPoint = './src/index.ts',
+  context = './project'
 ) {
   var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
 
@@ -91,7 +93,7 @@ exports.createCompiler = function(
 
   var webpackInstance = webpack({
     ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
-    context: path.resolve(__dirname, './project'),
+    context: path.resolve(__dirname, context),
     entry: entryPoint,
     output: {
       path: path.resolve(__dirname, '../../tmp')
@@ -164,4 +166,25 @@ exports.testLintAutoFixTest = (
       throw err;
     }
   );
+};
+
+exports.testLintHierarchicalConfigs = (
+  testCallback,
+  options,
+  afterCompilerRan
+) => {
+  var compiler = exports.createCompiler(
+    options,
+    false,
+    './index.ts',
+    './project_hierarchical_tslint'
+  ).webpack;
+
+  compiler.run(function(err, stats) {
+    try {
+      afterCompilerRan(err, stats);
+    } finally {
+      testCallback();
+    }
+  });
 };

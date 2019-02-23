@@ -1,0 +1,12 @@
+{
+  "defaultSeverity": "warning",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": {
+    "typedef": [true, "arrow-call-signature"],
+    "arrow-parens": false
+  },
+  "rulesDirectory": []
+}

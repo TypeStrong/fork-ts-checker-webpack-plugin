@@ -1,23 +1,19 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { Configuration, Linter, LintResult, RuleFailure } from 'tslint';
+import { Linter, LintResult, RuleFailure } from 'tslint';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
+import {
+  ConfigurationFile,
+  loadLinterConfig,
+  makeGetLinterConfig
+} from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { FsHelper } from './FsHelper';
-
-// Need some augmentation here - linterOptions.exclude is not (yet) part of the official
-// types for tslint.
-interface ConfigurationFile extends Configuration.IConfigurationFile {
-  linterOptions?: {
-    typeCheck?: boolean;
-    exclude?: string[];
-  };
-}
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -61,8 +57,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   private initLinterConfig() {
     if (!this.linterConfig && this.hasFixedConfig) {
-      this.linterConfig = ApiIncrementalChecker.loadLinterConfig(this
-        .linterConfigFile as string);
+      this.linterConfig = loadLinterConfig(this.linterConfigFile as string);
 
       if (
         this.linterConfig.linterOptions &&
@@ -78,39 +73,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     }
   }
 
-  private getLinterConfig(file: string): ConfigurationFile | undefined {
-    const dirname = path.dirname(file);
-    if (dirname in this.linterConfigs) {
-      return this.linterConfigs[dirname];
-    }
-    if (FsHelper.existsSync(path.join(dirname, 'tslint.json'))) {
-      const config = ApiIncrementalChecker.loadLinterConfig(
-        path.join(dirname, 'tslint.json')
-      );
-      if (config.linterOptions && config.linterOptions.exclude) {
-        this.linterExclusions.concat(
-          config.linterOptions.exclude.map(
-            pattern => new minimatch.Minimatch(path.resolve(pattern))
-          )
-        );
-      }
-      this.linterConfigs[dirname] = config;
-    } else {
-      if (dirname !== this.context) {
-        this.linterConfigs[dirname] = this.getLinterConfig(dirname);
-      }
-    }
-    return this.linterConfigs[dirname];
-  }
-
-  private static loadLinterConfig(configFile: string): ConfigurationFile {
-    // tslint:disable-next-line:no-implicit-dependencies
-    const tslint = require('tslint');
-
-    return tslint.Configuration.loadConfigurationFromPath(
-      configFile
-    ) as ConfigurationFile;
-  }
+  private getLinterConfig: (
+    file: string
+  ) => ConfigurationFile | undefined = makeGetLinterConfig(
+    this.linterConfigs,
+    this.linterExclusions,
+    this.context
+  );
 
   private createLinter(program: ts.Program): Linter {
     // tslint:disable-next-line:no-implicit-dependencies

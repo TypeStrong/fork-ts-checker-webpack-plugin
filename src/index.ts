@@ -165,9 +165,6 @@ class ForkTsCheckerWebpackPlugin {
             options.formatterOptions || {}
           );
 
-    this.useTypescriptIncrementalApi =
-      options.useTypescriptIncrementalApi || false;
-
     this.tsconfigPath = undefined;
     this.tslintPath = undefined;
     this.watchPaths = [];
@@ -207,6 +204,11 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     this.validateVersions();
+
+    this.useTypescriptIncrementalApi =
+      options.useTypescriptIncrementalApi === undefined
+        ? semver.gte(this.typescriptVersion, '3.0.0')
+        : options.useTypescriptIncrementalApi;
 
     this.vue = options.vue === true; // default false
     this.measureTime = options.measureCompilationTime === true;

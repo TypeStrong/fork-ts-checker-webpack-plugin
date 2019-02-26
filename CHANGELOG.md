@@ -1,3 +1,7 @@
+## v1.0.0-alpha.9
+
+* [Default to incremental api usage to true if TS 3+](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/217)
+
 ## v1.0.0-alpha.8
 
 * [Respect tslint configs hierarchical order](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/214)

@@ -70,7 +70,10 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     });
 
     it('should set watch to one element array for string', function() {
-      var plugin = new ForkTsCheckerWebpackPlugin({ watch: '/test' });
+      var plugin = new ForkTsCheckerWebpackPlugin({
+        useTypescriptIncrementalApi: false,
+        watch: '/test'
+      });
 
       expect(plugin.watch).to.deep.equal(['/test']);
     });

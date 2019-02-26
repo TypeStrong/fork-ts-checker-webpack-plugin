@@ -146,7 +146,7 @@ If `true`, the linter and compiler will process VueJs single-file-component (.vu
 * **useTypescriptIncrementalApi** `boolean`:
 If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1 
 worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation 
-may be much faster, even compared to multi-threaded compilation. 
+may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with typescript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
 
 * **measureCompilationTime** `boolean`:
 If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,

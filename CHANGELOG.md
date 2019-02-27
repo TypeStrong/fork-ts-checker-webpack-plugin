@@ -1,3 +1,13 @@
+## v1.0.0
+
+* [Going 1.0](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/218)
+
+This is the first major version of `fork-ts-checker-webpack-plugin`. A long time coming :-)
+
+There are actually no breaking changes that we're aware of; users of 0.x `fork-ts-checker-webpack-plugin` should be be able to upgrade without making any changes.  Users of TypeScript 3+ may notice a performance improvement as by default the plugin now uses the [incremental watch API](https://github.com/Microsoft/TypeScript/pull/20234) in TypeScript.  Should this prove problematic (and we've had no issues reported so far) you can opt out of using it by supplying `useTypescriptIncrementalApi: false`. 
+
+The plugin supports webpack 2, 3, 4 and 5 alpha and TypeScript 2.1+.
+
 ## v1.0.0-alpha.9
 
 * [Default to incremental api usage to true if TS 3+](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/217)

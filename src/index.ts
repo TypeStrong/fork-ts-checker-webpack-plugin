@@ -205,12 +205,13 @@ class ForkTsCheckerWebpackPlugin {
 
     this.validateVersions();
 
+    this.vue = options.vue === true; // default false
+
     this.useTypescriptIncrementalApi =
       options.useTypescriptIncrementalApi === undefined
-        ? semver.gte(this.typescriptVersion, '3.0.0')
+        ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
         : options.useTypescriptIncrementalApi;
 
-    this.vue = options.vue === true; // default false
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
       // Node 8+ only

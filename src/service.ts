@@ -30,7 +30,8 @@ const checker: IncrementalCheckerInterface =
         process.env.CONTEXT!,
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true'
+        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
+        process.env.VUE === 'true'
       )
     : new IncrementalChecker(
         typescript,

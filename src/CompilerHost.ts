@@ -30,6 +30,13 @@ export class CompilerHost
     return this.knownFiles;
   }
 
+  public resolveModuleNames?(
+    moduleNames: string[],
+    containingFile: string,
+    reusedNames?: string[],
+    redirectedReference?: ts.ResolvedProjectReference
+  ): (ts.ResolvedModule | undefined)[];
+
   public configFileName: string;
   public optionsToExtend: ts.CompilerOptions;
 
@@ -55,23 +62,38 @@ export class CompilerHost
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    private vue: boolean = false
   ) {
-    this.tsHost = typescript.createWatchCompilerHost(
-      programConfigFile,
-      compilerOptions,
-      typescript.sys,
-      typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
-      (diag: ts.Diagnostic) => {
-        if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
-          return;
-        }
-        this.gatheredDiagnostic.push(diag);
-      },
-      () => {
-        // do nothing
+    const diagCallback = (diag: ts.Diagnostic) => {
+      if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
+        return;
       }
-    );
+      this.gatheredDiagnostic.push(diag);
+    };
+
+    if (this.vue) {
+      this.tsHost = VueProgram.createWatchCompilerHost(
+        typescript,
+        programConfigFile,
+        compilerOptions,
+        diagCallback
+      );
+
+      this.createProgram = this.tsHost.createProgram;
+      this.resolveModuleNames = this.tsHost.resolveModuleNames;
+    } else {
+      this.tsHost = typescript.createWatchCompilerHost(
+        programConfigFile,
+        compilerOptions,
+        typescript.sys,
+        typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
+        diagCallback,
+        () => {
+          // do nothing
+        }
+      );
+    }
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
@@ -259,13 +281,6 @@ export class CompilerHost
 
   public readFile(path: string, encoding?: string) {
     const content = this.tsHost.readFile(path, encoding);
-
-    // get typescript contents from Vue file
-    if (content && VueProgram.isVue(path)) {
-      const resolved = VueProgram.resolveScriptBlock(this.typescript, content);
-      return resolved.content;
-    }
-
     return content;
   }
 
@@ -289,17 +304,12 @@ export class CompilerHost
     include?: ReadonlyArray<string>,
     depth?: number
   ): string[] {
-    return this.typescript.sys.readDirectory(
-      path,
-      extensions,
-      exclude,
-      include,
-      depth
-    );
+    return this.tsHost.readDirectory(path, extensions, exclude, include, depth);
   }
 
-  public createProgram = this.typescript
-    .createEmitAndSemanticDiagnosticsBuilderProgram;
+  public createProgram: ts.CreateProgram<
+    ts.EmitAndSemanticDiagnosticsBuilderProgram
+  > = this.typescript.createEmitAndSemanticDiagnosticsBuilderProgram;
 
   public getCurrentDirectory(): string {
     return this.tsHost.getCurrentDirectory();

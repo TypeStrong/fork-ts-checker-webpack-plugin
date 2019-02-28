@@ -41,7 +41,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    private vue: boolean = false
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
@@ -51,7 +52,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       typescript,
       programConfigFile,
       compilerOptions,
-      checkSyntacticErrors
+      checkSyntacticErrors,
+      this.vue
     );
   }
 

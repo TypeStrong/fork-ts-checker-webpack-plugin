@@ -114,6 +114,194 @@ export class VueProgram {
     return path.extname(filePath) === '.vue';
   }
 
+  private static resolveModuleNames(
+    typescript: typeof ts,
+    baseDir: string,
+    host: any,
+    moduleNames: string[],
+    containingFile: string,
+    compilerOptions: ts.CompilerOptions
+  ) {
+    const resolvedModules: ts.ResolvedModule[] = [];
+
+    for (const moduleName of moduleNames) {
+      // Try to use standard resolution.
+      const { resolvedModule } = typescript.resolveModuleName(
+        moduleName,
+        containingFile,
+        compilerOptions,
+        {
+          fileExists(fileName) {
+            if (fileName.endsWith('.vue.ts')) {
+              return (
+                host.fileExists(fileName.slice(0, -3)) ||
+                host.fileExists(fileName)
+              );
+            } else {
+              return host.fileExists(fileName);
+            }
+          },
+          readFile(fileName) {
+            // This implementation is not necessary. Just for consistent behavior.
+            if (fileName.endsWith('.vue.ts') && !host.fileExists(fileName)) {
+              return host.readFile(fileName.slice(0, -3));
+            } else {
+              return host.readFile(fileName);
+            }
+          }
+        }
+      );
+
+      if (resolvedModule) {
+        if (
+          resolvedModule.resolvedFileName.endsWith('.vue.ts') &&
+          !host.fileExists(resolvedModule.resolvedFileName)
+        ) {
+          resolvedModule.resolvedFileName = resolvedModule.resolvedFileName.slice(
+            0,
+            -3
+          );
+        }
+        resolvedModules.push(resolvedModule);
+      } else {
+        // For non-ts extensions.
+        const absolutePath = VueProgram.resolveNonTsModuleName(
+          moduleName,
+          containingFile,
+          baseDir,
+          compilerOptions
+        );
+
+        if (VueProgram.isVue(moduleName)) {
+          resolvedModules.push({
+            resolvedFileName: absolutePath,
+            extension: '.ts'
+          } as ts.ResolvedModuleFull);
+        } else {
+          resolvedModules.push({
+            // If the file does exist, return an empty string (because we assume user has provided a ".d.ts" file for it).
+            resolvedFileName: host.fileExists(absolutePath) ? '' : absolutePath,
+            extension: '.ts'
+          } as ts.ResolvedModuleFull);
+        }
+      }
+    }
+
+    return resolvedModules;
+  }
+
+  public static createWatchCompilerHost(
+    typescript: typeof ts,
+    programConfigFile: string,
+    compilerOptions: ts.CompilerOptions,
+    diagnosticCallback: (diag: ts.Diagnostic) => any
+  ) {
+    compilerOptions.allowNonTsExtensions = true;
+
+    const host = typescript.createWatchCompilerHost(
+      programConfigFile,
+      compilerOptions,
+      typescript.sys,
+      typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
+      (x: ts.Diagnostic) => {
+        if (x.file) {
+          x.file.fileName = this.stripVueTsExtension(x.file.fileName);
+        }
+        diagnosticCallback(x);
+      }
+    );
+
+    const originalReadFile = host.readFile;
+    host.readFile = (filePath, encoding?) => {
+      const source = originalReadFile(
+        this.stripVueTsExtension(filePath),
+        encoding
+      );
+      if (source && VueProgram.isVue(this.stripVueTsExtension(filePath))) {
+        const resolved = VueProgram.resolveScriptBlock(typescript, source);
+        return resolved.content;
+      }
+      return source;
+    };
+
+    const realFilExists = host.fileExists;
+    host.fileExists = filePath => {
+      const file = this.stripVueTsExtension(filePath);
+      if (VueProgram.isVue(file)) {
+        const source = originalReadFile(file);
+        if (source) {
+          const resolved = VueProgram.resolveScriptBlock(typescript, source);
+          if (
+            filePath.endsWith('.ts') &&
+            resolved.scriptKind === ts.ScriptKind.TS
+          ) {
+            return true;
+          }
+          if (
+            filePath.endsWith('.tsx') &&
+            resolved.scriptKind === ts.ScriptKind.TSX
+          ) {
+            return true;
+          }
+          return false;
+        }
+      }
+
+      return realFilExists(file);
+    };
+
+    const realReadDirectory = host.readDirectory;
+    host.readDirectory = (dirPath, extensions?, exclude?, include?, depth?) => {
+      const dirContent = realReadDirectory(
+        dirPath,
+        extensions,
+        exclude,
+        include,
+        depth
+      ).map(x => {
+        const source = originalReadFile(x);
+        if (source && VueProgram.isVue(x)) {
+          const resolved = VueProgram.resolveScriptBlock(typescript, source);
+          switch (resolved.scriptKind) {
+            case ts.ScriptKind.TS:
+              return x + '.ts';
+            case ts.ScriptKind.TSX:
+              return x + '.tsx';
+          }
+        }
+        return x;
+      });
+      return dirContent;
+    };
+
+    host.resolveModuleNames = (mods, file) => {
+      const basedir = path.dirname(programConfigFile);
+      const resp = VueProgram.resolveModuleNames(
+        typescript,
+        basedir,
+        host,
+        mods,
+        file,
+        compilerOptions
+      );
+      return resp;
+    };
+
+    return host;
+  }
+
+  public static stripVueTsExtension(file: string) {
+    return file.endsWith('.vue.ts')
+      ? file.slice(0, -3)
+      : file.endsWith('.vue.tsx')
+      ? file.slice(0, -4)
+      : file;
+  }
+
+  public static addVueTsExtension(file: string) {
+    return file.endsWith('.vue') ? file + '.ts' : file;
+  }
+
   public static createProgram(
     typescript: typeof ts,
     programConfig: ts.ParsedCommandLine,
@@ -164,75 +352,15 @@ export class VueProgram {
     };
 
     // We need a host with special module resolution for Vue files.
-    host.resolveModuleNames = (moduleNames, containingFile) => {
-      const resolvedModules: ts.ResolvedModule[] = [];
-
-      for (const moduleName of moduleNames) {
-        // Try to use standard resolution.
-        const { resolvedModule } = typescript.resolveModuleName(
-          moduleName,
-          containingFile,
-          programConfig.options,
-          {
-            fileExists(fileName) {
-              if (fileName.endsWith('.vue.ts')) {
-                return (
-                  host.fileExists(fileName.slice(0, -3)) ||
-                  host.fileExists(fileName)
-                );
-              } else {
-                return host.fileExists(fileName);
-              }
-            },
-            readFile(fileName) {
-              // This implementation is not necessary. Just for consistent behavior.
-              if (fileName.endsWith('.vue.ts') && !host.fileExists(fileName)) {
-                return host.readFile(fileName.slice(0, -3));
-              } else {
-                return host.readFile(fileName);
-              }
-            }
-          }
-        );
-
-        if (resolvedModule) {
-          if (
-            resolvedModule.resolvedFileName.endsWith('.vue.ts') &&
-            !host.fileExists(resolvedModule.resolvedFileName)
-          ) {
-            resolvedModule.resolvedFileName = resolvedModule.resolvedFileName.slice(
-              0,
-              -3
-            );
-          }
-          resolvedModules.push(resolvedModule);
-        } else {
-          // For non-ts extensions.
-          const absolutePath = VueProgram.resolveNonTsModuleName(
-            moduleName,
-            containingFile,
-            basedir,
-            programConfig.options
-          );
-
-          if (VueProgram.isVue(moduleName)) {
-            resolvedModules.push({
-              resolvedFileName: absolutePath,
-              extension: '.ts'
-            } as ts.ResolvedModuleFull);
-          } else {
-            resolvedModules.push({
-              // If the file does exist, return an empty string (because we assume user has provided a ".d.ts" file for it).
-              resolvedFileName: host.fileExists(absolutePath)
-                ? ''
-                : absolutePath,
-              extension: '.ts'
-            } as ts.ResolvedModuleFull);
-          }
-        }
-      }
-
-      return resolvedModules;
+    host.resolveModuleNames = (mods, file) => {
+      return VueProgram.resolveModuleNames(
+        typescript,
+        basedir,
+        host,
+        mods,
+        file,
+        programConfig.options
+      );
     };
 
     return typescript.createProgram(

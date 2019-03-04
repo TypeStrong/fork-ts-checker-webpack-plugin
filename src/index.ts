@@ -572,8 +572,7 @@ class ForkTsCheckerWebpackPlugin {
           WORK_DIVISION: Math.max(1, this.workersNumber),
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
-          USE_INCREMENTAL_API:
-            this.options.useTypescriptIncrementalApi === true,
+          USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
           VUE: this.vue
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']

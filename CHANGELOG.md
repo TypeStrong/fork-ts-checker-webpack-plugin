@@ -1,3 +1,7 @@
+## v1.0.0-alpha.10
+
+* [Fix incremental api to work with TS 3+ by default](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/223)
+
 ## v1.0.0-alpha.9
 
 * [Default to incremental api usage to true if TS 3+](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/217)

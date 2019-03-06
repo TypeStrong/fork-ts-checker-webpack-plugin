@@ -8,7 +8,9 @@ There are actually no breaking changes that we're aware of; users of 0.x `fork-t
 
 We are aware of an [issue with Vue and the incremental API](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/219).  We hope it will be fixed soon - a generous member of the community is taking a look. In the meantime, we will *not* default to using the incremental watch API when in Vue mode.
 
-The plugin supports webpack 2, 3, 4 and 5 alpha and TypeScript 2.1+.
+The plugin supports webpack 2, 3, 4 and 5 alpha and TypeScript 2.1+ alongside tslint 4+.
+
+See also: https://blog.johnnyreilly.com/2019/03/the-big-one-point-oh.html
 
 ## v1.0.0-alpha.10
 

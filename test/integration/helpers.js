@@ -71,7 +71,7 @@ exports.createVueCompiler = function(options) {
     ForkTsCheckerWebpackPlugin.ONE_CPU,
     1,
     plugin.checkSyntacticErrors,
-    plugin.vue
+    plugin.type
   );
 
   checker.nextIteration();

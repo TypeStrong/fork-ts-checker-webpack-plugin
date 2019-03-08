@@ -18,6 +18,8 @@ import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import { MdxProgram } from './MdxProgram';
+import { ProgramType } from './ProgramType';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -59,7 +61,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false
+    private type: ProgramType = ProgramType.typescript
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
@@ -161,9 +163,18 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   public nextIteration() {
     if (!this.watcher) {
-      const watchExtensions = this.vue
-        ? ['.ts', '.tsx', '.vue']
-        : ['.ts', '.tsx'];
+      const watchExtensions = ['.ts', '.tsx'];
+      switch (this.type) {
+        case ProgramType.vue:
+          watchExtensions.push('.vue');
+          break;
+        case ProgramType.mdx:
+          watchExtensions.push(
+            ...MdxProgram.extraExtensions.map(ext => `.${ext}`)
+          );
+          break;
+      }
+
       this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
 
       // connect watcher with register
@@ -193,7 +204,17 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       }
     }
 
-    this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
+    switch (this.type) {
+      case ProgramType.vue:
+        this.program = this.loadVueProgram();
+        break;
+      case ProgramType.mdx:
+        this.program = this.loadMdxProgram();
+        break;
+      case ProgramType.typescript:
+      default:
+        this.program = this.loadDefaultProgram();
+    }
 
     if (this.linterConfigFile) {
       this.linter = this.createLinter(this.program!);
@@ -213,6 +234,24 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.typescript,
       this.programConfig,
       path.dirname(this.programConfigFile),
+      this.files,
+      this.watcher!,
+      this.program!
+    );
+  }
+
+  private loadMdxProgram() {
+    this.programConfig =
+      this.programConfig ||
+      MdxProgram.loadProgramConfig(
+        this.typescript,
+        this.programConfigFile,
+        this.compilerOptions
+      );
+
+    return MdxProgram.createProgram(
+      this.typescript,
+      this.programConfig,
       this.files,
       this.watcher!,
       this.program!

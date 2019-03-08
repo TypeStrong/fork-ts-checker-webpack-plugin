@@ -17,6 +17,7 @@ import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
 import { getForkTsCheckerWebpackPluginHooks, legacyHookMap } from './hooks';
+import { ProgramType } from './ProgramType';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -49,6 +50,7 @@ interface Options {
   memoryLimit: number;
   workers: number;
   vue: boolean;
+  mdx: boolean;
   useTypescriptIncrementalApi: boolean;
   measureCompilationTime: boolean;
 }
@@ -122,7 +124,7 @@ class ForkTsCheckerWebpackPlugin {
 
   private service?: childProcess.ChildProcess;
 
-  private vue: boolean;
+  private type: ProgramType;
 
   private measureTime: boolean;
   private performance: any;
@@ -205,12 +207,27 @@ class ForkTsCheckerWebpackPlugin {
 
     this.validateVersions();
 
-    this.vue = options.vue === true; // default false
+    if (options.vue && options.mdx) {
+      throw new Error('cannot check vue and mdx at the same time!');
+    } else if (options.vue) {
+      this.type = ProgramType.vue;
+    } else if (options.mdx) {
+      this.type = ProgramType.mdx;
+    } else {
+      this.type = ProgramType.typescript;
+    }
 
     this.useTypescriptIncrementalApi =
       options.useTypescriptIncrementalApi === undefined
-        ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
+        ? semver.gte(this.typescriptVersion, '3.0.0') &&
+          this.type === ProgramType.typescript
         : options.useTypescriptIncrementalApi;
+
+    if (this.type === ProgramType.mdx && this.useTypescriptIncrementalApi) {
+      throw new Error(
+        'The `mdx` option cannot be used in combination with `useTypescriptIncrementalApi`.'
+      );
+    }
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -573,7 +590,7 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-          VUE: this.vue
+          TYPE: this.type
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }

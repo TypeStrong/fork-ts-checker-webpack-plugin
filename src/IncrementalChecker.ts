@@ -15,9 +15,10 @@ import { WorkSet } from './WorkSet';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CancellationToken } from './CancellationToken';
 import * as minimatch from 'minimatch';
-import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import { PluggableProgramFactoryInterface } from './PluggableProgramFactory';
+import BasicProgramFactory from './BasicProgramFactory';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -59,34 +60,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false
+    private pluggableProgramFactory: PluggableProgramFactoryInterface = BasicProgramFactory
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
-  }
-
-  public static loadProgramConfig(
-    typescript: typeof ts,
-    configFile: string,
-    compilerOptions: object
-  ) {
-    const tsconfig = typescript.readConfigFile(
-      configFile,
-      typescript.sys.readFile
-    ).config;
-
-    tsconfig.compilerOptions = tsconfig.compilerOptions || {};
-    tsconfig.compilerOptions = {
-      ...tsconfig.compilerOptions,
-      ...compilerOptions
-    };
-
-    const parsed = typescript.parseJsonConfigFileContent(
-      tsconfig,
-      typescript.sys,
-      path.dirname(configFile)
-    );
-
-    return parsed;
   }
 
   private getLinterConfig: (
@@ -96,47 +72,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     this.linterExclusions,
     this.context
   );
-
-  private static createProgram(
-    typescript: typeof ts,
-    programConfig: ts.ParsedCommandLine,
-    files: FilesRegister,
-    watcher: FilesWatcher,
-    oldProgram: ts.Program
-  ) {
-    const host = typescript.createCompilerHost(programConfig.options);
-    const realGetSourceFile = host.getSourceFile;
-
-    host.getSourceFile = (filePath, languageVersion, onError) => {
-      // first check if watcher is watching file - if not - check it's mtime
-      if (!watcher.isWatchingFile(filePath)) {
-        try {
-          const stats = fs.statSync(filePath);
-
-          files.setMtime(filePath, stats.mtime.valueOf());
-        } catch (e) {
-          // probably file does not exists
-          files.remove(filePath);
-        }
-      }
-
-      // get source file only if there is no source in files register
-      if (!files.has(filePath) || !files.getData(filePath).source) {
-        files.mutateData(filePath, data => {
-          data.source = realGetSourceFile(filePath, languageVersion, onError);
-        });
-      }
-
-      return files.getData(filePath).source;
-    };
-
-    return typescript.createProgram(
-      programConfig.fileNames,
-      programConfig.options,
-      host,
-      oldProgram // re-use old program
-    );
-  }
 
   private createLinter(program: ts.Program) {
     // tslint:disable-next-line:no-implicit-dependencies
@@ -161,9 +96,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   public nextIteration() {
     if (!this.watcher) {
-      const watchExtensions = this.vue
-        ? ['.ts', '.tsx', '.vue']
-        : ['.ts', '.tsx'];
+      const watchExtensions = this.pluggableProgramFactory.watchExtensions;
       this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
 
       // connect watcher with register
@@ -193,48 +126,23 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       }
     }
 
-    this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
+    const { program, programConfig } = this.pluggableProgramFactory.loadProgram(
+      {
+        typescript: this.typescript,
+        configFile: this.programConfigFile,
+        programConfig: this.programConfig,
+        compilerOptions: this.compilerOptions,
+        files: this.files,
+        watcher: this.watcher,
+        oldProgram: this.program
+      }
+    );
+    this.programConfig = programConfig;
+    this.program = program;
 
     if (this.linterConfigFile) {
       this.linter = this.createLinter(this.program!);
     }
-  }
-
-  private loadVueProgram() {
-    this.programConfig =
-      this.programConfig ||
-      VueProgram.loadProgramConfig(
-        this.typescript,
-        this.programConfigFile,
-        this.compilerOptions
-      );
-
-    return VueProgram.createProgram(
-      this.typescript,
-      this.programConfig,
-      path.dirname(this.programConfigFile),
-      this.files,
-      this.watcher!,
-      this.program!
-    );
-  }
-
-  private loadDefaultProgram() {
-    this.programConfig =
-      this.programConfig ||
-      IncrementalChecker.loadProgramConfig(
-        this.typescript,
-        this.programConfigFile,
-        this.compilerOptions
-      );
-
-    return IncrementalChecker.createProgram(
-      this.typescript,
-      this.programConfig,
-      this.files,
-      this.watcher!,
-      this.program!
-    );
   }
 
   public getDiagnostics(cancellationToken: CancellationToken) {

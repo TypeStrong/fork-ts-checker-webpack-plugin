@@ -74,24 +74,4 @@ describe('[UNIT] IncrementalChecker', function() {
       expect(pathsAreExcluded[3]).to.be.true;
     });
   });
-
-  describe('loadProgramConfig', function() {
-    it('merges compilerOptions into config file options', function() {
-      IncrementalChecker.loadProgramConfig(
-        require('typescript'),
-        'tsconfig.foo.json',
-        {
-          bar: false
-        }
-      );
-
-      expect(parseJsonConfigFileContentStub.calledOnce).to.equal(true);
-      expect(parseJsonConfigFileContentStub.args[0][0]).to.deep.equal({
-        compilerOptions: {
-          foo: true,
-          bar: false
-        }
-      });
-    });
-  });
 });

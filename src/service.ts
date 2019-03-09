@@ -10,6 +10,7 @@ import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure
 } from './NormalizedMessageFactories';
+import { loadPluggableProgramFactory } from './PluggableProgramFactory';
 
 const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
 
@@ -45,7 +46,7 @@ const checker: IncrementalCheckerInterface =
         parseInt(process.env.WORK_NUMBER!, 10) || 0,
         parseInt(process.env.WORK_DIVISION!, 10) || 1,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.VUE === 'true'
+        loadPluggableProgramFactory(process.env.PLUGGABLE_PROGRAM_FACTORY)
       );
 
 async function run(cancellationToken: CancellationToken) {

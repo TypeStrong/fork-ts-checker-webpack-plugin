@@ -5,6 +5,8 @@ var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker')
   .IncrementalChecker;
 var NormalizedMessageFactories = require('../../lib/NormalizedMessageFactories');
+var loadPluggableProgramFactory = require('../../lib/PluggableProgramFactory')
+  .loadPluggableProgramFactory;
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
@@ -71,7 +73,7 @@ exports.createVueCompiler = function(options) {
     ForkTsCheckerWebpackPlugin.ONE_CPU,
     1,
     plugin.checkSyntacticErrors,
-    plugin.vue
+    loadPluggableProgramFactory(plugin.pluggableProgramFactory)
   );
 
   checker.nextIteration();

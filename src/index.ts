@@ -49,6 +49,7 @@ interface Options {
   memoryLimit: number;
   workers: number;
   vue: boolean;
+  externalProgramHandler: string;
   useTypescriptIncrementalApi: boolean;
   measureCompilationTime: boolean;
 }
@@ -122,7 +123,7 @@ class ForkTsCheckerWebpackPlugin {
 
   private service?: childProcess.ChildProcess;
 
-  private vue: boolean;
+  private pluggableProgramFactory?: string;
 
   private measureTime: boolean;
   private performance: any;
@@ -205,12 +206,40 @@ class ForkTsCheckerWebpackPlugin {
 
     this.validateVersions();
 
-    this.vue = options.vue === true; // default false
+    if (options.vue && options.externalProgramHandler) {
+      throw new Error(
+        'When you use the `vue` option, you cannot use the `externalProgramHandler` option!'
+      );
+    } else if (options.vue) {
+      this.pluggableProgramFactory = __dirname + '/VueProgramFactory';
+    } else if (options.externalProgramHandler) {
+      this.pluggableProgramFactory = require.resolve(
+        options.externalProgramHandler,
+        {
+          paths: [
+            ...module.paths,
+            // also try to resolve relative to parent module (in case fork-ts-checker-webpack-plugin was symlinked, e.g. via `npm link`)
+            ...(module.parent ? module.parent.paths : [])
+          ]
+        }
+      );
+    }
 
     this.useTypescriptIncrementalApi =
       options.useTypescriptIncrementalApi === undefined
-        ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
+        ? semver.gte(this.typescriptVersion, '3.0.0') &&
+          !this.pluggableProgramFactory
         : options.useTypescriptIncrementalApi;
+
+    /*
+     * just as a suggestion - this goes against current tests, but I think it would prevent user confusion
+
+    if (this.pluggableProgramFactory && this.useTypescriptIncrementalApi) {
+      throw new Error(
+        'When you use the `vue` or `externalProgramHandler` option, you cannot use the `useTypescriptIncrementalApi` option!'
+      );
+    }
+    */
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -573,7 +602,7 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-          VUE: this.vue
+          PLUGGABLE_PROGRAM_FACTORY: this.pluggableProgramFactory
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }

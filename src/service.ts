@@ -10,8 +10,11 @@ import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure
 } from './NormalizedMessageFactories';
+import { wrapTypescript } from './wrapTypeScript';
 
-const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
+const typescript: typeof ts = wrapTypescript(
+  require(process.env.TYPESCRIPT_PATH!)
+);
 
 // message factories
 export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessageFromDiagnostic(

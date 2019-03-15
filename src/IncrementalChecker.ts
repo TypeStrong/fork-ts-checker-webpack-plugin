@@ -259,6 +259,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         cancellationToken.throwIfCancellationRequested();
       }
 
+      program.emit()
+
       const diagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
         .checkSyntacticErrors
         ? program

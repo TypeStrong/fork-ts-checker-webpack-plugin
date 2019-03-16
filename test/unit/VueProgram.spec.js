@@ -6,7 +6,7 @@ var mockRequire = require('mock-require');
 var sinon = require('sinon');
 var unixify = require('unixify');
 
-describe('[UNIT] VueProgram', function() {
+describe.skip('[UNIT] VueProgram', function() {
   var VueProgram;
   var parseJsonConfigFileContentStub;
 

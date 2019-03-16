@@ -10,10 +10,19 @@ import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure
 } from './NormalizedMessageFactories';
-import { wrapTypescript } from './wrapTypeScript';
+import {
+  wrapTypescript,
+  TypeScriptWrapperConfig,
+  emptyWrapperConfig,
+  wrapperConfigWithVue
+} from './wrapTypeScript';
+
+const wrapperConfig: TypeScriptWrapperConfig =
+  process.env.VUE === 'true' ? wrapperConfigWithVue : emptyWrapperConfig;
 
 const typescript: typeof ts = wrapTypescript(
-  require(process.env.TYPESCRIPT_PATH!)
+  require(process.env.TYPESCRIPT_PATH!),
+  wrapperConfig
 );
 
 // message factories
@@ -33,7 +42,8 @@ const checker: IncrementalCheckerInterface =
         process.env.CONTEXT!,
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true'
+        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
+        wrapperConfig
       )
     : new IncrementalChecker(
         typescript,
@@ -48,7 +58,7 @@ const checker: IncrementalCheckerInterface =
         parseInt(process.env.WORK_NUMBER!, 10) || 0,
         parseInt(process.env.WORK_DIVISION!, 10) || 1,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.VUE === 'true'
+        wrapperConfig
       );
 
 async function run(cancellationToken: CancellationToken) {

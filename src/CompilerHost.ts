@@ -1,8 +1,7 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
-import { VueProgram } from './VueProgram';
-import { wrapCompilerHost } from './wrapTypeScript';
+import { wrapCompilerHost, TypeScriptWrapperConfig } from './wrapTypeScript';
 import { IncrementalChecker } from './IncrementalChecker';
 
 interface DirectoryWatchDelaySlot {
@@ -57,7 +56,8 @@ export class CompilerHost
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    wrapperConfig: TypeScriptWrapperConfig
   ) {
     this.tsHost = wrapCompilerHost(
       typescript.createWatchCompilerHost(
@@ -80,7 +80,8 @@ export class CompilerHost
         programConfigFile,
         compilerOptions
       ),
-      typescript
+      typescript,
+      wrapperConfig
     );
 
     this.configFileName = this.tsHost.configFileName;
@@ -282,15 +283,7 @@ export class CompilerHost
   }
 
   public readFile(path: string, encoding?: string) {
-    const content = this.tsHost.readFile(path, encoding);
-
-    // get typescript contents from Vue file
-    if (content && VueProgram.isVue(path)) {
-      const resolved = VueProgram.resolveScriptBlock(this.typescript, content);
-      return resolved.content;
-    }
-
-    return content;
+    return this.tsHost.readFile(path, encoding);
   }
 
   public directoryExists(path: string): boolean {

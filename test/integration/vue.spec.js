@@ -18,6 +18,10 @@ describe('[INTEGRATION] vue', function() {
     files = vueCompiler.files;
     compiler = vueCompiler.compiler;
     checker = vueCompiler.checker;
+
+    for (const file of Object.keys(files)) {
+      files[file] = vueCompiler.wrapperUtils.wrapFileName(files[file]);
+    }
   }
 
   it('should create a Vue program config if vue=true', function() {

@@ -5,6 +5,12 @@ var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker')
   .IncrementalChecker;
 var NormalizedMessageFactories = require('../../lib/NormalizedMessageFactories');
+var {
+  wrapperConfigWithVue,
+  emptyWrapperConfig,
+  wrapTypescript,
+  getWrapperUtils
+} = require('../../lib/wrapTypeScript');
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
@@ -56,10 +62,14 @@ exports.createVueCompiler = function(options) {
     'syntacticError.ts': path.resolve(compiler.context, 'src/syntacticError.ts')
   };
 
+  var wrapperConfig = plugin.vue ? wrapperConfigWithVue : emptyWrapperConfig;
+  var typescript = wrapTypescript(require('typescript'), wrapperConfig);
+  var wrapperUtils = getWrapperUtils(wrapperConfig);
+
   var checker = new IncrementalChecker(
-    require('typescript'),
+    typescript,
     NormalizedMessageFactories.makeCreateNormalizedMessageFromDiagnostic(
-      require('typescript')
+      typescript
     ),
     NormalizedMessageFactories.makeCreateNormalizedMessageFromRuleFailure,
     plugin.tsconfigPath,
@@ -71,12 +81,12 @@ exports.createVueCompiler = function(options) {
     ForkTsCheckerWebpackPlugin.ONE_CPU,
     1,
     plugin.checkSyntacticErrors,
-    plugin.vue
+    wrapperConfig
   );
 
   checker.nextIteration();
 
-  return { plugin, compiler, files, checker };
+  return { plugin, compiler, files, checker, wrapperUtils };
 };
 
 exports.createCompiler = function(

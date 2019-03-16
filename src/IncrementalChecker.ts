@@ -15,13 +15,13 @@ import { WorkSet } from './WorkSet';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CancellationToken } from './CancellationToken';
 import * as minimatch from 'minimatch';
-import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import {
   wrapCompilerHost,
-  watchExtensions as importedWatchExtensions,
-  unwrapFileName
+  TypeScriptWrapperConfig,
+  getWrapperUtils,
+  emptyWrapperConfig
 } from './wrapTypeScript';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
@@ -64,7 +64,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false
+    private wrapperConfig: TypeScriptWrapperConfig = emptyWrapperConfig
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
@@ -107,7 +107,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
     watcher: FilesWatcher,
-    oldProgram: ts.Program
+    oldProgram: ts.Program,
+    wrapperConfig: TypeScriptWrapperConfig
   ) {
     const host = wrapCompilerHost(
       /*
@@ -123,16 +124,15 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         typescript.sys
       ) as ts.CompilerHost,
       programConfig,
-      typescript
+      typescript,
+      wrapperConfig
     );
     const realGetSourceFile = host.getSourceFile;
 
-    host.getSourceFile = (
-      potentiallyFakeFilePath,
-      languageVersion,
-      onError
-    ) => {
-      const filePath = unwrapFileName(potentiallyFakeFilePath);
+    const { unwrapFileName, wrapFileName } = getWrapperUtils(wrapperConfig);
+
+    host.getSourceFile = (filePath, languageVersion, onError) => {
+      filePath = unwrapFileName(filePath);
       // first check if watcher is watching file - if not - check it's mtime
       if (!watcher.isWatchingFile(filePath)) {
         try {
@@ -149,7 +149,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       if (!files.has(filePath) || !files.getData(filePath).source) {
         files.mutateData(filePath, data => {
           data.source = realGetSourceFile(
-            potentiallyFakeFilePath,
+            wrapFileName(filePath),
             languageVersion,
             onError
           );
@@ -190,9 +190,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   public nextIteration() {
     if (!this.watcher) {
-      const watchExtensions = this.vue
-        ? ['.ts', '.tsx', '.vue']
-        : importedWatchExtensions;
+      const { watchExtensions } = getWrapperUtils(this.wrapperConfig);
       this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
 
       // connect watcher with register
@@ -222,30 +220,11 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       }
     }
 
-    this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
+    this.program = this.loadDefaultProgram();
 
     if (this.linterConfigFile) {
       this.linter = this.createLinter(this.program!);
     }
-  }
-
-  private loadVueProgram() {
-    this.programConfig =
-      this.programConfig ||
-      VueProgram.loadProgramConfig(
-        this.typescript,
-        this.programConfigFile,
-        this.compilerOptions
-      );
-
-    return VueProgram.createProgram(
-      this.typescript,
-      this.programConfig,
-      path.dirname(this.programConfigFile),
-      this.files,
-      this.watcher!,
-      this.program!
-    );
   }
 
   private loadDefaultProgram() {
@@ -262,7 +241,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.programConfig,
       this.files,
       this.watcher!,
-      this.program!
+      this.program!,
+      this.wrapperConfig
     );
   }
 

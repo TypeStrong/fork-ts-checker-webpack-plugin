@@ -19,10 +19,11 @@ export interface TypeScriptWrapperConfig {
 export const wrapperConfigWithVue: TypeScriptWrapperConfig = {
   extensionHandlers: {
     '.mdx': handleMdxContents,
-    '.vue': handleVueContents
+    '.vue': handleVueContents,
+    '.vuex': handleVueContents
   },
-  wrapExtensionsAsTs: [],
-  wrapExtensionsAsTsx: ['.mdx', '.vue']
+  wrapExtensionsAsTs: ['.vue'],
+  wrapExtensionsAsTsx: ['.mdx', '.vuex']
 };
 
 export const emptyWrapperConfig: TypeScriptWrapperConfig = {

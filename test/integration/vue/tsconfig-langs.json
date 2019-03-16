@@ -1,13 +1,8 @@
 {
   "compilerOptions": {
-      "jsx": "preserve",
-      "lib": ["es2016", "dom"]
+    "jsx": "preserve",
+    "lib": ["es2016", "dom"]
   },
-  "include": [
-      "src/langs/*.ts",
-      "src/langs/*.vue"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/langs/*.ts", "src/langs/*.vue", "src/langs/*.vuex"],
+  "exclude": ["node_modules"]
 }

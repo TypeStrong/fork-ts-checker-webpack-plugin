@@ -12,12 +12,16 @@ describe('[INTEGRATION] vue', function() {
   var files;
   var compiler;
   var checker;
+  var wrapFileName;
+  var unwrapFileName;
 
   function createCompiler(options) {
     var vueCompiler = helpers.createVueCompiler(options);
     files = vueCompiler.files;
     compiler = vueCompiler.compiler;
     checker = vueCompiler.checker;
+    wrapFileName = vueCompiler.wrapperUtils.wrapFileName;
+    unwrapFileName = vueCompiler.wrapperUtils.unwrapFileName;
 
     for (const file of Object.keys(files)) {
       files[file] = vueCompiler.wrapperUtils.wrapFileName(files[file]);
@@ -134,16 +138,16 @@ describe('[INTEGRATION] vue', function() {
 
   [
     'example-ts.vue',
-    'example-tsx.vue',
+    'example-tsx.vuex',
     'example-js.vue',
-    'example-jsx.vue',
+    'example-jsx.vuex',
     'example-nolang.vue'
   ].forEach(fileName => {
     it('should be able to extract script from ' + fileName, function() {
       createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
       var sourceFilePath = path.resolve(
         compiler.context,
-        'src/langs/' + fileName
+        wrapFileName('src/langs/' + fileName)
       );
       var source = checker.program.getSourceFile(sourceFilePath);
       expect(source).to.not.be.undefined;
@@ -156,18 +160,18 @@ describe('[INTEGRATION] vue', function() {
   function groupByFileName(errors) {
     var ret = {
       'example-ts.vue': [],
-      'example-tsx.vue': [],
+      'example-tsx.vuex': [],
       'example-js.vue': [],
-      'example-jsx.vue': [],
+      'example-jsx.vuex': [],
       'example-nolang.vue': []
     };
     for (var error of errors) {
-      ret[path.basename(error.file)].push(error);
+      ret[path.basename(unwrapFileName(error.file))].push(error);
     }
     return ret;
   }
 
-  describe('should be able to compile *.vue with each lang', function() {
+  describe('should be able to compile *.vue[x] with each lang', function() {
     var errors;
     before(function(callback) {
       createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
@@ -180,20 +184,20 @@ describe('[INTEGRATION] vue', function() {
       expect(errors['example-ts.vue'].length).to.be.equal(0);
     });
     it('lang=tsx', function() {
-      expect(errors['example-tsx.vue'].length).to.be.equal(0);
+      expect(errors['example-tsx.vuex'].length).to.be.equal(0);
     });
     it('lang=js', function() {
       expect(errors['example-js.vue'].length).to.be.equal(0);
     });
     it('lang=jsx', function() {
-      expect(errors['example-jsx.vue'].length).to.be.equal(0);
+      expect(errors['example-jsx.vuex'].length).to.be.equal(0);
     });
     it('no lang', function() {
       expect(errors['example-nolang.vue'].length).to.be.equal(0);
     });
   });
 
-  describe('should be able to detect errors in *.vue', function() {
+  describe('should be able to detect errors in *.vue[x]', function() {
     var errors;
     before(function(callback) {
       // tsconfig-langs-strict.json === tsconfig-langs.json + noUnusedLocals
@@ -210,8 +214,8 @@ describe('[INTEGRATION] vue', function() {
       );
     });
     it('lang=tsx', function() {
-      expect(errors['example-tsx.vue'].length).to.be.equal(1);
-      expect(errors['example-tsx.vue'][0].rawMessage).to.match(
+      expect(errors['example-tsx.vuex'].length).to.be.equal(1);
+      expect(errors['example-tsx.vuex'][0].rawMessage).to.match(
         /'a' is declared but/
       );
     });
@@ -219,7 +223,7 @@ describe('[INTEGRATION] vue', function() {
       expect(errors['example-js.vue'].length).to.be.equal(0);
     });
     it('lang=jsx', function() {
-      expect(errors['example-jsx.vue'].length).to.be.equal(0);
+      expect(errors['example-jsx.vuex'].length).to.be.equal(0);
     });
     it('no lang', function() {
       expect(errors['example-nolang.vue'].length).to.be.equal(0);

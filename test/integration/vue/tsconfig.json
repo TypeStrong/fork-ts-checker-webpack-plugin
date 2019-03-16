@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-      "experimentalDecorators": true,
-      "lib": ["es2016", "dom"]
+    "experimentalDecorators": true,
+    "lib": ["es2016", "dom"],
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "include": [
-      "src/*.ts",
-      "src/*.vue"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/*.ts", "src/*.vue"],
+  "exclude": ["node_modules"]
 }

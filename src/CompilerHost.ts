@@ -2,6 +2,8 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
+import { wrapCompilerHost } from './wrapTypeScript';
+import { IncrementalChecker } from './IncrementalChecker';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -57,20 +59,28 @@ export class CompilerHost
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean
   ) {
-    this.tsHost = typescript.createWatchCompilerHost(
-      programConfigFile,
-      compilerOptions,
-      typescript.sys,
-      typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
-      (diag: ts.Diagnostic) => {
-        if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
-          return;
+    this.tsHost = wrapCompilerHost(
+      typescript.createWatchCompilerHost(
+        programConfigFile,
+        compilerOptions,
+        typescript.sys,
+        typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
+        (diag: ts.Diagnostic) => {
+          if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
+            return;
+          }
+          this.gatheredDiagnostic.push(diag);
+        },
+        () => {
+          // do nothing
         }
-        this.gatheredDiagnostic.push(diag);
-      },
-      () => {
-        // do nothing
-      }
+      ),
+      IncrementalChecker.loadProgramConfig(
+        typescript,
+        programConfigFile,
+        compilerOptions
+      ),
+      typescript
     );
 
     this.configFileName = this.tsHost.configFileName;
@@ -203,6 +213,20 @@ export class CompilerHost
     _options: ts.CompilerOptions
   ): void {
     // do nothing
+  }
+
+  public resolveModuleNames(
+    moduleNames: string[],
+    containingFile: string,
+    reusedNames?: string[],
+    redirectedReference?: ts.ResolvedProjectReference
+  ): (ts.ResolvedModule | undefined)[] {
+    return this.tsHost.resolveModuleNames!(
+      moduleNames,
+      containingFile,
+      reusedNames,
+      redirectedReference
+    );
   }
 
   public watchDirectory(

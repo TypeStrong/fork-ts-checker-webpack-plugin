@@ -17,18 +17,30 @@ const wrapExtensionsAsTsx: string[] = ['.mdx'];
 
 const SUFFIX_TS = '.__fake__.ts';
 const SUFFIX_TSX = '.__fake__.tsx';
+
 const wrapFileName = (fileName: string) =>
   wrapExtensionsAsTs.some(ext => fileName.endsWith(ext))
     ? fileName.concat(SUFFIX_TS)
     : wrapExtensionsAsTsx.some(ext => fileName.endsWith(ext))
     ? fileName.concat(SUFFIX_TSX)
     : fileName;
-const unwrapFileName = (fileName: string) =>
-  fileName.endsWith(SUFFIX_TS)
-    ? fileName.slice(0, -SUFFIX_TS.length)
-    : fileName.endsWith(SUFFIX_TSX)
-    ? fileName.slice(0, -SUFFIX_TSX.length)
-    : fileName;
+
+const unwrapFileName = (fileName: string) => {
+  if (fileName.endsWith(SUFFIX_TS)) {
+    const realFileName = fileName.slice(0, -SUFFIX_TS.length);
+    if (wrapExtensionsAsTs.includes(extname(realFileName))) {
+      return realFileName;
+    }
+  }
+  if (fileName.endsWith(SUFFIX_TSX)) {
+    const realFileName = fileName.slice(0, -SUFFIX_TSX.length);
+    if (wrapExtensionsAsTsx.includes(extname(realFileName))) {
+      return realFileName;
+    }
+  }
+  return fileName;
+};
+
 const handleFileContents = (
   originalFileName: string,
   originalContents?: string
@@ -152,12 +164,88 @@ const systemHandler: ProxyHandler<ts.System> = {
 };
 
 export function wrapTypescript(typescript: typeof ts) {
+  const sysProxy = new Proxy<ts.System>(
+    typescript.sys,
+    // log unwrapped calls & results
+    // new Proxy<ts.System>(typescript.sys, loggingHandler),
+    systemHandler
+  );
+
   return {
     ...typescript,
-    sys: new Proxy(
-      typescript.sys,
-      // new Proxy<ts.System>(typescript.sys, loggingHandler),
-      systemHandler
-    )
+    sys: sysProxy
+    // log wrapped calls & results
+    // sys: new Proxy(proxy, loggingHandler)
   };
 }
+
+type PickDefined<T, K extends keyof T> = { [Key in K]-?: NonNullable<T[K]> };
+type HostType = ts.CompilerHost | ts.WatchCompilerHostOfConfigFile<any>;
+
+export function wrapCompilerHost<T extends HostType>(
+  host: T,
+  programConfig: ts.ParsedCommandLine,
+  typescript: typeof ts
+) {
+  const wrapSuffixes = [
+    '',
+    ...wrapExtensionsAsTs.map(ext => `${ext}.__fake__`),
+    ...wrapExtensionsAsTsx.map(ext => `${ext}.__fake__`)
+  ];
+
+  const compilerHostWrappers: PickDefined<HostType, 'resolveModuleNames'> = {
+    resolveModuleNames(
+      this: HostType,
+      moduleNames,
+      containingFile,
+      _reusedNames, // no idea what this is for
+      redirectedReference
+    ) {
+      return moduleNames.map(moduleName => {
+        for (const suffix of wrapSuffixes) {
+          const result = typescript.resolveModuleName(
+            moduleName + suffix,
+            containingFile,
+            programConfig.options,
+            this,
+            undefined,
+            redirectedReference
+          );
+          if (result.resolvedModule) {
+            /*
+            console.log(
+              START_YELLOW,
+              'resolved',
+              moduleName,
+              'as',
+              result.resolvedModule,
+              RESET
+            );
+            */
+            return result.resolvedModule;
+          }
+        }
+        // console.log(START_RED, 'could not revolve', moduleName, RESET);
+        return undefined;
+      });
+    }
+  };
+
+  const handler: ProxyHandler<HostType> = {
+    get(target, name: string) {
+      if (typeof compilerHostWrappers[name] === 'function') {
+        return compilerHostWrappers[name].bind(target);
+      }
+      return target[name];
+    }
+  };
+
+  return new Proxy<T>(host, handler) as T & typeof compilerHostWrappers;
+}
+
+// @ts-ignore
+const START_YELLOW = '\x1b[33m';
+// @ts-ignore
+const START_RED = '\x1b[31m';
+// @ts-ignore
+const RESET = '\x1b[0m';

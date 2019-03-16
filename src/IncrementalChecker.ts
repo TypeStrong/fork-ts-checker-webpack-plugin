@@ -18,6 +18,7 @@ import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import { wrapCompilerHost } from './wrapTypeScript';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -104,7 +105,11 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     watcher: FilesWatcher,
     oldProgram: ts.Program
   ) {
-    const host = typescript.createCompilerHost(programConfig.options);
+    const host = wrapCompilerHost(
+      typescript.createCompilerHost(programConfig.options),
+      programConfig,
+      typescript
+    );
     const realGetSourceFile = host.getSourceFile;
 
     host.getSourceFile = (filePath, languageVersion, onError) => {

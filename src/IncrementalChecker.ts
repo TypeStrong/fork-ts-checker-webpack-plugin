@@ -18,7 +18,11 @@ import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
-import { wrapCompilerHost } from './wrapTypeScript';
+import {
+  wrapCompilerHost,
+  watchExtensions as importedWatchExtensions,
+  unwrapFileName
+} from './wrapTypeScript';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -106,13 +110,29 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     oldProgram: ts.Program
   ) {
     const host = wrapCompilerHost(
-      typescript.createCompilerHost(programConfig.options),
+      /*
+       * unfortunately, ts.createCompilerHost does not take a "system" argument.
+       * but the internal (and exposed) createCompilerHostWorker does
+       * this is a bit hacky and might break in the future :/
+       * (a more solid workaround would be implementing another
+       * own CompilerHost or using the existing one if it is fit for the task?)
+       */
+      (typescript as any).createCompilerHostWorker(
+        programConfig.options,
+        undefined,
+        typescript.sys
+      ) as ts.CompilerHost,
       programConfig,
       typescript
     );
     const realGetSourceFile = host.getSourceFile;
 
-    host.getSourceFile = (filePath, languageVersion, onError) => {
+    host.getSourceFile = (
+      potentiallyFakeFilePath,
+      languageVersion,
+      onError
+    ) => {
+      const filePath = unwrapFileName(potentiallyFakeFilePath);
       // first check if watcher is watching file - if not - check it's mtime
       if (!watcher.isWatchingFile(filePath)) {
         try {
@@ -128,7 +148,11 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       // get source file only if there is no source in files register
       if (!files.has(filePath) || !files.getData(filePath).source) {
         files.mutateData(filePath, data => {
-          data.source = realGetSourceFile(filePath, languageVersion, onError);
+          data.source = realGetSourceFile(
+            potentiallyFakeFilePath,
+            languageVersion,
+            onError
+          );
         });
       }
 
@@ -168,7 +192,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     if (!this.watcher) {
       const watchExtensions = this.vue
         ? ['.ts', '.tsx', '.vue']
-        : ['.ts', '.tsx'];
+        : importedWatchExtensions;
       this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
 
       // connect watcher with register

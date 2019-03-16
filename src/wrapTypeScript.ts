@@ -15,17 +15,24 @@ const extensionHandlers: {
 const wrapExtensionsAsTs: string[] = [];
 const wrapExtensionsAsTsx: string[] = ['.mdx'];
 
+export const watchExtensions = [
+  '.ts',
+  '.tsx',
+  ...wrapExtensionsAsTs,
+  ...wrapExtensionsAsTsx
+];
+
 const SUFFIX_TS = '.__fake__.ts';
 const SUFFIX_TSX = '.__fake__.tsx';
 
-const wrapFileName = (fileName: string) =>
+export const wrapFileName = (fileName: string) =>
   wrapExtensionsAsTs.some(ext => fileName.endsWith(ext))
     ? fileName.concat(SUFFIX_TS)
     : wrapExtensionsAsTsx.some(ext => fileName.endsWith(ext))
     ? fileName.concat(SUFFIX_TSX)
     : fileName;
 
-const unwrapFileName = (fileName: string) => {
+export const unwrapFileName = (fileName: string) => {
   if (fileName.endsWith(SUFFIX_TS)) {
     const realFileName = fileName.slice(0, -SUFFIX_TS.length);
     if (wrapExtensionsAsTs.includes(extname(realFileName))) {
@@ -175,7 +182,7 @@ export function wrapTypescript(typescript: typeof ts) {
     ...typescript,
     sys: sysProxy
     // log wrapped calls & results
-    // sys: new Proxy(proxy, loggingHandler)
+    // sys: new Proxy<ts.System>(sysProxy, loggingHandler)
   };
 }
 
@@ -203,6 +210,14 @@ export function wrapCompilerHost<T extends HostType>(
     ) {
       return moduleNames.map(moduleName => {
         for (const suffix of wrapSuffixes) {
+          /*
+          console.log(
+            START_YELLOW,
+            'try resolving',
+            moduleName + suffix,
+            RESET
+          );
+          */
           const result = typescript.resolveModuleName(
             moduleName + suffix,
             containingFile,
@@ -218,10 +233,10 @@ export function wrapCompilerHost<T extends HostType>(
               'resolved',
               moduleName,
               'as',
-              result.resolvedModule,
+              result.resolvedModule.resolvedFileName,
               RESET
             );
-            */
+*/
             return result.resolvedModule;
           }
         }

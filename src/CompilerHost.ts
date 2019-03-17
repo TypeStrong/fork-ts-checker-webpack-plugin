@@ -1,8 +1,6 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
-import { wrapCompilerHost, TypeScriptWrapperConfig } from './wrapTypeScript';
-import { IncrementalChecker } from './IncrementalChecker';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -56,34 +54,23 @@ export class CompilerHost
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean,
-    wrapperConfig: TypeScriptWrapperConfig
+    checkSyntacticErrors: boolean
   ) {
-    this.tsHost = wrapCompilerHost(
-      typescript.createWatchCompilerHost(
-        programConfigFile,
-        compilerOptions,
-        typescript.sys,
-        typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
-        (diag: ts.Diagnostic) => {
-          if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
-            return;
-          }
-          this.gatheredDiagnostic.push(diag);
-        },
-        () => {
-          // do nothing
+    this.tsHost = typescript.createWatchCompilerHost(
+      programConfigFile,
+      compilerOptions,
+      typescript.sys,
+      typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
+      (diag: ts.Diagnostic) => {
+        if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
+          return;
         }
-      ),
-      IncrementalChecker.loadProgramConfig(
-        typescript,
-        programConfigFile,
-        compilerOptions
-      ),
-      typescript,
-      wrapperConfig
+        this.gatheredDiagnostic.push(diag);
+      },
+      () => {
+        // do nothing
+      }
     );
-
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
   }

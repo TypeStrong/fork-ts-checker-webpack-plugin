@@ -10,12 +10,12 @@ import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure
 } from './NormalizedMessageFactories';
+import { wrapTypescript } from './wrapTypeScript';
 import {
-  wrapTypescript,
   TypeScriptWrapperConfig,
-  emptyWrapperConfig,
-  wrapperConfigWithVue
-} from './wrapTypeScript';
+  wrapperConfigWithVue,
+  emptyWrapperConfig
+} from './wrapperUtils';
 
 const wrapperConfig: TypeScriptWrapperConfig =
   process.env.VUE === 'true' ? wrapperConfigWithVue : emptyWrapperConfig;
@@ -42,8 +42,7 @@ const checker: IncrementalCheckerInterface =
         process.env.CONTEXT!,
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        wrapperConfig
+        process.env.CHECK_SYNTACTIC_ERRORS === 'true'
       )
     : new IncrementalChecker(
         typescript,

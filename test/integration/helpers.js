@@ -5,12 +5,12 @@ var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var IncrementalChecker = require('../../lib/IncrementalChecker')
   .IncrementalChecker;
 var NormalizedMessageFactories = require('../../lib/NormalizedMessageFactories');
+var { wrapTypescript } = require('../../lib/wrapTypeScript');
 var {
   wrapperConfigWithVue,
   emptyWrapperConfig,
-  wrapTypescript,
   getWrapperUtils
-} = require('../../lib/wrapTypeScript');
+} = require('../../lib/wrapperUtils');
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =

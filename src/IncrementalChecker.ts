@@ -18,11 +18,10 @@ import * as minimatch from 'minimatch';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import {
-  wrapCompilerHost,
+  emptyWrapperConfig,
   TypeScriptWrapperConfig,
-  getWrapperUtils,
-  emptyWrapperConfig
-} from './wrapTypeScript';
+  getWrapperUtils
+} from './wrapperUtils';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -110,23 +109,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     oldProgram: ts.Program,
     wrapperConfig: TypeScriptWrapperConfig
   ) {
-    const host = wrapCompilerHost(
-      /*
-       * unfortunately, ts.createCompilerHost does not take a "system" argument.
-       * but the internal (and exposed) createCompilerHostWorker does
-       * this is a bit hacky and might break in the future :/
-       * (a more solid workaround would be implementing another
-       * own CompilerHost or using the existing one if it is fit for the task?)
-       */
-      (typescript as any).createCompilerHostWorker(
-        programConfig.options,
-        undefined,
-        typescript.sys
-      ) as ts.CompilerHost,
-      programConfig,
-      typescript,
-      wrapperConfig
-    );
+    const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
     const { unwrapFileName, wrapFileName } = getWrapperUtils(wrapperConfig);

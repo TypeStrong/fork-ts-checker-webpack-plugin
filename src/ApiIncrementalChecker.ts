@@ -14,7 +14,6 @@ import {
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { FsHelper } from './FsHelper';
-import { TypeScriptWrapperConfig, emptyWrapperConfig } from './wrapTypeScript';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -42,8 +41,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
-    checkSyntacticErrors: boolean,
-    wrapperConfig: TypeScriptWrapperConfig = emptyWrapperConfig
+    checkSyntacticErrors: boolean
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
@@ -53,8 +51,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       typescript,
       programConfigFile,
       compilerOptions,
-      checkSyntacticErrors,
-      wrapperConfig
+      checkSyntacticErrors
     );
   }
 

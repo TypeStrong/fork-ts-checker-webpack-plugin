@@ -2,74 +2,8 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 import { extname } from 'path';
-import { handleMdxContents } from './handleMdxContents';
-import { handleVueContents } from './handleVueContents';
-
-export interface TypeScriptWrapperConfig {
-  extensionHandlers: {
-    [extension: string]: (
-      originalContents: string,
-      originalFileName: string
-    ) => string;
-  };
-  wrapExtensionsAsTs: string[];
-  wrapExtensionsAsTsx: string[];
-}
-
-export const wrapperConfigWithVue: TypeScriptWrapperConfig = {
-  extensionHandlers: {
-    '.mdx': handleMdxContents,
-    '.vue': handleVueContents,
-    '.vuex': handleVueContents
-  },
-  wrapExtensionsAsTs: ['.vue'],
-  wrapExtensionsAsTsx: ['.mdx', '.vuex']
-};
-
-export const emptyWrapperConfig: TypeScriptWrapperConfig = {
-  extensionHandlers: {},
-  wrapExtensionsAsTs: [],
-  wrapExtensionsAsTsx: []
-};
-
-export function getWrapperUtils(
-  config: TypeScriptWrapperConfig = emptyWrapperConfig
-) {
-  const SUFFIX_TS = '.__fake__.ts';
-  const SUFFIX_TSX = '.__fake__.tsx';
-  return {
-    watchExtensions: [
-      '.ts',
-      '.tsx',
-      ...config.wrapExtensionsAsTs,
-      ...config.wrapExtensionsAsTsx
-    ],
-
-    wrapFileName(fileName: string) {
-      return config.wrapExtensionsAsTs.some(ext => fileName.endsWith(ext))
-        ? fileName.concat(SUFFIX_TS)
-        : config.wrapExtensionsAsTsx.some(ext => fileName.endsWith(ext))
-        ? fileName.concat(SUFFIX_TSX)
-        : fileName;
-    },
-
-    unwrapFileName(fileName: string) {
-      if (fileName.endsWith(SUFFIX_TS)) {
-        const realFileName = fileName.slice(0, -SUFFIX_TS.length);
-        if (config.wrapExtensionsAsTs.includes(extname(realFileName))) {
-          return realFileName;
-        }
-      }
-      if (fileName.endsWith(SUFFIX_TSX)) {
-        const realFileName = fileName.slice(0, -SUFFIX_TSX.length);
-        if (config.wrapExtensionsAsTsx.includes(extname(realFileName))) {
-          return realFileName;
-        }
-      }
-      return fileName;
-    }
-  };
-}
+import { TypeScriptWrapperConfig, getWrapperUtils } from './wrapperUtils';
+import { wrapCompilerHost } from './wrapCompilerHost';
 
 export function wrapTypescript(
   typescript: typeof ts,
@@ -114,7 +48,7 @@ export function wrapTypescript(
     return a.length === b.length && b.every(item => a.includes(item));
   }
 
-  const wrappers: Partial<ts.System> = {
+  const systemWrappers: Partial<ts.System> = {
     readDirectory(this: ts.System, path, extensions, ...rest) {
       if (extensions && arrayContentsEqual(extensions, origFileExtensions)) {
         extensions = [
@@ -188,105 +122,79 @@ export function wrapTypescript(
     }
   };
 
-  const systemHandler: ProxyHandler<ts.System> = {
-    get(target, name: string) {
-      if (
-        typeof target[name] === 'function' &&
-        typeof wrappers[name] === 'function'
-      ) {
-        return wrappers[name].bind(target);
-      }
-      return target[name];
-    }
-  };
-
   const sysProxy = new Proxy<ts.System>(
     typescript.sys,
     // log unwrapped calls & results
     // new Proxy<ts.System>(typescript.sys, loggingHandler),
-    systemHandler
+    {
+      get(target, name: string) {
+        if (systemWrappers[name] && target[name]) {
+          if (typeof systemWrappers[name] === 'function') {
+            return systemWrappers[name].bind(target);
+          }
+          return systemWrappers[name];
+        }
+
+        return target[name];
+      }
+    }
   );
 
-  return {
-    ...typescript,
-    sys: sysProxy
-    // log wrapped calls & results
-    // sys: new Proxy<ts.System>(sysProxy, loggingHandler)
-  };
-}
-
-type PickDefined<T, K extends keyof T> = { [Key in K]-?: NonNullable<T[K]> };
-type HostType = ts.CompilerHost | ts.WatchCompilerHostOfConfigFile<any>;
-
-export function wrapCompilerHost<T extends HostType>(
-  host: T,
-  programConfig: ts.ParsedCommandLine,
-  typescript: typeof ts,
-  _config: TypeScriptWrapperConfig
-) {
-  const wrapSuffixes = ['', '.__fake__'];
-
-  const compilerHostWrappers: PickDefined<HostType, 'resolveModuleNames'> = {
-    resolveModuleNames(
-      this: HostType,
-      moduleNames,
-      containingFile,
-      _reusedNames, // no idea what this is for
-      redirectedReference
+  const typescriptWrappers: Partial<typeof ts> = {
+    sys: sysProxy,
+    createCompilerHost(options, setParentNodes) {
+      return wrapCompilerHost(
+        /*
+         * unfortunately, ts.createCompilerHost does not take a "system" argument.
+         * but the internal (and exposed) createCompilerHostWorker does
+         * this is a bit hacky and might break in the future :/
+         * (a more solid workaround would be implementing another
+         * own CompilerHost or using the existing one if it is fit for the task?)
+         */
+        (this as any).createCompilerHostWorker(
+          options,
+          setParentNodes,
+          tsProxy.sys
+        ) as ts.CompilerHost,
+        options,
+        tsProxy,
+        config
+      );
+    },
+    createWatchCompilerHost(
+      fileOrFiles: any,
+      options: ts.CompilerOptions | undefined,
+      _system: any,
+      ...args: any[]
     ) {
-      return moduleNames.map(moduleName => {
-        for (const suffix of wrapSuffixes) {
-          /*
-          console.log(
-            START_YELLOW,
-            'try resolving',
-            moduleName + suffix,
-            RESET
-          );
-          */
-          const result = typescript.resolveModuleName(
-            moduleName + suffix,
-            containingFile,
-            programConfig.options,
-            this,
-            undefined,
-            redirectedReference
-          );
-          if (result.resolvedModule) {
-            /*
-            console.log(
-              START_YELLOW,
-              'resolved',
-              moduleName,
-              'as',
-              result.resolvedModule.resolvedFileName,
-              RESET
-            );
-            */
-            return result.resolvedModule;
-          }
-        }
-        // console.log(START_RED, 'could not revolve', moduleName, RESET);
-        return undefined;
-      });
+      if (!options) {
+        throw new Error('CompilerOptions are required!');
+      }
+      return wrapCompilerHost(
+        (this.createWatchCompilerHost as any)(
+          fileOrFiles,
+          options,
+          tsProxy.sys,
+          ...args
+        ),
+        options,
+        tsProxy,
+        config
+      );
     }
   };
 
-  const handler: ProxyHandler<HostType> = {
+  const tsProxy = new Proxy<typeof ts>(typescript, {
     get(target, name: string) {
-      if (typeof compilerHostWrappers[name] === 'function') {
-        return compilerHostWrappers[name].bind(target);
+      if (typescriptWrappers[name] && target[name]) {
+        if (typeof typescriptWrappers[name] === 'function') {
+          return typescriptWrappers[name].bind(target);
+        }
+        return typescriptWrappers[name];
       }
       return target[name];
     }
-  };
+  });
 
-  return new Proxy<T>(host, handler) as T & typeof compilerHostWrappers;
+  return tsProxy;
 }
-
-// @ts-ignore
-const START_YELLOW = '\x1b[33m';
-// @ts-ignore
-const START_RED = '\x1b[31m';
-// @ts-ignore
-const RESET = '\x1b[0m';

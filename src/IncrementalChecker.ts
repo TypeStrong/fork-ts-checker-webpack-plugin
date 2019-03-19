@@ -366,13 +366,12 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public emitFiles() {
-    const { program } = this;
-    if (!program) {
+    if (!this.program) {
       throw new Error('Invoked called before program initialized');
     }
 
     console.log('\n------------- BEFORE EMIT ------------- \n');
-    program.emit();
+    this.program.emit();
     console.log('\n------------- AFTER EMIT ------------- \n');
   }
 }

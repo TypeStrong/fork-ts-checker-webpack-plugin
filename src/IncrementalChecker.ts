@@ -246,6 +246,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
 
+    // Emitting files
     console.log('\n------------- BEFORE EMIT ------------- \n');
     program.emit();
     console.log('\n------------- AFTER EMIT ------------- \n');

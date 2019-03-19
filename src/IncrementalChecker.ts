@@ -246,11 +246,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
 
-    // Hard coded here at the first moment
-    console.log('\n------------- BEFORE EMIT ------------- \n');
-    program.emit();
-    console.log('\n------------- AFTER EMIT ------------- \n');
-
     // calculate subset of work to do
     const workSet = new WorkSet<ts.SourceFile>(
       filesToCheck,
@@ -363,5 +358,16 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return NormalizedMessage.deduplicate(
       lints.map(this.createNormalizedMessageFromRuleFailure)
     );
+  }
+
+  public emitFiles() {
+    const { program } = this;
+    if (!program) {
+      throw new Error('Invoked called before program initialized');
+    }
+
+    console.log('\n------------- BEFORE EMIT ------------- \n');
+    program.emit();
+    console.log('\n------------- AFTER EMIT ------------- \n');
   }
 }

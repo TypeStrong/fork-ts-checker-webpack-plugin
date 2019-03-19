@@ -160,4 +160,17 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       allLints.map(this.createNormalizedMessageFromRuleFailure)
     );
   }
+
+  public emitFiles() {
+    const program = this.tsIncrementalCompiler.getProgram();
+    if (!program) {
+      throw new Error(
+        'program in emitFiles for ApiIncrementalChecker not found'
+      );
+    }
+
+    console.log('\n------------- BEFORE EMIT ------------- \n');
+    program.emit();
+    console.log('\n------------- AFTER EMIT ------------- \n');
+  }
 }

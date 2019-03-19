@@ -66,4 +66,5 @@ export declare class IncrementalChecker implements IncrementalCheckerInterface {
     cancellationToken: CancellationToken
   ): Promise<NormalizedMessage[]>;
   getLints(cancellationToken: CancellationToken): NormalizedMessage[];
+  emitFiles(): void;
 }

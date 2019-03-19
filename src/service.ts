@@ -20,8 +20,7 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
 
 const checker: IncrementalCheckerInterface =
-  //process.env.USE_INCREMENTAL_API === 'true'
-  false
+  process.env.USE_INCREMENTAL_API === 'true'
     ? new ApiIncrementalChecker(
         typescript,
         createNormalizedMessageFromDiagnostic,
@@ -60,6 +59,7 @@ async function run(cancellationToken: CancellationToken) {
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }
+    checker.emitFiles();
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
       return;

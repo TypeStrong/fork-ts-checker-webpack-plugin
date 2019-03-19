@@ -7,4 +7,5 @@ export interface IncrementalCheckerInterface {
   ): Promise<NormalizedMessage[]>;
   hasLinter(): boolean;
   getLints(cancellationToken: CancellationToken): NormalizedMessage[];
+  emitFiles(): void;
 }

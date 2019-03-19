@@ -108,14 +108,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.lastUpdatedFiles = diagnostics.updatedFiles;
     this.lastRemovedFiles = diagnostics.removedFiles;
 
-    // const program = this.tsIncrementalCompiler.getProgram();
-    // if (!program) {
-    //   throw new Error('program inside ApiIncrementalChecker.ts was not found');
-    // }
-    // console.log('\n------------- BEFORE EMIT ------------- \n');
-    // program.emit();
-    // console.log('\n------------- AFTER EMIT ------------- \n');
-
     return NormalizedMessage.deduplicate(
       diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
     );
@@ -173,12 +165,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     const program = this.tsIncrementalCompiler.getProgram();
     if (!program) {
       throw new Error(
-        'program in emitFiles for ApiIncrementalChecker not found'
+        'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
       );
     }
 
-    console.log('\n------------- BEFORE EMIT ------------- \n');
     program.emit();
-    console.log('\n------------- AFTER EMIT ------------- \n');
   }
 }

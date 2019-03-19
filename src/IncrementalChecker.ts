@@ -246,10 +246,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
 
-    // console.log('\n------------- BEFORE EMIT ------------- \n');
-    // program.emit();
-    // console.log('\n------------- AFTER EMIT ------------- \n');
-
     // calculate subset of work to do
     const workSet = new WorkSet<ts.SourceFile>(
       filesToCheck,
@@ -370,8 +366,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       throw new Error('Invoked called before program initialized');
     }
 
-    console.log('\n------------- BEFORE EMIT ------------- \n');
     program.emit();
-    console.log('\n------------- AFTER EMIT ------------- \n');
   }
 }

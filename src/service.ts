@@ -55,11 +55,11 @@ async function run(cancellationToken: CancellationToken) {
   checker.nextIteration();
 
   try {
-    checker.emitFiles();
     diagnostics = await checker.getDiagnostics(cancellationToken);
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }
+    checker.emitFiles();
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
       return;

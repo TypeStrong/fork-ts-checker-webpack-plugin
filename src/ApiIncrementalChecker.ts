@@ -161,9 +161,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public emitFiles() {
+  public async emitFiles() {
     try {
-      const program = this.tsIncrementalCompiler.getProgram();
+      const program = await this.tsIncrementalCompiler.getProgram();
 
       if (!program) {
         throw new Error(
@@ -173,9 +173,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
       program.emit();
     } catch (error) {
-      console.log(
-        'Error for getProgram() inside emitFiles of ApiIncrementalChecker'
-      );
+      console.log('Error inside emitFiles() of ApiIncrementalChecker');
       console.log('Error description: ' + error);
     }
   }

@@ -162,13 +162,21 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public emitFiles() {
-    const program = this.tsIncrementalCompiler.getProgram();
-    if (!program) {
-      throw new Error(
-        'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
-      );
-    }
+    try {
+      const program = this.tsIncrementalCompiler.getProgram();
 
-    program.emit();
+      if (!program) {
+        throw new Error(
+          'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
+        );
+      }
+
+      program.emit();
+    } catch (error) {
+      console.log(
+        'Error for getProgram() inside emitFiles of ApiIncrementalChecker'
+      );
+      console.log('Error description: ' + error);
+    }
   }
 }

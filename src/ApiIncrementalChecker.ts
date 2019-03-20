@@ -161,9 +161,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public async emitFiles() {
+  public emitFiles() {
     try {
-      const program = await this.tsIncrementalCompiler.getProgram();
+      const program = this.tsIncrementalCompiler.getProgram();
 
       if (!program) {
         throw new Error(

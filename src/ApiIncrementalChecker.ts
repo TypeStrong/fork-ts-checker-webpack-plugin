@@ -53,6 +53,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       compilerOptions,
       checkSyntacticErrors
     );
+
+    this.emitFiles.bind(this);
   }
 
   private initLinterConfig() {
@@ -104,13 +106,18 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public async getDiagnostics(_cancellationToken: CancellationToken) {
-    const diagnostics = await this.tsIncrementalCompiler.processChanges();
-    this.lastUpdatedFiles = diagnostics.updatedFiles;
-    this.lastRemovedFiles = diagnostics.removedFiles;
+    try {
+      const diagnostics = await this.tsIncrementalCompiler.processChanges();
+      this.lastUpdatedFiles = diagnostics.updatedFiles;
+      this.lastRemovedFiles = diagnostics.removedFiles;
 
-    return NormalizedMessage.deduplicate(
-      diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
-    );
+      return NormalizedMessage.deduplicate(
+        diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
+      );
+    } catch (err) {
+      console.log('Haaa, te peguei', err);
+      throw err;
+    }
   }
 
   public getLints(_cancellationToken: CancellationToken) {
@@ -162,19 +169,23 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public emitFiles() {
-    try {
-      const program = this.tsIncrementalCompiler.getProgram();
+    // try {
+    console.log(
+      'JSON of .this in ApiIncrementalChecker: descrição para pegar o tsIncrementalCompiler'
+    );
+    console.log(JSON.stringify(this, null, 2));
+    const program = this.tsIncrementalCompiler.getProgram();
 
-      if (!program) {
-        throw new Error(
-          'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
-        );
-      }
-
-      program.emit();
-    } catch (error) {
-      console.log('Error inside emitFiles() of ApiIncrementalChecker');
-      console.log('Error description: ' + error);
+    if (!program) {
+      throw new Error(
+        'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
+      );
     }
+
+    program.emit();
+    // } catch (error) {
+    //   console.log('Error inside emitFiles() of ApiIncrementalChecker');
+    //   console.log('Error description: ' + error);
+    // }
   }
 }

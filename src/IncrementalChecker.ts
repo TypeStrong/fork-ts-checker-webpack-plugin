@@ -246,6 +246,10 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
 
+    console.log('----------------- BEFORE EMIT -----------------');
+    program.emit();
+    console.log('----------------- AFTER EMIT -----------------');
+
     // calculate subset of work to do
     const workSet = new WorkSet<ts.SourceFile>(
       filesToCheck,

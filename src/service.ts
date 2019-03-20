@@ -55,7 +55,7 @@ async function run(cancellationToken: CancellationToken) {
   checker.nextIteration();
 
   try {
-    checker.emitFiles();
+    // checker.emitFiles();
     diagnostics = await checker.getDiagnostics(cancellationToken);
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);

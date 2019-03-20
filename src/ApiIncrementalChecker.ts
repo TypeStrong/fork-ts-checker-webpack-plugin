@@ -169,12 +169,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       );
     }
 
-    console.log(
-      '----------------- BEFORE EMIT APIINCREMENTALCHECKER -----------------'
-    );
     program.emit();
-    console.log(
-      '----------------- AFTER EMIT APIINCREMENTALCHECKER -----------------'
-    );
   }
 }

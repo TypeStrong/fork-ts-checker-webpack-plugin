@@ -53,8 +53,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       compilerOptions,
       checkSyntacticErrors
     );
-
-    this.emitFiles.bind(this);
   }
 
   private initLinterConfig() {
@@ -189,6 +187,28 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       console.log(
         '--------------- AFTER EMIT - INSIDE APICHECKER ---------------'
       );
+      console.log(
+        '---------------  Printing more things to help ---------------'
+      );
+      console.log('---------------  program.getSourceFiles() ---------------');
+      console.log(program.getSourceFiles());
+      console.log(
+        '---------------  program.getCompilerOptions() ---------------'
+      );
+      console.log(program.getCompilerOptions());
+      console.log(
+        '---------------  program.getCurrentDirectory() ---------------'
+      );
+      console.log(program.getCurrentDirectory());
+      console.log(
+        '---------------  program.getProjectReferences() ---------------'
+      );
+      console.log(program.getProjectReferences());
+      console.log(
+        '---------------  program.getOptionsDiagnostics() ---------------'
+      );
+      console.log(program.getOptionsDiagnostics());
+      console.log('------------------------------');
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');
       console.log('Error description: ' + error);

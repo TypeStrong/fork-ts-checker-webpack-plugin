@@ -185,6 +185,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       console.log(
         '--------------- BEFORE EMIT - INSIDE APICHECKER ---------------'
       );
+
       program.emit();
       console.log(
         '--------------- AFTER EMIT - INSIDE APICHECKER ---------------'
@@ -192,8 +193,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       console.log(
         '---------------  Printing more things to help ---------------'
       );
-      console.log('---------------  program.getSourceFiles() ---------------');
-      console.log(program.getSourceFiles());
+      console.log(
+        '---------------  program.getSourceFiles().length ---------------'
+      );
+      console.log(
+        'Size of the SourceFiles array: ',
+        program.getSourceFiles().length
+      );
       console.log(
         '---------------  program.getCompilerOptions() ---------------'
       );
@@ -209,7 +215,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       console.log(
         '---------------  program.getOptionsDiagnostics() ---------------'
       );
-      console.log(program.getOptionsDiagnostics());
+      console.log(JSON.stringify(program.getOptionsDiagnostics(), null, 2));
+      console.log('---------------  CompilerHost writefile ---------------');
+      console.log(this.tsIncrementalCompiler.writeFile);
       console.log('------------------------------');
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');

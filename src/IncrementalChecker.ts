@@ -366,6 +366,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       throw new Error('Invoked called before program initialized');
     }
 
+    console.log('--------------- BEFORE EMIT ---------------');
     program.emit();
+    console.log('--------------- AFTER EMIT ---------------');
   }
 }

@@ -182,7 +182,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         );
       }
 
+      console.log(
+        '--------------- BEFORE EMIT - INSIDE APICHECKER ---------------'
+      );
       program.emit();
+      console.log(
+        '--------------- AFTER EMIT - INSIDE APICHECKER ---------------'
+      );
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');
       console.log('Error description: ' + error);

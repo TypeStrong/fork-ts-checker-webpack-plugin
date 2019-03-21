@@ -53,6 +53,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       compilerOptions,
       checkSyntacticErrors
     );
+
+    // this.emitFiles.bind(this);
   }
 
   private initLinterConfig() {

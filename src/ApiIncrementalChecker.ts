@@ -211,13 +211,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       console.log(
         '---------------  program.getProjectReferences() ---------------'
       );
-      console.log(program.getProjectReferences());
+      console.log(JSON.stringify(program.getProjectReferences()));
       console.log(
         '---------------  program.getOptionsDiagnostics() ---------------'
       );
       console.log(JSON.stringify(program.getOptionsDiagnostics(), null, 2));
       console.log('---------------  CompilerHost writefile ---------------');
-      console.log(this.tsIncrementalCompiler.writeFile);
+      console.log(JSON.stringify(this.tsIncrementalCompiler.writeFile));
       console.log('------------------------------');
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');

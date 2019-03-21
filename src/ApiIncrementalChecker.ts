@@ -115,7 +115,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
       );
     } catch (err) {
-      console.log('Haaa, te peguei', err);
+      console.log('--------------- te peguei ---------------', err);
       throw err;
     }
   }
@@ -169,23 +169,23 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public emitFiles() {
-    // try {
-    console.log(
-      'JSON of .this in ApiIncrementalChecker: descrição para pegar o tsIncrementalCompiler'
-    );
-    console.log(JSON.stringify(this, null, 2));
-    const program = this.tsIncrementalCompiler.getProgram();
-
-    if (!program) {
-      throw new Error(
-        'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
+    try {
+      console.log(
+        'JSON of .this.tsIncrementalCompiler in ApiIncrementalChecker: descrição'
       );
-    }
+      console.log(JSON.stringify(this.tsIncrementalCompiler, null, 2));
+      const program = this.tsIncrementalCompiler.getProgram();
 
-    program.emit();
-    // } catch (error) {
-    //   console.log('Error inside emitFiles() of ApiIncrementalChecker');
-    //   console.log('Error description: ' + error);
-    // }
+      if (!program) {
+        throw new Error(
+          'Program (a ts.Program object) in emitFiles() for ApiIncrementalChecker.ts not found'
+        );
+      }
+
+      program.emit();
+    } catch (error) {
+      console.log('Error inside emitFiles() of ApiIncrementalChecker');
+      console.log('Error description: ' + error);
+    }
   }
 }

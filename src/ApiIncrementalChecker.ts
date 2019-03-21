@@ -170,10 +170,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   public emitFiles() {
     try {
-      console.log(
-        'JSON of .this.tsIncrementalCompiler in ApiIncrementalChecker: descrição'
-      );
-      console.log(JSON.stringify(this.tsIncrementalCompiler, null, 2));
+      // console.log(
+      //   'JSON of .this.tsIncrementalCompiler in ApiIncrementalChecker: descrição'
+      // );
+      // console.log(JSON.stringify(this.tsIncrementalCompiler, null, 2));
       const program = this.tsIncrementalCompiler.getProgram();
 
       if (!program) {

@@ -52,6 +52,7 @@
   "devDependencies": {
     "@types/babel-code-frame": "^6.20.1",
     "@types/chokidar": "^1.7.5",
+    "@types/fs-extra": "^5.0.5",
     "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",
     "@types/node": "^8.10.38",
@@ -82,8 +83,9 @@
   },
   "dependencies": {
     "babel-code-frame": "^6.22.0",
-    "chalk": "^2.4.1",
+    "chalk": "^2.4.2",
     "chokidar": "^2.0.4",
+    "fs-extra": "^7.0.1",
     "global": "^4.3.2",
     "micromatch": "^3.1.10",
     "minimatch": "^3.0.4",

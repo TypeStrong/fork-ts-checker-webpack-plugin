@@ -2,7 +2,7 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
-import { writeFileSync } from 'fs';
+import { outputFileSync } from 'fs-extra';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -364,7 +364,8 @@ export class CompilerHost
     console.log(
       '----------------- Entrei no COMPILERHOST WRITEFILE ------------------'
     );
-    writeFileSync(_path, _data);
+
+    outputFileSync(_path, _data);
     // pretend everything was ok
   }
 

@@ -313,8 +313,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           errors.filter(e => e.rawMessage.indexOf('foo/Foo2.vue') >= 0).length
         ).to.be.equal(0);
       });
-      it('should not report any compilation errors', function() {
-        expect(errors.length).to.be.equal(0);
+      it('should report report one generic compilation error', function() {
+        expect(errors.length).to.be.equal(1);
       });
     });
   };

@@ -24,5 +24,7 @@ export default {
     Foo2
   }
 };
+
+const x: string = 1;
 </script>
 

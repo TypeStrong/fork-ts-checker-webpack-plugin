@@ -21,8 +21,8 @@ export const wrapperConfigWithVue: TypeScriptWrapperConfig = {
     '.vue': handleVueContents,
     '.vuex': handleVueContents
   },
-  wrapExtensionsAsTs: ['.vue'],
-  wrapExtensionsAsTsx: ['.mdx', '.vuex']
+  wrapExtensionsAsTs: ['.vue', '.vuex'],
+  wrapExtensionsAsTsx: ['.mdx']
 };
 
 export const emptyWrapperConfig: TypeScriptWrapperConfig = {

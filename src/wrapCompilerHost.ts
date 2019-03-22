@@ -3,23 +3,30 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { TypeScriptWrapperConfig } from './wrapperUtils';
 
-type PickDefined<T, K extends keyof T> = { [Key in K]-?: NonNullable<T[K]> };
 type HostType = ts.CompilerHost | ts.WatchCompilerHostOfConfigFile<any>;
+// @ts-ignore
+type ScriptKindName =
+  | 'Unknown'
+  | 'JS'
+  | 'JSX'
+  | 'TS'
+  | 'TSX'
+  | 'External'
+  | 'JSON'
+  | 'Deferred';
+
+const wrapSuffixes = ['', '.__fake__'];
 
 export function wrapCompilerHost<T extends HostType>(
-  host: T,
+  origHost: T,
   compilerOptions: ts.CompilerOptions,
   typescript: typeof ts,
   _config: TypeScriptWrapperConfig
 ) {
-  const wrapSuffixes = ['', '.__fake__'];
+  let wrappedCompilerHost: T;
 
-  const compilerHostWrappers: PickDefined<
-    HostType,
-    'resolveModuleNames' /* TODO: | 'getSourceFile'*/
-  > = {
+  const compilerHostWrappers: Partial<ts.CompilerHost> = {
     resolveModuleNames(
-      this: HostType,
       moduleNames,
       containingFile,
       _reusedNames, // no idea what this is for
@@ -39,7 +46,7 @@ export function wrapCompilerHost<T extends HostType>(
             moduleName + suffix,
             containingFile,
             compilerOptions,
-            this,
+            wrappedCompilerHost,
             undefined,
             redirectedReference
           );
@@ -60,19 +67,37 @@ export function wrapCompilerHost<T extends HostType>(
         // console.log(START_RED, 'could not revolve', moduleName, RESET);
         return undefined;
       });
-    }
-  };
-
-  const handler: ProxyHandler<HostType> = {
-    get(target, name: string) {
-      if (typeof compilerHostWrappers[name] === 'function') {
-        return compilerHostWrappers[name].bind(target);
+    },
+    getSourceFile(...args) {
+      let result = (origHost as ts.CompilerHost).getSourceFile(...args);
+      if (result && result.text) {
+        const matches = /^\s*\/\*\s*@fork-ts-checker-handle-file-as\s+(Unknown|JS|JSX|TS|TSX|External|JSON|Deferred)\s*\*\//.exec(
+          result.text
+        );
+        if (matches) {
+          const [fullMatch, scriptKind] = matches;
+          result = typescript.createSourceFile(
+            result.fileName,
+            result.text.slice(fullMatch.length),
+            result.languageVersion,
+            true,
+            ts.ScriptKind[scriptKind as ScriptKindName]
+          );
+        }
+        /*
+        console.log(
+          'getSourceFile =>',
+          result.fileName,
+          ts.ScriptKind[(result as any).scriptKind]
+        );
+        */
       }
-      return target[name];
+      return result;
     }
   };
 
-  return new Proxy<T>(host, handler) as T & typeof compilerHostWrappers;
+  wrappedCompilerHost = { ...origHost, ...compilerHostWrappers };
+  return wrappedCompilerHost;
 }
 
 // @ts-ignore

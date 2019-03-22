@@ -150,9 +150,9 @@ function makeCommonTests(useTypescriptIncrementalApi) {
 
     [
       'example-ts.vue',
-      'example-tsx.vuex',
+      'example-tsx.vue',
       'example-js.vue',
-      'example-jsx.vuex',
+      'example-jsx.vue',
       'example-nolang.vue'
     ].forEach(fileName => {
       it('should be able to extract script from ' + fileName, function() {
@@ -172,9 +172,9 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     function groupByFileName(errors) {
       var ret = {
         'example-ts.vue': [],
-        'example-tsx.vuex': [],
+        'example-tsx.vue': [],
         'example-js.vue': [],
-        'example-jsx.vuex': [],
+        'example-jsx.vue': [],
         'example-nolang.vue': []
       };
       for (var error of errors) {
@@ -183,7 +183,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       return ret;
     }
 
-    describe('should be able to compile *.vue[x] with each lang', function() {
+    describe('should be able to compile *.vue with each lang', function() {
       var errors;
       before(function(callback) {
         createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
@@ -196,20 +196,20 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         expect(errors['example-ts.vue'].length).to.be.equal(0);
       });
       it('lang=tsx', function() {
-        expect(errors['example-tsx.vuex'].length).to.be.equal(0);
+        expect(errors['example-tsx.vue'].length).to.be.equal(0);
       });
       it('lang=js', function() {
         expect(errors['example-js.vue'].length).to.be.equal(0);
       });
       it('lang=jsx', function() {
-        expect(errors['example-jsx.vuex'].length).to.be.equal(0);
+        expect(errors['example-jsx.vue'].length).to.be.equal(0);
       });
       it('no lang', function() {
         expect(errors['example-nolang.vue'].length).to.be.equal(0);
       });
     });
 
-    describe('should be able to detect errors in *.vue[x]', function() {
+    describe('should be able to detect errors in *.vue', function() {
       var errors;
       before(function(callback) {
         // tsconfig-langs-strict.json === tsconfig-langs.json + noUnusedLocals
@@ -226,8 +226,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         );
       });
       it('lang=tsx', function() {
-        expect(errors['example-tsx.vuex'].length).to.be.equal(1);
-        expect(errors['example-tsx.vuex'][0].rawMessage).to.match(
+        expect(errors['example-tsx.vue'].length).to.be.equal(1);
+        expect(errors['example-tsx.vue'][0].rawMessage).to.match(
           /'a' is declared but/
         );
       });
@@ -235,7 +235,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         expect(errors['example-js.vue'].length).to.be.equal(0);
       });
       it('lang=jsx', function() {
-        expect(errors['example-jsx.vuex'].length).to.be.equal(0);
+        expect(errors['example-jsx.vue'].length).to.be.equal(0);
       });
       it('no lang', function() {
         expect(errors['example-nolang.vue'].length).to.be.equal(0);

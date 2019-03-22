@@ -1,6 +1,19 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as vueCompiler from 'vue-template-compiler';
 
+function getScriptKindByLang(lang?: string) {
+  switch (lang) {
+    case 'ts':
+      return 'TS';
+    case 'tsx':
+      return 'TSX';
+    case 'jsx':
+      return 'JSX';
+    default:
+      return 'JS';
+  }
+}
+
 export function handleVueContents(content: string): string {
   // We need to import vue-template-compiler lazily because it cannot be included it
   // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
@@ -30,6 +43,7 @@ export function handleVueContents(content: string): string {
     // import path cannot be end with '.ts[x]'
     const src = script.attrs.src.replace(/\.tsx?$/i, '');
     return (
+      '/* @fork-ts-checker-handle-file-as TS */ \n' +
       '/* tslint:disable */\n' +
       '// @ts-ignore\n' +
       `export { default } from '${src}';\n` +
@@ -38,12 +52,16 @@ export function handleVueContents(content: string): string {
     );
   }
 
+  const scriptKind = getScriptKindByLang(script.lang);
+
   // Pad blank lines to retain diagnostics location
   // We need to prepend `//` for each line to avoid
   // false positive of no-consecutive-blank-lines TSLint rule
   const offset = content.slice(0, script.start).split(/\r?\n/g).length;
   const paddedContent =
-    Array(offset).join('//\n') + script.content.slice(script.start);
+    `/* @fork-ts-checker-handle-file-as ${scriptKind} */ ` +
+    Array(offset).join('//\n') +
+    script.content.slice(script.start);
 
   return paddedContent;
 }

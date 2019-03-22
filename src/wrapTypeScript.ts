@@ -6,9 +6,13 @@ import { TypeScriptWrapperConfig, getWrapperUtils } from './wrapperUtils';
 import { wrapCompilerHost } from './wrapCompilerHost';
 
 export function wrapTypescript(
-  typescript: typeof ts,
+  origTypescript: typeof ts,
   config: TypeScriptWrapperConfig
 ) {
+  const origSys = origTypescript.sys;
+  let wrappedTypescript: typeof ts;
+  let wrappedSys: ts.System;
+
   const { wrapFileName, unwrapFileName } = getWrapperUtils(config);
 
   const handleFileContents = (
@@ -49,7 +53,7 @@ export function wrapTypescript(
   }
 
   const systemWrappers: Partial<ts.System> = {
-    readDirectory(this: ts.System, path, extensions, ...rest) {
+    readDirectory(path, extensions, ...rest) {
       if (extensions && arrayContentsEqual(extensions, origFileExtensions)) {
         extensions = [
           ...extensions,
@@ -57,40 +61,40 @@ export function wrapTypescript(
           ...config.wrapExtensionsAsTsx
         ];
       }
-      return this.readDirectory(path, extensions, ...rest).map(wrapFileName);
+      return origSys.readDirectory(path, extensions, ...rest).map(wrapFileName);
     },
-    readFile(this: ts.System, fileName, ...rest) {
+    readFile(fileName, ...rest) {
       const originalFileName = unwrapFileName(fileName);
       return handleFileContents(
         originalFileName,
-        this.readFile(unwrapFileName(fileName), ...rest)
+        origSys.readFile(unwrapFileName(fileName), ...rest)
       );
     },
-    fileExists(this: ts.System, fileName) {
-      return this.fileExists(unwrapFileName(fileName));
+    fileExists(fileName) {
+      return origSys.fileExists(unwrapFileName(fileName));
     },
-    watchFile(this: ts.System, fileName, callback, ...rest) {
-      return this.watchFile!(
+    watchFile(fileName, callback, ...rest) {
+      return origSys.watchFile!(
         unwrapFileName(fileName),
         wrapWatcherCallback(callback),
         ...rest
       );
     },
-    watchDirectory(this: ts.System, dirName, callback, ...rest) {
-      return this.watchDirectory!(
+    watchDirectory(dirName, callback, ...rest) {
+      return origSys.watchDirectory!(
         dirName,
         wrapWatcherCallback(callback),
         ...rest
       );
     },
-    getModifiedTime(this: ts.System, fileName) {
-      return this.getModifiedTime!(unwrapFileName(fileName));
+    getModifiedTime(fileName) {
+      return origSys.getModifiedTime!(unwrapFileName(fileName));
     },
-    setModifiedTime(this: ts.System, fileName, ...args) {
-      return this.setModifiedTime!(unwrapFileName(fileName), ...args);
+    setModifiedTime(fileName, ...args) {
+      return origSys.setModifiedTime!(unwrapFileName(fileName), ...args);
     },
-    deleteFile(this: ts.System, fileName) {
-      return this.deleteFile!(unwrapFileName(fileName));
+    deleteFile(fileName) {
+      return origSys.deleteFile!(unwrapFileName(fileName));
     }
   };
 
@@ -122,42 +126,30 @@ export function wrapTypescript(
     }
   };
 
-  const sysProxy = new Proxy<ts.System>(
-    typescript.sys,
-    // log unwrapped calls & results
-    // new Proxy<ts.System>(typescript.sys, loggingHandler),
-    {
-      get(target, name: string) {
-        if (systemWrappers[name] && target[name]) {
-          if (typeof systemWrappers[name] === 'function') {
-            return systemWrappers[name].bind(target);
-          }
-          return systemWrappers[name];
-        }
-
-        return target[name];
-      }
-    }
-  );
+  wrappedSys = {
+    ...origTypescript.sys,
+    ...systemWrappers
+  };
+  // new Proxy<ts.System>(sysProxy, loggingHandler);
 
   const typescriptWrappers: Partial<typeof ts> = {
-    sys: sysProxy,
+    sys: wrappedSys,
     createCompilerHost(options, setParentNodes) {
       return wrapCompilerHost(
         /*
          * unfortunately, ts.createCompilerHost does not take a "system" argument.
-         * but the internal (and exposed) createCompilerHostWorker does
+         * but the internal (and exposed) createCompilerHostWorker does.
          * this is a bit hacky and might break in the future :/
          * (a more solid workaround would be implementing another
          * own CompilerHost or using the existing one if it is fit for the task?)
          */
-        (this as any).createCompilerHostWorker(
+        (origTypescript as any).createCompilerHostWorker(
           options,
           setParentNodes,
-          tsProxy.sys
+          wrappedTypescript.sys
         ) as ts.CompilerHost,
         options,
-        tsProxy,
+        wrappedTypescript,
         config
       );
     },
@@ -171,30 +163,50 @@ export function wrapTypescript(
         throw new Error('CompilerOptions are required!');
       }
       return wrapCompilerHost(
-        (this.createWatchCompilerHost as any)(
+        (origTypescript.createWatchCompilerHost as any)(
           fileOrFiles,
           options,
-          tsProxy.sys,
+          wrappedTypescript.sys,
           ...args
         ),
         options,
-        tsProxy,
+        wrappedTypescript,
         config
+      );
+    },
+    // function createEmitAndSemanticDiagnosticsBuilderProgram(newProgram: ts.Program, host: ts.BuilderProgramHost, oldProgram?: ts.EmitAndSemanticDiagnosticsBuilderProgram, configFileParsingDiagnostics?: ReadonlyArray<ts.Diagnostic>): ts.EmitAndSemanticDiagnosticsBuilderProgram;
+    // function createEmitAndSemanticDiagnosticsBuilderProgram(rootNames: ReadonlyArray<string> | undefined, options: ts.CompilerOptions | undefined, host?: CompilerHost, oldProgram?: ts.EmitAndSemanticDiagnosticsBuilderProgram, configFileParsingDiagnostics?: ReadonlyArray<ts.Diagnostic>, projectReferences?: ReadonlyArray<ts.ProjectReference>): ts.EmitAndSemanticDiagnosticsBuilderProgram;
+    createEmitAndSemanticDiagnosticsBuilderProgram(...args: any[]) {
+      if (isTsProgram(args[0])) {
+        throw new Error(
+          "only the signature 'rootNames, options, host, ... is supported for createEmitAndSemanticDiagnosticsBuilderProgram"
+        );
+      }
+      const origOptions = args[1];
+      const origHost = args[2];
+
+      args[2] = wrapCompilerHost(
+        origHost,
+        origOptions,
+        wrappedTypescript,
+        config
+      );
+      return (origTypescript.createEmitAndSemanticDiagnosticsBuilderProgram as any)(
+        ...args
       );
     }
   };
 
-  const tsProxy = new Proxy<typeof ts>(typescript, {
-    get(target, name: string) {
-      if (typescriptWrappers[name] && target[name]) {
-        if (typeof typescriptWrappers[name] === 'function') {
-          return typescriptWrappers[name].bind(target);
-        }
-        return typescriptWrappers[name];
-      }
-      return target[name];
-    }
-  });
+  wrappedTypescript = {
+    ...origTypescript,
+    ...typescriptWrappers
+  };
 
-  return tsProxy;
+  return wrappedTypescript;
+}
+
+function isTsProgram(
+  x: ReadonlyArray<string> | undefined | ts.Program
+): x is ts.Program {
+  return !!x && 'getRootFileNames' in x;
 }

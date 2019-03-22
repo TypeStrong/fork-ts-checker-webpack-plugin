@@ -361,12 +361,7 @@ export class CompilerHost
     _data: string,
     _writeByteOrderMark?: boolean
   ): void {
-    console.log(
-      '----------------- Entrei no COMPILERHOST WRITEFILE ------------------'
-    );
-
     outputFileSync(_path, _data);
-    // pretend everything was ok
   }
 
   public onCachedDirectoryStructureHostCreate?(_host: any): void {

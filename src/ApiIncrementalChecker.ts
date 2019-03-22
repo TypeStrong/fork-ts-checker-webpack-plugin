@@ -106,18 +106,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public async getDiagnostics(_cancellationToken: CancellationToken) {
-    try {
-      const diagnostics = await this.tsIncrementalCompiler.processChanges();
-      this.lastUpdatedFiles = diagnostics.updatedFiles;
-      this.lastRemovedFiles = diagnostics.removedFiles;
+    const diagnostics = await this.tsIncrementalCompiler.processChanges();
+    this.lastUpdatedFiles = diagnostics.updatedFiles;
+    this.lastRemovedFiles = diagnostics.removedFiles;
 
-      return NormalizedMessage.deduplicate(
-        diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
-      );
-    } catch (err) {
-      console.log('--------------- te peguei ---------------', err);
-      throw err;
-    }
+    return NormalizedMessage.deduplicate(
+      diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
+    );
   }
 
   public getLints(_cancellationToken: CancellationToken) {
@@ -170,10 +165,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   public emitFiles() {
     try {
-      // console.log(
-      //   'JSON of .this.tsIncrementalCompiler in ApiIncrementalChecker: descrição'
-      // );
-      // console.log(JSON.stringify(this.tsIncrementalCompiler, null, 2));
       const program = this.tsIncrementalCompiler.getProgram();
 
       if (!program) {
@@ -182,43 +173,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         );
       }
 
-      console.log(
-        '--------------- BEFORE EMIT - INSIDE APICHECKER ---------------'
-      );
-
       program.emit();
-      console.log(
-        '--------------- AFTER EMIT - INSIDE APICHECKER ---------------'
-      );
-      console.log(
-        '---------------  Printing more things to help ---------------'
-      );
-      console.log(
-        '---------------  program.getSourceFiles().length ---------------'
-      );
-      console.log(
-        'Size of the SourceFiles array: ',
-        program.getSourceFiles().length
-      );
-      console.log(
-        '---------------  program.getCompilerOptions() ---------------'
-      );
-      console.log(program.getCompilerOptions());
-      console.log(
-        '---------------  program.getCurrentDirectory() ---------------'
-      );
-      console.log(program.getCurrentDirectory());
-      console.log(
-        '---------------  program.getProjectReferences() ---------------'
-      );
-      console.log(JSON.stringify(program.getProjectReferences()));
-      console.log(
-        '---------------  program.getOptionsDiagnostics() ---------------'
-      );
-      console.log(JSON.stringify(program.getOptionsDiagnostics(), null, 2));
-      console.log('---------------  CompilerHost writefile ---------------');
-      console.log(JSON.stringify(this.tsIncrementalCompiler.writeFile));
-      console.log('------------------------------');
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');
       console.log('Error description: ' + error);

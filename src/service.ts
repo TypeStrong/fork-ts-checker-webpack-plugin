@@ -14,7 +14,8 @@ import { wrapTypescript } from './wrapTypeScript';
 import {
   TypeScriptWrapperConfig,
   wrapperConfigWithVue,
-  emptyWrapperConfig
+  emptyWrapperConfig,
+  getWrapperUtils
 } from './wrapperUtils';
 
 const wrapperConfig: TypeScriptWrapperConfig =
@@ -24,6 +25,7 @@ const typescript: typeof ts = wrapTypescript(
   require(process.env.TYPESCRIPT_PATH!),
   wrapperConfig
 );
+const { unwrapFileName } = getWrapperUtils(wrapperConfig);
 
 // message factories
 export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessageFromDiagnostic(
@@ -71,6 +73,20 @@ async function run(cancellationToken: CancellationToken) {
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }
+
+    diagnostics = diagnostics.map(diagnostic => {
+      if (diagnostic.file) {
+        const unwrappedFileName = unwrapFileName(diagnostic.file);
+
+        if (unwrappedFileName !== diagnostic.file) {
+          return new NormalizedMessage({
+            ...diagnostic.toJSON(),
+            file: unwrappedFileName
+          });
+        }
+      }
+      return diagnostic;
+    });
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
       return;

@@ -18,12 +18,24 @@ describe(
 function makeCommonTests(useTypescriptIncrementalApi) {
   return function() {
     this.timeout(60000);
-    process.setMaxListeners(0);
+    require('events').EventEmitter.defaultMaxListeners = 100;
     var files;
     var compiler;
     var checker;
     var wrapFileName;
     var unwrapFileName;
+
+    const origEnv = Object.assign({}, process.env);
+    const origOn = process.on;
+    const origSend = process.send;
+    const origExit = process.exit;
+
+    afterEach(() => {
+      process.env = origEnv;
+      process.on = origOn;
+      process.send = origSend;
+      process.exit = origExit;
+    });
 
     function createCompiler(options) {
       options = options || {};
@@ -40,69 +52,91 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       }
     }
 
-    it('should create a Vue program config if vue=true', function() {
+    async function awaitInit() {
+      if ('tsIncrementalCompiler' in checker) {
+        if (!checker.tsIncrementalCompiler.lastProcessing) {
+          await checker.tsIncrementalCompiler.processChanges();
+        } else {
+          await checker.tsIncrementalCompiler.lastProcessing;
+        }
+      }
+    }
+
+    async function getKnownFileNames() {
+      await awaitInit();
+      if ('tsIncrementalCompiler' in checker) {
+        return Array.from(checker.tsIncrementalCompiler.getAllKnownFiles());
+      }
+      return checker.programConfig.fileNames;
+    }
+
+    async function getProgram() {
+      await awaitInit();
+      if ('tsIncrementalCompiler' in checker) {
+        return checker.tsIncrementalCompiler.getProgram();
+      }
+      return checker.program;
+    }
+
+    it('should create a Vue program config if vue=true', async function() {
       createCompiler({ vue: true });
+
+      const fileNames = await getKnownFileNames();
 
       var fileFound;
       var fileWeWant = unixify(files['example.vue']);
-      fileFound = checker.programConfig.fileNames.some(
-        filename => unixify(filename) === fileWeWant
-      );
+      fileFound = fileNames.some(filename => unixify(filename) === fileWeWant);
       expect(fileFound).to.be.true;
 
       fileWeWant = unixify(files['syntacticError.ts']);
-      fileFound = checker.programConfig.fileNames.some(
-        filename => unixify(filename) === fileWeWant
-      );
+      fileFound = fileNames.some(filename => unixify(filename) === fileWeWant);
       expect(fileFound).to.be.true;
     });
 
-    it('should not create a Vue program config if vue=false', function() {
+    it('should not create a Vue program config if vue=false', async function() {
       createCompiler();
+
+      const fileNames = await getKnownFileNames();
 
       var fileFound;
       var fileWeWant = unixify(files['example.vue']);
 
-      fileFound = checker.programConfig.fileNames.some(
-        filename => unixify(filename) === fileWeWant
-      );
+      fileFound = fileNames.some(filename => unixify(filename) === fileWeWant);
       expect(fileFound).to.be.false;
 
       fileWeWant = unixify(files['syntacticError.ts']);
-      fileFound = checker.programConfig.fileNames.some(
-        filename => unixify(filename) === fileWeWant
-      );
+      fileFound = fileNames.some(filename => unixify(filename) === fileWeWant);
       expect(fileFound).to.be.true;
     });
 
-    it('should create a Vue program if vue=true', function() {
+    it('should create a Vue program if vue=true', async function() {
       createCompiler({ vue: true });
 
       var source;
 
-      source = checker.program.getSourceFile(files['example.vue']);
+      source = (await getProgram()).getSourceFile(files['example.vue']);
       expect(source).to.not.be.undefined;
 
-      source = checker.program.getSourceFile(files['syntacticError.ts']);
+      source = (await getProgram()).getSourceFile(files['syntacticError.ts']);
       expect(source).to.not.be.undefined;
     });
 
-    it('should not create a Vue program if vue=false', function() {
+    it('should not create a Vue program if vue=false', async function() {
       createCompiler();
 
       var source;
 
-      source = checker.program.getSourceFile(files['example.vue']);
+      source = (await getProgram()).getSourceFile(files['example.vue']);
       expect(source).to.be.undefined;
 
-      source = checker.program.getSourceFile(files['syntacticError.ts']);
+      source = (await getProgram()).getSourceFile(files['syntacticError.ts']);
       expect(source).to.not.be.undefined;
     });
 
-    it('should get syntactic diagnostics from Vue program', function() {
+    it('should get syntactic diagnostics from Vue program', async function() {
       createCompiler({ tslint: true, vue: true });
 
-      const diagnostics = checker.program.getSyntacticDiagnostics();
+      const diagnostics = (await getProgram()).getSyntacticDiagnostics();
       expect(diagnostics.length).to.be.equal(1);
     });
 
@@ -155,13 +189,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       'example-jsx.vue',
       'example-nolang.vue'
     ].forEach(fileName => {
-      it('should be able to extract script from ' + fileName, function() {
+      it('should be able to extract script from ' + fileName, async function() {
         createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
         var sourceFilePath = path.resolve(
           compiler.context,
           wrapFileName('src/langs/' + fileName)
         );
-        var source = checker.program.getSourceFile(sourceFilePath);
+        var source = (await getProgram()).getSourceFile(sourceFilePath);
         expect(source).to.not.be.undefined;
         // remove padding lines
         var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();

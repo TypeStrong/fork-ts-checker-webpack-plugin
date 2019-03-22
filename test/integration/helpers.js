@@ -15,63 +15,50 @@ var VueLoaderPlugin =
 
 mockRequire('child_process', {
   fork(modulePath, args, options) {
-    const origEnv = Object.assign({}, process.env);
-    const origOn = process.on;
-    // see below
-    // const origSend = process.send;
-    // const origExit = process.exit;
-    try {
-      const stringEnv = options.env;
-      for (const key of Object.keys(stringEnv)) {
-        stringEnv[key] =
-          typeof stringEnv[key] === 'string'
-            ? stringEnv[key]
-            : JSON.stringify(stringEnv[key]);
-      }
-      Object.assign(process.env, options.env, { RUNNING_IN_TEST: 'true' });
-
-      const webpackToServiceCallbacks = { message: [], SIGINT: [] };
-      const serviceToWebpackCallbacks = { message: [], exit: [] };
-      const applyCallbacks = (queues, event, ...args) =>
-        (queues[event] || []).forEach(cb => cb(...args));
-      const registerCallbacks = (queues, event, cb) =>
-        (queues[event] = [...(queues[event] || []), cb]);
-
-      process.on = (event, callback) =>
-        registerCallbacks(webpackToServiceCallbacks, event, callback);
-      process.send = message =>
-        applyCallbacks(serviceToWebpackCallbacks, 'message', message);
-      process.exit = code =>
-        applyCallbacks(serviceToWebpackCallbacks, 'exit', JSON.stringify(code));
-
-      mockRequire.reRequire(modulePath);
-
-      const ret = {
-        on(event, callback) {
-          registerCallbacks(serviceToWebpackCallbacks, event, callback);
-        },
-        send(cancellationToken) {
-          applyCallbacks(
-            webpackToServiceCallbacks,
-            'message',
-            JSON.stringify(cancellationToken.toJSON())
-          );
-        },
-        connected: true,
-        kill() {
-          applyCallbacks(webpackToServiceCallbacks, 'SIGINT', '0');
-          ret.connected = false;
-        }
-      };
-
-      return ret;
-    } finally {
-      process.env = origEnv;
-      process.on = origOn;
-      // as tests will be called asynchonously, we cannot restore these. next test will override them anyways
-      // process.send = origSend;
-      // process.exit = origExit;
+    const stringEnv = options.env;
+    for (const key of Object.keys(stringEnv)) {
+      stringEnv[key] =
+        typeof stringEnv[key] === 'string'
+          ? stringEnv[key]
+          : JSON.stringify(stringEnv[key]);
     }
+    Object.assign(process.env, options.env, { RUNNING_IN_TEST: 'true' });
+
+    const webpackToServiceCallbacks = { message: [], SIGINT: [] };
+    const serviceToWebpackCallbacks = { message: [], exit: [] };
+    const applyCallbacks = (queues, event, ...args) =>
+      (queues[event] || []).forEach(cb => cb(...args));
+    const registerCallbacks = (queues, event, cb) =>
+      (queues[event] = [...(queues[event] || []), cb]);
+
+    process.on = (event, callback) =>
+      registerCallbacks(webpackToServiceCallbacks, event, callback);
+    process.send = message =>
+      applyCallbacks(serviceToWebpackCallbacks, 'message', message);
+    process.exit = code =>
+      applyCallbacks(serviceToWebpackCallbacks, 'exit', JSON.stringify(code));
+
+    mockRequire.reRequire(modulePath);
+
+    const ret = {
+      on(event, callback) {
+        registerCallbacks(serviceToWebpackCallbacks, event, callback);
+      },
+      send(cancellationToken) {
+        applyCallbacks(
+          webpackToServiceCallbacks,
+          'message',
+          JSON.stringify(cancellationToken.toJSON())
+        );
+      },
+      connected: true,
+      kill() {
+        applyCallbacks(webpackToServiceCallbacks, 'SIGINT', '0');
+        ret.connected = false;
+      }
+    };
+
+    return ret;
   }
 });
 

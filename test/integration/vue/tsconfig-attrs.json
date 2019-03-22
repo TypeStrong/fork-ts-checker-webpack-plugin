@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-      "lib": ["es2016", "dom"]
+    "lib": ["es2016", "dom"]
   },
   "include": [
-      "src/attrs/Test.vue",
-      "src/attrs/NotFound.vue"
+    "src/attrs/Test.vue",
+    "src/attrs/NotFound.vue",
+    "src/attrs/Test.vue.__fake__.ts",
+    "src/attrs/NotFound.__fake__.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

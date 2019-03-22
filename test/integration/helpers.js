@@ -13,111 +13,72 @@ var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
   webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
 
-mockRequire('child_process', {
-  fork(modulePath, args, options) {
-    const stringEnv = options.env;
-    for (const key of Object.keys(stringEnv)) {
-      stringEnv[key] =
-        typeof stringEnv[key] === 'string'
-          ? stringEnv[key]
-          : JSON.stringify(stringEnv[key]);
-    }
-    Object.assign(process.env, options.env, { RUNNING_IN_TEST: 'true' });
+exports.createVueCompiler = function(options) {
+  try {
+    mockRequire('child_process', './mocks/child_process');
+    ForkTsCheckerWebpackPlugin = mockRequire.reRequire('../../lib/index');
 
-    const webpackToServiceCallbacks = { message: [], SIGINT: [] };
-    const serviceToWebpackCallbacks = { message: [], exit: [] };
-    const applyCallbacks = (queues, event, ...args) =>
-      (queues[event] || []).forEach(cb => cb(...args));
-    const registerCallbacks = (queues, event, cb) =>
-      (queues[event] = [...(queues[event] || []), cb]);
+    var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
 
-    process.on = (event, callback) =>
-      registerCallbacks(webpackToServiceCallbacks, event, callback);
-    process.send = message =>
-      applyCallbacks(serviceToWebpackCallbacks, 'message', message);
-    process.exit = code =>
-      applyCallbacks(serviceToWebpackCallbacks, 'exit', JSON.stringify(code));
-
-    mockRequire.reRequire(modulePath);
-
-    const ret = {
-      on(event, callback) {
-        registerCallbacks(serviceToWebpackCallbacks, event, callback);
+    var compiler = webpack({
+      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
+      context: path.resolve(__dirname, './vue'),
+      entry: './src/index.ts',
+      output: {
+        path: path.resolve(__dirname, '../../tmp')
       },
-      send(cancellationToken) {
-        applyCallbacks(
-          webpackToServiceCallbacks,
-          'message',
-          JSON.stringify(cancellationToken.toJSON())
-        );
+      resolve: {
+        extensions: ['.ts', '.js', '.vue', '.json'],
+        alias: {
+          '@': path.resolve(__dirname, './vue/src')
+        }
       },
-      connected: true,
-      kill() {
-        applyCallbacks(webpackToServiceCallbacks, 'SIGINT', '0');
-        ret.connected = false;
-      }
+      module: {
+        rules: [
+          {
+            test: /\.vue$/,
+            loader: 'vue-loader'
+          },
+          {
+            test: /\.ts$/,
+            loader: 'ts-loader',
+            options: {
+              appendTsSuffixTo: [/\.vue$/],
+              transpileOnly: true,
+              silent: true
+            }
+          },
+          {
+            test: /\.css$/,
+            loader: 'css-loader'
+          }
+        ]
+      },
+      plugins:
+        webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin]
+    });
+
+    var files = {
+      'example.vue': path.resolve(compiler.context, 'src/example.vue'),
+      'syntacticError.ts': path.resolve(
+        compiler.context,
+        'src/syntacticError.ts'
+      )
     };
 
-    return ret;
+    var wrapperConfig = plugin.vue ? wrapperConfigWithVue : emptyWrapperConfig;
+    var wrapperUtils = getWrapperUtils(wrapperConfig);
+
+    plugin.spawnService();
+    var checker = global.checker;
+
+    checker.nextIteration();
+
+    return { plugin, compiler, files, checker, wrapperUtils };
+  } finally {
+    mockRequire.stop('child_process');
+    ForkTsCheckerWebpackPlugin = mockRequire.reRequire('../../lib/index');
   }
-});
-
-exports.createVueCompiler = function(options) {
-  ForkTsCheckerWebpackPlugin = mockRequire.reRequire('../../lib/index');
-  var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
-
-  var compiler = webpack({
-    ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
-    context: path.resolve(__dirname, './vue'),
-    entry: './src/index.ts',
-    output: {
-      path: path.resolve(__dirname, '../../tmp')
-    },
-    resolve: {
-      extensions: ['.ts', '.js', '.vue', '.json'],
-      alias: {
-        '@': path.resolve(__dirname, './vue/src')
-      }
-    },
-    module: {
-      rules: [
-        {
-          test: /\.vue$/,
-          loader: 'vue-loader'
-        },
-        {
-          test: /\.ts$/,
-          loader: 'ts-loader',
-          options: {
-            appendTsSuffixTo: [/\.vue$/],
-            transpileOnly: true,
-            silent: true
-          }
-        },
-        {
-          test: /\.css$/,
-          loader: 'css-loader'
-        }
-      ]
-    },
-    plugins:
-      webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin]
-  });
-
-  var files = {
-    'example.vue': path.resolve(compiler.context, 'src/example.vue'),
-    'syntacticError.ts': path.resolve(compiler.context, 'src/syntacticError.ts')
-  };
-
-  var wrapperConfig = plugin.vue ? wrapperConfigWithVue : emptyWrapperConfig;
-  var wrapperUtils = getWrapperUtils(wrapperConfig);
-
-  plugin.spawnService();
-  var checker = global.checker;
-
-  checker.nextIteration();
-
-  return { plugin, compiler, files, checker, wrapperUtils };
 };
 
 exports.createCompiler = function(

@@ -2,21 +2,81 @@ var fs = require('fs');
 var path = require('path');
 var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
-var IncrementalChecker = require('../../lib/IncrementalChecker')
-  .IncrementalChecker;
-var NormalizedMessageFactories = require('../../lib/NormalizedMessageFactories');
-var { wrapTypescript } = require('../../lib/wrapTypeScript');
 var {
   wrapperConfigWithVue,
   emptyWrapperConfig,
   getWrapperUtils
 } = require('../../lib/wrapperUtils');
+var mockRequire = require('mock-require');
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
   webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
 
+mockRequire('child_process', {
+  fork(modulePath, args, options) {
+    const origEnv = Object.assign({}, process.env);
+    const origOn = process.on;
+    // see below
+    // const origSend = process.send;
+    // const origExit = process.exit;
+    try {
+      const stringEnv = options.env;
+      for (const key of Object.keys(stringEnv)) {
+        stringEnv[key] =
+          typeof stringEnv[key] === 'string'
+            ? stringEnv[key]
+            : JSON.stringify(stringEnv[key]);
+      }
+      Object.assign(process.env, options.env, { RUNNING_IN_TEST: 'true' });
+
+      const webpackToServiceCallbacks = { message: [], SIGINT: [] };
+      const serviceToWebpackCallbacks = { message: [], exit: [] };
+      const applyCallbacks = (queues, event, ...args) =>
+        (queues[event] || []).forEach(cb => cb(...args));
+      const registerCallbacks = (queues, event, cb) =>
+        (queues[event] = [...(queues[event] || []), cb]);
+
+      process.on = (event, callback) =>
+        registerCallbacks(webpackToServiceCallbacks, event, callback);
+      process.send = message =>
+        applyCallbacks(serviceToWebpackCallbacks, 'message', message);
+      process.exit = code =>
+        applyCallbacks(serviceToWebpackCallbacks, 'exit', JSON.stringify(code));
+
+      mockRequire.reRequire(modulePath);
+
+      const ret = {
+        on(event, callback) {
+          registerCallbacks(serviceToWebpackCallbacks, event, callback);
+        },
+        send(cancellationToken) {
+          applyCallbacks(
+            webpackToServiceCallbacks,
+            'message',
+            JSON.stringify(cancellationToken.toJSON())
+          );
+        },
+        connected: true,
+        kill() {
+          applyCallbacks(webpackToServiceCallbacks, 'SIGINT', '0');
+          ret.connected = false;
+        }
+      };
+
+      return ret;
+    } finally {
+      process.env = origEnv;
+      process.on = origOn;
+      // as tests will be called asynchonously, we cannot restore these. next test will override them anyways
+      // process.send = origSend;
+      // process.exit = origExit;
+    }
+  }
+});
+
 exports.createVueCompiler = function(options) {
+  ForkTsCheckerWebpackPlugin = mockRequire.reRequire('../../lib/index');
   var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
 
   var compiler = webpack({
@@ -63,26 +123,10 @@ exports.createVueCompiler = function(options) {
   };
 
   var wrapperConfig = plugin.vue ? wrapperConfigWithVue : emptyWrapperConfig;
-  var typescript = wrapTypescript(require('typescript'), wrapperConfig);
   var wrapperUtils = getWrapperUtils(wrapperConfig);
 
-  var checker = new IncrementalChecker(
-    typescript,
-    NormalizedMessageFactories.makeCreateNormalizedMessageFromDiagnostic(
-      typescript
-    ),
-    NormalizedMessageFactories.makeCreateNormalizedMessageFromRuleFailure,
-    plugin.tsconfigPath,
-    {},
-    path.resolve(__dirname, './vue'),
-    plugin.tslintPath || false,
-    plugin.tslintAutoFix || false,
-    [compiler.context],
-    ForkTsCheckerWebpackPlugin.ONE_CPU,
-    1,
-    plugin.checkSyntacticErrors,
-    wrapperConfig
-  );
+  plugin.spawnService();
+  var checker = global.checker;
 
   checker.nextIteration();
 

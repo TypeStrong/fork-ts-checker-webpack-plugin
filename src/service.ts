@@ -99,3 +99,7 @@ process.on('message', message => {
 process.on('SIGINT', () => {
   process.exit();
 });
+
+if (process.env.RUNNING_IN_TEST === 'true') {
+  (global as any).checker = checker;
+}

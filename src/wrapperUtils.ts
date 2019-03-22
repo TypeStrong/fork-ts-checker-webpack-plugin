@@ -11,8 +11,7 @@ export interface TypeScriptWrapperConfig {
       originalFileName: string
     ) => string;
   };
-  wrapExtensionsAsTs: string[];
-  wrapExtensionsAsTsx: string[];
+  wrapExtensions: string[];
 }
 
 export const wrapperConfigWithVue: TypeScriptWrapperConfig = {
@@ -21,47 +20,31 @@ export const wrapperConfigWithVue: TypeScriptWrapperConfig = {
     '.vue': handleVueContents,
     '.vuex': handleVueContents
   },
-  wrapExtensionsAsTs: ['.vue', '.vuex'],
-  wrapExtensionsAsTsx: ['.mdx']
+  wrapExtensions: ['.mdx', '.vue', '.vuex']
 };
 
 export const emptyWrapperConfig: TypeScriptWrapperConfig = {
   extensionHandlers: {},
-  wrapExtensionsAsTs: [],
-  wrapExtensionsAsTsx: []
+  wrapExtensions: []
 };
 
 export function getWrapperUtils(
   config: TypeScriptWrapperConfig = emptyWrapperConfig
 ) {
   const SUFFIX_TS = '.__fake__.ts';
-  const SUFFIX_TSX = '.__fake__.tsx';
   return {
-    watchExtensions: [
-      '.ts',
-      '.tsx',
-      ...config.wrapExtensionsAsTs,
-      ...config.wrapExtensionsAsTsx
-    ],
+    watchExtensions: ['.ts', '.tsx', ...config.wrapExtensions],
 
     wrapFileName(fileName: string) {
-      return config.wrapExtensionsAsTs.some(ext => fileName.endsWith(ext))
+      return config.wrapExtensions.some(ext => fileName.endsWith(ext))
         ? fileName.concat(SUFFIX_TS)
-        : config.wrapExtensionsAsTsx.some(ext => fileName.endsWith(ext))
-        ? fileName.concat(SUFFIX_TSX)
         : fileName;
     },
 
     unwrapFileName(fileName: string) {
       if (fileName.endsWith(SUFFIX_TS)) {
         const realFileName = fileName.slice(0, -SUFFIX_TS.length);
-        if (config.wrapExtensionsAsTs.includes(extname(realFileName))) {
-          return realFileName;
-        }
-      }
-      if (fileName.endsWith(SUFFIX_TSX)) {
-        const realFileName = fileName.slice(0, -SUFFIX_TSX.length);
-        if (config.wrapExtensionsAsTsx.includes(extname(realFileName))) {
+        if (config.wrapExtensions.includes(extname(realFileName))) {
           return realFileName;
         }
       }

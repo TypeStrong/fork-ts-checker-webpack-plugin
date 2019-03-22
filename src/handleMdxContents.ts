@@ -4,6 +4,7 @@ export function handleMdxContents(content: string) {
   const src = compiler.sync(content);
 
   const finalContent = `
+/* @fork-ts-checker-handle-file-as TSX */
 /* tslint:disable */
 import * as React from 'react';
 declare class MDXTag extends React.Component<{ name: string; components: any; parentName?: string; props?: any }> {

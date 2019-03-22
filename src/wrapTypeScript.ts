@@ -55,11 +55,7 @@ export function wrapTypescript(
   const systemWrappers: Partial<ts.System> = {
     readDirectory(path, extensions, ...rest) {
       if (extensions && arrayContentsEqual(extensions, origFileExtensions)) {
-        extensions = [
-          ...extensions,
-          ...config.wrapExtensionsAsTs,
-          ...config.wrapExtensionsAsTsx
-        ];
+        extensions = [...extensions, ...config.wrapExtensions];
       }
       return origSys.readDirectory(path, extensions, ...rest).map(wrapFileName);
     },

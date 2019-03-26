@@ -36,7 +36,7 @@ export declare class IncrementalChecker implements IncrementalCheckerInterface {
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
     programConfigFile: string,
-    compilerOptions: object,
+    compilerOptions: ts.CompilerOptions,
     context: string,
     linterConfigFile: string | boolean,
     linterAutoFix: boolean,
@@ -66,5 +66,5 @@ export declare class IncrementalChecker implements IncrementalCheckerInterface {
     cancellationToken: CancellationToken
   ): Promise<NormalizedMessage[]>;
   getLints(cancellationToken: CancellationToken): NormalizedMessage[];
-  emitFiles(): void;
+  private emitFiles;
 }

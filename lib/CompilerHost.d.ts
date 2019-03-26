@@ -5,6 +5,7 @@ export declare class CompilerHost
       ts.EmitAndSemanticDiagnosticsBuilderProgram
     > {
   private typescript;
+  private compilerOptions;
   private program?;
   getProgram(): ts.Program;
   getAllKnownFiles(): Set<string>;

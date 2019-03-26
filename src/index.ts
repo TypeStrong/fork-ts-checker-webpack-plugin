@@ -50,7 +50,7 @@ interface Options {
   workers: number;
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
-  shouldEmitFiles: boolean; // flag used to emit the definition files
+  noEmit: boolean; // flag used to emit the definition files
   measureCompilationTime: boolean;
 }
 
@@ -98,7 +98,8 @@ class ForkTsCheckerWebpackPlugin {
   private colors: Chalk;
   private formatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
-  private shouldEmitFiles: boolean;
+
+  private noEmit: boolean;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -214,8 +215,7 @@ class ForkTsCheckerWebpackPlugin {
         ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
         : options.useTypescriptIncrementalApi;
 
-    this.shouldEmitFiles =
-      options.shouldEmitFiles === undefined ? false : options.shouldEmitFiles;
+    this.noEmit = !!options.noEmit;
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -569,7 +569,10 @@ class ForkTsCheckerWebpackPlugin {
           ...process.env,
           TYPESCRIPT_PATH: this.typescriptPath,
           TSCONFIG: this.tsconfigPath,
-          COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
+          COMPILER_OPTIONS: JSON.stringify({
+            ...this.compilerOptions,
+            noEmit: this.noEmit
+          }),
           TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
           CONTEXT: this.compiler.options.context,
           TSLINTAUTOFIX: this.tslintAutoFix,
@@ -578,7 +581,6 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-          SHOULD_EMIT_FILES: this.shouldEmitFiles === true,
           VUE: this.vue
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']

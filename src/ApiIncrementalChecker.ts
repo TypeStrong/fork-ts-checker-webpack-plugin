@@ -110,6 +110,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.lastUpdatedFiles = diagnostics.updatedFiles;
     this.lastRemovedFiles = diagnostics.removedFiles;
 
+    this.emitFiles();
     return NormalizedMessage.deduplicate(
       diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
     );
@@ -163,7 +164,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public emitFiles() {
+  private emitFiles() {
     try {
       const program = this.tsIncrementalCompiler.getProgram();
 
@@ -173,6 +174,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         );
       }
 
+      console.log('Calling program.emit() inside APIINCREMENTAL !!!!!');
       program.emit();
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');

@@ -43,5 +43,5 @@ export declare class ApiIncrementalChecker
     _cancellationToken: CancellationToken
   ): Promise<NormalizedMessage[]>;
   getLints(_cancellationToken: CancellationToken): NormalizedMessage[];
-  emitFiles(): void;
+  private emitFiles;
 }

@@ -12,5 +12,5 @@ export interface IncrementalCheckerInterface {
 
   getLints(cancellationToken: CancellationToken): NormalizedMessage[];
 
-  emitFiles(): void;
+  // emitFiles(): void;
 }

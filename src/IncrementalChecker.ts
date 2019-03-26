@@ -51,7 +51,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
     private programConfigFile: string,
-    private compilerOptions: object,
+    private compilerOptions: ts.CompilerOptions,
     private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
@@ -253,6 +253,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.workDivision
     );
 
+    this.emitFiles();
+
     // check given work set
     workSet.forEach(sourceFile => {
       if (cancellationToken) {
@@ -360,12 +362,15 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public emitFiles() {
+  private emitFiles() {
     const program = this.program;
     if (!program) {
       throw new Error('Invoked called before program initialized');
     }
 
-    program.emit();
+    if (!this.compilerOptions.noEmit) {
+      console.log('Calling program.emit() inside INCREMENTALCHECK !!!!!');
+      program.emit();
+    }
   }
 }

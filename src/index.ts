@@ -50,7 +50,7 @@ interface Options {
   workers: number;
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
-  shouldEmitFiles: boolean;
+  shouldEmitFiles: boolean; // flag used to emit the definition files
   measureCompilationTime: boolean;
 }
 

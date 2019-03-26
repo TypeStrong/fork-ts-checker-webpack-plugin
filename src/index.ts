@@ -50,6 +50,7 @@ interface Options {
   workers: number;
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
+  shouldEmitFiles: boolean;
   measureCompilationTime: boolean;
 }
 
@@ -97,6 +98,7 @@ class ForkTsCheckerWebpackPlugin {
   private colors: Chalk;
   private formatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
+  private shouldEmitFiles: boolean;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -211,6 +213,9 @@ class ForkTsCheckerWebpackPlugin {
       options.useTypescriptIncrementalApi === undefined
         ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
         : options.useTypescriptIncrementalApi;
+
+    this.shouldEmitFiles =
+      options.shouldEmitFiles === undefined ? false : options.shouldEmitFiles;
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -573,6 +578,7 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
+          SHOULD_EMIT_FILES: this.shouldEmitFiles === true,
           VUE: this.vue
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']

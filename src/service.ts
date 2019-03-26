@@ -59,7 +59,9 @@ async function run(cancellationToken: CancellationToken) {
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }
-    checker.emitFiles();
+    if (process.env.SHOULD_EMIT_FILES) {
+      checker.emitFiles();
+    }
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
       return;

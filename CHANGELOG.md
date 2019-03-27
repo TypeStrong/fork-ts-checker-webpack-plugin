@@ -1,3 +1,7 @@
+## v1.0.1
+
+* [Apply rounding to compilation time](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/235)
+
 ## v1.0.0
 
 * [Going 1.0](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/218)

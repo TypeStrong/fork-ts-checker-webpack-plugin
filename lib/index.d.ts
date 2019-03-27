@@ -31,7 +31,7 @@ interface Options {
   workers: number;
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
-  noEmit: boolean;
+  canEmit: boolean;
   measureCompilationTime: boolean;
 }
 /**
@@ -82,7 +82,7 @@ declare class ForkTsCheckerWebpackPlugin {
   private colors;
   private formatter;
   private useTypescriptIncrementalApi;
-  private noEmit;
+  private canEmit;
   private tsconfigPath?;
   private tslintPath?;
   private watchPaths;

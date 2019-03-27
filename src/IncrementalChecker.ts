@@ -51,7 +51,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
     private programConfigFile: string,
-    private compilerOptions: ts.CompilerOptions,
+    private compilerOptions: object,
     private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
@@ -59,7 +59,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false
+    private vue: boolean = false,
+    private canEmit: boolean = false
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
@@ -368,8 +369,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       throw new Error('Invoked called before program initialized');
     }
 
-    if (!this.compilerOptions.noEmit) {
+    if (this.canEmit) {
       console.log('Calling program.emit() inside INCREMENTALCHECK !!!!!');
+      console.log('this.canEmit: ', this.canEmit);
       program.emit();
     }
   }

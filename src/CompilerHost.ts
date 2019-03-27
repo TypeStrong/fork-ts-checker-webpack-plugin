@@ -48,6 +48,7 @@ export class CompilerHost
   private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
     ts.EmitAndSemanticDiagnosticsBuilderProgram
   >;
+  private canEmit: boolean;
   private lastProcessing?: Promise<ts.Diagnostic[]>;
 
   private compilationStarted = false;
@@ -55,8 +56,9 @@ export class CompilerHost
   constructor(
     private typescript: typeof ts,
     programConfigFile: string,
-    private compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    compilerOptions: ts.CompilerOptions,
+    checkSyntacticErrors: boolean,
+    canEmit: boolean = false
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -76,6 +78,8 @@ export class CompilerHost
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
+
+    this.canEmit = canEmit;
   }
 
   public async processChanges(): Promise<{
@@ -362,11 +366,10 @@ export class CompilerHost
     _writeByteOrderMark?: boolean
   ): void {
     console.log('Outputing files anyways BEFORE - COMPILERHOST !!!!');
-    console.log('this.compilerOptions.noEmit = ', this.compilerOptions.noEmit); // vem de COMPILER_OPTIONS do service.ts
-    const noEmit = this.compilerOptions && this.compilerOptions.noEmit;
-    console.log('local noEmit = ', noEmit);
+    console.log('this.canEmit = ', this.canEmit); // vem de COMPILER_OPTIONS do service.ts
+    const canEmit = this.canEmit;
 
-    if (!noEmit) {
+    if (canEmit) {
       console.log('Outputing files anyways HERE - COMPILERHOST !!!!');
       outputFileSync(_path, _data);
     }

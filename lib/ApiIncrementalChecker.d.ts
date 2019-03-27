@@ -31,7 +31,8 @@ export declare class ApiIncrementalChecker
     context: string,
     linterConfigFile: string | boolean,
     linterAutoFix: boolean,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    canEmit?: boolean
   );
   private initLinterConfig;
   private getLinterConfig;

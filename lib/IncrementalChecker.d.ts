@@ -18,6 +18,7 @@ export declare class IncrementalChecker implements IncrementalCheckerInterface {
   private workDivision;
   private checkSyntacticErrors;
   private vue;
+  private canEmit;
   private linterConfigs;
   private files;
   private linter?;
@@ -36,7 +37,7 @@ export declare class IncrementalChecker implements IncrementalCheckerInterface {
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
     programConfigFile: string,
-    compilerOptions: ts.CompilerOptions,
+    compilerOptions: object,
     context: string,
     linterConfigFile: string | boolean,
     linterAutoFix: boolean,
@@ -44,7 +45,8 @@ export declare class IncrementalChecker implements IncrementalCheckerInterface {
     workNumber?: number,
     workDivision?: number,
     checkSyntacticErrors?: boolean,
-    vue?: boolean
+    vue?: boolean,
+    canEmit?: boolean
   );
   static loadProgramConfig(
     typescript: typeof ts,

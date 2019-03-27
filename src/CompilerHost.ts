@@ -362,8 +362,10 @@ export class CompilerHost
     _writeByteOrderMark?: boolean
   ): void {
     console.log('Outputing files anyways BEFORE - COMPILERHOST !!!!');
-
+    console.log('this.compilerOptions.noEmit = ', this.compilerOptions.noEmit); // vem de COMPILER_OPTIONS do service.ts
     const noEmit = this.compilerOptions && this.compilerOptions.noEmit;
+    console.log('local noEmit = ', noEmit);
+
     if (!noEmit) {
       console.log('Outputing files anyways HERE - COMPILERHOST !!!!');
       outputFileSync(_path, _data);

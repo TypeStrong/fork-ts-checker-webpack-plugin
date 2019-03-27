@@ -215,7 +215,7 @@ class ForkTsCheckerWebpackPlugin {
         ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
         : options.useTypescriptIncrementalApi;
 
-    this.noEmit = !!options.noEmit;
+    this.noEmit = options.noEmit === undefined ? true : options.noEmit;
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -571,7 +571,7 @@ class ForkTsCheckerWebpackPlugin {
           TSCONFIG: this.tsconfigPath,
           COMPILER_OPTIONS: JSON.stringify({
             ...this.compilerOptions,
-            noEmit: this.noEmit
+            noEmit: this.noEmit === true
           }),
           TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
           CONTEXT: this.compiler.options.context,

@@ -365,12 +365,7 @@ export class CompilerHost
     _data: string,
     _writeByteOrderMark?: boolean
   ): void {
-    console.log('Outputing files anyways BEFORE - COMPILERHOST !!!!');
-    console.log('this.canEmit = ', this.canEmit); // vem de COMPILER_OPTIONS do service.ts
-    const canEmit = this.canEmit;
-
-    if (canEmit) {
-      console.log('Outputing files anyways HERE - COMPILERHOST !!!!');
+    if (this.canEmit) {
       outputFileSync(_path, _data);
     }
   }

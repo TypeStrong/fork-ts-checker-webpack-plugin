@@ -174,7 +174,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         );
       }
 
-      console.log('Calling program.emit() inside APIINCREMENTAL !!!!!');
       program.emit();
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');

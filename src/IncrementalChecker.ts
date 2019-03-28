@@ -254,6 +254,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.workDivision
     );
 
+    // Emitting the files if the configuration is set to let it happen
     this.emitFiles();
 
     // check given work set
@@ -370,8 +371,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     }
 
     if (this.canEmit) {
-      console.log('Calling program.emit() inside INCREMENTALCHECK !!!!!');
-      console.log('this.canEmit: ', this.canEmit);
       program.emit();
     }
   }

@@ -57,7 +57,8 @@ export class CompilerHost
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    private canEmit: boolean = false
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -362,7 +363,9 @@ export class CompilerHost
     _data: string,
     _writeByteOrderMark?: boolean
   ): void {
-    outputFileSync(_path, _data);
+    if (this.canEmit) {
+      outputFileSync(_path, _data);
+    }
   }
 
   public onCachedDirectoryStructureHostCreate?(_host: any): void {

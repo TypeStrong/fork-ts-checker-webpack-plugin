@@ -5,6 +5,7 @@ export declare class CompilerHost
       ts.EmitAndSemanticDiagnosticsBuilderProgram
     > {
   private typescript;
+  private canEmit;
   private program?;
   getProgram(): ts.Program;
   getAllKnownFiles(): Set<string>;
@@ -22,7 +23,8 @@ export declare class CompilerHost
     typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    canEmit?: boolean
   );
   processChanges(): Promise<{
     results: ts.Diagnostic[];

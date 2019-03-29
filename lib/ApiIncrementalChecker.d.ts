@@ -10,6 +10,7 @@ export declare class ApiIncrementalChecker
   private context;
   private linterConfigFile;
   private linterAutoFix;
+  private canEmit;
   private linterConfig?;
   private linterConfigs;
   private readonly tsIncrementalCompiler;

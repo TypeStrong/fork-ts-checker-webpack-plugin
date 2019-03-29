@@ -16,15 +16,13 @@ export declare class CompilerHost
   private gatheredDiagnostic;
   private afterCompile;
   private readonly tsHost;
-  private canEmit;
   private lastProcessing?;
   private compilationStarted;
   constructor(
     typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean,
-    canEmit?: boolean
+    checkSyntacticErrors: boolean
   );
   processChanges(): Promise<{
     results: ts.Diagnostic[];

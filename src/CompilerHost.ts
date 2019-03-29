@@ -2,7 +2,6 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
-import { outputFileSync } from 'fs-extra';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -48,7 +47,7 @@ export class CompilerHost
   private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
     ts.EmitAndSemanticDiagnosticsBuilderProgram
   >;
-  private canEmit: boolean;
+
   private lastProcessing?: Promise<ts.Diagnostic[]>;
 
   private compilationStarted = false;
@@ -57,8 +56,7 @@ export class CompilerHost
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean,
-    canEmit: boolean = false
+    checkSyntacticErrors: boolean
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -78,8 +76,6 @@ export class CompilerHost
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
-
-    this.canEmit = canEmit;
   }
 
   public async processChanges(): Promise<{
@@ -365,9 +361,7 @@ export class CompilerHost
     _data: string,
     _writeByteOrderMark?: boolean
   ): void {
-    if (this.canEmit) {
-      outputFileSync(_path, _data);
-    }
+    // pretend everything was ok
   }
 
   public onCachedDirectoryStructureHostCreate?(_host: any): void {

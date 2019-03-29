@@ -42,7 +42,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean,
-    canEmit: boolean = false
+    private canEmit: boolean = false
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
@@ -52,8 +52,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       typescript,
       programConfigFile,
       compilerOptions,
-      checkSyntacticErrors,
-      canEmit
+      checkSyntacticErrors
     );
   }
 
@@ -111,6 +110,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.lastRemovedFiles = diagnostics.removedFiles;
 
     this.emitFiles();
+
     return NormalizedMessage.deduplicate(
       diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
     );
@@ -174,7 +174,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         );
       }
 
-      program.emit();
+      if (this.canEmit) {
+        console.log('calling program.emit() Inside APIINCREMENTALCHECKER!!!');
+        program.emit();
+      }
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');
       console.log('Error description: ' + error);

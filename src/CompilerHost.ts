@@ -2,6 +2,7 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
+import { outputFileSync } from 'fs-extra';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -361,7 +362,7 @@ export class CompilerHost
     _data: string,
     _writeByteOrderMark?: boolean
   ): void {
-    // pretend everything was ok
+    outputFileSync(_path, _data);
   }
 
   public onCachedDirectoryStructureHostCreate?(_host: any): void {

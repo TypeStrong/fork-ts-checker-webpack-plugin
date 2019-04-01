@@ -42,7 +42,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean,
-    canEmit: boolean = false
+    enableEmitFiles: boolean = false
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
@@ -53,7 +53,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       programConfigFile,
       compilerOptions,
       checkSyntacticErrors,
-      canEmit
+      enableEmitFiles
     );
   }
 
@@ -175,7 +175,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         );
       }
 
-      program.emit(); // called here but the emission of files is in fact controlled by the boolean canEmit inside writeFile of CompilerHost
+      program.emit(); // called here but the emission of files is in fact controlled by the boolean enableEmitFiles inside writeFile of CompilerHost
     } catch (error) {
       console.log('Error inside emitFiles() of ApiIncrementalChecker');
       console.log('Error description: ' + error);

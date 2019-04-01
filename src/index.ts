@@ -50,7 +50,7 @@ interface Options {
   workers: number;
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
-  canEmit: boolean; // flag used to emit the definition files
+  enableEmitFiles: boolean;
   measureCompilationTime: boolean;
 }
 
@@ -99,7 +99,7 @@ class ForkTsCheckerWebpackPlugin {
   private formatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
 
-  private canEmit: boolean;
+  private enableEmitFiles: boolean;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -215,7 +215,8 @@ class ForkTsCheckerWebpackPlugin {
         ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
         : options.useTypescriptIncrementalApi;
 
-    this.canEmit = options.canEmit === undefined ? false : options.canEmit;
+    this.enableEmitFiles =
+      options.enableEmitFiles === undefined ? false : options.enableEmitFiles;
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -578,7 +579,7 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-          CAN_EMIT: this.canEmit === true,
+          ENABLE_EMIT_FILES: this.enableEmitFiles === true,
           VUE: this.vue
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']

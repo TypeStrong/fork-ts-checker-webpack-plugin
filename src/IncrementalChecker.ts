@@ -60,7 +60,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
     private vue: boolean = false,
-    private canEmit: boolean = false
+    private enableEmitFiles: boolean = false
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
@@ -365,13 +365,12 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   private emitFiles() {
-    const program = this.program;
-    if (!program) {
+    if (!this.program) {
       throw new Error('Invoked called before program initialized');
     }
 
-    if (this.canEmit) {
-      program.emit();
+    if (this.enableEmitFiles) {
+      this.program.emit();
     }
   }
 }

@@ -31,7 +31,7 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.CAN_EMIT === 'true'
+        process.env.ENABLE_EMIT_FILES === 'true'
       )
     : new IncrementalChecker(
         typescript,
@@ -47,7 +47,7 @@ const checker: IncrementalCheckerInterface =
         parseInt(process.env.WORK_DIVISION!, 10) || 1,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
         process.env.VUE === 'true',
-        process.env.CAN_EMIT === 'true'
+        process.env.ENABLE_EMIT_FILES === 'true'
       );
 
 async function run(cancellationToken: CancellationToken) {

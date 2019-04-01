@@ -32,7 +32,7 @@ export declare class ApiIncrementalChecker
     linterConfigFile: string | boolean,
     linterAutoFix: boolean,
     checkSyntacticErrors: boolean,
-    canEmit?: boolean
+    enableEmitFiles?: boolean
   );
   private initLinterConfig;
   private getLinterConfig;

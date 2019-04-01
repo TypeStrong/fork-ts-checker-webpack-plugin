@@ -58,7 +58,7 @@ export class CompilerHost
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean,
-    private canEmit: boolean = false
+    private enableEmitFiles: boolean = false
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -363,7 +363,7 @@ export class CompilerHost
     _data: string,
     _writeByteOrderMark?: boolean
   ): void {
-    if (this.canEmit) {
+    if (this.enableEmitFiles) {
       outputFileSync(_path, _data);
     }
   }

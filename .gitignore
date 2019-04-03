@@ -3,7 +3,7 @@ logs
 *.log
 npm-debug.log*
 
-#lib
+lib
 !test/**/lib
 
 # Coverage directory used by tools like istanbul
@@ -26,4 +26,3 @@ package-lock.json
 # Editor directories and files
 .idea
 .vscode
-# lib

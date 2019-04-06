@@ -144,7 +144,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       createCompiler({ tslint: true, vue: true });
 
       compiler.run(function(error, stats) {
-        expect(stats.compilation.errors.length).to.be.equal(1);
+        const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+          error =>
+            !error.rawMessage.includes(
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+            )
+        );
+        expect(syntacticErrorNotFoundInStats).to.be.true;
         callback();
       });
     });
@@ -164,7 +170,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
 
       compiler.run(function(error, stats) {
-        expect(stats.compilation.errors.length).to.be.equal(2);
+        const syntacticErrorFoundInStats = stats.compilation.errors.some(
+          error =>
+            error.rawMessage.includes(
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+            )
+        );
+        expect(syntacticErrorFoundInStats).to.be.true;
         callback();
       });
     });

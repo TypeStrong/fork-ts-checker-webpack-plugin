@@ -190,3 +190,8 @@ exports.testLintHierarchicalConfigs = (
     }
   });
 };
+
+exports.expectedErrorCodes = {
+  expectedSyntacticErrorCode: 'TS1005',
+  expectedSemanticErrorCode: 'TS2322'
+};

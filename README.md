@@ -104,7 +104,7 @@ List of tslint rule names to ignore.
 If true, will ignore all lint warnings.
 
 * **reportFiles** `string[]`: 
-Only report errors on files matching these glob patterns. This can be useful when certain types definitions have errors that are not fatal to your application. Default: `[]`.
+Only report errors on files matching these glob patterns. This can be useful when certain types definitions have errors that are not fatal to your application. Default: `[]`. Please note that this may behave unexpectedly if using the incremental API as the incremental API doesn't look for global and semantic errors [if it has already found syntactic errors](https://github.com/Microsoft/TypeScript/blob/89386ddda7dafc63cb35560e05412487f47cc267/src/compiler/watch.ts#L141).
 
 ```js
   // in webpack.config.js

@@ -331,6 +331,36 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         }
       );
     });
+
+    it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
+      var compiler = createCompiler({ checkSyntacticErrors: false }, true);
+
+      compiler.run(function(error, stats) {
+        const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+          error =>
+            !error.rawMessage.includes(
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+            )
+        );
+        expect(syntacticErrorNotFoundInStats).to.be.true;
+        callback();
+      });
+    });
+
+    it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
+      var compiler = createCompiler({ checkSyntacticErrors: true }, true);
+
+      compiler.run(function(error, stats) {
+        const syntacticErrorFoundInStats = stats.compilation.errors.some(
+          error =>
+            error.rawMessage.includes(
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+            )
+        );
+        expect(syntacticErrorFoundInStats).to.be.true;
+        callback();
+      });
+    });
   };
 }
 
@@ -395,24 +425,6 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     }
   });
 
-  it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
-    var compiler = createCompiler({ checkSyntacticErrors: false }, true);
-
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(1);
-      callback();
-    });
-  });
-
-  it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
-    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
-
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(2);
-      callback();
-    });
-  });
-
   it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
     var compiler = createCompiler(
       {
@@ -422,6 +434,9 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
       true
     );
 
+    // this test doesn't make as much sense in the context of using the incremental API
+    // as in that case the compiler will stop looking for further errors when it finds one
+    // see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/198#issuecomment-453790649 for details
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.equal(1);
       expect(stats.compilation.errors[0].file.endsWith('index.ts')).to.be.true;

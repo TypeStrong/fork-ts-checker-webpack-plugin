@@ -87,39 +87,31 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
     );
   });
 
-  it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
-    var compiler = createCompiler({}, true);
-
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(0);
-      callback();
-    });
-  });
-
-  it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
-    var compiler = createCompiler({ checkSyntacticErrors: true }, true);
-
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(1);
-      expect(stats.compilation.errors[0].rawMessage).to.contain('TS1005');
-      callback();
-    });
-  });
-
   it('should get syntactic diagnostics from Vue program', function(callback) {
     var { compiler } = createVueCompiler({ checkSyntacticErrors: true });
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(1);
+      const syntacticErrorFoundInStats = stats.compilation.errors.some(error =>
+        error.rawMessage.includes(
+          helpers.expectedErrorCodes.expectedSyntacticErrorCode
+        )
+      );
+      expect(syntacticErrorFoundInStats).to.be.true;
       callback();
     });
   });
 
   it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', function(callback) {
-    var { compiler } = createVueCompiler();
+    var { compiler } = createVueCompiler({ checkSyntacticErrors: false });
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(0);
+      const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+        error =>
+          !error.rawMessage.includes(
+            helpers.expectedErrorCodes.expectedSyntacticErrorCode
+          )
+      );
+      expect(syntacticErrorNotFoundInStats).to.be.true;
       callback();
     });
   });

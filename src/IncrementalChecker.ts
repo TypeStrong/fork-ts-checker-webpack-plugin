@@ -255,7 +255,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     );
 
     // Emitting the files if the configuration is set to let it happen
-    this.emitFiles();
+    if (this.enableEmitFiles) {
+      this.emitFiles();
+    }
 
     // check given work set
     workSet.forEach(sourceFile => {
@@ -369,8 +371,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       throw new Error('Invoked called before program initialized');
     }
 
-    if (this.enableEmitFiles) {
-      this.program.emit();
-    }
+    this.program.emit();
   }
 }

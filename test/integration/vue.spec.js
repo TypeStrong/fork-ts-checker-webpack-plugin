@@ -90,7 +90,27 @@ describe('[INTEGRATION] vue', function() {
     createCompiler({ tslint: true, vue: true });
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(1);
+      const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+        error =>
+          !error.rawMessage.includes(
+            helpers.expectedErrorCodes.expectedSyntacticErrorCode
+          )
+      );
+      expect(syntacticErrorNotFoundInStats).to.be.true;
+      callback();
+    });
+  });
+
+  it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
+    createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
+
+    compiler.run(function(error, stats) {
+      const syntacticErrorFoundInStats = stats.compilation.errors.some(error =>
+        error.rawMessage.includes(
+          helpers.expectedErrorCodes.expectedSyntacticErrorCode
+        )
+      );
+      expect(syntacticErrorFoundInStats).to.be.true;
       callback();
     });
   });
@@ -102,15 +122,6 @@ describe('[INTEGRATION] vue', function() {
       stats.compilation.warnings.forEach(function(warning) {
         expect(warning.rawMessage).to.not.match(/no-consecutive-blank-lines/);
       });
-      callback();
-    });
-  });
-
-  it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
-    createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
-
-    compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.be.equal(2);
       callback();
     });
   });

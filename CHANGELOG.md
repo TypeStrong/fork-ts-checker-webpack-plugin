@@ -1,3 +1,7 @@
+## v1.0.2
+
+* [Fix ignoreLintWarning mark warnings as errors](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/243) 
+
 ## v1.0.1
 
 * [Apply rounding to compilation time](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/235)

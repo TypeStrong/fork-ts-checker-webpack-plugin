@@ -1,4 +1,4 @@
-## v1.0.2-alpha.0
+## v1.0.2
 
 * [Fix ignoreLintWarning mark warnings as errors](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/243) 
 

@@ -800,8 +800,10 @@ class ForkTsCheckerWebpackPlugin {
           file: message.file
         };
 
-        if (message.isWarningSeverity() && !this.ignoreLintWarnings) {
-          compilation.warnings.push(formatted);
+        if (message.isWarningSeverity()) {
+          if (!this.ignoreLintWarnings) {
+            compilation.warnings.push(formatted);
+          }
         } else {
           compilation.errors.push(formatted);
         }

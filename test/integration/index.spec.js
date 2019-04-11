@@ -93,6 +93,21 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       );
     });
 
+    it('should not mark warnings as errors when ignoreLintWarnings passed as option', function(callback) {
+      const fileName = 'lintingError2';
+      helpers.testLintAutoFixTest(
+        callback,
+        fileName,
+        {
+          tslint: true,
+          ignoreLintWarnings: true
+        },
+        (err, stats) => {
+          expect(stats.compilation.errors.length).to.be.eq(0);
+        }
+      );
+    });
+
     it('should find semantic errors', function(callback) {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-semantic-error-only.json'

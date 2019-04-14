@@ -7,7 +7,7 @@ import * as ts from 'typescript'; // Imported for types alone
 
 import { FsHelper } from './FsHelper';
 
-interface CancellationTokenData {
+export interface CancellationTokenData {
   isCancelled: boolean;
   cancellationFileName: string;
 }

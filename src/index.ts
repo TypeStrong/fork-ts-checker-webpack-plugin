@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as process from 'process';
 import * as childProcess from 'child_process';
+import { RpcProvider } from 'worker-rpc';
 import * as semver from 'semver';
 import chalk, { Chalk } from 'chalk';
 import * as micromatch from 'micromatch';
@@ -121,6 +122,7 @@ class ForkTsCheckerWebpackPlugin {
   private tslintVersion: string;
 
   private service?: childProcess.ChildProcess;
+  private serviceRpc?: RpcProvider;
 
   private vue: boolean;
 
@@ -395,7 +397,7 @@ class ForkTsCheckerWebpackPlugin {
             if (this.measureTime) {
               this.startAt = this.performance.now();
             }
-            this.service!.send(this.cancellationToken);
+            this.serviceRpc!.signal('run', this.cancellationToken);
           } catch (error) {
             if (!this.silent && this.logger) {
               this.logger.error(
@@ -578,6 +580,8 @@ class ForkTsCheckerWebpackPlugin {
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     );
+    this.serviceRpc = new RpcProvider(message => this.service!.send(message));
+    this.service.on('message', message => this.serviceRpc!.dispatch(message));
 
     if ('hooks' in this.compiler) {
       // webpack 4+
@@ -630,9 +634,10 @@ class ForkTsCheckerWebpackPlugin {
       }
     }
 
-    this.service.on('message', (message: Message) =>
-      this.handleServiceMessage(message)
+    this.serviceRpc.registerSignalHandler<Message>('runResults', message =>
+      this.handleServiceMessage(message!)
     );
+
     this.service.on('exit', (code: string | number, signal: string) =>
       this.handleServiceExit(code, signal)
     );
@@ -649,6 +654,7 @@ class ForkTsCheckerWebpackPlugin {
 
       this.service.kill();
       this.service = undefined;
+      this.serviceRpc = undefined;
     } catch (e) {
       if (this.logger && !this.silent) {
         this.logger.error(e);

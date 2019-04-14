@@ -669,7 +669,8 @@ class ForkTsCheckerWebpackPlugin {
   private handleServiceMessage(message: Message): void {
     if (this.measureTime) {
       const delta = this.performance.now() - this.startAt;
-      this.logger.info(`compilation took: ${delta} ms.`);
+      const deltaRounded = Math.round(delta * 100) / 100;
+      this.logger.info(`Compilation took: ${deltaRounded} ms.`);
     }
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
@@ -809,8 +810,10 @@ class ForkTsCheckerWebpackPlugin {
           file: message.file
         };
 
-        if (message.isWarningSeverity() && !this.ignoreLintWarnings) {
-          compilation.warnings.push(formatted);
+        if (message.isWarningSeverity()) {
+          if (!this.ignoreLintWarnings) {
+            compilation.warnings.push(formatted);
+          }
         } else {
           compilation.errors.push(formatted);
         }

@@ -7,78 +7,66 @@ var {
   emptyWrapperConfig,
   getWrapperUtils
 } = require('../../lib/wrapperUtils');
-var mockRequire = require('mock-require');
+var { RPC } = require('../../lib/RpcTypes');
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
   webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
 
 exports.createVueCompiler = function(options) {
-  try {
-    mockRequire('child_process', './mocks/child_process');
-    ForkTsCheckerWebpackPlugin = mockRequire.reRequire('../../lib/index');
+  var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
 
-    var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
-
-    var compiler = webpack({
-      ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
-      context: path.resolve(__dirname, './vue'),
-      entry: './src/index.ts',
-      output: {
-        path: path.resolve(__dirname, '../../tmp')
-      },
-      resolve: {
-        extensions: ['.ts', '.js', '.vue', '.json'],
-        alias: {
-          '@': path.resolve(__dirname, './vue/src')
-        }
-      },
-      module: {
-        rules: [
-          {
-            test: /\.vue$/,
-            loader: 'vue-loader'
-          },
-          {
-            test: /\.ts$/,
-            loader: 'ts-loader',
-            options: {
-              appendTsSuffixTo: [/\.vue$/],
-              transpileOnly: true,
-              silent: true
-            }
-          },
-          {
-            test: /\.css$/,
-            loader: 'css-loader'
+  process.env.RUNNING_IN_TEST = 'true';
+  var compiler = webpack({
+    ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
+    context: path.resolve(__dirname, './vue'),
+    entry: './src/index.ts',
+    output: {
+      path: path.resolve(__dirname, '../../tmp')
+    },
+    resolve: {
+      extensions: ['.ts', '.js', '.vue', '.json'],
+      alias: {
+        '@': path.resolve(__dirname, './vue/src')
+      }
+    },
+    module: {
+      rules: [
+        {
+          test: /\.vue$/,
+          loader: 'vue-loader'
+        },
+        {
+          test: /\.ts$/,
+          loader: 'ts-loader',
+          options: {
+            appendTsSuffixTo: [/\.vue$/],
+            transpileOnly: true,
+            silent: true
           }
-        ]
-      },
-      plugins:
-        webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin]
-    });
+        },
+        {
+          test: /\.css$/,
+          loader: 'css-loader'
+        }
+      ]
+    },
+    plugins:
+      webpackMajorVersion >= 4 ? [new VueLoaderPlugin(), plugin] : [plugin]
+  });
 
-    var files = {
-      'example.vue': path.resolve(compiler.context, 'src/example.vue'),
-      'syntacticError.ts': path.resolve(
-        compiler.context,
-        'src/syntacticError.ts'
-      )
-    };
+  var files = {
+    'example.vue': path.resolve(compiler.context, 'src/example.vue'),
+    'syntacticError.ts': path.resolve(compiler.context, 'src/syntacticError.ts')
+  };
 
-    var wrapperConfig = plugin.vue ? wrapperConfigWithVue : emptyWrapperConfig;
-    var wrapperUtils = getWrapperUtils(wrapperConfig);
+  var wrapperConfig = plugin.vue ? wrapperConfigWithVue : emptyWrapperConfig;
+  var wrapperUtils = getWrapperUtils(wrapperConfig);
 
-    plugin.spawnService();
-    var checker = global.checker;
+  plugin.spawnService();
+  plugin.serviceRpc.rpc(RPC.NEXT_ITERATION);
 
-    checker.nextIteration();
-
-    return { plugin, compiler, files, checker, wrapperUtils };
-  } finally {
-    mockRequire.stop('child_process');
-    ForkTsCheckerWebpackPlugin = mockRequire.reRequire('../../lib/index');
-  }
+  return { plugin, compiler, files, wrapperUtils };
 };
 
 exports.createCompiler = function(

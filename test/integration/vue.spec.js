@@ -2,9 +2,9 @@ var describe = require('mocha').describe;
 var it = require('mocha').it;
 var expect = require('chai').expect;
 var path = require('path');
-var process = require('process');
 var unixify = require('unixify');
 var helpers = require('./helpers');
+var { RPC } = require('../../lib/RpcTypes');
 
 describe(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: true',
@@ -21,21 +21,14 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     require('events').EventEmitter.defaultMaxListeners = 100;
     var files;
     var compiler;
-    var checker;
     var wrapFileName;
     var unwrapFileName;
+    var rpc;
 
-    const origEnv = Object.assign({}, process.env);
-    const origOn = process.on;
-    const origSend = process.send;
-    const origExit = process.exit;
-
-    afterEach(() => {
-      process.env = origEnv;
-      process.on = origOn;
-      process.send = origSend;
-      process.exit = origExit;
-    });
+    const getKnownFileNames = () => rpc.rpc(RPC.GET_KNOWN_FILE_NAMES);
+    const getSourceFile = fileName => rpc.rpc(RPC.GET_SOURCE_FILE, fileName);
+    const getSyntacticDiagnostics = () =>
+      rpc.rpc(RPC.GET_SYNTACTIC_DIAGNOSTICS);
 
     function createCompiler(options) {
       options = options || {};
@@ -43,39 +36,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       var vueCompiler = helpers.createVueCompiler(options);
       files = vueCompiler.files;
       compiler = vueCompiler.compiler;
-      checker = vueCompiler.checker;
+      rpc = vueCompiler.plugin.serviceRpc;
       wrapFileName = vueCompiler.wrapperUtils.wrapFileName;
       unwrapFileName = vueCompiler.wrapperUtils.unwrapFileName;
 
       for (const file of Object.keys(files)) {
         files[file] = vueCompiler.wrapperUtils.wrapFileName(files[file]);
       }
-    }
-
-    async function awaitInit() {
-      if ('tsIncrementalCompiler' in checker) {
-        if (!checker.tsIncrementalCompiler.lastProcessing) {
-          await checker.tsIncrementalCompiler.processChanges();
-        } else {
-          await checker.tsIncrementalCompiler.lastProcessing;
-        }
-      }
-    }
-
-    async function getKnownFileNames() {
-      await awaitInit();
-      if ('tsIncrementalCompiler' in checker) {
-        return Array.from(checker.tsIncrementalCompiler.getAllKnownFiles());
-      }
-      return checker.programConfig.fileNames;
-    }
-
-    async function getProgram() {
-      await awaitInit();
-      if ('tsIncrementalCompiler' in checker) {
-        return checker.tsIncrementalCompiler.getProgram();
-      }
-      return checker.program;
     }
 
     it('should create a Vue program config if vue=true', async function() {
@@ -114,10 +81,10 @@ function makeCommonTests(useTypescriptIncrementalApi) {
 
       var source;
 
-      source = (await getProgram()).getSourceFile(files['example.vue']);
+      source = await getSourceFile(files['example.vue']);
       expect(source).to.not.be.undefined;
 
-      source = (await getProgram()).getSourceFile(files['syntacticError.ts']);
+      source = await getSourceFile(files['syntacticError.ts']);
       expect(source).to.not.be.undefined;
     });
 
@@ -126,17 +93,17 @@ function makeCommonTests(useTypescriptIncrementalApi) {
 
       var source;
 
-      source = (await getProgram()).getSourceFile(files['example.vue']);
+      source = await getSourceFile(files['example.vue']);
       expect(source).to.be.undefined;
 
-      source = (await getProgram()).getSourceFile(files['syntacticError.ts']);
+      source = await getSourceFile(files['syntacticError.ts']);
       expect(source).to.not.be.undefined;
     });
 
     it('should get syntactic diagnostics from Vue program', async function() {
       createCompiler({ tslint: true, vue: true });
 
-      const diagnostics = (await getProgram()).getSyntacticDiagnostics();
+      const diagnostics = await getSyntacticDiagnostics();
       expect(diagnostics.length).to.be.equal(1);
     });
 
@@ -207,7 +174,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           compiler.context,
           wrapFileName('src/langs/' + fileName)
         );
-        var source = (await getProgram()).getSourceFile(sourceFilePath);
+        var source = await getSourceFile(sourceFilePath);
         expect(source).to.not.be.undefined;
         // remove padding lines
         var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();

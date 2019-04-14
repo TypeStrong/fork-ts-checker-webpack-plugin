@@ -5,7 +5,7 @@ import { RpcProvider } from 'worker-rpc';
 
 import { NormalizedMessage } from './NormalizedMessage';
 import { Message } from './Message';
-import { RunPayload, RunResult, RUN } from './RpcTypes';
+import { Payload, RPC, Result } from './RpcTypes';
 
 // helper function
 function noneUndefined<T>(results: (T | undefined)[]): results is T[] {
@@ -51,34 +51,37 @@ const workerRpcs = workers.map(worker => {
   return rpc;
 });
 
-parentRpc.registerRpcHandler<RunPayload, RunResult>(RUN, async message => {
-  const workerResults = await Promise.all(
-    workerRpcs.map(workerRpc =>
-      workerRpc.rpc<RunPayload, RunResult>(RUN, message)
-    )
-  );
-
-  if (!noneUndefined(workerResults)) {
-    return undefined;
-  }
-
-  const merged: Message = workerResults.reduce(
-    (innerMerged: Message, innerResult: Message) => ({
-      diagnostics: innerMerged.diagnostics.concat(
-        innerResult.diagnostics.map(NormalizedMessage.createFromJSON)
-      ),
-      lints: innerMerged.lints.concat(
-        innerResult.lints.map(NormalizedMessage.createFromJSON)
+parentRpc.registerRpcHandler<Payload<RPC.RUN>, Result<RPC.RUN>>(
+  RPC.RUN,
+  async message => {
+    const workerResults = await Promise.all(
+      workerRpcs.map(workerRpc =>
+        workerRpc.rpc<Payload<RPC.RUN>, Result<RPC.RUN>>(RPC.RUN, message)
       )
-    }),
-    { diagnostics: [], lints: [] }
-  );
+    );
 
-  merged.diagnostics = NormalizedMessage.deduplicate(merged.diagnostics);
-  merged.lints = NormalizedMessage.deduplicate(merged.lints);
+    if (!noneUndefined(workerResults)) {
+      return undefined;
+    }
 
-  return merged;
-});
+    const merged: Message = workerResults.reduce(
+      (innerMerged: Message, innerResult: Message) => ({
+        diagnostics: innerMerged.diagnostics.concat(
+          innerResult.diagnostics.map(NormalizedMessage.createFromJSON)
+        ),
+        lints: innerMerged.lints.concat(
+          innerResult.lints.map(NormalizedMessage.createFromJSON)
+        )
+      }),
+      { diagnostics: [], lints: [] }
+    );
+
+    merged.diagnostics = NormalizedMessage.deduplicate(merged.diagnostics);
+    merged.lints = NormalizedMessage.deduplicate(merged.lints);
+
+    return merged;
+  }
+);
 
 process.on('SIGINT', () => {
   process.exit();

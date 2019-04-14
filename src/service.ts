@@ -18,7 +18,7 @@ import {
   getWrapperUtils
 } from './wrapperUtils';
 import { RpcProvider } from 'worker-rpc';
-import { RunPayload, RunResult, RUN } from './RpcTypes';
+import { Payload, Result, RPC } from './RpcTypes';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -117,7 +117,7 @@ async function run(cancellationToken: CancellationToken) {
   };
 }
 
-rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
+rpc.registerRpcHandler<Payload<RPC.RUN>, Result<RPC.RUN>>(RPC.RUN, message =>
   run(CancellationToken.createFromJSON(typescript, message!))
 );
 
@@ -126,5 +126,5 @@ process.on('SIGINT', () => {
 });
 
 if (process.env.RUNNING_IN_TEST === 'true') {
-  (global as any).checker = checker;
+  require('./testRpc').initTestRpc({ rpc, checker });
 }

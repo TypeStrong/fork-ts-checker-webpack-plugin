@@ -90,7 +90,9 @@ async function run(cancellationToken: CancellationToken) {
 }
 
 rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
-  run(CancellationToken.createFromJSON(typescript, message!))
+  typeof message !== 'undefined'
+    ? run(CancellationToken.createFromJSON(typescript, message!))
+    : undefined
 );
 
 process.on('SIGINT', () => {

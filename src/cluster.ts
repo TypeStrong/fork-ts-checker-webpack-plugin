@@ -3,9 +3,14 @@ import * as path from 'path';
 import * as process from 'process';
 import { RpcProvider } from 'worker-rpc';
 
-import { WorkResult } from './WorkResult';
 import { NormalizedMessage } from './NormalizedMessage';
 import { Message } from './Message';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
+
+// helper function
+function noneUndefined<T>(results: (T | undefined)[]): results is T[] {
+  return results.every(result => !!result);
+}
 
 // fork workers...
 const division = parseInt(process.env.WORK_DIVISION || '', 10);
@@ -21,9 +26,6 @@ for (let num = 0; num < division; num++) {
   );
 }
 
-const pids = workers.map(worker => worker.pid);
-const result = new WorkResult(pids);
-
 // communication with parent process
 const parentRpc = new RpcProvider(message => {
   try {
@@ -35,8 +37,8 @@ const parentRpc = new RpcProvider(message => {
 });
 process.on('message', message => parentRpc.dispatch(message));
 
-// communication with child processes
-const childrenRpc = workers.map(worker => {
+// communication with worker processes
+const workerRpcs = workers.map(worker => {
   const rpc = new RpcProvider(message => {
     try {
       worker.send(message);
@@ -49,42 +51,33 @@ const childrenRpc = workers.map(worker => {
   return rpc;
 });
 
-parentRpc.registerSignalHandler('run', message => {
-  // broadcast message to all workers
-  childrenRpc.forEach(rpc => rpc.signal('run', message));
-  // clear previous result set
-  result.clear();
-});
+parentRpc.registerRpcHandler<RunPayload, RunResult>(RUN, async message => {
+  const workerResults = await Promise.all(
+    workerRpcs.map(workerRpc =>
+      workerRpc.rpc<RunPayload, RunResult>(RUN, message)
+    )
+  );
 
-// listen to all workers
-childrenRpc.forEach((rpc, id) => {
-  const worker = workers[id];
-  rpc.registerSignalHandler('runResults', (message?: Message) => {
-    if (!message) {
-      return;
-    }
-    // set result from worker
-    result.set(worker.pid, {
-      diagnostics: message.diagnostics.map(NormalizedMessage.createFromJSON),
-      lints: message.lints.map(NormalizedMessage.createFromJSON)
-    });
+  if (!noneUndefined(workerResults)) {
+    return undefined;
+  }
 
-    // if we have result from all workers, send merged
-    if (result.hasAll()) {
-      const merged: Message = result.reduce(
-        (innerMerged: Message, innerResult: Message) => ({
-          diagnostics: innerMerged.diagnostics.concat(innerResult.diagnostics),
-          lints: innerMerged.lints.concat(innerResult.lints)
-        }),
-        { diagnostics: [], lints: [] }
-      );
+  const merged: Message = workerResults.reduce(
+    (innerMerged: Message, innerResult: Message) => ({
+      diagnostics: innerMerged.diagnostics.concat(
+        innerResult.diagnostics.map(NormalizedMessage.createFromJSON)
+      ),
+      lints: innerMerged.lints.concat(
+        innerResult.lints.map(NormalizedMessage.createFromJSON)
+      )
+    }),
+    { diagnostics: [], lints: [] }
+  );
 
-      merged.diagnostics = NormalizedMessage.deduplicate(merged.diagnostics);
-      merged.lints = NormalizedMessage.deduplicate(merged.lints);
+  merged.diagnostics = NormalizedMessage.deduplicate(merged.diagnostics);
+  merged.lints = NormalizedMessage.deduplicate(merged.lints);
 
-      parentRpc.signal('runResults', merged);
-    }
-  });
+  return merged;
 });
 
 process.on('SIGINT', () => {

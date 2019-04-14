@@ -2,7 +2,7 @@ import * as process from 'process';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
 import { IncrementalChecker } from './IncrementalChecker';
-import { CancellationToken, CancellationTokenData } from './CancellationToken';
+import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
@@ -11,6 +11,7 @@ import {
   makeCreateNormalizedMessageFromRuleFailure
 } from './NormalizedMessageFactories';
 import { RpcProvider } from 'worker-rpc';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -72,23 +73,25 @@ async function run(cancellationToken: CancellationToken) {
     }
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
-      return;
+      return undefined;
     }
 
     throw error;
   }
 
-  if (!cancellationToken.isCancellationRequested()) {
-    rpc.signal('runResults', {
-      diagnostics,
-      lints
-    });
+  if (cancellationToken.isCancellationRequested()) {
+    return undefined;
   }
+
+  return {
+    diagnostics,
+    lints
+  };
 }
 
-rpc.registerSignalHandler<CancellationTokenData>('run', message => {
-  run(CancellationToken.createFromJSON(typescript, message!));
-});
+rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
+  run(CancellationToken.createFromJSON(typescript, message!))
+);
 
 process.on('SIGINT', () => {
   process.exit();

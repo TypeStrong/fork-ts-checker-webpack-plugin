@@ -18,6 +18,7 @@ import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
 import { getForkTsCheckerWebpackPluginHooks, legacyHookMap } from './hooks';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -397,7 +398,14 @@ class ForkTsCheckerWebpackPlugin {
             if (this.measureTime) {
               this.startAt = this.performance.now();
             }
-            this.serviceRpc!.signal('run', this.cancellationToken);
+            this.serviceRpc!.rpc<RunPayload, RunResult>(
+              RUN,
+              this.cancellationToken.toJSON()
+            ).then(result => {
+              if (result) {
+                this.handleServiceMessage(result);
+              }
+            });
           } catch (error) {
             if (!this.silent && this.logger) {
               this.logger.error(
@@ -633,10 +641,6 @@ class ForkTsCheckerWebpackPlugin {
         );
       }
     }
-
-    this.serviceRpc.registerSignalHandler<Message>('runResults', message =>
-      this.handleServiceMessage(message!)
-    );
 
     this.service.on('exit', (code: string | number, signal: string) =>
       this.handleServiceExit(code, signal)

@@ -450,7 +450,14 @@ class ForkTsCheckerWebpackPlugin {
             }
 
             try {
-              this.service!.send(this.cancellationToken);
+              this.serviceRpc!.rpc<RunPayload, RunResult>(
+                RUN,
+                this.cancellationToken.toJSON()
+              ).then(result => {
+                if (result) {
+                  this.handleServiceMessage(result);
+                }
+              });
             } catch (error) {
               if (!this.silent && this.logger) {
                 this.logger.error(

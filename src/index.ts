@@ -450,7 +450,14 @@ class ForkTsCheckerWebpackPlugin {
             }
 
             try {
-              this.service!.send(this.cancellationToken);
+              this.serviceRpc!.rpc<Payload<RPC.RUN>, Result<RPC.RUN>>(
+                RPC.RUN,
+                this.cancellationToken.toJSON()
+              ).then(result => {
+                if (result) {
+                  this.handleServiceMessage(result);
+                }
+              });
             } catch (error) {
               if (!this.silent && this.logger) {
                 this.logger.error(
@@ -669,7 +676,8 @@ class ForkTsCheckerWebpackPlugin {
   private handleServiceMessage(message: Message): void {
     if (this.measureTime) {
       const delta = this.performance.now() - this.startAt;
-      this.logger.info(`compilation took: ${delta} ms.`);
+      const deltaRounded = Math.round(delta * 100) / 100;
+      this.logger.info(`Compilation took: ${deltaRounded} ms.`);
     }
     if (this.cancellationToken) {
       this.cancellationToken.cleanupCancellation();
@@ -809,8 +817,10 @@ class ForkTsCheckerWebpackPlugin {
           file: message.file
         };
 
-        if (message.isWarningSeverity() && !this.ignoreLintWarnings) {
-          compilation.warnings.push(formatted);
+        if (message.isWarningSeverity()) {
+          if (!this.ignoreLintWarnings) {
+            compilation.warnings.push(formatted);
+          }
         } else {
           compilation.errors.push(formatted);
         }

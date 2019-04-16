@@ -7,11 +7,6 @@ import { NormalizedMessage } from './NormalizedMessage';
 import { Message } from './Message';
 import { Payload, RPC, Result } from './RpcTypes';
 
-// helper function
-function noneUndefined<T>(results: (T | undefined)[]): results is T[] {
-  return results.every(result => !!result);
-}
-
 // fork workers...
 const division = parseInt(process.env.WORK_DIVISION || '', 10);
 const workers: childProcess.ChildProcess[] = [];
@@ -60,7 +55,13 @@ parentRpc.registerRpcHandler<Payload<RPC.RUN>, Result<RPC.RUN>>(
       )
     );
 
-    if (!noneUndefined(workerResults)) {
+    function workerFinished(
+      workerResult: (Message | undefined)[]
+    ): workerResult is Message[] {
+      return workerResult.every(result => typeof result !== 'undefined');
+    }
+
+    if (!workerFinished(workerResults)) {
       return undefined;
     }
 

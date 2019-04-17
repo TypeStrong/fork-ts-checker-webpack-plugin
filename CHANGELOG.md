@@ -1,3 +1,7 @@
+## v1.0.3
+
+* [use worker-rpc library for inter-process communication](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/231)
+
 ## v1.0.2
 
 * [Fix ignoreLintWarning mark warnings as errors](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/243) 

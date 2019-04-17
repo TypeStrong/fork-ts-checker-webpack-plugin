@@ -87,7 +87,8 @@
     "micromatch": "^3.1.10",
     "minimatch": "^3.0.4",
     "semver": "^5.6.0",
-    "tapable": "^1.0.0"
+    "tapable": "^1.0.0",
+    "worker-rpc": "^0.1.0"
   },
   "husky": {
     "hooks": {

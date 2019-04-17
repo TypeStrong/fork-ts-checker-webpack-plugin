@@ -10,6 +10,18 @@ import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure
 } from './NormalizedMessageFactories';
+import { RpcProvider } from 'worker-rpc';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
+
+const rpc = new RpcProvider(message => {
+  try {
+    process.send!(message);
+  } catch (e) {
+    // channel closed...
+    process.exit();
+  }
+});
+process.on('message', message => rpc.dispatch(message));
 
 const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
 
@@ -61,28 +73,27 @@ async function run(cancellationToken: CancellationToken) {
     }
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
-      return;
+      return undefined;
     }
 
     throw error;
   }
 
-  if (!cancellationToken.isCancellationRequested()) {
-    try {
-      process.send!({
-        diagnostics,
-        lints
-      });
-    } catch (e) {
-      // channel closed...
-      process.exit();
-    }
+  if (cancellationToken.isCancellationRequested()) {
+    return undefined;
   }
+
+  return {
+    diagnostics,
+    lints
+  };
 }
 
-process.on('message', message => {
-  run(CancellationToken.createFromJSON(typescript, message));
-});
+rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
+  typeof message !== 'undefined'
+    ? run(CancellationToken.createFromJSON(typescript, message!))
+    : undefined
+);
 
 process.on('SIGINT', () => {
   process.exit();

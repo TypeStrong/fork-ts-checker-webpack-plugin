@@ -64,9 +64,9 @@ async function run(cancellationToken: CancellationToken) {
   let diagnostics: NormalizedMessage[] = [];
   let lints: NormalizedMessage[] = [];
 
-  checker.nextIteration();
-
   try {
+    checker.nextIteration();
+
     diagnostics = await checker.getDiagnostics(cancellationToken);
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
@@ -76,7 +76,26 @@ async function run(cancellationToken: CancellationToken) {
       return undefined;
     }
 
-    throw error;
+    diagnostics.push(
+      new NormalizedMessage(
+        error instanceof Error
+          ? {
+              type: NormalizedMessage.TYPE_INTERNAL,
+              severity: NormalizedMessage.SEVERITY_ERROR,
+              code: '',
+              content: error.message,
+              stack: error.stack,
+              file: '[internal]'
+            }
+          : {
+              type: NormalizedMessage.TYPE_INTERNAL,
+              severity: NormalizedMessage.SEVERITY_ERROR,
+              code: '',
+              content: error.toString(),
+              file: '[internal]'
+            }
+      )
+    );
   }
 
   if (cancellationToken.isCancellationRequested()) {

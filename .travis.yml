@@ -2,20 +2,28 @@ os:
   - linux
   - osx
   # - windows - travis isn't windows ready yet; tests fail for meaningless reasons
+
 language: node_js
 node_js:
- - '10'
- - '8'
+  - 10
+  - 8
+  - 6
+
 install:
- - yarn install
- - yarn build
- - yarn add $WEBPACK $TSLOADER $VUELOADER -D
- - yarn lint
+  - yarn install --frozen-lockfile
+  - yarn build
+  - yarn add $WEBPACK $TSLOADER $VUELOADER -D
+
+script:
+  - yarn lint
+  - yarn test
+
 env:
- - WEBPACK=webpack@^5.0.0-alpha.5 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
- - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
- - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
- - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+  - WEBPACK=webpack@^5.0.0-alpha.5 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
+  - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
+  - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+  - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+
 deploy:
   provider: npm
   email: piotrek.oles@gmail.com

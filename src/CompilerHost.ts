@@ -3,6 +3,22 @@ import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
 
+export type ResolveModuleName = (
+  typescript: typeof ts,
+  moduleName: string,
+  containingFile: string,
+  compilerOptions: ts.CompilerOptions,
+  moduleResolutionHost: ts.ModuleResolutionHost
+) => ts.ResolvedModuleWithFailedLookupLocations;
+
+export type ResolveTypeReferenceDirective = (
+  typescript: typeof ts,
+  typeDirectiveName: string,
+  containingFile: string,
+  compilerOptions: ts.CompilerOptions,
+  moduleResolutionHost: ts.ModuleResolutionHost
+) => ts.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
+
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
   callback: ts.DirectoryWatcherCallback;
@@ -51,11 +67,16 @@ export class CompilerHost
 
   private compilationStarted = false;
 
+  private readonly resolveModuleName: ResolveModuleName;
+  private readonly resolveTypeReferenceDirective: ResolveTypeReferenceDirective;
+
   constructor(
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    resolveModuleName?: ResolveModuleName,
+    resolveTypeReferenceDirective?: ResolveTypeReferenceDirective
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -75,6 +96,42 @@ export class CompilerHost
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
+
+    // tslint:disable-next-line:no-shadowed-variable
+    this.resolveModuleName =
+      resolveModuleName ||
+      ((
+        typescript,
+        moduleName,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      ) => {
+        return typescript.resolveModuleName(
+          moduleName,
+          containingFile,
+          compilerOptions,
+          moduleResolutionHost
+        );
+      });
+
+    // tslint:disable-next-line:no-shadowed-variable
+    this.resolveTypeReferenceDirective =
+      resolveTypeReferenceDirective ||
+      ((
+        typescript,
+        typeDirectiveName,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      ) => {
+        return typescript.resolveTypeReferenceDirective(
+          typeDirectiveName,
+          containingFile,
+          compilerOptions,
+          moduleResolutionHost
+        );
+      });
   }
 
   public async processChanges(): Promise<{
@@ -344,6 +401,33 @@ export class CompilerHost
     // all actual diagnostics happens here
     this.tsHost.afterProgramCreate!(program);
     this.afterCompile();
+  }
+
+  public resolveModuleNames(moduleNames: string[], containingFile: string) {
+    return moduleNames.map(moduleName => {
+      return this.resolveModuleName(
+        this.typescript,
+        moduleName,
+        containingFile,
+        this.optionsToExtend,
+        this
+      ).resolvedModule;
+    });
+  }
+
+  public resolveTypeReferenceDirectives(
+    typeDirectiveNames: string[],
+    containingFile: string
+  ) {
+    return typeDirectiveNames.map(typeDirectiveName => {
+      return this.resolveTypeReferenceDirective(
+        this.typescript,
+        typeDirectiveName,
+        containingFile,
+        this.optionsToExtend,
+        this
+      ).resolvedTypeReferenceDirective;
+    });
   }
 
   // the functions below are use internally by typescript. we cannot use non-emitting version of incremental watching API

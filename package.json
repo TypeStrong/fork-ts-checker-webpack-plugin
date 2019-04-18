@@ -1,6 +1,6 @@
 {
   "name": "fork-ts-checker-webpack-plugin",
-  "version": "1.1.0",
+  "version": "0.0.0-semantic-release",
   "description": "Runs typescript type checker and linter on separate process.",
   "keywords": [
     "awesome-typescript-loader",
@@ -46,7 +46,8 @@
     "test:watch": "mocha -R spec --watch ./test/unit",
     "watch": "tsc --version && tsc --project \"./src\" --watch",
     "precommit": "lint-staged && yarn build",
-    "commit": "./node_modules/.bin/git-cz"
+    "commit": "./node_modules/.bin/git-cz",
+    "semantic-release": "semantic-release"
   },
   "husky": {
     "hooks": {
@@ -114,6 +115,7 @@
     "mock-require": "^3.0.2",
     "prettier": "^1.14.3",
     "rimraf": "^2.5.4",
+    "semantic-release": "^16.0.0-beta.18",
     "sinon": "^7.1.1",
     "ts-loader": "^5.3.0",
     "tslint": "^5.11.0",

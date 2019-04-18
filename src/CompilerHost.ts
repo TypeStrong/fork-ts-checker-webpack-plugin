@@ -97,13 +97,14 @@ export class CompilerHost
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
 
-    // tslint:disable-next-line:no-shadowed-variable
     this.resolveModuleName =
       resolveModuleName ||
       ((
+        // tslint:disable-next-line:no-shadowed-variable
         typescript,
         moduleName,
         containingFile,
+        // tslint:disable-next-line:no-shadowed-variable
         compilerOptions,
         moduleResolutionHost
       ) => {
@@ -115,13 +116,14 @@ export class CompilerHost
         );
       });
 
-    // tslint:disable-next-line:no-shadowed-variable
     this.resolveTypeReferenceDirective =
       resolveTypeReferenceDirective ||
       ((
+        // tslint:disable-next-line:no-shadowed-variable
         typescript,
         typeDirectiveName,
         containingFile,
+        // tslint:disable-next-line:no-shadowed-variable
         compilerOptions,
         moduleResolutionHost
       ) => {

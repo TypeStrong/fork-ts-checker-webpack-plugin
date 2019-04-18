@@ -12,7 +12,11 @@ import {
   makeGetLinterConfig
 } from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
-import { CompilerHost } from './CompilerHost';
+import {
+  CompilerHost,
+  ResolveModuleName,
+  ResolveTypeReferenceDirective
+} from './CompilerHost';
 import { FsHelper } from './FsHelper';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
@@ -41,7 +45,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    resolveModuleName: ResolveModuleName | undefined,
+    resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
@@ -51,7 +57,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       typescript,
       programConfigFile,
       compilerOptions,
-      checkSyntacticErrors
+      checkSyntacticErrors,
+      resolveModuleName,
+      resolveTypeReferenceDirective
     );
   }
 

@@ -53,6 +53,8 @@ interface Options {
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
   measureCompilationTime: boolean;
+  resolveModuleNameModule: string;
+  resolveTypeReferenceDirectiveModule: string;
 }
 
 /**
@@ -99,6 +101,8 @@ class ForkTsCheckerWebpackPlugin {
   private colors: Chalk;
   private formatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
+  private resolveModuleNameModule: string | undefined;
+  private resolveTypeReferenceDirectiveModule: string | undefined;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -155,6 +159,9 @@ class ForkTsCheckerWebpackPlugin {
     this.silent = options.silent === true; // default false
     this.async = options.async !== false; // default true
     this.checkSyntacticErrors = options.checkSyntacticErrors === true; // default false
+    this.resolveModuleNameModule = options.resolveModuleNameModule;
+    this.resolveTypeReferenceDirectiveModule =
+      options.resolveTypeReferenceDirectiveModule;
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit =
       options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
@@ -590,6 +597,9 @@ class ForkTsCheckerWebpackPlugin {
           MEMORY_LIMIT: this.memoryLimit,
           CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
           USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
+          RESOLVE_MODULE_NAME: this.resolveModuleNameModule,
+          RESOLVE_TYPE_REFERENCE_DIRECTIVE: this
+            .resolveTypeReferenceDirectiveModule,
           VUE: this.vue
         },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']

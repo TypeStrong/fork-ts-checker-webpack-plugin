@@ -42,7 +42,14 @@ const checker: IncrementalCheckerInterface =
         process.env.CONTEXT!,
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true'
+        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
+        process.env.RESOLVE_MODULE_NAME
+          ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
+          : undefined,
+        process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE
+          ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE!)
+              .resolveTypeReferenceDirective
+          : undefined
       )
     : new IncrementalChecker(
         typescript,

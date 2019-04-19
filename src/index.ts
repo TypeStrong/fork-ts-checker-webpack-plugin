@@ -134,6 +134,9 @@ class ForkTsCheckerWebpackPlugin {
   private measureTime: boolean;
   private performance: any;
   private startAt: number = 0;
+
+  private nodeArgs: string[] = [];
+
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
     this.options = { ...options };
@@ -580,10 +583,10 @@ class ForkTsCheckerWebpackPlugin {
       ),
       [],
       {
-        execArgv:
-          this.workersNumber > 1
-            ? []
-            : ['--max-old-space-size=' + this.memoryLimit],
+        execArgv: (this.workersNumber > 1
+          ? []
+          : ['--max-old-space-size=' + this.memoryLimit]
+        ).concat(this.nodeArgs),
         env: {
           ...process.env,
           TYPESCRIPT_PATH: this.typescriptPath,

@@ -1,3 +1,7 @@
+## v1.0.4
+
+* [gracefully handle error thrown from the service](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/249)
+
 ## v1.0.3
 
 * [use worker-rpc library for inter-process communication](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/231)

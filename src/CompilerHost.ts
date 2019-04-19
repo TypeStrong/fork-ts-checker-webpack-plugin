@@ -2,22 +2,11 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
-
-export type ResolveModuleName = (
-  typescript: typeof ts,
-  moduleName: string,
-  containingFile: string,
-  compilerOptions: ts.CompilerOptions,
-  moduleResolutionHost: ts.ModuleResolutionHost
-) => ts.ResolvedModuleWithFailedLookupLocations;
-
-export type ResolveTypeReferenceDirective = (
-  typescript: typeof ts,
-  typeDirectiveName: string,
-  containingFile: string,
-  compilerOptions: ts.CompilerOptions,
-  moduleResolutionHost: ts.ModuleResolutionHost
-) => ts.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
+import {
+  ResolveModuleName,
+  ResolveTypeReferenceDirective,
+  makeResolutionFunctions
+} from './resolution';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -75,8 +64,8 @@ export class CompilerHost
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean,
-    resolveModuleName?: ResolveModuleName,
-    resolveTypeReferenceDirective?: ResolveTypeReferenceDirective
+    userResolveModuleName?: ResolveModuleName,
+    userResolveTypeReferenceDirective?: ResolveTypeReferenceDirective
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -97,43 +86,16 @@ export class CompilerHost
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
 
-    this.resolveModuleName =
-      resolveModuleName ||
-      ((
-        // tslint:disable-next-line:no-shadowed-variable
-        typescript,
-        moduleName,
-        containingFile,
-        // tslint:disable-next-line:no-shadowed-variable
-        compilerOptions,
-        moduleResolutionHost
-      ) => {
-        return typescript.resolveModuleName(
-          moduleName,
-          containingFile,
-          compilerOptions,
-          moduleResolutionHost
-        );
-      });
+    const {
+      resolveModuleName,
+      resolveTypeReferenceDirective
+    } = makeResolutionFunctions(
+      userResolveModuleName,
+      userResolveTypeReferenceDirective
+    );
 
-    this.resolveTypeReferenceDirective =
-      resolveTypeReferenceDirective ||
-      ((
-        // tslint:disable-next-line:no-shadowed-variable
-        typescript,
-        typeDirectiveName,
-        containingFile,
-        // tslint:disable-next-line:no-shadowed-variable
-        compilerOptions,
-        moduleResolutionHost
-      ) => {
-        return typescript.resolveTypeReferenceDirective(
-          typeDirectiveName,
-          containingFile,
-          compilerOptions,
-          moduleResolutionHost
-        );
-      });
+    this.resolveModuleName = resolveModuleName;
+    this.resolveTypeReferenceDirective = resolveTypeReferenceDirective;
   }
 
   public async processChanges(): Promise<{

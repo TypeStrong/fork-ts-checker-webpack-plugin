@@ -14,6 +14,11 @@ import {
 import { WorkSet } from './WorkSet';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CancellationToken } from './CancellationToken';
+import {
+  ResolveModuleName,
+  ResolveTypeReferenceDirective,
+  makeResolutionFunctions
+} from './resolution';
 import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
@@ -59,7 +64,11 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workNumber: number = 0,
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false
+    private vue: boolean = false,
+    private resolveModuleName: ResolveModuleName | undefined,
+    private resolveTypeReferenceDirective:
+      | ResolveTypeReferenceDirective
+      | undefined
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
@@ -102,10 +111,47 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
     watcher: FilesWatcher,
-    oldProgram: ts.Program
+    oldProgram: ts.Program,
+    userResolveModuleName: ResolveModuleName | undefined,
+    userResolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
   ) {
     const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
+
+    const {
+      resolveModuleName,
+      resolveTypeReferenceDirective
+    } = makeResolutionFunctions(
+      userResolveModuleName,
+      userResolveTypeReferenceDirective
+    );
+
+    host.resolveModuleNames = (moduleNames, containingFile) => {
+      return moduleNames.map(moduleName => {
+        return resolveModuleName(
+          typescript,
+          moduleName,
+          containingFile,
+          programConfig.options,
+          host
+        ).resolvedModule;
+      });
+    };
+
+    host.resolveTypeReferenceDirectives = (
+      typeDirectiveNames,
+      containingFile
+    ) => {
+      return typeDirectiveNames.map(typeDirectiveName => {
+        return resolveTypeReferenceDirective(
+          typescript,
+          typeDirectiveName,
+          containingFile,
+          programConfig.options,
+          host
+        ).resolvedTypeReferenceDirective;
+      });
+    };
 
     host.getSourceFile = (filePath, languageVersion, onError) => {
       // first check if watcher is watching file - if not - check it's mtime
@@ -215,7 +261,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       path.dirname(this.programConfigFile),
       this.files,
       this.watcher!,
-      this.program!
+      this.program!,
+      this.resolveModuleName,
+      this.resolveTypeReferenceDirective
     );
   }
 
@@ -233,7 +281,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.programConfig,
       this.files,
       this.watcher!,
-      this.program!
+      this.program!,
+      this.resolveModuleName,
+      this.resolveTypeReferenceDirective
     );
   }
 

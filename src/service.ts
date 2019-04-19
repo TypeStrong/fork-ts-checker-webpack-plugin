@@ -31,6 +31,15 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
 );
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
 
+const resolveModuleName = process.env.RESOLVE_MODULE_NAME
+  ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
+  : undefined;
+const resolveTypeReferenceDirective = process.env
+  .RESOLVE_TYPE_REFERENCE_DIRECTIVE
+  ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE!)
+      .resolveTypeReferenceDirective
+  : undefined;
+
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
     ? new ApiIncrementalChecker(
@@ -43,13 +52,8 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.RESOLVE_MODULE_NAME
-          ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
-          : undefined,
-        process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE
-          ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE!)
-              .resolveTypeReferenceDirective
-          : undefined
+        resolveModuleName,
+        resolveTypeReferenceDirective
       )
     : new IncrementalChecker(
         typescript,
@@ -64,7 +68,9 @@ const checker: IncrementalCheckerInterface =
         parseInt(process.env.WORK_NUMBER!, 10) || 0,
         parseInt(process.env.WORK_DIVISION!, 10) || 1,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.VUE === 'true'
+        process.env.VUE === 'true',
+        resolveModuleName,
+        resolveTypeReferenceDirective
       );
 
 async function run(cancellationToken: CancellationToken) {

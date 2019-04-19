@@ -12,11 +12,8 @@ import {
   makeGetLinterConfig
 } from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
-import {
-  CompilerHost,
-  ResolveModuleName,
-  ResolveTypeReferenceDirective
-} from './CompilerHost';
+import { CompilerHost } from './CompilerHost';
+import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 import { FsHelper } from './FsHelper';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {

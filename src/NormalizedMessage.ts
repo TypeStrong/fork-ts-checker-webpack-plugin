@@ -1,4 +1,4 @@
-export type ErrorType = 'diagnostic' | 'lint' | 'internal';
+export type ErrorType = 'diagnostic' | 'lint';
 export type Severity = 'error' | 'warning';
 
 interface NormalizedMessageJson {
@@ -15,11 +15,12 @@ interface NormalizedMessageJson {
 export class NormalizedMessage {
   public static readonly TYPE_DIAGNOSTIC: ErrorType = 'diagnostic';
   public static readonly TYPE_LINT: ErrorType = 'lint';
-  public static readonly TYPE_INTERNAL: ErrorType = 'internal';
 
   // severity types
   public static readonly SEVERITY_ERROR: Severity = 'error';
   public static readonly SEVERITY_WARNING: Severity = 'warning';
+
+  public static readonly ERROR_CODE_INTERNAL = 'INTERNAL_ERROR';
 
   public readonly type: ErrorType;
   public readonly code: string | number;
@@ -168,10 +169,6 @@ export class NormalizedMessage {
 
   public isLintType() {
     return NormalizedMessage.TYPE_LINT === this.type;
-  }
-
-  public isInternalType() {
-    return NormalizedMessage.TYPE_INTERNAL === this.type;
   }
 
   public getFormattedCode() {

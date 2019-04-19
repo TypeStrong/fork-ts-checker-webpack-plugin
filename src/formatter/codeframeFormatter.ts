@@ -22,7 +22,7 @@ export function createCodeframeFormatter(options: any) {
       : colors.bold.red;
     const positionColor = colors.dim;
 
-    if (message.isInternalType()) {
+    if (message.code === NormalizedMessage.ERROR_CODE_INTERNAL) {
       return (
         messageColor(`INTERNAL ${message.severity.toUpperCase()}: `) +
         message.content +

@@ -8,7 +8,8 @@ import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 import {
   makeCreateNormalizedMessageFromDiagnostic,
-  makeCreateNormalizedMessageFromRuleFailure
+  makeCreateNormalizedMessageFromRuleFailure,
+  makeCreateNormalizedMessageFromInternalError
 } from './NormalizedMessageFactories';
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
@@ -30,6 +31,7 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
   typescript
 );
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
+export const createNormalizedMessageFromInternalError = makeCreateNormalizedMessageFromInternalError();
 
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
@@ -76,26 +78,7 @@ async function run(cancellationToken: CancellationToken) {
       return undefined;
     }
 
-    diagnostics.push(
-      new NormalizedMessage(
-        error instanceof Error
-          ? {
-              type: NormalizedMessage.TYPE_INTERNAL,
-              severity: NormalizedMessage.SEVERITY_ERROR,
-              code: '',
-              content: error.message,
-              stack: error.stack,
-              file: '[internal]'
-            }
-          : {
-              type: NormalizedMessage.TYPE_INTERNAL,
-              severity: NormalizedMessage.SEVERITY_ERROR,
-              code: '',
-              content: error.toString(),
-              file: '[internal]'
-            }
-      )
-    );
+    diagnostics.push(createNormalizedMessageFromInternalError(error));
   }
 
   if (cancellationToken.isCancellationRequested()) {

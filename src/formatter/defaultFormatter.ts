@@ -19,7 +19,7 @@ export function createDefaultFormatter() {
     const fileAndNumberColor = colors.bold.cyan;
     const codeColor = colors.grey;
 
-    if (message.isInternalType()) {
+    if (message.code === NormalizedMessage.ERROR_CODE_INTERNAL) {
       return (
         messageColor(`INTERNAL ${message.severity.toUpperCase()}: `) +
         message.content +

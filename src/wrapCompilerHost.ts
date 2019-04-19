@@ -76,6 +76,7 @@ export function wrapCompilerHost<T extends HostType>(
         );
         if (matches) {
           const [fullMatch, scriptKind] = matches;
+          const origResult = result;
           result = typescript.createSourceFile(
             result.fileName,
             result.text.slice(fullMatch.length),
@@ -83,6 +84,13 @@ export function wrapCompilerHost<T extends HostType>(
             true,
             ts.ScriptKind[scriptKind as ScriptKindName]
           );
+
+          /* in typescript >= 3.4:
+           * required for files to be consumed by ApiIncrementalChecker,
+           * but not present in files created by typescript.createSourceFile */
+          if (typeof origResult['version'] !== 'undefined') {
+            result['version'] = origResult['version'];
+          }
         }
         /*
         console.log(

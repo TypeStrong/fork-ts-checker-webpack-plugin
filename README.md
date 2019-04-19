@@ -155,11 +155,24 @@ especially if there are other loaders/plugins involved in the compilation. **req
 * **typescript** `string`:
 If supplied this is a custom path where `typescript` can be found. Defaults to `require.resolve('typescript')`.
 
-* **resolveModuleNameModule** `string`:
-If supplied this is a path of a file where the worker can find a working implementation of `resolveModuleName` to use with TypeScript (exported through the `resolveModuleName` symbol).
+* **resolveModuleNameModule** and **resolveTypeReferenceDirectiveModule** `string`:
+Both of those options refer to files on the disk that respectively export a `resolveModuleName` or a `resolveTypeReferenceDirectiveModule` function. These functions will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. Check the following code for an example of what those functions should look like:
+<details>
+  <summary>Code sample</summary>
 
-* **resolveTypeReferenceDirectiveModule** `string`:
-If supplied this is a path of a file where the worker can find a working implementation of `resolveTypeReferenceDirective` to use with TypeScript (exported through the `resolveTypeReferenceDirective` symbol).
+```js
+const {resolveModuleName} = require(`ts-pnp`);
+
+exports.resolveModuleName = (typescript, moduleName, containingFile, compilerOptions, resolutionHost) => {
+  return resolveModuleName(moduleName, containingFile, compilerOptions, resolutionHost, typescript.resolveModuleName);
+};
+
+exports.resolveTypeReferenceDirective = (typescript, moduleName, containingFile, compilerOptions, resolutionHost) => {
+  return resolveModuleName(moduleName, containingFile, compilerOptions, resolutionHost, typescript.resolveTypeReferenceDirective);
+};
+```
+
+</details>
 
 ### Pre-computed consts:
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU

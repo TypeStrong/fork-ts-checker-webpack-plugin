@@ -119,6 +119,19 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       });
     });
 
+    it('should support custom resolution', function(callback) {
+      var compiler = createCompiler({
+        tsconfig: 'tsconfig-weird-resolutions.json',
+        resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
+        resolveTypeReferenceDirectiveModule: `${__dirname}/project/weirdResolver.js`
+      });
+
+      compiler.run(function(err, stats) {
+        expect(stats.compilation.errors.length).to.be.eq(0);
+        callback();
+      });
+    });
+
     it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
       const fileName = 'lintingError1';
       helpers.testLintAutoFixTest(

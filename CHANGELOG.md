@@ -1,3 +1,7 @@
+## v1.1.0
+
+* [Add new custom resolution options](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250)
+
 ## v1.0.4
 
 * [gracefully handle error thrown from the service](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/249)
@@ -8,7 +12,7 @@
 
 ## v1.0.2
 
-* [Fix ignoreLintWarning mark warnings as errors](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/243) 
+* [Fix ignoreLintWarning mark warnings as errors](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/243)
 
 ## v1.0.1
 
@@ -20,7 +24,7 @@
 
 This is the first major version of `fork-ts-checker-webpack-plugin`. A long time coming :-)
 
-There are actually no breaking changes that we're aware of; users of 0.x `fork-ts-checker-webpack-plugin` should be be able to upgrade without any drama.  Users of TypeScript 3+ may notice a performance improvement as by default the plugin now uses the [incremental watch API](https://github.com/Microsoft/TypeScript/pull/20234) in TypeScript.  Should this prove problematic you can opt out of using it by supplying `useTypescriptIncrementalApi: false`. 
+There are actually no breaking changes that we're aware of; users of 0.x `fork-ts-checker-webpack-plugin` should be be able to upgrade without any drama.  Users of TypeScript 3+ may notice a performance improvement as by default the plugin now uses the [incremental watch API](https://github.com/Microsoft/TypeScript/pull/20234) in TypeScript.  Should this prove problematic you can opt out of using it by supplying `useTypescriptIncrementalApi: false`.
 
 We are aware of an [issue with Vue and the incremental API](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/219).  We hope it will be fixed soon - a generous member of the community is taking a look. In the meantime, we will *not* default to using the incremental watch API when in Vue mode.
 
@@ -79,7 +83,7 @@ Version `1.x` additionally supports webpack 5 alongside webpack 4, whose hooks a
 ```diff
 -  compiler.hooks.forkTsCheckerDone.tap(...args)
 +  const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler)
-+  forkTsCheckerHooks.done.tap(...args)  
++  forkTsCheckerHooks.done.tap(...args)
 ```
 
 v1.0.0-alpha.0 drops support for node 6.

@@ -53,6 +53,8 @@ interface Options {
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
   measureCompilationTime: boolean;
+  resolveModuleNameModule: string;
+  resolveTypeReferenceDirectiveModule: string;
 }
 
 /**
@@ -99,6 +101,8 @@ class ForkTsCheckerWebpackPlugin {
   private colors: Chalk;
   private formatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
+  private resolveModuleNameModule: string | undefined;
+  private resolveTypeReferenceDirectiveModule: string | undefined;
 
   private tsconfigPath?: string;
   private tslintPath?: string;
@@ -158,6 +162,9 @@ class ForkTsCheckerWebpackPlugin {
     this.silent = options.silent === true; // default false
     this.async = options.async !== false; // default true
     this.checkSyntacticErrors = options.checkSyntacticErrors === true; // default false
+    this.resolveModuleNameModule = options.resolveModuleNameModule;
+    this.resolveTypeReferenceDirectiveModule =
+      options.resolveTypeReferenceDirectiveModule;
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit =
       options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
@@ -569,6 +576,34 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private spawnService() {
+    const env: { [key: string]: string | undefined } = {
+      ...process.env,
+      TYPESCRIPT_PATH: this.typescriptPath,
+      TSCONFIG: this.tsconfigPath,
+      COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
+      TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
+      CONTEXT: this.compiler.options.context,
+      TSLINTAUTOFIX: String(this.tslintAutoFix),
+      WATCH: this.isWatching ? this.watchPaths.join('|') : '',
+      WORK_DIVISION: String(Math.max(1, this.workersNumber)),
+      MEMORY_LIMIT: String(this.memoryLimit),
+      CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
+      USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
+      VUE: String(this.vue)
+    };
+
+    if (typeof this.resolveModuleNameModule !== 'undefined') {
+      env.RESOLVE_MODULE_NAME = this.resolveModuleNameModule;
+    } else {
+      delete env.RESOLVE_MODULE_NAME;
+    }
+
+    if (typeof this.resolveTypeReferenceDirectiveModule !== 'undefined') {
+      env.RESOLVE_TYPE_REFERENCE_DIRECTIVE = this.resolveTypeReferenceDirectiveModule;
+    } else {
+      delete env.RESOLVE_TYPE_REFERENCE_DIRECTIVE;
+    }
+
     this.service = childProcess.fork(
       path.resolve(
         __dirname,
@@ -576,28 +611,15 @@ class ForkTsCheckerWebpackPlugin {
       ),
       [],
       {
+        env,
         execArgv: (this.workersNumber > 1
           ? []
           : ['--max-old-space-size=' + this.memoryLimit]
         ).concat(this.nodeArgs),
-        env: {
-          ...process.env,
-          TYPESCRIPT_PATH: this.typescriptPath,
-          TSCONFIG: this.tsconfigPath,
-          COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
-          TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
-          CONTEXT: this.compiler.options.context,
-          TSLINTAUTOFIX: this.tslintAutoFix,
-          WATCH: this.isWatching ? this.watchPaths.join('|') : '',
-          WORK_DIVISION: Math.max(1, this.workersNumber),
-          MEMORY_LIMIT: this.memoryLimit,
-          CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
-          USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-          VUE: this.vue
-        },
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     );
+
     this.serviceRpc = new RpcProvider(message => this.service!.send(message));
     this.service.on('message', message => this.serviceRpc!.dispatch(message));
 

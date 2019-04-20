@@ -2,6 +2,11 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
+import {
+  ResolveModuleName,
+  ResolveTypeReferenceDirective,
+  makeResolutionFunctions
+} from './resolution';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -51,11 +56,16 @@ export class CompilerHost
 
   private compilationStarted = false;
 
+  private readonly resolveModuleName: ResolveModuleName;
+  private readonly resolveTypeReferenceDirective: ResolveTypeReferenceDirective;
+
   constructor(
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean
+    checkSyntacticErrors: boolean,
+    userResolveModuleName?: ResolveModuleName,
+    userResolveTypeReferenceDirective?: ResolveTypeReferenceDirective
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -75,6 +85,17 @@ export class CompilerHost
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
+
+    const {
+      resolveModuleName,
+      resolveTypeReferenceDirective
+    } = makeResolutionFunctions(
+      userResolveModuleName,
+      userResolveTypeReferenceDirective
+    );
+
+    this.resolveModuleName = resolveModuleName;
+    this.resolveTypeReferenceDirective = resolveTypeReferenceDirective;
   }
 
   public async processChanges(): Promise<{
@@ -344,6 +365,33 @@ export class CompilerHost
     // all actual diagnostics happens here
     this.tsHost.afterProgramCreate!(program);
     this.afterCompile();
+  }
+
+  public resolveModuleNames(moduleNames: string[], containingFile: string) {
+    return moduleNames.map(moduleName => {
+      return this.resolveModuleName(
+        this.typescript,
+        moduleName,
+        containingFile,
+        this.optionsToExtend,
+        this
+      ).resolvedModule;
+    });
+  }
+
+  public resolveTypeReferenceDirectives(
+    typeDirectiveNames: string[],
+    containingFile: string
+  ) {
+    return typeDirectiveNames.map(typeDirectiveName => {
+      return this.resolveTypeReferenceDirective(
+        this.typescript,
+        typeDirectiveName,
+        containingFile,
+        this.optionsToExtend,
+        this
+      ).resolvedTypeReferenceDirective;
+    });
   }
 
   // the functions below are use internally by typescript. we cannot use non-emitting version of incremental watching API

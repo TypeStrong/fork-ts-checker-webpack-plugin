@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
 
 Webpack plugin that runs typescript type checker on a separate process.
- 
+
 ## Installation
 This plugin requires minimum **webpack 2.3**, **typescript 2.1** and optionally **tslint 4.0**
 ```sh
@@ -23,7 +23,7 @@ var webpackConfig = {
         loader: 'ts-loader',
         options: {
           // disable type checker - we will use it in fork plugin
-          transpileOnly: true 
+          transpileOnly: true
         }
       }
     ]
@@ -39,21 +39,21 @@ There is already similar solution - [awesome-typescript-loader](https://github.c
 add `CheckerPlugin` and delegate checker to the separate process. The problem with `awesome-typescript-loader` was that, in our case,
 it was a lot slower than [ts-loader](https://github.com/TypeStrong/ts-loader) on an incremental build (~20s vs ~3s).
 Secondly, we use [tslint](https://palantir.github.io/tslint) and we wanted to run this, along with type checker, in a separate process.
-This is why we've created this plugin. To provide better performance, plugin reuses Abstract Syntax Trees between compilations and shares 
+This is why we've created this plugin. To provide better performance, plugin reuses Abstract Syntax Trees between compilations and shares
 these trees with tslint. It can be scaled with a multi-process mode to utilize maximum CPU power.
 
 ## Modules resolution
-It's very important to be aware that **this plugin uses [typescript](https://github.com/Microsoft/TypeScript)'s, not 
-[webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. For example 
-if you set `files: ['./src/someFile.ts']` in `tsconfig.json`, this plugin will check only `someFile.ts` for semantic errors. It's because 
-of performance. The goal of this plugin is to be *as fast as possible*. With typescript's module resolution we don't have to wait for webpack 
+It's very important to be aware that **this plugin uses [typescript](https://github.com/Microsoft/TypeScript)'s, not
+[webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. For example
+if you set `files: ['./src/someFile.ts']` in `tsconfig.json`, this plugin will check only `someFile.ts` for semantic errors. It's because
+of performance. The goal of this plugin is to be *as fast as possible*. With typescript's module resolution we don't have to wait for webpack
 to compile files (which traverses dependency graph during compilation) - we have a full list of files from the begin.
 
 To debug typescript's modules resolution, you can use `tsc --traceResolution` command.
 
 ## TSLint
-If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or 
-`tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file. 
+If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
+`tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file.
 It helps to distinguish lints from typescript's diagnostics.
 
 ## Options
@@ -63,7 +63,7 @@ Path to *tsconfig.json* file. Default: `path.resolve(compiler.options.context, '
 * **compilerOptions** `object`:
 Allows overriding TypeScript options. Should be specified in the same format as you would do for the `compilerOptions` property in tsconfig.json. Default: `{}`.
 
-* **tslint** `string | true | undefined`: 
+* **tslint** `string | true | undefined`:
   - If `string`, path to *tslint.json* file to check source files against.
   - If `true`, path to `tslint.json` file will be computed with respect to currently checked file, just like TSLint
     CLI would do. Suppose you have a project:
@@ -81,13 +81,13 @@ Allows overriding TypeScript options. Should be specified in the same format as 
     ```
     In such a case `src/file.ts` and `src/anotherFile.ts` would be checked against root `tslint.json`, and
     `src/lib/someHelperFile.ts` would be checked against `src/lib/tslint.json`.
-  
+
   Default: `undefined`.
 
 * **tslintAutoFix** `boolean `:
 Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.
 
-* **watch** `string | string[]`: 
+* **watch** `string | string[]`:
 Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls).
 
 * **async** `boolean`:
@@ -97,13 +97,13 @@ We recommend to set this to `false` in projects where type checking is faster th
 * **ignoreDiagnostics** `number[]`:
 List of typescript diagnostic codes to ignore.
 
-* **ignoreLints** `string[]`: 
+* **ignoreLints** `string[]`:
 List of tslint rule names to ignore.
 
 * **ignoreLintWarnings** `boolean`:
 If true, will ignore all lint warnings.
 
-* **reportFiles** `string[]`: 
+* **reportFiles** `string[]`:
 Only report errors on files matching these glob patterns. This can be useful when certain types definitions have errors that are not fatal to your application. Default: `[]`. Please note that this may behave unexpectedly if using the incremental API as the incremental API doesn't look for global and semantic errors [if it has already found syntactic errors](https://github.com/Microsoft/TypeScript/blob/89386ddda7dafc63cb35560e05412487f47cc267/src/compiler/watch.ts#L141).
 
 ```js
@@ -127,25 +127,25 @@ Options passed to formatters (currently only `codeframe` - see [available option
 * **silent** `boolean`:
 If `true`, logger will not be used. Default: `false`.
 
-* **checkSyntacticErrors** `boolean`: 
+* **checkSyntacticErrors** `boolean`:
 This option is useful if you're using ts-loader in `happyPackMode` with [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds.  If `true` it will ensure that the plugin checks for *both* syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`).  By default the plugin only checks for semantic errors.  This is because when ts-loader is used in `transpileOnly` mode, ts-loader will still report syntactic errors. When used in `happyPackMode` it does not. Default: `false`.
 
-* **memoryLimit** `number`: 
+* **memoryLimit** `number`:
 Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
 
 * **workers** `number`:
-You can split type checking to a few workers to speed-up increment build. **Be careful** - if you don't want to increase build time, you 
+You can split type checking to a few workers to speed-up increment build. **Be careful** - if you don't want to increase build time, you
 should keep free 1 core for *build* and 1 core for a *system* *(for example system with 4 CPUs should use max 2 workers)*. Second thing -
 node doesn't share memory between workers - keep in mind that memory usage will increase. Be aware that in some scenarios increasing workers
 number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
 
 * **vue** `boolean`:
-If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the 
+If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
 [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 * **useTypescriptIncrementalApi** `boolean`:
-If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1 
-worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation 
+If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1
+worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation
 may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with typescript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
 
 * **measureCompilationTime** `boolean`:
@@ -155,7 +155,26 @@ especially if there are other loaders/plugins involved in the compilation. **req
 * **typescript** `string`:
 If supplied this is a custom path where `typescript` can be found. Defaults to `require.resolve('typescript')`.
 
-### Pre-computed consts:      
+* **resolveModuleNameModule** and **resolveTypeReferenceDirectiveModule** `string`:
+Both of those options refer to files on the disk that respectively export a `resolveModuleName` or a `resolveTypeReferenceDirectiveModule` function. These functions will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. Check the following code for an example of what those functions should look like:
+<details>
+  <summary>Code sample</summary>
+
+```js
+const {resolveModuleName} = require(`ts-pnp`);
+
+exports.resolveModuleName = (typescript, moduleName, containingFile, compilerOptions, resolutionHost) => {
+  return resolveModuleName(moduleName, containingFile, compilerOptions, resolutionHost, typescript.resolveModuleName);
+};
+
+exports.resolveTypeReferenceDirective = (typescript, moduleName, containingFile, compilerOptions, resolutionHost) => {
+  return resolveModuleName(moduleName, containingFile, compilerOptions, resolutionHost, typescript.resolveTypeReferenceDirective);
+};
+```
+
+</details>
+
+### Pre-computed consts:
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
   * `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
   * `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one CPU for build (probably will increase build time)
@@ -188,7 +207,7 @@ This plugin provides some custom webpack hooks (all are sync):
 |`fork-ts-checker-service-start`| Service will be started | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
 |`fork-ts-checker-service-start-error` | Cannot start service | `error` |
 |`fork-ts-checker-service-out-of-memory`| Service is out of memory | - |
-|`fork-ts-checker-receive`| Plugin receives diagnostics and lints from service | `diagnostics`, `lints` | 
+|`fork-ts-checker-receive`| Plugin receives diagnostics and lints from service | `diagnostics`, `lints` |
 |`fork-ts-checker-emit`| Service will add errors and warnings to webpack compilation ('build' mode) | `diagnostics`, `lints`, `elapsed` |
 |`fork-ts-checker-done`| Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed` |
 
@@ -203,7 +222,7 @@ new ForkTsCheckerWebpackPlugin({
 ```
 
 2. To activate TypeScript in your `.vue` files, you need to ensure your script tag's language attribute is set
-to `ts` or `tsx` (also make sure you include the `.vue` extension in all your import statements as shown below): 
+to `ts` or `tsx` (also make sure you include the `.vue` extension in all your import statements as shown below):
 
 ```html
 <script lang="ts">
@@ -213,7 +232,7 @@ import Hello from '@/components/hello.vue'
 </script>
 ```
 
-3. Ideally you are also using `ts-loader` (in transpileOnly mode). Your Webpack config rules may look something like this:  
+3. Ideally you are also using `ts-loader` (in transpileOnly mode). Your Webpack config rules may look something like this:
 
 ```js
 {
@@ -231,7 +250,7 @@ import Hello from '@/components/hello.vue'
   options: vueLoaderConfig
 },
 ```
-4. Add rules to your `tslint.json` and they will be applied to Vue files. For example, you could apply the Standard JS rules [tslint-config-standard](https://github.com/blakeembrey/tslint-config-standard) like this:  
+4. Add rules to your `tslint.json` and they will be applied to Vue files. For example, you could apply the Standard JS rules [tslint-config-standard](https://github.com/blakeembrey/tslint-config-standard) like this:
 
 ```json
 {
@@ -241,7 +260,7 @@ import Hello from '@/components/hello.vue'
   ]
 }
 ```
-5. Ensure your `tsconfig.json` includes .vue files:  
+5. Ensure your `tsconfig.json` includes .vue files:
 
 ```js
 // tsconfig.json
@@ -256,12 +275,12 @@ import Hello from '@/components/hello.vue'
 }
 ```
 
-6. It accepts any wildcard in your TypeScript configuration:  
+6. It accepts any wildcard in your TypeScript configuration:
 ```js
 // tsconfig.json
 {
   "compilerOptions": {
-    
+
     // ...
 
     "baseUrl": ".",

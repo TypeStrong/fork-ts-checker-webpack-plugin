@@ -381,6 +381,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', function() {
   this.timeout(60000);
+  var plugin;
 
   function createCompiler(
     options,
@@ -390,6 +391,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     options = options || {};
     options.useTypescriptIncrementalApi = false;
     var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+    plugin = compiler.plugin;
     return compiler.webpack;
   }
 
@@ -455,6 +457,20 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     compiler.run(function(error, stats) {
       expect(stats.compilation.errors.length).to.equal(1);
       expect(stats.compilation.errors[0].file.endsWith('index.ts')).to.be.true;
+      callback();
+    });
+  });
+
+  it('should handle errors within the IncrementalChecker gracefully as diagnostic', callback => {
+    var compiler = createCompiler();
+    plugin.nodeArgs = [
+      `--require`,
+      `${path.resolve(__dirname, './mocks/IncrementalCheckerWithError.js')}`
+    ];
+
+    compiler.run(function(error, stats) {
+      expect(stats.compilation.errors.length).to.equal(1);
+      expect(stats.compilation.errors[0].message).to.include("I'm an error!");
       callback();
     });
   });

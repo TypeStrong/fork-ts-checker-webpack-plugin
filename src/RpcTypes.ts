@@ -38,3 +38,10 @@ export type Result<T extends RPC> =
     : T extends RPC.NEXT_ITERATION
     ? void
     : never;
+
+export const RUN = 'run';
+export type RunPayload = CancellationTokenData;
+export type RunResult =
+  | Message
+  // when run was cancelled via CancellationToken, undefined is returned
+  | undefined;

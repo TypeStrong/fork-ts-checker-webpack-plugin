@@ -9,6 +9,7 @@ interface NormalizedMessageJson {
   file?: string;
   line?: number;
   character?: number;
+  stack?: string;
 }
 
 export class NormalizedMessage {
@@ -19,6 +20,8 @@ export class NormalizedMessage {
   public static readonly SEVERITY_ERROR: Severity = 'error';
   public static readonly SEVERITY_WARNING: Severity = 'warning';
 
+  public static readonly ERROR_CODE_INTERNAL = 'INTERNAL_ERROR';
+
   public readonly type: ErrorType;
   public readonly code: string | number;
   public readonly severity: Severity;
@@ -26,6 +29,7 @@ export class NormalizedMessage {
   public readonly file?: string;
   public readonly line?: number;
   public readonly character?: number;
+  public readonly stack?: string;
 
   constructor(data: NormalizedMessageJson) {
     this.type = data.type;
@@ -35,6 +39,7 @@ export class NormalizedMessage {
     this.file = data.file;
     this.line = data.line;
     this.character = data.character;
+    this.stack = data.stack;
   }
 
   public static createFromJSON(json: NormalizedMessageJson) {
@@ -72,6 +77,10 @@ export class NormalizedMessage {
       NormalizedMessage.compareOptionalStrings(
         messageA.content,
         messageB.content
+      ) ||
+      NormalizedMessage.compareOptionalStrings(
+        messageA.stack,
+        messageB.stack
       ) ||
       0 /* EqualTo */
     );
@@ -149,7 +158,8 @@ export class NormalizedMessage {
       content: this.content,
       file: this.file,
       line: this.line,
-      character: this.character
+      character: this.character,
+      stack: this.stack
     } as NormalizedMessageJson;
   }
 

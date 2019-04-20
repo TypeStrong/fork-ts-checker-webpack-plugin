@@ -18,7 +18,7 @@ import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
 import { getForkTsCheckerWebpackPluginHooks, legacyHookMap } from './hooks';
-import { Payload, RPC, Result } from './RpcTypes';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -130,6 +130,9 @@ class ForkTsCheckerWebpackPlugin {
   private measureTime: boolean;
   private performance: any;
   private startAt: number = 0;
+
+  private nodeArgs: string[] = [];
+
   constructor(options?: Partial<Options>) {
     options = options || ({} as Options);
     this.options = { ...options };
@@ -398,8 +401,8 @@ class ForkTsCheckerWebpackPlugin {
             if (this.measureTime) {
               this.startAt = this.performance.now();
             }
-            this.serviceRpc!.rpc<Payload<RPC.RUN>, Result<RPC.RUN>>(
-              RPC.RUN,
+            this.serviceRpc!.rpc<RunPayload, RunResult>(
+              RUN,
               this.cancellationToken.toJSON()
             ).then(result => {
               if (result) {
@@ -450,8 +453,8 @@ class ForkTsCheckerWebpackPlugin {
             }
 
             try {
-              this.serviceRpc!.rpc<Payload<RPC.RUN>, Result<RPC.RUN>>(
-                RPC.RUN,
+              this.serviceRpc!.rpc<RunPayload, RunResult>(
+                RUN,
                 this.cancellationToken.toJSON()
               ).then(result => {
                 if (result) {
@@ -573,10 +576,10 @@ class ForkTsCheckerWebpackPlugin {
       ),
       [],
       {
-        execArgv:
-          this.workersNumber > 1
-            ? []
-            : ['--max-old-space-size=' + this.memoryLimit],
+        execArgv: (this.workersNumber > 1
+          ? []
+          : ['--max-old-space-size=' + this.memoryLimit]
+        ).concat(this.nodeArgs),
         env: {
           ...process.env,
           TYPESCRIPT_PATH: this.typescriptPath,

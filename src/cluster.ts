@@ -5,7 +5,7 @@ import { RpcProvider } from 'worker-rpc';
 
 import { NormalizedMessage } from './NormalizedMessage';
 import { Message } from './Message';
-import { Payload, RPC, Result } from './RpcTypes';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 // fork workers...
 const division = parseInt(process.env.WORK_DIVISION || '', 10);
@@ -46,43 +46,40 @@ const workerRpcs = workers.map(worker => {
   return rpc;
 });
 
-parentRpc.registerRpcHandler<Payload<RPC.RUN>, Result<RPC.RUN>>(
-  RPC.RUN,
-  async message => {
-    const workerResults = await Promise.all(
-      workerRpcs.map(workerRpc =>
-        workerRpc.rpc<Payload<RPC.RUN>, Result<RPC.RUN>>(RPC.RUN, message)
-      )
-    );
+parentRpc.registerRpcHandler<RunPayload, RunResult>(RUN, async message => {
+  const workerResults = await Promise.all(
+    workerRpcs.map(workerRpc =>
+      workerRpc.rpc<RunPayload, RunResult>(RUN, message)
+    )
+  );
 
-    function workerFinished(
-      workerResult: (Message | undefined)[]
-    ): workerResult is Message[] {
-      return workerResult.every(result => typeof result !== 'undefined');
-    }
-
-    if (!workerFinished(workerResults)) {
-      return undefined;
-    }
-
-    const merged: Message = workerResults.reduce(
-      (innerMerged: Message, innerResult: Message) => ({
-        diagnostics: innerMerged.diagnostics.concat(
-          innerResult.diagnostics.map(NormalizedMessage.createFromJSON)
-        ),
-        lints: innerMerged.lints.concat(
-          innerResult.lints.map(NormalizedMessage.createFromJSON)
-        )
-      }),
-      { diagnostics: [], lints: [] }
-    );
-
-    merged.diagnostics = NormalizedMessage.deduplicate(merged.diagnostics);
-    merged.lints = NormalizedMessage.deduplicate(merged.lints);
-
-    return merged;
+  function workerFinished(
+    workerResult: (Message | undefined)[]
+  ): workerResult is Message[] {
+    return workerResult.every(result => typeof result !== 'undefined');
   }
-);
+
+  if (!workerFinished(workerResults)) {
+    return undefined;
+  }
+
+  const merged: Message = workerResults.reduce(
+    (innerMerged: Message, innerResult: Message) => ({
+      diagnostics: innerMerged.diagnostics.concat(
+        innerResult.diagnostics.map(NormalizedMessage.createFromJSON)
+      ),
+      lints: innerMerged.lints.concat(
+        innerResult.lints.map(NormalizedMessage.createFromJSON)
+      )
+    }),
+    { diagnostics: [], lints: [] }
+  );
+
+  merged.diagnostics = NormalizedMessage.deduplicate(merged.diagnostics);
+  merged.lints = NormalizedMessage.deduplicate(merged.lints);
+
+  return merged;
+});
 
 process.on('SIGINT', () => {
   process.exit();

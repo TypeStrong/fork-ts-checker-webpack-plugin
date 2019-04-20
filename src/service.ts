@@ -8,7 +8,8 @@ import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 import {
   makeCreateNormalizedMessageFromDiagnostic,
-  makeCreateNormalizedMessageFromRuleFailure
+  makeCreateNormalizedMessageFromRuleFailure,
+  makeCreateNormalizedMessageFromInternalError
 } from './NormalizedMessageFactories';
 import { wrapTypescript } from './wrapTypeScript';
 import {
@@ -18,7 +19,7 @@ import {
   getWrapperUtils
 } from './wrapperUtils';
 import { RpcProvider } from 'worker-rpc';
-import { Payload, Result, RPC } from './RpcTypes';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -44,6 +45,7 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
   typescript
 );
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
+export const createNormalizedMessageFromInternalError = makeCreateNormalizedMessageFromInternalError();
 
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
@@ -78,9 +80,9 @@ async function run(cancellationToken: CancellationToken) {
   let diagnostics: NormalizedMessage[] = [];
   let lints: NormalizedMessage[] = [];
 
-  checker.nextIteration();
-
   try {
+    checker.nextIteration();
+
     diagnostics = await checker.getDiagnostics(cancellationToken);
     if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
@@ -104,7 +106,7 @@ async function run(cancellationToken: CancellationToken) {
       return undefined;
     }
 
-    throw error;
+    diagnostics.push(createNormalizedMessageFromInternalError(error));
   }
 
   if (cancellationToken.isCancellationRequested()) {
@@ -117,7 +119,7 @@ async function run(cancellationToken: CancellationToken) {
   };
 }
 
-rpc.registerRpcHandler<Payload<RPC.RUN>, Result<RPC.RUN>>(RPC.RUN, message =>
+rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
   typeof message !== 'undefined'
     ? run(CancellationToken.createFromJSON(typescript, message!))
     : undefined

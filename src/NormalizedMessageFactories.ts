@@ -58,3 +58,18 @@ export const makeCreateNormalizedMessageFromRuleFailure = () => {
   };
   return createNormalizedMessageFromRuleFailure;
 };
+
+export const makeCreateNormalizedMessageFromInternalError = () => {
+  const createNormalizedMessageFromInternalError = (error: any) => {
+    return new NormalizedMessage({
+      type: NormalizedMessage.TYPE_DIAGNOSTIC,
+      severity: NormalizedMessage.SEVERITY_ERROR,
+      code: NormalizedMessage.ERROR_CODE_INTERNAL,
+      content:
+        typeof error.message === 'string' ? error.message : error.toString(),
+      stack: typeof error.stack === 'string' ? error.stack : undefined,
+      file: '[internal]'
+    });
+  };
+  return createNormalizedMessageFromInternalError;
+};

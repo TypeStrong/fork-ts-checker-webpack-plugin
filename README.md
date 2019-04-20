@@ -148,12 +148,32 @@ If true, the plugin will use incremental compilation API introduced in typescrip
 worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation 
 may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with typescript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
 
+* **typescriptWatchMode** `string`:
+This configures the watch mode of the Typescript compiler by passing the given `string` to 
+the [Typescript compiler watch mode configuration](https://www.typescriptlang.org/docs/handbook/configuring-watch.html). 
+The currently default mode of Typescript 3.4.x uses the [fs.watchFile()](https://nodejs.org/api/fs.html#fs_fs_watchfile_filename_options_listener)
+of the `fs` module of `nodejs`, which is not efficient results on some systems to use up to ~10% of CPU usage when on idle. 
+This is not desirable for many reasons, therefore `fork-ts-checker-webpack-plugin` uses instead the `UseFsEventsWithFallbackDynamicPolling` configuration value 
+as a default that results in minimal CPU usage on idle and falls back to `DynamicPriorityPolling` on systems that do not support this. 
+The value can be any supported value of TS 3.4.x compiler for the `TSC_WATCHFILE` environment variable.
+For convenience a pre-defined enumeration of strings that are supported by TS 3.4x is provided with `ForkTsCheckerWebpackPlugin.TypescriptWatchMode`.
+More information and details about this can be found in the official [Typescript documentation of this option](https://www.typescriptlang.org/docs/handbook/configuring-watch.html).
+Default: `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.DEFAULT`;
+
 * **measureCompilationTime** `boolean`:
 If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
 especially if there are other loaders/plugins involved in the compilation. **requires node 8+**
 
 * **typescript** `string`:
 If supplied this is a custom path where `typescript` can be found. Defaults to `require.resolve('typescript')`.
+
+### string consts of accepted values for TSC_WATCHFILE of Typescript Compiler:
+  * `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.DEFAULT` - 'UseFsEventsWithFallbackDynamicPolling'
+  * `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.PriorityPollingInterval` - 'PriorityPollingInterval'
+  * `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.DynamicPriorityPolling` - 'DynamicPriorityPolling'
+  * `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.UseFsEvents` - 'UseFsEvents'
+  * `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.UseFsEventsWithFallbackDynamicPolling` - 'UseFsEventsWithFallbackDynamicPolling'
+  * `ForkTsCheckerWebpackPlugin.TypescriptWatchMode.UseFsEventsOnParentDirectory` - 'UseFsEventsOnParentDirectory'
 
 ### Pre-computed consts:      
   * `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU

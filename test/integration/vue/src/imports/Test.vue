@@ -25,6 +25,7 @@ export default {
   }
 };
 
+// we want there to be at least one error to make sure errors are thrown at all
 const x: string = 1;
 </script>
 

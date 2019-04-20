@@ -128,7 +128,3 @@ rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
 process.on('SIGINT', () => {
   process.exit();
 });
-
-if (process.env.RUNNING_IN_TEST === 'true') {
-  require('./testRpc').initTestRpc({ rpc, checker });
-}

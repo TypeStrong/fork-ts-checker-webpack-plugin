@@ -4,7 +4,6 @@ var expect = require('chai').expect;
 var path = require('path');
 var unixify = require('unixify');
 var helpers = require('./helpers');
-var { RPC } = require('../../lib/RpcTypes');
 
 describe(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: true',
@@ -25,15 +24,17 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     var unwrapFileName;
     var rpc;
 
-    const getKnownFileNames = () => rpc.rpc(RPC.GET_KNOWN_FILE_NAMES);
-    const getSourceFile = fileName => rpc.rpc(RPC.GET_SOURCE_FILE, fileName);
+    const getKnownFileNames = () =>
+      rpc.rpc(helpers.rpcMethods.checker_getKnownFileNames);
+    const getSourceFile = fileName =>
+      rpc.rpc(helpers.rpcMethods.checker_getSourceFile, fileName);
     const getSyntacticDiagnostics = () =>
-      rpc.rpc(RPC.GET_SYNTACTIC_DIAGNOSTICS);
+      rpc.rpc(helpers.rpcMethods.checker_getSyntacticDiagnostics);
 
-    function createCompiler(options) {
+    async function createCompiler(options) {
       options = options || {};
       options.useTypescriptIncrementalApi = useTypescriptIncrementalApi;
-      var vueCompiler = helpers.createVueCompiler(options);
+      var vueCompiler = await helpers.createVueCompiler(options);
       files = vueCompiler.files;
       compiler = vueCompiler.compiler;
       rpc = vueCompiler.plugin.serviceRpc;
@@ -46,7 +47,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     }
 
     it('should create a Vue program config if vue=true', async function() {
-      createCompiler({ vue: true });
+      await createCompiler({ vue: true });
 
       const fileNames = await getKnownFileNames();
 
@@ -61,7 +62,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     });
 
     it('should not create a Vue program config if vue=false', async function() {
-      createCompiler();
+      await createCompiler();
 
       const fileNames = await getKnownFileNames();
 
@@ -77,7 +78,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     });
 
     it('should create a Vue program if vue=true', async function() {
-      createCompiler({ vue: true });
+      await createCompiler({ vue: true });
 
       var source;
 
@@ -89,7 +90,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     });
 
     it('should not create a Vue program if vue=false', async function() {
-      createCompiler();
+      await createCompiler();
 
       var source;
 
@@ -101,64 +102,70 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     });
 
     it('should get syntactic diagnostics from Vue program', async function() {
-      createCompiler({ tslint: true, vue: true });
+      await createCompiler({ tslint: true, vue: true });
 
       const diagnostics = await getSyntacticDiagnostics();
       expect(diagnostics.length).to.be.equal(1);
     });
 
     it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
-      createCompiler({ tslint: true, vue: true });
-
-      compiler.run(function(error, stats) {
-        const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
-          error =>
-            !error.rawMessage.includes(
-              helpers.expectedErrorCodes.expectedSyntacticErrorCode
-            )
-        );
-        expect(syntacticErrorNotFoundInStats).to.be.true;
-        callback();
-      });
+      createCompiler({ tslint: true, vue: true }).then(() =>
+        compiler.run(function(error, stats) {
+          const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+            error =>
+              !error.rawMessage.includes(
+                helpers.expectedErrorCodes.expectedSyntacticErrorCode
+              )
+          );
+          expect(syntacticErrorNotFoundInStats).to.be.true;
+          callback();
+        })
+      );
     });
 
     it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
-      createCompiler({ tslint: true, vue: true, checkSyntacticErrors: true });
-
-      compiler.run(function(error, stats) {
-        const syntacticErrorFoundInStats = stats.compilation.errors.some(
-          error =>
-            error.rawMessage.includes(
-              helpers.expectedErrorCodes.expectedSyntacticErrorCode
-            )
-        );
-        expect(syntacticErrorFoundInStats).to.be.true;
-        callback();
-      });
+      createCompiler({
+        tslint: true,
+        vue: true,
+        checkSyntacticErrors: true
+      }).then(() =>
+        compiler.run(function(error, stats) {
+          const syntacticErrorFoundInStats = stats.compilation.errors.some(
+            error =>
+              error.rawMessage.includes(
+                helpers.expectedErrorCodes.expectedSyntacticErrorCode
+              )
+          );
+          expect(syntacticErrorFoundInStats).to.be.true;
+          callback();
+        })
+      );
     });
 
     it('should not report no-consecutive-blank-lines tslint rule', function(callback) {
-      createCompiler({ tslint: true, vue: true });
-
-      compiler.run(function(error, stats) {
-        stats.compilation.warnings.forEach(function(warning) {
-          expect(warning.rawMessage).to.not.match(/no-consecutive-blank-lines/);
-        });
-        callback();
-      });
+      createCompiler({ tslint: true, vue: true }).then(() =>
+        compiler.run(function(error, stats) {
+          stats.compilation.warnings.forEach(function(warning) {
+            expect(warning.rawMessage).to.not.match(
+              /no-consecutive-blank-lines/
+            );
+          });
+          callback();
+        })
+      );
     });
 
     it('should resolve src attribute but not report not found error', function(callback) {
-      createCompiler({ vue: true, tsconfig: 'tsconfig-attrs.json' });
-
-      compiler.run(function(error, stats) {
-        const errors = stats.compilation.errors;
-        expect(errors.length).to.be.equal(1);
-        expect(errors[0].file).to.match(
-          /test\/integration\/vue\/src\/attrs\/test.ts$/
-        );
-        callback();
-      });
+      createCompiler({ vue: true, tsconfig: 'tsconfig-attrs.json' }).then(() =>
+        compiler.run(function(error, stats) {
+          const errors = stats.compilation.errors;
+          expect(errors.length).to.be.equal(1);
+          expect(errors[0].file).to.match(
+            /test\/integration\/vue\/src\/attrs\/test.ts$/
+          );
+          callback();
+        })
+      );
     });
 
     [
@@ -169,7 +176,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       'example-nolang.vue'
     ].forEach(fileName => {
       it('should be able to extract script from ' + fileName, async function() {
-        createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
+        await createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
         var sourceFilePath = path.resolve(
           compiler.context,
           wrapFileName('src/langs/' + fileName)
@@ -188,7 +195,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         'example-tsx.vue': [],
         'example-js.vue': [],
         'example-jsx.vue': [],
-        'example-nolang.vue': []
+        'example-nolang.vue': [],
+        'example-ts-with-errors.vue': []
       };
       for (var error of errors) {
         ret[path.basename(unwrapFileName(error.file))].push(error);
@@ -199,11 +207,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     describe('should be able to compile *.vue with each lang', function() {
       var errors;
       before(function(callback) {
-        createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
-        compiler.run(function(error, stats) {
-          errors = groupByFileName(stats.compilation.errors);
-          callback();
-        });
+        createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' }).then(
+          () =>
+            compiler.run(function(error, stats) {
+              errors = groupByFileName(stats.compilation.errors);
+              callback();
+            })
+        );
       });
       it('lang=ts', function() {
         expect(errors['example-ts.vue'].length).to.be.equal(0);
@@ -220,17 +230,26 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       it('no lang', function() {
         expect(errors['example-nolang.vue'].length).to.be.equal(0);
       });
+      it('counter check - invalid code produces errors', function() {
+        expect(errors['example-ts-with-errors.vue'].length).to.be.greaterThan(
+          0
+        );
+      });
     });
 
     describe('should be able to detect errors in *.vue', function() {
       var errors;
       before(function(callback) {
         // tsconfig-langs-strict.json === tsconfig-langs.json + noUnusedLocals
-        createCompiler({ vue: true, tsconfig: 'tsconfig-langs-strict.json' });
-        compiler.run(function(error, stats) {
-          errors = groupByFileName(stats.compilation.errors);
-          callback();
-        });
+        createCompiler({
+          vue: true,
+          tsconfig: 'tsconfig-langs-strict.json'
+        }).then(() =>
+          compiler.run(function(error, stats) {
+            errors = groupByFileName(stats.compilation.errors);
+            callback();
+          })
+        );
       });
       it('lang=ts', function() {
         expect(errors['example-ts.vue'].length).to.be.equal(1);
@@ -258,11 +277,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     describe('should resolve *.vue in the same way as TypeScript', function() {
       var errors;
       before(function(callback) {
-        createCompiler({ vue: true, tsconfig: 'tsconfig-imports.json' });
-        compiler.run(function(error, stats) {
-          errors = stats.compilation.errors;
-          callback();
-        });
+        createCompiler({ vue: true, tsconfig: 'tsconfig-imports.json' }).then(
+          () =>
+            compiler.run(function(error, stats) {
+              errors = stats.compilation.errors;
+              callback();
+            })
+        );
       });
 
       it('should be able to import by relative path', function() {
@@ -292,7 +313,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           errors.filter(e => e.rawMessage.indexOf('foo/Foo2.vue') >= 0).length
         ).to.be.equal(0);
       });
-      it('should report report one generic compilation error', function() {
+      it('counter check - should report report one generic compilation error', function() {
         expect(errors.length).to.be.equal(1);
       });
     });

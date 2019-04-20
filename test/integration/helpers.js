@@ -7,16 +7,28 @@ var {
   emptyWrapperConfig,
   getWrapperUtils
 } = require('../../lib/wrapperUtils');
-var { RPC } = require('../../lib/RpcTypes');
+var RpcProvider = require('worker-rpc').RpcProvider;
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
   webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
 
-exports.createVueCompiler = function(options) {
-  var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
+const rpcMethods = {
+  checker_nextIteration: 'checker_nextIteration',
+  checker_getKnownFileNames: 'checker_getKnownFileNames',
+  checker_getSourceFile: 'checker_getSourceFile',
+  checker_getSyntacticDiagnostics: 'checker_getSyntacticDiagnostics'
+};
 
-  process.env.RUNNING_IN_TEST = 'true';
+exports.createVueCompiler = async function(options) {
+  var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
+  plugin.nodeArgs = [
+    `--require`,
+    `${path.resolve(__dirname, './mocks/IncrementalCheckerWithRpc.js')}`,
+    `--require`,
+    `${path.resolve(__dirname, './mocks/ApiIncrementalCheckerWithRpc.js')}`
+  ];
+
   var compiler = webpack({
     ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
     context: path.resolve(__dirname, './vue'),
@@ -64,7 +76,7 @@ exports.createVueCompiler = function(options) {
   var wrapperUtils = getWrapperUtils(wrapperConfig);
 
   plugin.spawnService();
-  plugin.serviceRpc.rpc(RPC.NEXT_ITERATION);
+  await plugin.serviceRpc.rpc(rpcMethods.checker_nextIteration);
 
   return { plugin, compiler, files, wrapperUtils };
 };
@@ -182,4 +194,15 @@ exports.testLintHierarchicalConfigs = (
 exports.expectedErrorCodes = {
   expectedSyntacticErrorCode: 'TS1005',
   expectedSemanticErrorCode: 'TS2322'
+};
+
+exports.rpcMethods = rpcMethods;
+
+let rpc;
+exports.getRpcProvider = () => {
+  if (!rpc) {
+    rpc = new RpcProvider(message => process.send(message));
+    process.on('message', message => rpc.dispatch(message));
+  }
+  return rpc;
 };

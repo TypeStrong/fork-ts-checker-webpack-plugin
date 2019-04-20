@@ -576,20 +576,20 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private spawnService() {
-    const env: any = {
+    const env: { [key: string]: string | undefined } = {
       ...process.env,
       TYPESCRIPT_PATH: this.typescriptPath,
       TSCONFIG: this.tsconfigPath,
       COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
       TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
       CONTEXT: this.compiler.options.context,
-      TSLINTAUTOFIX: this.tslintAutoFix,
+      TSLINTAUTOFIX: String(this.tslintAutoFix),
       WATCH: this.isWatching ? this.watchPaths.join('|') : '',
-      WORK_DIVISION: Math.max(1, this.workersNumber),
-      MEMORY_LIMIT: this.memoryLimit,
-      CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
-      USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-      VUE: this.vue
+      WORK_DIVISION: String(Math.max(1, this.workersNumber)),
+      MEMORY_LIMIT: String(this.memoryLimit),
+      CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
+      USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
+      VUE: String(this.vue)
     };
 
     if (typeof this.resolveModuleNameModule !== 'undefined') {

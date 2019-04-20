@@ -88,31 +88,32 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
   });
 
   it('should get syntactic diagnostics from Vue program', function(callback) {
-    var { compiler } = createVueCompiler({ checkSyntacticErrors: true });
-
-    compiler.run(function(error, stats) {
-      const syntacticErrorFoundInStats = stats.compilation.errors.some(error =>
-        error.rawMessage.includes(
-          helpers.expectedErrorCodes.expectedSyntacticErrorCode
-        )
-      );
-      expect(syntacticErrorFoundInStats).to.be.true;
-      callback();
-    });
+    createVueCompiler({ checkSyntacticErrors: true }).then(({ compiler }) =>
+      compiler.run(function(error, stats) {
+        const syntacticErrorFoundInStats = stats.compilation.errors.some(
+          error =>
+            error.rawMessage.includes(
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+            )
+        );
+        expect(syntacticErrorFoundInStats).to.be.true;
+        callback();
+      })
+    );
   });
 
   it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', function(callback) {
-    var { compiler } = createVueCompiler({ checkSyntacticErrors: false });
-
-    compiler.run(function(error, stats) {
-      const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
-        error =>
-          !error.rawMessage.includes(
-            helpers.expectedErrorCodes.expectedSyntacticErrorCode
-          )
-      );
-      expect(syntacticErrorNotFoundInStats).to.be.true;
-      callback();
-    });
+    createVueCompiler({ checkSyntacticErrors: false }).then(({ compiler }) =>
+      compiler.run(function(error, stats) {
+        const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+          error =>
+            !error.rawMessage.includes(
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+            )
+        );
+        expect(syntacticErrorNotFoundInStats).to.be.true;
+        callback();
+      })
+    );
   });
 });

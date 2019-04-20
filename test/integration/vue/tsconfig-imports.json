@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
-      "baseUrl": "./src",
-      "moduleResolution": "node",
-      "paths": {
-          "@/*": ["imports/*"],
-          "foo/*": [
-              "imports/foo1/*",
-              "imports/foo2/*"
-          ]
-      },
-      "lib": ["es2016", "dom"]
+    "baseUrl": "./src",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": ["imports/*"],
+      "foo/*": ["imports/foo1/*", "imports/foo2/*"]
+    },
+    "lib": ["es2016", "dom"]
   },
-  "include": [
-      "imports/Test.vue"
-  ],
-  "exclude": [
-      "node_modules"
-  ]
+  "include": ["src/imports/Test.vue"],
+  "exclude": ["node_modules"]
 }

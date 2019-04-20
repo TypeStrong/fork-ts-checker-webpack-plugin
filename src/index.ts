@@ -30,6 +30,15 @@ interface Logger {
   info(message?: any): void;
 }
 
+enum TypescriptWatchMode {
+  DEFAULT = 'UseFsEventsWithFallbackDynamicPolling',
+  PriorityPollingInterval = 'PriorityPollingInterval',
+  DynamicPriorityPolling = 'DynamicPriorityPolling',
+  UseFsEvents = 'UseFsEvents',
+  UseFsEventsWithFallbackDynamicPolling = 'UseFsEventsWithFallbackDynamicPolling',
+  UseFsEventsOnParentDirectory = 'UseFsEventsOnParentDirectory'
+}
+
 interface Options {
   typescript: string;
   tsconfig: string;
@@ -53,6 +62,7 @@ interface Options {
   vue: boolean;
   useTypescriptIncrementalApi: boolean;
   measureCompilationTime: boolean;
+  typescriptWatchMode: TypescriptWatchMode;
   resolveModuleNameModule: string;
   resolveTypeReferenceDirectiveModule: string;
 }
@@ -81,6 +91,8 @@ class ForkTsCheckerWebpackPlugin {
     return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
+  public static readonly TypescriptWatchMode = TypescriptWatchMode;
+
   public readonly options: Partial<Options>;
   private tsconfig: string;
   private compilerOptions: object;
@@ -101,6 +113,7 @@ class ForkTsCheckerWebpackPlugin {
   private colors: Chalk;
   private formatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
+  private typescriptWatchMode: TypescriptWatchMode;
   private resolveModuleNameModule: string | undefined;
   private resolveTypeReferenceDirectiveModule: string | undefined;
 
@@ -224,6 +237,14 @@ class ForkTsCheckerWebpackPlugin {
       options.useTypescriptIncrementalApi === undefined
         ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
         : options.useTypescriptIncrementalApi;
+
+    this.typescriptWatchMode =
+      options.typescriptWatchMode !== undefined
+        ? options.typescriptWatchMode
+        : ForkTsCheckerWebpackPlugin.TypescriptWatchMode.DEFAULT;
+
+    // set the environment variable for the watch mode of typescript here
+    process.env.TSC_WATCHFILE = this.typescriptWatchMode.toString();
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
@@ -662,7 +683,14 @@ class ForkTsCheckerWebpackPlugin {
           ) +
           ' with ' +
           this.colors.bold(this.memoryLimit + 'MB') +
-          ' memory limit'
+          ' memory limit' +
+          ' and ' +
+          (this.useTypescriptIncrementalApi === true
+            ? this.colors.bold('Experimental TS Incremental API compilation') +
+              ' in ' +
+              this.colors.bold(this.typescriptWatchMode) +
+              ' watch mode'
+            : this.colors.bold('Normal Incremental compilation'))
       );
 
       if (this.watchPaths.length && this.isWatching) {

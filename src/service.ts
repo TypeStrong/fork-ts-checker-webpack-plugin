@@ -11,7 +11,7 @@ import {
   makeCreateNormalizedMessageFromRuleFailure,
   makeCreateNormalizedMessageFromInternalError
 } from './NormalizedMessageFactories';
-import { wrapTypescript } from './wrapTypeScript';
+import { patchTypescript } from './wrapTypeScript';
 import {
   TypeScriptWrapperConfig,
   wrapperConfigWithVue,
@@ -34,7 +34,7 @@ process.on('message', message => rpc.dispatch(message));
 const wrapperConfig: TypeScriptWrapperConfig =
   process.env.VUE === 'true' ? wrapperConfigWithVue : emptyWrapperConfig;
 
-const typescript: typeof ts = wrapTypescript(
+const typescript: typeof ts = patchTypescript(
   require(process.env.TYPESCRIPT_PATH!),
   wrapperConfig
 );

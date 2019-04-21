@@ -5,13 +5,12 @@ import { extname } from 'path';
 import { TypeScriptWrapperConfig, getWrapperUtils } from './wrapperUtils';
 import { wrapCompilerHost } from './wrapCompilerHost';
 
-export function wrapTypescript(
-  origTypescript: typeof ts,
+export function patchTypescript(
+  typescript: typeof ts,
   config: TypeScriptWrapperConfig
 ) {
-  const origSys = origTypescript.sys;
-  let wrappedTypescript: typeof ts;
-  let wrappedSys: ts.System;
+  const origTypescript = { ...typescript };
+  const origSys = { ...origTypescript.sys };
 
   const { wrapFileName, unwrapFileName } = getWrapperUtils(config);
 
@@ -33,13 +32,13 @@ export function wrapTypescript(
   ) =>
     ((unwrappedFileName: string, ...args: any[]) => {
       /*
-    console.log(
-      'watcherCallback(',
-      wrapFileName(unwrappedFileName),
-      ...args,
-      ')'
-    );
-    */
+      console.log(
+        'watcherCallback(',
+        wrapFileName(unwrappedFileName),
+        ...args,
+        ')'
+      );
+      */
       (callback as any)(wrapFileName(unwrappedFileName), ...args);
     }) as T;
 
@@ -52,7 +51,7 @@ export function wrapTypescript(
     return a.length === b.length && b.every(item => a.includes(item));
   }
 
-  const systemWrappers: Partial<ts.System> = {
+  const systemPatchedFunctions: Partial<ts.System> = {
     readDirectory(path, extensions, ...rest) {
       if (extensions && arrayContentsEqual(extensions, origFileExtensions)) {
         extensions = [...extensions, ...config.wrapExtensions];
@@ -122,30 +121,12 @@ export function wrapTypescript(
     }
   };
 
-  wrappedSys = {
-    ...origTypescript.sys,
-    ...systemWrappers
-  };
-  // new Proxy<ts.System>(sysProxy, loggingHandler);
-
-  const typescriptWrappers: Partial<typeof ts> = {
-    sys: wrappedSys,
+  const typescriptPatchedFunctions: Partial<typeof ts> = {
     createCompilerHost(options, setParentNodes) {
       return wrapCompilerHost(
-        /*
-         * unfortunately, ts.createCompilerHost does not take a "system" argument.
-         * but the internal (and exposed) createCompilerHostWorker does.
-         * this is a bit hacky and might break in the future :/
-         * (a more solid workaround would be implementing another
-         * own CompilerHost or using the existing one if it is fit for the task?)
-         */
-        (origTypescript as any).createCompilerHostWorker(
-          options,
-          setParentNodes,
-          wrappedTypescript.sys
-        ) as ts.CompilerHost,
+        origTypescript.createCompilerHost(options, setParentNodes),
         options,
-        wrappedTypescript,
+        typescript,
         config
       );
     },
@@ -162,11 +143,11 @@ export function wrapTypescript(
         (origTypescript.createWatchCompilerHost as any)(
           fileOrFiles,
           options,
-          wrappedTypescript.sys,
+          typescript.sys,
           ...args
         ),
         options,
-        wrappedTypescript,
+        typescript,
         config
       );
     },
@@ -181,26 +162,20 @@ export function wrapTypescript(
       const origOptions = args[1];
       const origHost = args[2];
 
-      args[2] = wrapCompilerHost(
-        origHost,
-        origOptions,
-        wrappedTypescript,
-        config
-      );
+      args[2] = wrapCompilerHost(origHost, origOptions, typescript, config);
       return (origTypescript.createEmitAndSemanticDiagnosticsBuilderProgram as any)(
         ...args
       );
     }
   };
 
-  wrappedTypescript = {
-    ...origTypescript,
-    ...typescriptWrappers
-  };
+  Object.assign(typescript.sys, systemPatchedFunctions);
+  Object.assign(typescript, typescriptPatchedFunctions);
 
-  return wrappedTypescript;
+  return typescript;
 }
 
+// @ts-ignore
 function isTsProgram(
   x: ReadonlyArray<string> | undefined | ts.Program
 ): x is ts.Program {

@@ -5,6 +5,16 @@
 
 * 🐛 semantic-release update `CHANGELOG.md` on the git repo ([8ad58af](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/8ad58af))
 
+
+# [1.2.0-beta.1](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.1.0...v1.2.0-beta.1@beta) (2019-04-22)
+
+
+### Features
+
+* ✨ add semantic-release integration ([5fe0653](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/5fe0653))
+
+
+
 ## v1.1.0
 
 * [Add new custom resolution options](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250)

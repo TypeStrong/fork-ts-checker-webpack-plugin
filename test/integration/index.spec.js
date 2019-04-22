@@ -82,18 +82,42 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       expect(plugin.watch).to.deep.equal(['/test']);
     });
 
+    it('should find lint warnings', function(callback) {
+      const fileName = 'lintingError2';
+      helpers.testLintAutoFixTest(
+        callback,
+        fileName,
+        {
+          tslint: path.resolve(__dirname, './project/tslint.json'),
+          ignoreLintWarnings: false,
+          ...overrideOptions
+        },
+        (err, stats) => {
+          expect(
+            stats.compilation.warnings.filter(warning =>
+              warning.message.includes('missing whitespace')
+            ).length
+          ).to.be.greaterThan(0);
+        }
+      );
+    });
+
     it('should not print warnings when ignoreLintWarnings passed as option', function(callback) {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
         fileName,
         {
-          tslint: true,
+          tslint: path.resolve(__dirname, './project/tslint.json'),
           ignoreLintWarnings: true,
           ...overrideOptions
         },
         (err, stats) => {
-          expect(stats.compilation.warnings.length).to.be.eq(0);
+          expect(
+            stats.compilation.warnings.filter(warning =>
+              warning.message.includes('missing whitespace')
+            ).length
+          ).to.be.equal(0);
         }
       );
     });
@@ -104,12 +128,16 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         callback,
         fileName,
         {
-          tslint: true,
+          tslint: path.resolve(__dirname, './project/tslint.json'),
           ignoreLintWarnings: true,
           ...overrideOptions
         },
         (err, stats) => {
-          expect(stats.compilation.errors.length).to.be.eq(0);
+          expect(
+            stats.compilation.errors.filter(error =>
+              error.message.includes('missing whitespace')
+            ).length
+          ).to.be.equals(0);
         }
       );
     });

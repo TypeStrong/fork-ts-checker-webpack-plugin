@@ -135,7 +135,7 @@
     "rimraf": "^2.5.4",
     "semantic-release": "^16.0.0-beta.18",
     "sinon": "^7.1.1",
-    "ts-loader": "^5.3.0",
+    "ts-loader": "^5.0.0",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",
     "typescript": "^3.0.1",
@@ -144,7 +144,7 @@
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
     "vue-template-compiler": "^2.5.16",
-    "webpack": "^5.0.0-alpha.0"
+    "webpack": "^5.0.0-alpha.5"
   },
   "engines": {
     "node": ">=6.11.5",

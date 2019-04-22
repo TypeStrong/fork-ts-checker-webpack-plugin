@@ -46,8 +46,7 @@
     "test:watch": "mocha -R spec --watch ./test/unit",
     "watch": "tsc --version && tsc --project \"./src\" --watch",
     "precommit": "lint-staged && yarn build",
-    "commit": "./node_modules/.bin/git-cz",
-    "semantic-release": "semantic-release"
+    "commit": "./node_modules/.bin/git-cz"
   },
   "husky": {
     "hooks": {

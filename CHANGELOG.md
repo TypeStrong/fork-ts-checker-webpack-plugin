@@ -1,3 +1,7 @@
+## v1.1.1
+
+* [Fix a regression w/ plugins like tsconfig-paths-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/260)
+
 ## v1.1.0
 
 * [Add new custom resolution options](https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250)

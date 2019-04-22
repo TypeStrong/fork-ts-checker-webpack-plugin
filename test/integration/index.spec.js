@@ -23,13 +23,15 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     this.timeout(60000);
     var plugin;
 
+    const overrideOptions = { useTypescriptIncrementalApi };
+
     function createCompiler(
       options,
       happyPackMode,
       entryPoint = './src/index.ts'
     ) {
       options = options || {};
-      options.useTypescriptIncrementalApi = useTypescriptIncrementalApi;
+      options = { ...options, ...overrideOptions };
       var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
       plugin = compiler.plugin;
       return compiler.webpack;
@@ -87,7 +89,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         fileName,
         {
           tslint: true,
-          ignoreLintWarnings: true
+          ignoreLintWarnings: true,
+          ...overrideOptions
         },
         (err, stats) => {
           expect(stats.compilation.warnings.length).to.be.eq(0);
@@ -102,7 +105,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         fileName,
         {
           tslint: true,
-          ignoreLintWarnings: true
+          ignoreLintWarnings: true,
+          ...overrideOptions
         },
         (err, stats) => {
           expect(stats.compilation.errors.length).to.be.eq(0);
@@ -157,7 +161,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         {
           tslintAutoFix: true,
           tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
-          tsconfig: false
+          tsconfig: false,
+          ...overrideOptions
         },
         (err, stats, formattedFileContents) => {
           expect(stats.compilation.warnings.length).to.be.eq(0);
@@ -179,7 +184,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         callback,
         fileName,
         {
-          tslint: true
+          tslint: true,
+          ...overrideOptions
         },
         (err, stats) => {
           expect(stats.compilation.warnings.length).to.be.eq(7);
@@ -362,7 +368,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       helpers.testLintHierarchicalConfigs(
         callback,
         {
-          tslint: true
+          tslint: true,
+          ...overrideOptions
         },
         (err, stats) => {
           /*

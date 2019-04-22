@@ -1,6 +1,6 @@
 # Fork TS Checker Webpack Plugin
 [![Npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg?style=flat-square)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-[![Build Status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
+[![Build Status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin) [![Greenkeeper badge](https://badges.greenkeeper.io/Realytics/fork-ts-checker-webpack-plugin.svg)](https://greenkeeper.io/)
 
 Webpack plugin that runs typescript type checker on a separate process.
 

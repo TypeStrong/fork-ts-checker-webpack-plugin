@@ -2,26 +2,36 @@ os:
   - linux
   - osx
   # - windows - travis isn't windows ready yet; tests fail for meaningless reasons
+
 language: node_js
 node_js:
- - '10'
- - '8'
+  - 10
+  - 8
+
 install:
- - yarn install
- - yarn build
- - yarn add $WEBPACK $TSLOADER $VUELOADER -D
- - yarn lint
+  - yarn install --frozen-lockfile
+  - yarn build
+  - yarn add $WEBPACK $TSLOADER $VUELOADER -D
+
+script:
+  - yarn lint
+  - yarn test
+
 env:
- - WEBPACK=webpack@^5.0.0-alpha.5 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
- - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
- - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
- - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
-deploy:
-  provider: npm
-  email: piotrek.oles@gmail.com
-  skip_cleanup: true
-  api_key:
-    secure: bS5DICXIXzwMAxWhkZ6ks8q7O0rFaBIqmZNe+F3Vou/pMCcYbu1kRryD3sey3RvpdF768nG9ZqMCC+v3glN4hknizDb9mao5I581HvqL0j3hGB4BHuEho9j6GEEn0u6qr4biXOOHUy9/CPLu1xK6jsc3kOA56os1iUO6y7Z7yVgQvmfLBIMpDdwZ+TbkKMoBOZ1BGsz1q/vn2aIX67rQTfvSyu40r9QPuWI9itVevBK6SUwVa0AyYBxjJ0wlwwMLHY72+P5FF1QrwngwvFQsSSjXGvQ6n+xEXx2TR2YrFI+PLtXsBd1c9nQeAyUxGNJnJWAYKto+CjZo6ZISgeA6bpRr8jC1Lb2WVlkAMy5IN5F4SxS2vyehKaR5G6Ewm7y1Ft1RutIMAr3sy0UKSluD4k0sRX12S2SV8b0sK0z/VmtqX0vEcMo+hXgqloeiOf2ALbgbGk/uHGvzLlK/N/ypjFq+1sRFbpfGHxgGPR/FHq6zgmDJWq0T1b69T6a0MFEXzSvCoTDcN59ut8m5sBAfTwLZZ1XwGsd0DsYiEdQ8bZKh5INyOnynVEAYsggM2RgRRSkg8NwGC9W8CIGN0sAza19EcdeKQ9s6PaKQ9FL1hmyZgxGjV5MlrM5jCdeTEnwPNhIoKQh0SrhL+gcf2yqPRIiCRxI49RRDKwZ8fNvJPLk=
-  on:
-    tags: true
-    branch: master
+  - WEBPACK=webpack@^5.0.0-alpha.5 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
+  - WEBPACK=webpack@^4.0.0 TSLOADER=ts-loader@^5.0.0 VUELOADER=vue-loader@^15.2.4
+  - WEBPACK=webpack@^3.10.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+  - WEBPACK=webpack@^2.7.0 TSLOADER=ts-loader@^3.4.0 VUELOADER=vue-loader@^13.5.0
+
+jobs:
+  include:
+    - stage: release
+      node_js: 10
+      script: skip
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script:
+          - yarn exec semantic-release
+        on:
+          all_branches: true

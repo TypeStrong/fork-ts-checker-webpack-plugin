@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "lib": ["es2016"],
+    "paths": {
+      "surprise": "./index.ts"
+    }
+  },
+  "include": ["src/pathResolutions.ts", "src/weirdResolutions.ts"]
+}

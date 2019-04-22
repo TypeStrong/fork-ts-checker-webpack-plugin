@@ -94,6 +94,7 @@
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
+      "@semantic-release/git",
       "@semantic-release/npm",
       "@semantic-release/github"
     ]
@@ -111,6 +112,7 @@
   "devDependencies": {
     "@commitlint/config-conventional": "^7.5.0",
     "@semantic-release/changelog": "^3.0.2",
+    "@semantic-release/git": "^7.1.0-beta.3",
     "@types/babel-code-frame": "^6.20.1",
     "@types/chokidar": "^1.7.5",
     "@types/micromatch": "^3.1.0",

@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-      "lib": ["es2016"],
+    "lib": ["es2016"]
   },
-  "exclude": [
-      "src/pathResolutions.ts",
-      "src/weirdResolutions.ts"
-  ]
+  "exclude": ["src/pathResolutions.ts", "src/weirdResolutions.ts"]
 }

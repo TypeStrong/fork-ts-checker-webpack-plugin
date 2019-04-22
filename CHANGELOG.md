@@ -1,3 +1,10 @@
+# [1.2.0-beta.3](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.2@beta...v1.2.0-beta.3@beta) (2019-04-22)
+
+
+### Bug Fixes
+
+* **tests:** rework vue integration tests ([5ad2568](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/5ad2568))
+
 # [1.2.0-beta.2](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.1@beta...v1.2.0-beta.2@beta) (2019-04-22)
 
 ### Bug Fixes

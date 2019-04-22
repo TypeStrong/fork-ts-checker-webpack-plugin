@@ -2,11 +2,7 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
-import {
-  ResolveModuleName,
-  ResolveTypeReferenceDirective,
-  makeResolutionFunctions
-} from './resolution';
+import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -56,8 +52,21 @@ export class CompilerHost
 
   private compilationStarted = false;
 
-  private readonly resolveModuleName: ResolveModuleName;
-  private readonly resolveTypeReferenceDirective: ResolveTypeReferenceDirective;
+  public resolveModuleNames:
+    | ((
+        moduleNames: string[],
+        containingFile: string,
+        reusedNames?: string[] | undefined,
+        redirectedReference?: ts.ResolvedProjectReference | undefined
+      ) => (ts.ResolvedModule | undefined)[])
+    | undefined;
+  public resolveTypeReferenceDirectives:
+    | ((
+        typeReferenceDirectiveNames: string[],
+        containingFile: string,
+        redirectedReference?: ts.ResolvedProjectReference | undefined
+      ) => (ts.ResolvedTypeReferenceDirective | undefined)[])
+    | undefined;
 
   constructor(
     private typescript: typeof ts,
@@ -86,16 +95,39 @@ export class CompilerHost
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
 
-    const {
-      resolveModuleName,
-      resolveTypeReferenceDirective
-    } = makeResolutionFunctions(
-      userResolveModuleName,
-      userResolveTypeReferenceDirective
-    );
+    if (userResolveModuleName) {
+      this.resolveModuleNames = (
+        moduleNames: string[],
+        containingFile: string
+      ) => {
+        return moduleNames.map(moduleName => {
+          return userResolveModuleName(
+            this.typescript,
+            moduleName,
+            containingFile,
+            this.optionsToExtend,
+            this
+          ).resolvedModule;
+        });
+      };
+    }
 
-    this.resolveModuleName = resolveModuleName;
-    this.resolveTypeReferenceDirective = resolveTypeReferenceDirective;
+    if (userResolveTypeReferenceDirective) {
+      this.resolveTypeReferenceDirectives = (
+        typeDirectiveNames: string[],
+        containingFile: string
+      ) => {
+        return typeDirectiveNames.map(typeDirectiveName => {
+          return userResolveTypeReferenceDirective(
+            this.typescript,
+            typeDirectiveName,
+            containingFile,
+            this.optionsToExtend,
+            this
+          ).resolvedTypeReferenceDirective;
+        });
+      };
+    }
   }
 
   public async processChanges(): Promise<{
@@ -365,33 +397,6 @@ export class CompilerHost
     // all actual diagnostics happens here
     this.tsHost.afterProgramCreate!(program);
     this.afterCompile();
-  }
-
-  public resolveModuleNames(moduleNames: string[], containingFile: string) {
-    return moduleNames.map(moduleName => {
-      return this.resolveModuleName(
-        this.typescript,
-        moduleName,
-        containingFile,
-        this.optionsToExtend,
-        this
-      ).resolvedModule;
-    });
-  }
-
-  public resolveTypeReferenceDirectives(
-    typeDirectiveNames: string[],
-    containingFile: string
-  ) {
-    return typeDirectiveNames.map(typeDirectiveName => {
-      return this.resolveTypeReferenceDirective(
-        this.typescript,
-        typeDirectiveName,
-        containingFile,
-        this.optionsToExtend,
-        this
-      ).resolvedTypeReferenceDirective;
-    });
   }
 
   // the functions below are use internally by typescript. we cannot use non-emitting version of incremental watching API

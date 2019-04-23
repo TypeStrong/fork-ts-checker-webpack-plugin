@@ -1,3 +1,16 @@
+# [1.2.0-beta.4](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.3@beta...v1.2.0-beta.4@beta) (2019-04-23)
+
+
+### Bug Fixes
+
+* **tests:** fix linter tests that were doing nothing ([d078278](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/d078278))
+* **tests:** linter tests - useTypescriptIncrementalApi usage ([e0020d6](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/e0020d6))
+
+
+### Features
+
+* **apiincrementalchecker:** improve generation of diagnostics ([ae80e5f](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/ae80e5f)), closes [#257](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/257)
+
 # [1.2.0-beta.3](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.2@beta...v1.2.0-beta.3@beta) (2019-04-22)
 
 

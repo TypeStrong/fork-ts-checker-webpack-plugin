@@ -23,13 +23,15 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     this.timeout(60000);
     var plugin;
 
+    const overrideOptions = { useTypescriptIncrementalApi };
+
     function createCompiler(
       options,
       happyPackMode,
       entryPoint = './src/index.ts'
     ) {
       options = options || {};
-      options.useTypescriptIncrementalApi = useTypescriptIncrementalApi;
+      options = { ...options, ...overrideOptions };
       var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
       plugin = compiler.plugin;
       return compiler.webpack;
@@ -78,17 +80,42 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       expect(plugin.watch).to.deep.equal(['/test']);
     });
 
+    it('should find lint warnings', function(callback) {
+      const fileName = 'lintingError2';
+      helpers.testLintAutoFixTest(
+        callback,
+        fileName,
+        {
+          tslint: path.resolve(__dirname, './project/tslint.json'),
+          ignoreLintWarnings: false,
+          ...overrideOptions
+        },
+        (err, stats) => {
+          expect(
+            stats.compilation.warnings.filter(warning =>
+              warning.message.includes('missing whitespace')
+            ).length
+          ).to.be.greaterThan(0);
+        }
+      );
+    });
+
     it('should not print warnings when ignoreLintWarnings passed as option', function(callback) {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
         fileName,
         {
-          tslint: true,
-          ignoreLintWarnings: true
+          tslint: path.resolve(__dirname, './project/tslint.json'),
+          ignoreLintWarnings: true,
+          ...overrideOptions
         },
         (err, stats) => {
-          expect(stats.compilation.warnings.length).to.be.eq(0);
+          expect(
+            stats.compilation.warnings.filter(warning =>
+              warning.message.includes('missing whitespace')
+            ).length
+          ).to.be.equal(0);
         }
       );
     });
@@ -99,11 +126,16 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         callback,
         fileName,
         {
-          tslint: true,
-          ignoreLintWarnings: true
+          tslint: path.resolve(__dirname, './project/tslint.json'),
+          ignoreLintWarnings: true,
+          ...overrideOptions
         },
         (err, stats) => {
-          expect(stats.compilation.errors.length).to.be.eq(0);
+          expect(
+            stats.compilation.errors.filter(error =>
+              error.message.includes('missing whitespace')
+            ).length
+          ).to.be.equals(0);
         }
       );
     });
@@ -127,7 +159,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         {
           tslintAutoFix: true,
           tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
-          tsconfig: false
+          tsconfig: false,
+          ...overrideOptions
         },
         (err, stats, formattedFileContents) => {
           expect(stats.compilation.warnings.length).to.be.eq(0);
@@ -149,7 +182,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         callback,
         fileName,
         {
-          tslint: true
+          tslint: true,
+          ...overrideOptions
         },
         (err, stats) => {
           expect(stats.compilation.warnings.length).to.be.eq(7);
@@ -332,7 +366,8 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       helpers.testLintHierarchicalConfigs(
         callback,
         {
-          tslint: true
+          tslint: true,
+          ...overrideOptions
         },
         (err, stats) => {
           /*

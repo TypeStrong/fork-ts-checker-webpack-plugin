@@ -20,6 +20,10 @@ import {
 } from './wrapperUtils';
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
+import {
+  TypeScriptPatchConfig,
+  patchTypescript as patchTypescript2
+} from './patchTypescript';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -38,6 +42,15 @@ const typescript: typeof ts = patchTypescript(
   require(process.env.TYPESCRIPT_PATH!),
   wrapperConfig
 );
+
+const patchConfig: TypeScriptPatchConfig = {
+  skipGetSyntacticDiagnostics:
+    process.env.USE_INCREMENTAL_API === 'true' &&
+    process.env.CHECK_SYNTACTIC_ERRORS !== 'true'
+};
+
+patchTypescript2(typescript, patchConfig);
+
 const { unwrapFileName } = getWrapperUtils(wrapperConfig);
 
 // message factories

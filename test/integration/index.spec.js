@@ -37,8 +37,6 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       return compiler.webpack;
     }
 
-    const skipIfIncremental = useTypescriptIncrementalApi ? it.skip : it;
-
     /**
      * Implicitly check whether killService was called by checking that
      * the service property was set to undefined.
@@ -149,34 +147,6 @@ function makeCommonTests(useTypescriptIncrementalApi) {
 
       compiler.run(function(err, stats) {
         expect(stats.compilation.errors.length).to.be.at.least(1);
-        callback();
-      });
-    });
-
-    it('should support custom resolution', function(callback) {
-      var compiler = createCompiler({
-        tsconfig: 'tsconfig-weird-resolutions.json',
-        resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
-        resolveTypeReferenceDirectiveModule: `${__dirname}/project/weirdResolver.js`
-      });
-
-      compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).to.be.eq(0);
-        callback();
-      });
-    });
-
-    skipIfIncremental('should support custom resolution w/ "paths"', function(
-      callback
-    ) {
-      var compiler = createCompiler({
-        tsconfig: 'tsconfig-weird-resolutions-with-paths.json',
-        resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
-        resolveTypeReferenceDirectiveModule: `${__dirname}/project/weirdResolver.js`
-      });
-
-      compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).to.be.eq(0);
         callback();
       });
     });

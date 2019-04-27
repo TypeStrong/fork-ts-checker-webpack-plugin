@@ -34,8 +34,7 @@ exports.createVueCompiler = async function(options) {
     resolve: {
       extensions: ['.ts', '.js', '.vue', '.json'],
       alias: {
-        '@': path.resolve(__dirname, './vue/src'),
-        surprise: './src/index.ts'
+        '@': path.resolve(__dirname, './vue/src')
       }
     },
     module: {

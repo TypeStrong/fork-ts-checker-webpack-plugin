@@ -4,11 +4,6 @@ import * as path from 'path';
 import * as ts from 'typescript'; // import for types alone
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
-import {
-  ResolveModuleName,
-  ResolveTypeReferenceDirective,
-  makeResolutionFunctions
-} from './resolution';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as vueCompiler from 'vue-template-compiler';
 
@@ -125,47 +120,10 @@ export class VueProgram {
     basedir: string,
     files: FilesRegister,
     watcher: FilesWatcher,
-    oldProgram: ts.Program,
-    userResolveModuleName: ResolveModuleName | undefined,
-    userResolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
+    oldProgram: ts.Program
   ) {
     const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
-
-    const {
-      resolveModuleName,
-      resolveTypeReferenceDirective
-    } = makeResolutionFunctions(
-      userResolveModuleName,
-      userResolveTypeReferenceDirective
-    );
-
-    host.resolveModuleNames = (moduleNames, containingFile) => {
-      return moduleNames.map(moduleName => {
-        return resolveModuleName(
-          typescript,
-          moduleName,
-          containingFile,
-          programConfig.options,
-          host
-        ).resolvedModule;
-      });
-    };
-
-    host.resolveTypeReferenceDirectives = (
-      typeDirectiveNames,
-      containingFile
-    ) => {
-      return typeDirectiveNames.map(typeDirectiveName => {
-        return resolveTypeReferenceDirective(
-          typescript,
-          typeDirectiveName,
-          containingFile,
-          programConfig.options,
-          host
-        ).resolvedTypeReferenceDirective;
-      });
-    };
 
     // We need a host that can parse Vue SFCs (single file components).
     host.getSourceFile = (filePath, languageVersion, onError) => {

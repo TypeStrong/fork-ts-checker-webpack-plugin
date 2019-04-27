@@ -2,7 +2,6 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
-import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -52,29 +51,11 @@ export class CompilerHost
 
   private compilationStarted = false;
 
-  public resolveModuleNames:
-    | ((
-        moduleNames: string[],
-        containingFile: string,
-        reusedNames?: string[] | undefined,
-        redirectedReference?: ts.ResolvedProjectReference | undefined
-      ) => (ts.ResolvedModule | undefined)[])
-    | undefined;
-  public resolveTypeReferenceDirectives:
-    | ((
-        typeReferenceDirectiveNames: string[],
-        containingFile: string,
-        redirectedReference?: ts.ResolvedProjectReference | undefined
-      ) => (ts.ResolvedTypeReferenceDirective | undefined)[])
-    | undefined;
-
   constructor(
     private typescript: typeof ts,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
-    checkSyntacticErrors: boolean,
-    userResolveModuleName?: ResolveModuleName,
-    userResolveTypeReferenceDirective?: ResolveTypeReferenceDirective
+    checkSyntacticErrors: boolean
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -94,40 +75,6 @@ export class CompilerHost
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
-
-    if (userResolveModuleName) {
-      this.resolveModuleNames = (
-        moduleNames: string[],
-        containingFile: string
-      ) => {
-        return moduleNames.map(moduleName => {
-          return userResolveModuleName(
-            this.typescript,
-            moduleName,
-            containingFile,
-            this.optionsToExtend,
-            this
-          ).resolvedModule;
-        });
-      };
-    }
-
-    if (userResolveTypeReferenceDirective) {
-      this.resolveTypeReferenceDirectives = (
-        typeDirectiveNames: string[],
-        containingFile: string
-      ) => {
-        return typeDirectiveNames.map(typeDirectiveName => {
-          return userResolveTypeReferenceDirective(
-            this.typescript,
-            typeDirectiveName,
-            containingFile,
-            this.optionsToExtend,
-            this
-          ).resolvedTypeReferenceDirective;
-        });
-      };
-    }
   }
 
   public async processChanges(): Promise<{

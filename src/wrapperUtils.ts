@@ -3,6 +3,7 @@
 import { extname } from 'path';
 import { handleMdxContents } from './handleMdxContents';
 import { handleVueContents } from './handleVueContents';
+import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 
 export interface TypeScriptWrapperConfig {
   extensionHandlers: {
@@ -12,6 +13,8 @@ export interface TypeScriptWrapperConfig {
     ) => string;
   };
   wrapExtensions: string[];
+  resolveModuleName?: ResolveModuleName;
+  resolveTypeReferenceDirective?: ResolveTypeReferenceDirective;
 }
 
 export const wrapperConfigWithVue: TypeScriptWrapperConfig = {

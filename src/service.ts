@@ -35,8 +35,21 @@ const rpc = new RpcProvider(message => {
 });
 process.on('message', message => rpc.dispatch(message));
 
-const wrapperConfig: TypeScriptWrapperConfig =
-  process.env.VUE === 'true' ? wrapperConfigWithVue : emptyWrapperConfig;
+const resolveModuleName = process.env.RESOLVE_MODULE_NAME
+  ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
+  : undefined;
+const resolveTypeReferenceDirective = process.env
+  .RESOLVE_TYPE_REFERENCE_DIRECTIVE
+  ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE!)
+      .resolveTypeReferenceDirective
+  : undefined;
+
+const wrapperConfig: TypeScriptWrapperConfig = {
+  ...emptyWrapperConfig,
+  resolveModuleName,
+  resolveTypeReferenceDirective,
+  ...(process.env.VUE === 'true' ? wrapperConfigWithVue : {})
+};
 
 const typescript: typeof ts = patchTypescript(
   require(process.env.TYPESCRIPT_PATH!),

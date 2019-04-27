@@ -2,6 +2,7 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 import { TypeScriptWrapperConfig } from './wrapperUtils';
+import { makeResolutionFunctions } from './resolution';
 
 type HostType = ts.CompilerHost | ts.WatchCompilerHostOfConfigFile<any>;
 // @ts-ignore
@@ -21,16 +22,24 @@ export function wrapCompilerHost<T extends HostType>(
   origHost: T,
   compilerOptions: ts.CompilerOptions,
   typescript: typeof ts,
-  _config: TypeScriptWrapperConfig
+  config: TypeScriptWrapperConfig
 ) {
   let wrappedCompilerHost: T;
+
+  const {
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  } = makeResolutionFunctions(
+    config.resolveModuleName,
+    config.resolveTypeReferenceDirective
+  );
 
   const compilerHostWrappers: Partial<ts.CompilerHost> = {
     resolveModuleNames(
       moduleNames,
       containingFile,
-      _reusedNames, // no idea what this is for
-      redirectedReference
+      _reusedNames,
+      _redirectedReference
     ) {
       return moduleNames.map(moduleName => {
         for (const suffix of wrapSuffixes) {
@@ -42,13 +51,12 @@ export function wrapCompilerHost<T extends HostType>(
             RESET
           );
           */
-          const result = typescript.resolveModuleName(
+          const result = resolveModuleName(
+            typescript,
             moduleName + suffix,
             containingFile,
             compilerOptions,
-            wrappedCompilerHost,
-            undefined,
-            redirectedReference
+            wrappedCompilerHost
           );
           if (result.resolvedModule) {
             /*
@@ -66,6 +74,20 @@ export function wrapCompilerHost<T extends HostType>(
         }
         // console.log(START_RED, 'could not revolve', moduleName, RESET);
         return undefined;
+      });
+    },
+    resolveTypeReferenceDirectives(
+      typeDirectiveNames: string[],
+      containingFile: string
+    ) {
+      return typeDirectiveNames.map(typeDirectiveName => {
+        return resolveTypeReferenceDirective(
+          typescript,
+          typeDirectiveName,
+          containingFile,
+          compilerOptions,
+          wrappedCompilerHost
+        ).resolvedTypeReferenceDirective;
       });
     },
     getSourceFile(...args) {

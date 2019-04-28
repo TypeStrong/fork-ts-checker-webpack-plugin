@@ -1,144 +1,144 @@
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-var beforeEach = require('mocha').beforeEach;
-var afterEach = require('mocha').afterEach;
-var sinon = require('sinon');
-var expect = require('chai').expect;
 var mockRequire = require('mock-require');
 
-describe('[UNIT] FilesWatcher', function() {
+describe('[UNIT] FilesWatcher', () => {
   var FilesWatcher;
   var watcher;
   var watchStub;
   var watcherStub;
 
-  beforeEach(function() {
-    watcherStub = {
-      on: sinon.stub().returnsThis()
-    };
-    watchStub = sinon.stub().returns(watcherStub);
+  beforeEach(() => {
+    jest.resetModules();
 
-    mockRequire('chokidar', { watch: watchStub });
-    FilesWatcher = mockRequire.reRequire('../../lib/FilesWatcher').FilesWatcher;
+    watcherStub = {
+      on: jest.fn(function() {
+        return this;
+      })
+    };
+    watchStub = jest.fn(function() {
+      return watcherStub;
+    });
+
+    jest.setMock('chokidar', { watch: watchStub });
+    FilesWatcher = require('../../lib/FilesWatcher').FilesWatcher;
 
     watcher = new FilesWatcher(['/test', '/bar'], ['.ext1', '.ext2']);
   });
 
-  afterEach(function() {
+  afterEach(() => {
     mockRequire.stopAll();
   });
 
-  it('should check if file is supported', function() {
-    expect(watcher.isFileSupported('/foo.ext1')).to.be.true;
-    expect(watcher.isFileSupported('/foo.ext2')).to.be.true;
-    expect(watcher.isFileSupported('/foo.txt')).to.be.false;
-    expect(watcher.isFileSupported('/foo.ext1.txt')).to.be.false;
+  test('should check if file is supported', () => {
+    expect(watcher.isFileSupported('/foo.ext1')).toBe(true);
+    expect(watcher.isFileSupported('/foo.ext2')).toBe(true);
+    expect(watcher.isFileSupported('/foo.txt')).toBe(false);
+    expect(watcher.isFileSupported('/foo.ext1.txt')).toBe(false);
   });
 
-  it('should check if is watching file', function() {
-    expect(watcher.isWatchingFile('/test/a.ext1')).to.be.false;
-    expect(watcher.isWatchingFile('/test/a.txt')).to.be.false;
-    expect(watcher.isWatchingFile('/test')).to.be.false;
-    expect(watcher.isWatchingFile('/foo/a.ext1')).to.be.false;
+  test('should check if is watching file', () => {
+    expect(watcher.isWatchingFile('/test/a.ext1')).toBe(false);
+    expect(watcher.isWatchingFile('/test/a.txt')).toBe(false);
+    expect(watcher.isWatchingFile('/test')).toBe(false);
+    expect(watcher.isWatchingFile('/foo/a.ext1')).toBe(false);
 
     watcher.watch();
 
-    expect(watcher.isWatchingFile('/test/a.ext1')).to.be.true;
-    expect(watcher.isWatchingFile('/test/a.txt')).to.be.false;
-    expect(watcher.isWatchingFile('/test')).to.be.false;
-    expect(watcher.isWatchingFile('/foo/a.ext1')).to.be.false;
+    expect(watcher.isWatchingFile('/test/a.ext1')).toBe(true);
+    expect(watcher.isWatchingFile('/test/a.txt')).toBe(false);
+    expect(watcher.isWatchingFile('/test')).toBe(false);
+    expect(watcher.isWatchingFile('/foo/a.ext1')).toBe(false);
   });
 
-  it('should check if watcher is watching', function() {
-    expect(watcher.isWatching()).to.be.false;
+  test('should check if watcher is watching', () => {
+    expect(watcher.isWatching()).toBe(false);
     watcher.watch();
-    expect(watcher.isWatching()).to.be.true;
+    expect(watcher.isWatching()).toBe(true);
     expect(function() {
       watcher.watch();
-    }).to.throw(Error);
+    }).toThrowError(Error);
   });
 
-  it('should add and remove listeners', function() {
+  test('should add and remove listeners', () => {
     var listenerA = function() {};
     var listenerB = function() {};
 
-    expect(watcher.listeners).to.be.a('object');
+    expect(typeof watcher.listeners).toBe('object');
     watcher.on('event', listenerA);
     watcher.on('event', listenerB);
-    expect(watcher.listeners['event']).to.be.a('array');
-    expect(watcher.listeners['event']).to.be.deep.equal([listenerA, listenerB]);
+    expect(Array.isArray(watcher.listeners['event'])).toBe(true);
+    expect(watcher.listeners['event']).toEqual([listenerA, listenerB]);
 
     watcher.off('event', listenerA);
-    expect(watcher.listeners['event']).to.be.deep.equal([listenerB]);
+    expect(watcher.listeners['event']).toEqual([listenerB]);
 
     expect(function() {
       watcher.off('event', listenerA);
-    }).to.not.throw();
-    expect(watcher.listeners['event']).to.be.deep.equal([listenerB]);
+    }).not.toThrowError();
+    expect(watcher.listeners['event']).toEqual([listenerB]);
 
     watcher.off('event', listenerB);
-    expect(watcher.listeners['event']).to.be.deep.equal([]);
+    expect(watcher.listeners['event']).toEqual([]);
 
-    expect(watcher.listeners['foo']).to.be.undefined;
+    expect(watcher.listeners['foo']).toBeUndefined();
     expect(function() {
       watcher.off('foo', listenerA);
-    }).to.not.throw();
+    }).not.toThrowError();
 
-    expect(watcher.listeners['foo']).to.be.undefined;
+    expect(watcher.listeners['foo']).toBeUndefined();
   });
 
-  it('should watch filesystem using chokidar', function() {
-    expect(watchStub.called).to.be.false;
+  test('should watch filesystem using chokidar', () => {
+    expect(watchStub).not.toHaveBeenCalled();
 
-    var changeListenerA = sinon.spy();
-    var changeListenerB = sinon.spy();
-    var unlinkListenerA = sinon.spy();
-    var unlinkListenerB = sinon.spy();
+    var changeListenerA = jest.fn();
+    var changeListenerB = jest.fn();
+    var unlinkListenerA = jest.fn();
+    var unlinkListenerB = jest.fn();
 
     watcher.watch();
 
-    expect(watcherStub.on.getCall(0).args[0]).to.be.equal('change');
-    expect(watcherStub.on.getCall(1).args[0]).to.be.equal('unlink');
+    expect(watcherStub.on.mock.calls[0][0]).toBe('change');
+    expect(watcherStub.on.mock.calls[1][0]).toBe('unlink');
 
-    var triggerChange = watcherStub.on.getCall(0).args[1];
-    var triggerUnlink = watcherStub.on.getCall(1).args[1];
+    var triggerChange = watcherStub.on.mock.calls[0][1];
+    var triggerUnlink = watcherStub.on.mock.calls[1][1];
 
-    expect(triggerChange).to.be.a('function');
-    expect(triggerUnlink).to.be.a('function');
+    expect(typeof triggerChange).toBe('function');
+    expect(typeof triggerUnlink).toBe('function');
 
     expect(function() {
       triggerChange('/test/test.ext1', {});
-    }).to.not.throw();
+    }).not.toThrowError();
     expect(function() {
       triggerUnlink('/test/test.ext1', {});
-    }).to.not.throw();
+    }).not.toThrowError();
 
     watcher.on('change', changeListenerA);
     watcher.on('change', changeListenerB);
     watcher.on('unlink', unlinkListenerA);
     watcher.on('unlink', unlinkListenerB);
 
-    expect(watchStub.called).to.be.true;
-    expect(watchStub.getCall(0).args[0]).to.be.equal('/test');
-    expect(watchStub.getCall(1).args[0]).to.be.equal('/bar');
+    expect(watchStub).toHaveBeenCalled();
+    expect(watchStub.mock.calls[0][0]).toBe('/test');
+    expect(watchStub.mock.calls[1][0]).toBe('/bar');
 
     // manually trigger change listeners
     triggerChange('/test/test.txt', {});
-    expect(changeListenerA.called).to.be.false;
-    expect(changeListenerB.called).to.be.false;
+    expect(changeListenerA).not.toHaveBeenCalled();
+    expect(changeListenerB).not.toHaveBeenCalled();
 
     triggerChange('/test/test.ext1', {});
-    expect(changeListenerB.called).to.be.true;
-    expect(changeListenerB.called).to.be.true;
+    expect(changeListenerB).toHaveBeenCalled();
+    expect(changeListenerB).toHaveBeenCalled();
 
     // manually trigger unlink listeners
     triggerUnlink('/test/test.txt');
-    expect(unlinkListenerA.called).to.be.false;
-    expect(unlinkListenerB.called).to.be.false;
+    expect(unlinkListenerA).not.toHaveBeenCalled();
+    expect(unlinkListenerB).not.toHaveBeenCalled();
 
     triggerUnlink('/test/test.ext1');
-    expect(unlinkListenerA.called).to.be.true;
-    expect(unlinkListenerB.called).to.be.true;
+    expect(unlinkListenerA).toHaveBeenCalled();
+    expect(unlinkListenerB).toHaveBeenCalled();
 
     // check if off is working properly
     watcher.off('change', changeListenerA);
@@ -147,9 +147,9 @@ describe('[UNIT] FilesWatcher', function() {
     triggerChange('/test/test.ext1', {});
     triggerUnlink('/test/test.ext1');
 
-    expect(changeListenerA.callCount).to.be.equal(1);
-    expect(changeListenerB.callCount).to.be.equal(2);
-    expect(unlinkListenerA.callCount).to.be.equal(2);
-    expect(unlinkListenerB.callCount).to.be.equal(1);
+    expect(changeListenerA).toHaveBeenCalledTimes(1);
+    expect(changeListenerB).toHaveBeenCalledTimes(2);
+    expect(unlinkListenerA).toHaveBeenCalledTimes(2);
+    expect(unlinkListenerB).toHaveBeenCalledTimes(1);
   });
 });

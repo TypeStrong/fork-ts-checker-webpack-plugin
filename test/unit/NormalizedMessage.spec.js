@@ -1,15 +1,11 @@
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-var beforeEach = require('mocha').beforeEach;
-var expect = require('chai').expect;
 var NormalizedMessage = require('../../lib/NormalizedMessage')
   .NormalizedMessage;
 
-describe('[UNIT] NormalizedMessage', function() {
+describe('[UNIT] NormalizedMessage', () => {
   var diagnosticMessage;
   var lintMessage;
 
-  beforeEach(function() {
+  beforeEach(() => {
     diagnosticMessage = new NormalizedMessage({
       type: 'diagnostic',
       code: 123,
@@ -31,143 +27,133 @@ describe('[UNIT] NormalizedMessage', function() {
     });
   });
 
-  it('should create new message', function() {
-    expect(diagnosticMessage.type).to.be.equal('diagnostic');
-    expect(diagnosticMessage.code).to.be.equal(123);
-    expect(diagnosticMessage.severity).to.be.equal('error');
-    expect(diagnosticMessage.content).to.be.equal('foo');
-    expect(diagnosticMessage.file).to.be.equal('/foo/bar.ts');
-    expect(diagnosticMessage.line).to.be.equal(532);
-    expect(diagnosticMessage.character).to.be.equal(12);
+  test('should create new message', () => {
+    expect(diagnosticMessage.type).toBe('diagnostic');
+    expect(diagnosticMessage.code).toBe(123);
+    expect(diagnosticMessage.severity).toBe('error');
+    expect(diagnosticMessage.content).toBe('foo');
+    expect(diagnosticMessage.file).toBe('/foo/bar.ts');
+    expect(diagnosticMessage.line).toBe(532);
+    expect(diagnosticMessage.character).toBe(12);
   });
 
-  it('should serialize and create from json', function() {
+  test('should serialize and create from json', () => {
     var json = diagnosticMessage.toJSON();
 
-    expect(json).to.be.an('object');
+    expect(typeof json).toBe('object');
 
     var jsonMessage = NormalizedMessage.createFromJSON(json);
 
-    expect(jsonMessage).to.be.instanceof(NormalizedMessage);
-    expect(jsonMessage.type).to.be.equal(diagnosticMessage.type);
-    expect(jsonMessage.code).to.be.equal(diagnosticMessage.code);
-    expect(jsonMessage.severity).to.be.equal(diagnosticMessage.severity);
-    expect(jsonMessage.content).to.be.equal(diagnosticMessage.content);
-    expect(jsonMessage.file).to.be.equal(diagnosticMessage.file);
-    expect(jsonMessage.line).to.be.equal(diagnosticMessage.line);
-    expect(jsonMessage.character).to.be.equal(diagnosticMessage.character);
+    expect(jsonMessage).toBeInstanceOf(NormalizedMessage);
+    expect(jsonMessage.type).toBe(diagnosticMessage.type);
+    expect(jsonMessage.code).toBe(diagnosticMessage.code);
+    expect(jsonMessage.severity).toBe(diagnosticMessage.severity);
+    expect(jsonMessage.content).toBe(diagnosticMessage.content);
+    expect(jsonMessage.file).toBe(diagnosticMessage.file);
+    expect(jsonMessage.line).toBe(diagnosticMessage.line);
+    expect(jsonMessage.character).toBe(diagnosticMessage.character);
   });
 
-  it('should check type', function() {
-    expect(diagnosticMessage.isDiagnosticType()).to.be.true;
-    expect(diagnosticMessage.isLintType()).to.be.false;
-    expect(lintMessage.isDiagnosticType()).to.be.false;
-    expect(lintMessage.isLintType()).to.be.true;
+  test('should check type', () => {
+    expect(diagnosticMessage.isDiagnosticType()).toBe(true);
+    expect(diagnosticMessage.isLintType()).toBe(false);
+    expect(lintMessage.isDiagnosticType()).toBe(false);
+    expect(lintMessage.isLintType()).toBe(true);
   });
 
-  it('should return formatted code', function() {
-    expect(diagnosticMessage.getFormattedCode()).to.be.equal(
+  test('should return formatted code', () => {
+    expect(diagnosticMessage.getFormattedCode()).toBe(
       'TS' + diagnosticMessage.code
     );
-    expect(lintMessage.getFormattedCode()).to.be.equal(lintMessage.code);
+    expect(lintMessage.getFormattedCode()).toBe(lintMessage.code);
   });
 
-  it('should check severity', function() {
-    expect(diagnosticMessage.isErrorSeverity()).to.be.true;
-    expect(diagnosticMessage.isWarningSeverity()).to.be.false;
-    expect(lintMessage.isErrorSeverity()).to.be.false;
-    expect(lintMessage.isWarningSeverity()).to.be.true;
+  test('should check severity', () => {
+    expect(diagnosticMessage.isErrorSeverity()).toBe(true);
+    expect(diagnosticMessage.isWarningSeverity()).toBe(false);
+    expect(lintMessage.isErrorSeverity()).toBe(false);
+    expect(lintMessage.isWarningSeverity()).toBe(true);
   });
 
-  it('should compare numbers in asc', function() {
-    expect(NormalizedMessage.compareNumbers(123, 126)).to.be.lessThan(0);
-    expect(NormalizedMessage.compareNumbers(-123, 126)).to.be.lessThan(0);
-    expect(NormalizedMessage.compareNumbers(-126, -123)).to.be.lessThan(0);
-    expect(NormalizedMessage.compareNumbers(132, 42)).to.be.greaterThan(0);
-    expect(NormalizedMessage.compareNumbers(132, -42)).to.be.greaterThan(0);
-    expect(NormalizedMessage.compareNumbers(-42, -132)).to.be.greaterThan(0);
-    expect(NormalizedMessage.compareNumbers(15, 15)).to.be.equal(0);
-    expect(NormalizedMessage.compareNumbers(0, 0)).to.be.equal(0);
-    expect(NormalizedMessage.compareNumbers(-15, -15)).to.be.equal(0);
+  test('should compare numbers in asc', () => {
+    expect(NormalizedMessage.compareNumbers(123, 126)).toBeLessThan(0);
+    expect(NormalizedMessage.compareNumbers(-123, 126)).toBeLessThan(0);
+    expect(NormalizedMessage.compareNumbers(-126, -123)).toBeLessThan(0);
+    expect(NormalizedMessage.compareNumbers(132, 42)).toBeGreaterThan(0);
+    expect(NormalizedMessage.compareNumbers(132, -42)).toBeGreaterThan(0);
+    expect(NormalizedMessage.compareNumbers(-42, -132)).toBeGreaterThan(0);
+    expect(NormalizedMessage.compareNumbers(15, 15)).toBe(0);
+    expect(NormalizedMessage.compareNumbers(0, 0)).toBe(0);
+    expect(NormalizedMessage.compareNumbers(-15, -15)).toBe(0);
   });
 
-  it('should compare strings in asc', function() {
-    expect(
-      NormalizedMessage.compareOptionalStrings('abc', 'xyz')
-    ).to.be.lessThan(0);
+  test('should compare strings in asc', () => {
+    expect(NormalizedMessage.compareOptionalStrings('abc', 'xyz')).toBeLessThan(
+      0
+    );
     expect(
       NormalizedMessage.compareOptionalStrings(undefined, 'xyz')
-    ).to.be.lessThan(0);
-    expect(
-      NormalizedMessage.compareOptionalStrings(null, 'xyz')
-    ).to.be.lessThan(0);
+    ).toBeLessThan(0);
+    expect(NormalizedMessage.compareOptionalStrings(null, 'xyz')).toBeLessThan(
+      0
+    );
     expect(
       NormalizedMessage.compareOptionalStrings('xyz', 'abc')
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compareOptionalStrings('xyz', undefined)
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compareOptionalStrings('xyz', null)
-    ).to.be.greaterThan(0);
-    expect(NormalizedMessage.compareOptionalStrings('xyz', 'xyz')).to.be.equal(
+    ).toBeGreaterThan(0);
+    expect(NormalizedMessage.compareOptionalStrings('xyz', 'xyz')).toBe(0);
+    expect(NormalizedMessage.compareOptionalStrings(undefined, undefined)).toBe(
       0
     );
-    expect(
-      NormalizedMessage.compareOptionalStrings(undefined, undefined)
-    ).to.be.equal(0);
-    expect(NormalizedMessage.compareOptionalStrings(null, null)).to.be.equal(0);
+    expect(NormalizedMessage.compareOptionalStrings(null, null)).toBe(0);
   });
 
-  it('should compare severities in asc', function() {
+  test('should compare severities in asc', () => {
     expect(
       NormalizedMessage.compareSeverities('warning', 'error')
-    ).to.be.lessThan(0);
+    ).toBeLessThan(0);
     expect(
       NormalizedMessage.compareSeverities('unknown', 'warning')
-    ).to.be.lessThan(0);
+    ).toBeLessThan(0);
     expect(
       NormalizedMessage.compareSeverities('error', 'warning')
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compareSeverities('warning', 'unknown')
-    ).to.be.greaterThan(0);
-    expect(NormalizedMessage.compareSeverities('error', 'error')).to.be.equal(
-      0
-    );
-    expect(
-      NormalizedMessage.compareSeverities('warning', 'warning')
-    ).to.be.equal(0);
-    expect(
-      NormalizedMessage.compareSeverities('unknown', 'unknown')
-    ).to.be.equal(0);
+    ).toBeGreaterThan(0);
+    expect(NormalizedMessage.compareSeverities('error', 'error')).toBe(0);
+    expect(NormalizedMessage.compareSeverities('warning', 'warning')).toBe(0);
+    expect(NormalizedMessage.compareSeverities('unknown', 'unknown')).toBe(0);
     expect(
       NormalizedMessage.compareSeverities('unknown', 'another_unknown')
-    ).to.be.equal(0);
+    ).toBe(0);
   });
 
-  it('should compare types in asc', function() {
-    expect(NormalizedMessage.compareTypes('lint', 'diagnostic')).to.be.lessThan(
+  test('should compare types in asc', () => {
+    expect(NormalizedMessage.compareTypes('lint', 'diagnostic')).toBeLessThan(
       0
     );
-    expect(NormalizedMessage.compareTypes('unknown', 'lint')).to.be.lessThan(0);
+    expect(NormalizedMessage.compareTypes('unknown', 'lint')).toBeLessThan(0);
     expect(
       NormalizedMessage.compareTypes('diagnostic', 'lint')
-    ).to.be.greaterThan(0);
-    expect(NormalizedMessage.compareTypes('lint', 'unknown')).to.be.greaterThan(
+    ).toBeGreaterThan(0);
+    expect(NormalizedMessage.compareTypes('lint', 'unknown')).toBeGreaterThan(
       0
     );
-    expect(
-      NormalizedMessage.compareTypes('diagnostic', 'diagnostic')
-    ).to.be.equal(0);
-    expect(NormalizedMessage.compareTypes('lint', 'lint')).to.be.equal(0);
-    expect(NormalizedMessage.compareTypes('unknown', 'unknown')).to.be.equal(0);
-    expect(
-      NormalizedMessage.compareTypes('unknown', 'another_unknown')
-    ).to.be.equal(0);
+    expect(NormalizedMessage.compareTypes('diagnostic', 'diagnostic')).toBe(0);
+    expect(NormalizedMessage.compareTypes('lint', 'lint')).toBe(0);
+    expect(NormalizedMessage.compareTypes('unknown', 'unknown')).toBe(0);
+    expect(NormalizedMessage.compareTypes('unknown', 'another_unknown')).toBe(
+      0
+    );
   });
 
-  it('should compare messages', function() {
+  test('should compare messages', () => {
     var messageA = diagnosticMessage;
     function buildMessage(diff) {
       return NormalizedMessage.createFromJSON({
@@ -176,48 +162,48 @@ describe('[UNIT] NormalizedMessage', function() {
       });
     }
 
-    expect(NormalizedMessage.compare(messageA, undefined)).to.be.greaterThan(0);
-    expect(NormalizedMessage.compare(undefined, messageA)).to.be.lessThan(0);
-    expect(NormalizedMessage.compare(messageA, {})).to.be.greaterThan(0);
-    expect(NormalizedMessage.compare({}, messageA)).to.be.lessThan(0);
+    expect(NormalizedMessage.compare(messageA, undefined)).toBeGreaterThan(0);
+    expect(NormalizedMessage.compare(undefined, messageA)).toBeLessThan(0);
+    expect(NormalizedMessage.compare(messageA, {})).toBeGreaterThan(0);
+    expect(NormalizedMessage.compare({}, messageA)).toBeLessThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ type: 'lint' }))
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ file: '/goo/bar.ts' }))
-    ).to.be.lessThan(0);
+    ).toBeLessThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ severity: 'notice' }))
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ line: 400 }))
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ character: 200 }))
-    ).to.be.lessThan(0);
+    ).toBeLessThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ code: 100 }))
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
     expect(
       NormalizedMessage.compare(messageA, buildMessage({ content: 'bar' }))
-    ).to.be.greaterThan(0);
+    ).toBeGreaterThan(0);
   });
 
-  it('should check if messages are equal', function() {
+  test('should check if messages are equal', () => {
     var messageA = diagnosticMessage;
     var messageB = NormalizedMessage.createFromJSON(diagnosticMessage.toJSON());
     var messageC = lintMessage;
     var messageD = NormalizedMessage.createFromJSON(lintMessage.toJSON());
 
-    expect(NormalizedMessage.equals(messageA, messageB)).to.be.true;
-    expect(NormalizedMessage.equals(messageA, messageC)).to.be.false;
-    expect(NormalizedMessage.equals(messageA, messageD)).to.be.false;
-    expect(NormalizedMessage.equals(messageB, messageC)).to.be.false;
-    expect(NormalizedMessage.equals(messageB, messageD)).to.be.false;
-    expect(NormalizedMessage.equals(messageC, messageD)).to.be.true;
+    expect(NormalizedMessage.equals(messageA, messageB)).toBe(true);
+    expect(NormalizedMessage.equals(messageA, messageC)).toBe(false);
+    expect(NormalizedMessage.equals(messageA, messageD)).toBe(false);
+    expect(NormalizedMessage.equals(messageB, messageC)).toBe(false);
+    expect(NormalizedMessage.equals(messageB, messageD)).toBe(false);
+    expect(NormalizedMessage.equals(messageC, messageD)).toBe(true);
   });
 
-  it('should deduplicate list of messages', function() {
+  test('should deduplicate list of messages', () => {
     var messageA = diagnosticMessage;
     var messageB = NormalizedMessage.createFromJSON(diagnosticMessage.toJSON());
     var messageC = lintMessage;
@@ -234,7 +220,7 @@ describe('[UNIT] NormalizedMessage', function() {
     ];
     var unique = NormalizedMessage.deduplicate(messages);
 
-    expect(unique).to.be.a('array');
-    expect(unique).to.be.deep.equal([messageC, messageA]);
+    expect(Array.isArray(unique)).toBe(true);
+    expect(unique).toEqual([messageC, messageA]);
   });
 });

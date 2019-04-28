@@ -1,26 +1,11 @@
 var fs = require('fs');
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-var chai = require('chai');
 var path = require('path');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var helpers = require('./helpers');
 
-chai.config.truncateThreshold = 0;
-var expect = chai.expect;
-
-describe(
-  '[INTEGRATION] common tests - useTypescriptIncrementalApi: true',
-  makeCommonTests(true)
-);
-describe(
-  '[INTEGRATION] common tests - useTypescriptIncrementalApi: false',
-  makeCommonTests(false)
-);
-
-function makeCommonTests(useTypescriptIncrementalApi) {
-  return function() {
-    this.timeout(60000);
+describe.each([[true], [false]])(
+  '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
+  useTypescriptIncrementalApi => {
     var plugin;
 
     const overrideOptions = { useTypescriptIncrementalApi };
@@ -38,6 +23,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
     }
 
     const skipIfIncremental = useTypescriptIncrementalApi ? it.skip : it;
+    
+    afterEach(() => {
+      if (plugin) {
+        plugin.killService();
+        plugin = undefined;
+      }
+    });
 
     /**
      * Implicitly check whether killService was called by checking that
@@ -48,41 +40,41 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       return plugin.service === undefined;
     }
 
-    it('should allow to pass no options', function() {
+    test('should allow to pass no options', () => {
       expect(function() {
         new ForkTsCheckerWebpackPlugin();
-      }).to.not.throw();
+      }).not.toThrowError();
     });
 
-    it('should detect paths', function() {
+    test('should detect paths', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
-      expect(plugin.tsconfig).to.equal('./tsconfig.json');
-      expect(plugin.tslint).to.equal(true);
+      expect(plugin.tsconfig).toBe('./tsconfig.json');
+      expect(plugin.tslint).toBe(true);
     });
 
-    it('should set logger to console by default', function() {
+    test('should set logger to console by default', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({});
 
-      expect(plugin.logger).to.equal(console);
+      expect(plugin.logger).toBe(console);
     });
 
-    it('should set watch to empty array by default', function() {
+    test('should set watch to empty array by default', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({});
 
-      expect(plugin.watch).to.deep.equal([]);
+      expect(plugin.watch).toEqual([]);
     });
 
-    it('should set watch to one element array for string', function() {
+    test('should set watch to one element array for string', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({
         useTypescriptIncrementalApi: false,
         watch: '/test'
       });
 
-      expect(plugin.watch).to.deep.equal(['/test']);
+      expect(plugin.watch).toEqual(['/test']);
     });
 
-    it('should find lint warnings', function(callback) {
+    test('should find lint warnings', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -97,12 +89,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
             stats.compilation.warnings.filter(warning =>
               warning.message.includes('missing whitespace')
             ).length
-          ).to.be.greaterThan(0);
+          ).toBeGreaterThan(0);
         }
       );
     });
 
-    it('should not print warnings when ignoreLintWarnings passed as option', function(callback) {
+    test('should not print warnings when ignoreLintWarnings passed as option', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -117,12 +109,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
             stats.compilation.warnings.filter(warning =>
               warning.message.includes('missing whitespace')
             ).length
-          ).to.be.equal(0);
+          ).toBe(0);
         }
       );
     });
 
-    it('should not mark warnings as errors when ignoreLintWarnings passed as option', function(callback) {
+    test('should not mark warnings as errors when ignoreLintWarnings passed as option', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -137,23 +129,23 @@ function makeCommonTests(useTypescriptIncrementalApi) {
             stats.compilation.errors.filter(error =>
               error.message.includes('missing whitespace')
             ).length
-          ).to.be.equals(0);
+          ).toBe(0);
         }
       );
     });
 
-    it('should find semantic errors', function(callback) {
+    test('should find semantic errors', callback => {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-semantic-error-only.json'
       });
 
       compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).to.be.at.least(1);
+        expect(stats.compilation.errors.length).toBeGreaterThanOrEqual(1);
         callback();
       });
     });
 
-    it('should support custom resolution', function(callback) {
+    test('should support custom resolution', function(callback) {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-weird-resolutions.json',
         resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
@@ -161,7 +153,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       });
 
       compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).to.be.eq(0);
+        expect(stats.compilation.errors.length).toBe(0);
         callback();
       });
     });
@@ -176,12 +168,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       });
 
       compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).to.be.eq(0);
+        expect(stats.compilation.errors.length).toBe(0);
         callback();
       });
     });
 
-    it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
+    test('should fix linting errors with tslintAutofix flag set to true', callback => {
       const fileName = 'lintingError1';
       helpers.testLintAutoFixTest(
         callback,
@@ -193,7 +185,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           ...overrideOptions
         },
         (err, stats, formattedFileContents) => {
-          expect(stats.compilation.warnings.length).to.be.eq(0);
+          expect(stats.compilation.warnings.length).toBe(0);
 
           var fileContents = fs.readFileSync(
             path.resolve(__dirname, `./project/src/${fileName}.ts`),
@@ -201,12 +193,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
               encoding: 'utf-8'
             }
           );
-          expect(fileContents).to.be.eq(formattedFileContents);
+          expect(fileContents).toBe(formattedFileContents);
         }
       );
     });
 
-    it('should not fix linting by default', function(callback) {
+    test('should not fix linting by default', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -216,12 +208,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           ...overrideOptions
         },
         (err, stats) => {
-          expect(stats.compilation.warnings.length).to.be.eq(7);
+          expect(stats.compilation.warnings.length).toBe(7);
         }
       );
     });
 
-    it('should block emit on build mode', function(callback) {
+    test('should block emit on build mode', callback => {
       var compiler = createCompiler();
 
       if ('hooks' in compiler) {
@@ -231,13 +223,13 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         forkTsCheckerHooks.emit.tap(
           'should block emit on build mode',
           function() {
-            expect(true).to.be.true;
+            expect(true).toBe(true);
             callback();
           }
         );
       } else {
         compiler.plugin('fork-ts-checker-emit', function() {
-          expect(true).to.be.true;
+          expect(true).toBe(true);
           callback();
         });
       }
@@ -245,7 +237,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       compiler.run(function() {});
     });
 
-    it('should not block emit on watch mode', function(callback) {
+    test('should not block emit on watch mode', callback => {
       var compiler = createCompiler();
       var watching = compiler.watch({}, function() {});
 
@@ -257,7 +249,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           'should not block emit on watch mode',
           function() {
             watching.close(function() {
-              expect(true).to.be.true;
+              expect(true).toBe(true);
               callback();
             });
           }
@@ -265,14 +257,14 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       } else {
         compiler.plugin('fork-ts-checker-done', function() {
           watching.close(function() {
-            expect(true).to.be.true;
+            expect(true).toBe(true);
             callback();
           });
         });
       }
     });
 
-    it('should block emit if async flag is false', function(callback) {
+    test('should block emit if async flag is false', callback => {
       var compiler = createCompiler({ async: false });
       var watching = compiler.watch({}, function() {});
 
@@ -284,7 +276,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           'should block emit if async flag is false',
           function() {
             watching.close(function() {
-              expect(true).to.be.true;
+              expect(true).toBe(true);
               callback();
             });
           }
@@ -292,14 +284,14 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       } else {
         compiler.plugin('fork-ts-checker-emit', function() {
           watching.close(function() {
-            expect(true).to.be.true;
+            expect(true).toBe(true);
             callback();
           });
         });
       }
     });
 
-    it('kills the service when the watch is done', function(done) {
+    test('kills the service when the watch is done', done => {
       var compiler = createCompiler();
       var watching = compiler.watch({}, function() {});
 
@@ -311,7 +303,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
           'kills the service when the watch is done',
           function() {
             watching.close(function() {
-              expect(killServiceWasCalled()).to.be.true;
+              expect(killServiceWasCalled()).toBe(true);
               done();
             });
           }
@@ -319,36 +311,36 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       } else {
         compiler.plugin('fork-ts-checker-done', function() {
           watching.close(function() {
-            expect(killServiceWasCalled()).to.be.true;
+            expect(killServiceWasCalled()).toBe(true);
             done();
           });
         });
       }
     });
 
-    it('should throw error if config container wrong tsconfig.json path', function() {
+    test('should throw error if config container wrong tsconfig.json path', () => {
       expect(function() {
         createCompiler({
           tsconfig: '/some/path/that/not/exists/tsconfig.json'
         });
-      }).to.throw();
+      }).toThrowError();
     });
 
-    it('should throw error if config container wrong tslint.json path', function() {
+    test('should throw error if config container wrong tslint.json path', () => {
       expect(function() {
         createCompiler({
           tslint: '/some/path/that/not/exists/tslint.json'
         });
-      }).to.throw();
+      }).toThrowError();
     });
 
-    it('should detect tslint path for true option', function() {
+    test('should detect tslint path for true option', () => {
       expect(function() {
         createCompiler({ tslint: true });
-      }).to.not.throw();
+      }).not.toThrowError();
     });
 
-    it('should allow delaying service-start', function(callback) {
+    test('should allow delaying service-start', callback => {
       var compiler = createCompiler();
       var delayed = false;
 
@@ -370,7 +362,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         forkTsCheckerHooks.serviceBeforeStart.tap(
           'should allow delaying service-start',
           function() {
-            expect(delayed).to.be.true;
+            expect(delayed).toBe(true);
             callback();
           }
         );
@@ -384,7 +376,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
         });
 
         compiler.plugin('fork-ts-checker-service-start', function() {
-          expect(delayed).to.be.true;
+          expect(delayed).toBe(true);
           callback();
         });
       }
@@ -392,7 +384,7 @@ function makeCommonTests(useTypescriptIncrementalApi) {
       compiler.run(function() {});
     });
 
-    it('should respect "tslint.json"s hierarchy when config-file not specified', function(callback) {
+    test('should respect "tslint.json"s hierarchy when config-file not specified', callback => {
       helpers.testLintHierarchicalConfigs(
         callback,
         {
@@ -407,12 +399,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
            * twice on "arrow-call-signature" and once on "arrow-parameter"
            * because this rule is overriden inside lib/tslint.json
            * */
-          expect(stats.compilation.warnings.length).to.equal(3);
+          expect(stats.compilation.warnings.length).toBe(3);
         }
       );
     });
 
-    it('should not find syntactic errors when checkSyntacticErrors is false', function(callback) {
+    test('should not find syntactic errors when checkSyntacticErrors is false', callback => {
       var compiler = createCompiler({ checkSyntacticErrors: false }, true);
 
       compiler.run(function(error, stats) {
@@ -422,12 +414,12 @@ function makeCommonTests(useTypescriptIncrementalApi) {
               helpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
-        expect(syntacticErrorNotFoundInStats).to.be.true;
+        expect(syntacticErrorNotFoundInStats).toBe(true);
         callback();
       });
     });
 
-    it('should find syntactic errors when checkSyntacticErrors is true', function(callback) {
+    test('should find syntactic errors when checkSyntacticErrors is true', callback => {
       var compiler = createCompiler({ checkSyntacticErrors: true }, true);
 
       compiler.run(function(error, stats) {
@@ -437,15 +429,14 @@ function makeCommonTests(useTypescriptIncrementalApi) {
               helpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
-        expect(syntacticErrorFoundInStats).to.be.true;
+        expect(syntacticErrorFoundInStats).toBe(true);
         callback();
       });
     });
-  };
-}
+  }
+);
 
-describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', function() {
-  this.timeout(60000);
+describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', () => {
   var plugin;
 
   function createCompiler(
@@ -460,16 +451,23 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     return compiler.webpack;
   }
 
-  it('should work without configuration', function(callback) {
+  afterEach(() => {
+    if (plugin) {
+      plugin.killService();
+      plugin = undefined;
+    }
+  });
+
+  test('should work without configuration', callback => {
     var compiler = createCompiler();
 
     compiler.run(function(err, stats) {
-      expect(stats.compilation.errors.length).to.be.at.least(1);
+      expect(stats.compilation.errors.length).toBeGreaterThanOrEqual(1);
       callback();
     });
   });
 
-  it('should find the same errors on multi-process mode', function(callback) {
+  test('should find the same errors on multi-process mode', callback => {
     var compilerA = createCompiler({
       workers: 1,
       tslint: true
@@ -501,13 +499,13 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     });
 
     function compareResults() {
-      expect(errorsA).to.deep.equal(errorsB);
-      expect(warningsA).to.deep.equal(warningsB);
+      expect(errorsA).toEqual(errorsB);
+      expect(warningsA).toEqual(warningsB);
       callback();
     }
   });
 
-  it('should only show errors matching paths specified in reportFiles when provided', function(callback) {
+  test('should only show errors matching paths specified in reportFiles when provided', callback => {
     var compiler = createCompiler(
       {
         checkSyntacticErrors: true,
@@ -520,13 +518,15 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     // as in that case the compiler will stop looking for further errors when it finds one
     // see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/198#issuecomment-453790649 for details
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(1);
-      expect(stats.compilation.errors[0].file.endsWith('index.ts')).to.be.true;
+      expect(stats.compilation.errors.length).toBe(1);
+      expect(stats.compilation.errors[0]).toEqual(
+        expect.objectContaining({ file: expect.stringMatching(/index.ts$/) })
+      );
       callback();
     });
   });
 
-  it('should handle errors within the IncrementalChecker gracefully as diagnostic', callback => {
+  test('should handle errors within the IncrementalChecker gracefully as diagnostic', callback => {
     var compiler = createCompiler();
     plugin.nodeArgs = [
       `--require`,
@@ -534,8 +534,12 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     ];
 
     compiler.run(function(error, stats) {
-      expect(stats.compilation.errors.length).to.equal(1);
-      expect(stats.compilation.errors[0].message).to.include("I'm an error!");
+      expect(stats.compilation.errors.length).toBe(1);
+      expect(stats.compilation.errors[0]).toEqual(
+        expect.objectContaining({
+          message: expect.stringContaining("I'm an error!")
+        })
+      );
       callback();
     });
   });

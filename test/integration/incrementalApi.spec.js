@@ -7,17 +7,11 @@
  * */
 
 var fs = require('fs');
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-var chai = require('chai');
 var path = require('path');
 var helpers = require('./helpers');
 
-chai.config.truncateThreshold = 0;
-var expect = chai.expect;
-
-describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', function() {
-  this.timeout(60000);
+describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', () => {
+  var plugin;
 
   function createCompiler(
     options,
@@ -25,7 +19,10 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
     entryPoint = './src/index.ts'
   ) {
     options.useTypescriptIncrementalApi = true;
-    return helpers.createCompiler(options, happyPackMode, entryPoint).webpack;
+
+    const compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+    plugin = compiler.plugin;
+    return compiler.webpack;
   }
 
   function createVueCompiler(
@@ -36,18 +33,30 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
     options = options || {};
     options.useTypescriptIncrementalApi = true;
     options.vue = true;
-    return helpers.createVueCompiler(options, happyPackMode, entryPoint);
+    return helpers
+      .createVueCompiler(options, happyPackMode, entryPoint)
+      .then(result => {
+        plugin = result.plugin;
+        return result;
+      });
   }
 
-  it('should not allow multiple workers with incremental API', function() {
+  afterEach(() => {
+    if (plugin) {
+      plugin.killService();
+      plugin = undefined;
+    }
+  });
+
+  test('should not allow multiple workers with incremental API', () => {
     expect(() => {
       createCompiler({
         workers: 5
       });
-    }).to.throw();
+    }).toThrowError();
   });
 
-  it('should fix linting errors with tslintAutofix flag set to true', function(callback) {
+  test('should fix linting errors with tslintAutofix flag set to true', callback => {
     const fileName = 'lintingError1';
     helpers.testLintAutoFixTest(
       callback,
@@ -59,7 +68,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
         tsconfig: false
       },
       (err, stats, formattedFileContents) => {
-        expect(stats.compilation.warnings.length).to.be.eq(0);
+        expect(stats.compilation.warnings.length).toBe(0);
 
         var fileContents = fs.readFileSync(
           path.resolve(__dirname, `./project/src/${fileName}.ts`),
@@ -67,12 +76,12 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
             encoding: 'utf-8'
           }
         );
-        expect(fileContents).to.be.eq(formattedFileContents);
+        expect(fileContents).toBe(formattedFileContents);
       }
     );
   });
 
-  it('should not fix linting by default', function(callback) {
+  test('should not fix linting by default', callback => {
     const fileName = 'lintingError2';
     helpers.testLintAutoFixTest(
       callback,
@@ -82,12 +91,12 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
         tslint: true
       },
       (err, stats) => {
-        expect(stats.compilation.warnings.length).to.be.eq(7);
+        expect(stats.compilation.warnings.length).toBe(7);
       }
     );
   });
 
-  it('should get syntactic diagnostics from Vue program', function(callback) {
+  test('should get syntactic diagnostics from Vue program', callback => {
     createVueCompiler({ checkSyntacticErrors: true }).then(({ compiler }) =>
       compiler.run(function(error, stats) {
         const syntacticErrorFoundInStats = stats.compilation.errors.some(
@@ -96,13 +105,13 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
               helpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
-        expect(syntacticErrorFoundInStats).to.be.true;
+        expect(syntacticErrorFoundInStats).toBe(true);
         callback();
       })
     );
   });
 
-  it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', function(callback) {
+  test('should not find syntactic errors in Vue program when checkSyntacticErrors is false', callback => {
     createVueCompiler({ checkSyntacticErrors: false }).then(({ compiler }) =>
       compiler.run(function(error, stats) {
         const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
@@ -111,7 +120,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', f
               helpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
-        expect(syntacticErrorNotFoundInStats).to.be.true;
+        expect(syntacticErrorNotFoundInStats).toBe(true);
         callback();
       })
     );

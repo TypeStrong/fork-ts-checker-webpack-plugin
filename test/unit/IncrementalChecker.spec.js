@@ -1,48 +1,31 @@
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-var expect = require('chai').expect;
 var path = require('path');
 var minimatch = require('minimatch');
-var mockRequire = require('mock-require');
-var sinon = require('sinon');
+var typescript = require('typescript');
+var IncrementalChecker = require('../../lib/IncrementalChecker')
+  .IncrementalChecker;
 
-describe('[UNIT] IncrementalChecker', function() {
-  var IncrementalChecker;
-  var parseJsonConfigFileContentStub;
-
-  beforeEach(function() {
-    parseJsonConfigFileContentStub = sinon.spy(function(tsconfig) {
-      return {
-        options: tsconfig.compilerOptions
-      };
-    });
-
-    var readConfigFile = function() {
-      return {
-        config: {
-          compilerOptions: {
-            foo: true
-          }
-        }
-      };
+jest.mock('typescript', () => ({
+  parseJsonConfigFileContent: jest.fn(function(tsconfig) {
+    return {
+      options: tsconfig.compilerOptions
     };
+  }),
+  readConfigFile() {
+    return {
+      config: {
+        compilerOptions: {
+          foo: true
+        }
+      }
+    };
+  },
 
-    mockRequire('typescript', {
-      parseJsonConfigFileContent: parseJsonConfigFileContentStub,
-      readConfigFile,
-      sys: {}
-    });
+  sys: {}
+}));
 
-    IncrementalChecker = mockRequire.reRequire('../../lib/IncrementalChecker')
-      .IncrementalChecker;
-  });
-
-  afterEach(function() {
-    mockRequire.stopAll();
-  });
-
-  describe('isFileExcluded', function() {
-    it('should properly filter definition files and listed exclusions', function() {
+describe('[UNIT] IncrementalChecker', () => {
+  describe('isFileExcluded', () => {
+    test('should properly filter definition files and listed exclusions', () => {
       var linterConfig = {
         linterOptions: {
           exclude: ['src/formatter/**/*.ts']
@@ -68,15 +51,15 @@ describe('[UNIT] IncrementalChecker', function() {
         return IncrementalChecker.isFileExcluded(p, exclusions);
       });
 
-      expect(pathsAreExcluded[0]).to.be.true;
-      expect(pathsAreExcluded[1]).to.be.true;
-      expect(pathsAreExcluded[2]).to.be.false;
-      expect(pathsAreExcluded[3]).to.be.true;
+      expect(pathsAreExcluded[0]).toBe(true);
+      expect(pathsAreExcluded[1]).toBe(true);
+      expect(pathsAreExcluded[2]).toBe(false);
+      expect(pathsAreExcluded[3]).toBe(true);
     });
   });
 
-  describe('loadProgramConfig', function() {
-    it('merges compilerOptions into config file options', function() {
+  describe('loadProgramConfig', () => {
+    test('merges compilerOptions into config file options', () => {
       IncrementalChecker.loadProgramConfig(
         require('typescript'),
         'tsconfig.foo.json',
@@ -85,13 +68,17 @@ describe('[UNIT] IncrementalChecker', function() {
         }
       );
 
-      expect(parseJsonConfigFileContentStub.calledOnce).to.equal(true);
-      expect(parseJsonConfigFileContentStub.args[0][0]).to.deep.equal({
-        compilerOptions: {
-          foo: true,
-          bar: false
-        }
-      });
+      expect(typescript.parseJsonConfigFileContent).toHaveBeenCalledTimes(1);
+      expect(typescript.parseJsonConfigFileContent).toHaveBeenLastCalledWith(
+        {
+          compilerOptions: {
+            foo: true,
+            bar: false
+          }
+        },
+        expect.anything(),
+        expect.anything()
+      );
     });
   });
 });

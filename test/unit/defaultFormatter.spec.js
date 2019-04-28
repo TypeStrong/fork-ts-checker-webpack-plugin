@@ -1,14 +1,11 @@
-var describe = require('mocha').describe;
-var it = require('mocha').it;
 var os = require('os');
-var expect = require('chai').expect;
 var NormalizedMessage = require('../../lib/NormalizedMessage')
   .NormalizedMessage;
 var createDefaultFormatter = require('../../lib/formatter/defaultFormatter')
   .createDefaultFormatter;
 
-describe('[UNIT] formatter/defaultFormatter', function() {
-  it('should format normalized diagnostic message', function() {
+describe('[UNIT] formatter/defaultFormatter', () => {
+  test('should format normalized diagnostic message', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: 123,
@@ -21,12 +18,12 @@ describe('[UNIT] formatter/defaultFormatter', function() {
     var formatter = createDefaultFormatter();
     var formattedMessage = formatter(message, false);
 
-    expect(formattedMessage).to.be.equal(
+    expect(formattedMessage).toBe(
       'ERROR in /some/file.ts(1,5):' + os.EOL + 'TS123: Some diagnostic content'
     );
   });
 
-  it('should format normalized lint message', function() {
+  test('should format normalized lint message', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: 'some-lint-rule',
@@ -39,7 +36,7 @@ describe('[UNIT] formatter/defaultFormatter', function() {
     var formatter = createDefaultFormatter();
     var formattedMessage = formatter(message, false);
 
-    expect(formattedMessage).to.be.equal(
+    expect(formattedMessage).toBe(
       'WARNING in /some/file.ts(2,6):' +
         os.EOL +
         'some-lint-rule: Some lint content'

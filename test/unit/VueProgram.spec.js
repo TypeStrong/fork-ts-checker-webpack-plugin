@@ -1,23 +1,16 @@
-var ts = require('typescript');
-var describe = require('mocha').describe;
-var it = require('mocha').it;
-var expect = require('chai').expect;
-var mockRequire = require('mock-require');
-var sinon = require('sinon');
 var unixify = require('unixify');
+var ts = require('typescript');
+var VueProgram = require('../../lib/VueProgram').VueProgram;
 
-describe('[UNIT] VueProgram', function() {
-  var VueProgram;
-  var parseJsonConfigFileContentStub;
-
-  beforeEach(function() {
-    parseJsonConfigFileContentStub = sinon.spy(function(tsconfig) {
+jest.mock('typescript', () => {
+  var originalTs = jest.requireActual('typescript');
+  return {
+    parseJsonConfigFileContent: jest.fn(function(tsconfig) {
       return {
         options: tsconfig.compilerOptions
       };
-    });
-
-    var readConfigFile = function() {
+    }),
+    readConfigFile() {
       return {
         config: {
           compilerOptions: {
@@ -25,34 +18,25 @@ describe('[UNIT] VueProgram', function() {
           }
         }
       };
-    };
+    },
+    sys: {},
+    ScriptKind: originalTs.ScriptKind
+  };
+});
 
-    mockRequire('typescript', {
-      parseJsonConfigFileContent: parseJsonConfigFileContentStub,
-      readConfigFile,
-      sys: {},
-      ScriptKind: ts.ScriptKind
-    });
-
-    VueProgram = mockRequire.reRequire('../../lib/VueProgram').VueProgram;
+describe('[UNIT] VueProgram', () => {
+  test('should determine if file is a Vue file', () => {
+    expect(VueProgram.isVue('./test.vue')).toBe(true);
+    expect(VueProgram.isVue('../test.vue')).toBe(true);
+    expect(VueProgram.isVue('../../test.vue')).toBe(true);
+    expect(VueProgram.isVue('@/test.vue')).toBe(true);
+    expect(VueProgram.isVue('~/test.vue')).toBe(true);
+    expect(VueProgram.isVue('../../.vue')).toBe(false);
+    expect(VueProgram.isVue('./test.css')).toBe(false);
+    expect(VueProgram.isVue('./')).toBe(false);
   });
 
-  afterEach(function() {
-    mockRequire.stopAll();
-  });
-
-  it('should determine if file is a Vue file', function() {
-    expect(VueProgram.isVue('./test.vue')).to.be.true;
-    expect(VueProgram.isVue('../test.vue')).to.be.true;
-    expect(VueProgram.isVue('../../test.vue')).to.be.true;
-    expect(VueProgram.isVue('@/test.vue')).to.be.true;
-    expect(VueProgram.isVue('~/test.vue')).to.be.true;
-    expect(VueProgram.isVue('../../.vue')).to.be.false;
-    expect(VueProgram.isVue('./test.css')).to.be.false;
-    expect(VueProgram.isVue('./')).to.be.false;
-  });
-
-  it('should properly resolve relative module names', function() {
+  test('should properly resolve relative module names', () => {
     var basedir = '/base/dir';
     var containingFile = '/con/tain/ing/main.ts';
     var options = {
@@ -72,14 +56,12 @@ describe('[UNIT] VueProgram', function() {
       );
     });
 
-    expect(unixify(resolvedModuleNames[0])).to.be.equal(
-      '/con/tain/ing/test.vue'
-    );
-    expect(unixify(resolvedModuleNames[1])).to.be.equal('/con/tain/test.vue');
-    expect(unixify(resolvedModuleNames[2])).to.be.equal('/con/test.vue');
+    expect(unixify(resolvedModuleNames[0])).toBe('/con/tain/ing/test.vue');
+    expect(unixify(resolvedModuleNames[1])).toBe('/con/tain/test.vue');
+    expect(unixify(resolvedModuleNames[2])).toBe('/con/test.vue');
   });
 
-  it('should properly resolve wildcard module names', function() {
+  test('should properly resolve wildcard module names', () => {
     var basedir = '/base/dir';
     var containingFile = '/con/tain/ing/main.ts';
     var options = {};
@@ -91,7 +73,7 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(unixify(resolvedModuleName)).to.be.equal('/base/dir/src/test.vue');
+    expect(unixify(resolvedModuleName)).toBe('/base/dir/src/test.vue');
 
     options.baseUrl = '/baseurl1';
     resolvedModuleName = VueProgram.resolveNonTsModuleName(
@@ -100,7 +82,7 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(unixify(resolvedModuleName)).to.be.equal('/baseurl1/src/test.vue');
+    expect(unixify(resolvedModuleName)).toBe('/baseurl1/src/test.vue');
 
     options.baseUrl = '/baseurl2';
     options.paths = { '@/*': ['src1/*'] };
@@ -110,7 +92,7 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(unixify(resolvedModuleName)).to.be.equal('/baseurl2/src1/test.vue');
+    expect(unixify(resolvedModuleName)).toBe('/baseurl2/src1/test.vue');
 
     options.baseUrl = '/baseurl3';
     options.paths = { '@/*': ['src1/src2/*'] };
@@ -120,12 +102,10 @@ describe('[UNIT] VueProgram', function() {
       basedir,
       options
     );
-    expect(unixify(resolvedModuleName)).to.be.equal(
-      '/baseurl3/src1/src2/test.vue'
-    );
+    expect(unixify(resolvedModuleName)).toBe('/baseurl3/src1/src2/test.vue');
   });
 
-  it('should extract script block', function() {
+  test('should extract script block', () => {
     var content = [
       '<script lang="ts">',
       'import Vue from "vue";',
@@ -135,15 +115,15 @@ describe('[UNIT] VueProgram', function() {
 
     var result = VueProgram.resolveScriptBlock(ts, content);
 
-    expect(result.scriptKind).to.be.equal(ts.ScriptKind.TS);
-    expect(result.content).to.be.equal(
+    expect(result.scriptKind).toBe(ts.ScriptKind.TS);
+    expect(result.content).toBe(
       ['', 'import Vue from "vue";', 'export default Vue.extend({});', ''].join(
         '\n'
       )
     );
   });
 
-  it('should pad lines', function() {
+  test('should pad lines', () => {
     var content = [
       '<template>',
       '  <p>Hello</p>',
@@ -157,7 +137,7 @@ describe('[UNIT] VueProgram', function() {
 
     var result = VueProgram.resolveScriptBlock(ts, content);
 
-    expect(result.content).to.be.equal(
+    expect(result.content).toBe(
       [
         '//',
         '//',
@@ -171,30 +151,34 @@ describe('[UNIT] VueProgram', function() {
     );
   });
 
-  describe('loadProgramConfig', function() {
-    it('sets allowNonTsExtensions to true on returned options', function() {
+  describe('loadProgramConfig', () => {
+    test('sets allowNonTsExtensions to true on returned options', () => {
       var result = VueProgram.loadProgramConfig(
         require('typescript'),
         'tsconfig.foo.json',
         {}
       );
 
-      expect(result.options.allowNonTsExtensions).to.equal(true);
+      expect(result.options.allowNonTsExtensions).toBe(true);
     });
 
-    it('merges compilerOptions into config file options', function() {
+    test('merges compilerOptions into config file options', () => {
       VueProgram.loadProgramConfig(require('typescript'), 'tsconfig.foo.json', {
         bar: false
       });
 
-      expect(parseJsonConfigFileContentStub.calledOnce).to.equal(true);
-      expect(parseJsonConfigFileContentStub.args[0][0]).to.deep.equal({
-        compilerOptions: {
-          allowNonTsExtensions: true,
-          foo: true,
-          bar: false
-        }
-      });
+      expect(ts.parseJsonConfigFileContent).toHaveBeenCalledTimes(1);
+      expect(ts.parseJsonConfigFileContent).toHaveBeenLastCalledWith(
+        {
+          compilerOptions: {
+            allowNonTsExtensions: true,
+            foo: true,
+            bar: false
+          }
+        },
+        expect.anything(),
+        expect.anything()
+      );
     });
   });
 });

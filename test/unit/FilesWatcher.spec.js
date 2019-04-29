@@ -28,14 +28,14 @@ describe('[UNIT] FilesWatcher', () => {
     mockRequire.stopAll();
   });
 
-  test('should check if file is supported', () => {
+  it('should check if file is supported', () => {
     expect(watcher.isFileSupported('/foo.ext1')).toBe(true);
     expect(watcher.isFileSupported('/foo.ext2')).toBe(true);
     expect(watcher.isFileSupported('/foo.txt')).toBe(false);
     expect(watcher.isFileSupported('/foo.ext1.txt')).toBe(false);
   });
 
-  test('should check if is watching file', () => {
+  it('should check if is watching file', () => {
     expect(watcher.isWatchingFile('/test/a.ext1')).toBe(false);
     expect(watcher.isWatchingFile('/test/a.txt')).toBe(false);
     expect(watcher.isWatchingFile('/test')).toBe(false);
@@ -49,7 +49,7 @@ describe('[UNIT] FilesWatcher', () => {
     expect(watcher.isWatchingFile('/foo/a.ext1')).toBe(false);
   });
 
-  test('should check if watcher is watching', () => {
+  it('should check if watcher is watching', () => {
     expect(watcher.isWatching()).toBe(false);
     watcher.watch();
     expect(watcher.isWatching()).toBe(true);
@@ -58,7 +58,7 @@ describe('[UNIT] FilesWatcher', () => {
     }).toThrowError(Error);
   });
 
-  test('should add and remove listeners', () => {
+  it('should add and remove listeners', () => {
     var listenerA = function() {};
     var listenerB = function() {};
 
@@ -87,7 +87,7 @@ describe('[UNIT] FilesWatcher', () => {
     expect(watcher.listeners['foo']).toBeUndefined();
   });
 
-  test('should watch filesystem using chokidar', () => {
+  it('should watch filesystem using chokidar', () => {
     expect(watchStub).not.toHaveBeenCalled();
 
     var changeListenerA = jest.fn();

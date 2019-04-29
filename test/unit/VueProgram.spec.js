@@ -25,7 +25,7 @@ jest.mock('typescript', () => {
 });
 
 describe('[UNIT] VueProgram', () => {
-  test('should determine if file is a Vue file', () => {
+  it('should determine if file is a Vue file', () => {
     expect(VueProgram.isVue('./test.vue')).toBe(true);
     expect(VueProgram.isVue('../test.vue')).toBe(true);
     expect(VueProgram.isVue('../../test.vue')).toBe(true);
@@ -36,7 +36,7 @@ describe('[UNIT] VueProgram', () => {
     expect(VueProgram.isVue('./')).toBe(false);
   });
 
-  test('should properly resolve relative module names', () => {
+  it('should properly resolve relative module names', () => {
     var basedir = '/base/dir';
     var containingFile = '/con/tain/ing/main.ts';
     var options = {
@@ -61,7 +61,7 @@ describe('[UNIT] VueProgram', () => {
     expect(unixify(resolvedModuleNames[2])).toBe('/con/test.vue');
   });
 
-  test('should properly resolve wildcard module names', () => {
+  it('should properly resolve wildcard module names', () => {
     var basedir = '/base/dir';
     var containingFile = '/con/tain/ing/main.ts';
     var options = {};
@@ -105,7 +105,7 @@ describe('[UNIT] VueProgram', () => {
     expect(unixify(resolvedModuleName)).toBe('/baseurl3/src1/src2/test.vue');
   });
 
-  test('should extract script block', () => {
+  it('should extract script block', () => {
     var content = [
       '<script lang="ts">',
       'import Vue from "vue";',
@@ -123,7 +123,7 @@ describe('[UNIT] VueProgram', () => {
     );
   });
 
-  test('should pad lines', () => {
+  it('should pad lines', () => {
     var content = [
       '<template>',
       '  <p>Hello</p>',
@@ -152,7 +152,7 @@ describe('[UNIT] VueProgram', () => {
   });
 
   describe('loadProgramConfig', () => {
-    test('sets allowNonTsExtensions to true on returned options', () => {
+    it('sets allowNonTsExtensions to true on returned options', () => {
       var result = VueProgram.loadProgramConfig(
         require('typescript'),
         'tsconfig.foo.json',
@@ -162,7 +162,7 @@ describe('[UNIT] VueProgram', () => {
       expect(result.options.allowNonTsExtensions).toBe(true);
     });
 
-    test('merges compilerOptions into config file options', () => {
+    it('merges compilerOptions into config file options', () => {
       VueProgram.loadProgramConfig(require('typescript'), 'tsconfig.foo.json', {
         bar: false
       });

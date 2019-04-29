@@ -4,7 +4,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
   });
 
   describe('typescript', () => {
-    test('should throw if typescript not present', () => {
+    it('should throw if typescript not present', () => {
       jest.setMock('typescript', () => undefined);
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -13,7 +13,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       }).toThrowError(Error);
     });
 
-    test('should not throw if typescript version >= 2.1.0', () => {
+    it('should not throw if typescript version >= 2.1.0', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -22,7 +22,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       }).not.toThrowError();
     });
 
-    test('should throw if typescript version < 2.1.0', () => {
+    it('should throw if typescript version < 2.1.0', () => {
       jest.setMock('typescript', { version: '2.0.8' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -33,7 +33,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
   });
 
   describe('tslint', () => {
-    test('should throw if tslint not present', () => {
+    it('should throw if tslint not present', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       jest.setMock('tslint', undefined);
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
@@ -43,7 +43,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       }).toThrowError(Error);
     });
 
-    test('should not throw if tslint version >= 4.0.0', () => {
+    it('should not throw if tslint version >= 4.0.0', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       jest.setMock('tslint', { Linter: { VERSION: '4.0.0' } });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
@@ -53,7 +53,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       }).not.toThrowError();
     });
 
-    test('should throw if tslint version < 4.0.0', () => {
+    it('should throw if tslint version < 4.0.0', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       jest.setMock('tslint', { Linter: { VERSION: '3.15.1' } });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
@@ -65,7 +65,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
   });
 
   describe('useTypescriptIncrementalApi', () => {
-    test('should be true if useTypescriptIncrementalApi: true supplied', () => {
+    it('should be true if useTypescriptIncrementalApi: true supplied', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -75,7 +75,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       ).toBe(true);
     });
 
-    test('should be true if useTypescriptIncrementalApi: false supplied', () => {
+    it('should be true if useTypescriptIncrementalApi: false supplied', () => {
       jest.setMock('typescript', { version: '3.0.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -85,7 +85,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       ).toBe(false);
     });
 
-    test('should be false if useTypescriptIncrementalApi not supplied and typescript version < 3.0.0', () => {
+    it('should be false if useTypescriptIncrementalApi not supplied and typescript version < 3.0.0', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -94,7 +94,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       );
     });
 
-    test('should be true if useTypescriptIncrementalApi not supplied and typescript version >= 3.0.0', () => {
+    it('should be true if useTypescriptIncrementalApi not supplied and typescript version >= 3.0.0', () => {
       jest.setMock('typescript', { version: '3.0.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -103,7 +103,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       );
     });
 
-    test('should be false if useTypescriptIncrementalApi not supplied and typescript version < 3.0.0 and vue is true', () => {
+    it('should be false if useTypescriptIncrementalApi not supplied and typescript version < 3.0.0 and vue is true', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
@@ -113,7 +113,7 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       ).toBe(false);
     });
 
-    test('should be false if useTypescriptIncrementalApi not supplied and typescript version >= 3.0.0 and vue is true', () => {
+    it('should be false if useTypescriptIncrementalApi not supplied and typescript version >= 3.0.0 and vue is true', () => {
       jest.setMock('typescript', { version: '3.0.0' });
       var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 

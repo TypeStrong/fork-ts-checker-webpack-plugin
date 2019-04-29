@@ -23,7 +23,7 @@ describe.each([[true], [false]])(
     }
 
     const skipIfIncremental = useTypescriptIncrementalApi ? it.skip : it;
-    
+
     afterEach(() => {
       if (plugin) {
         plugin.killService();
@@ -40,32 +40,32 @@ describe.each([[true], [false]])(
       return plugin.service === undefined;
     }
 
-    test('should allow to pass no options', () => {
+    it('should allow to pass no options', () => {
       expect(function() {
         new ForkTsCheckerWebpackPlugin();
       }).not.toThrowError();
     });
 
-    test('should detect paths', () => {
+    it('should detect paths', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
       expect(plugin.tsconfig).toBe('./tsconfig.json');
       expect(plugin.tslint).toBe(true);
     });
 
-    test('should set logger to console by default', () => {
+    it('should set logger to console by default', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({});
 
       expect(plugin.logger).toBe(console);
     });
 
-    test('should set watch to empty array by default', () => {
+    it('should set watch to empty array by default', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({});
 
       expect(plugin.watch).toEqual([]);
     });
 
-    test('should set watch to one element array for string', () => {
+    it('should set watch to one element array for string', () => {
       var plugin = new ForkTsCheckerWebpackPlugin({
         useTypescriptIncrementalApi: false,
         watch: '/test'
@@ -74,7 +74,7 @@ describe.each([[true], [false]])(
       expect(plugin.watch).toEqual(['/test']);
     });
 
-    test('should find lint warnings', callback => {
+    it('should find lint warnings', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -94,7 +94,7 @@ describe.each([[true], [false]])(
       );
     });
 
-    test('should not print warnings when ignoreLintWarnings passed as option', callback => {
+    it('should not print warnings when ignoreLintWarnings passed as option', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -114,7 +114,7 @@ describe.each([[true], [false]])(
       );
     });
 
-    test('should not mark warnings as errors when ignoreLintWarnings passed as option', callback => {
+    it('should not mark warnings as errors when ignoreLintWarnings passed as option', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -134,7 +134,7 @@ describe.each([[true], [false]])(
       );
     });
 
-    test('should find semantic errors', callback => {
+    it('should find semantic errors', callback => {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-semantic-error-only.json'
       });
@@ -145,7 +145,7 @@ describe.each([[true], [false]])(
       });
     });
 
-    test('should support custom resolution', function(callback) {
+    it('should support custom resolution', function(callback) {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-weird-resolutions.json',
         resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
@@ -173,7 +173,7 @@ describe.each([[true], [false]])(
       });
     });
 
-    test('should fix linting errors with tslintAutofix flag set to true', callback => {
+    it('should fix linting errors with tslintAutofix flag set to true', callback => {
       const fileName = 'lintingError1';
       helpers.testLintAutoFixTest(
         callback,
@@ -198,7 +198,7 @@ describe.each([[true], [false]])(
       );
     });
 
-    test('should not fix linting by default', callback => {
+    it('should not fix linting by default', callback => {
       const fileName = 'lintingError2';
       helpers.testLintAutoFixTest(
         callback,
@@ -213,7 +213,7 @@ describe.each([[true], [false]])(
       );
     });
 
-    test('should block emit on build mode', callback => {
+    it('should block emit on build mode', callback => {
       var compiler = createCompiler();
 
       if ('hooks' in compiler) {
@@ -237,7 +237,7 @@ describe.each([[true], [false]])(
       compiler.run(function() {});
     });
 
-    test('should not block emit on watch mode', callback => {
+    it('should not block emit on watch mode', callback => {
       var compiler = createCompiler();
       var watching = compiler.watch({}, function() {});
 
@@ -264,7 +264,7 @@ describe.each([[true], [false]])(
       }
     });
 
-    test('should block emit if async flag is false', callback => {
+    it('should block emit if async flag is false', callback => {
       var compiler = createCompiler({ async: false });
       var watching = compiler.watch({}, function() {});
 
@@ -291,7 +291,7 @@ describe.each([[true], [false]])(
       }
     });
 
-    test('kills the service when the watch is done', done => {
+    it('kills the service when the watch is done', done => {
       var compiler = createCompiler();
       var watching = compiler.watch({}, function() {});
 
@@ -318,7 +318,7 @@ describe.each([[true], [false]])(
       }
     });
 
-    test('should throw error if config container wrong tsconfig.json path', () => {
+    it('should throw error if config container wrong tsconfig.json path', () => {
       expect(function() {
         createCompiler({
           tsconfig: '/some/path/that/not/exists/tsconfig.json'
@@ -326,7 +326,7 @@ describe.each([[true], [false]])(
       }).toThrowError();
     });
 
-    test('should throw error if config container wrong tslint.json path', () => {
+    it('should throw error if config container wrong tslint.json path', () => {
       expect(function() {
         createCompiler({
           tslint: '/some/path/that/not/exists/tslint.json'
@@ -334,13 +334,13 @@ describe.each([[true], [false]])(
       }).toThrowError();
     });
 
-    test('should detect tslint path for true option', () => {
+    it('should detect tslint path for true option', () => {
       expect(function() {
         createCompiler({ tslint: true });
       }).not.toThrowError();
     });
 
-    test('should allow delaying service-start', callback => {
+    it('should allow delaying service-start', callback => {
       var compiler = createCompiler();
       var delayed = false;
 
@@ -384,7 +384,7 @@ describe.each([[true], [false]])(
       compiler.run(function() {});
     });
 
-    test('should respect "tslint.json"s hierarchy when config-file not specified', callback => {
+    it('should respect "tslint.json"s hierarchy when config-file not specified', callback => {
       helpers.testLintHierarchicalConfigs(
         callback,
         {
@@ -404,7 +404,7 @@ describe.each([[true], [false]])(
       );
     });
 
-    test('should not find syntactic errors when checkSyntacticErrors is false', callback => {
+    it('should not find syntactic errors when checkSyntacticErrors is false', callback => {
       var compiler = createCompiler({ checkSyntacticErrors: false }, true);
 
       compiler.run(function(error, stats) {
@@ -419,7 +419,7 @@ describe.each([[true], [false]])(
       });
     });
 
-    test('should find syntactic errors when checkSyntacticErrors is true', callback => {
+    it('should find syntactic errors when checkSyntacticErrors is true', callback => {
       var compiler = createCompiler({ checkSyntacticErrors: true }, true);
 
       compiler.run(function(error, stats) {
@@ -458,7 +458,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     }
   });
 
-  test('should work without configuration', callback => {
+  it('should work without configuration', callback => {
     var compiler = createCompiler();
 
     compiler.run(function(err, stats) {
@@ -467,7 +467,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     });
   });
 
-  test('should find the same errors on multi-process mode', callback => {
+  it('should find the same errors on multi-process mode', callback => {
     var compilerA = createCompiler({
       workers: 1,
       tslint: true
@@ -505,7 +505,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     }
   });
 
-  test('should only show errors matching paths specified in reportFiles when provided', callback => {
+  it('should only show errors matching paths specified in reportFiles when provided', callback => {
     var compiler = createCompiler(
       {
         checkSyntacticErrors: true,
@@ -526,7 +526,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     });
   });
 
-  test('should handle errors within the IncrementalChecker gracefully as diagnostic', callback => {
+  it('should handle errors within the IncrementalChecker gracefully as diagnostic', callback => {
     var compiler = createCompiler();
     plugin.nodeArgs = [
       `--require`,

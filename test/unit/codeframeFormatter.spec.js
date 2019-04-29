@@ -25,7 +25,7 @@ describe('[UNIT] formatter/codeframeFormatter', () => {
     mockFs.restore();
   });
 
-  test('should format normalized diagnostic message', () => {
+  it('should format normalized diagnostic message', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: 123,
@@ -54,7 +54,7 @@ describe('[UNIT] formatter/codeframeFormatter', () => {
     );
   });
 
-  test('should format normalized lint message', () => {
+  it('should format normalized lint message', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: 'some-lint-rule',
@@ -85,7 +85,7 @@ describe('[UNIT] formatter/codeframeFormatter', () => {
     );
   });
 
-  test('should format normalized message without file', () => {
+  it('should format normalized message without file', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: 'some-lint-rule',

@@ -10,7 +10,7 @@ describe('[UNIT] FilesRegister', () => {
     });
   });
 
-  test('should add and remove files', () => {
+  it('should add and remove files', () => {
     register.add('/test');
     register.add('/test2');
     expect(register.has('/test')).toBe(true);
@@ -27,7 +27,7 @@ describe('[UNIT] FilesRegister', () => {
     expect(register.has('/test2')).toBe(false);
   });
 
-  test('should get file that exists in register', () => {
+  it('should get file that exists in register', () => {
     register.add('/test');
     expect(function() {
       register.get('/test');
@@ -39,7 +39,7 @@ describe('[UNIT] FilesRegister', () => {
     expect(Object.keys(register.get('/test'))).toEqual(['mtime', 'data']);
   });
 
-  test('should list all keys in register', () => {
+  it('should list all keys in register', () => {
     register.add('/test');
     register.add('/test/foo');
     register.add('/test/foo/bar');
@@ -49,7 +49,7 @@ describe('[UNIT] FilesRegister', () => {
     expect(register.keys()).toEqual(['/test/foo', '/test/foo/bar']);
   });
 
-  test('should get data from file', () => {
+  it('should get data from file', () => {
     register.add('/test');
     expect(register.getData('/test')).toEqual({ test: true });
     expect(function() {
@@ -57,7 +57,7 @@ describe('[UNIT] FilesRegister', () => {
     }).toThrowError(Error);
   });
 
-  test('should ensure if file exists', () => {
+  it('should ensure if file exists', () => {
     expect(register.has('/test')).toBe(false);
     register.ensure('/test');
     expect(register.has('/test')).toBe(true);
@@ -67,7 +67,7 @@ describe('[UNIT] FilesRegister', () => {
     expect(reference).toBe(register.get('/test'));
   });
 
-  test('should mutate existing data', () => {
+  it('should mutate existing data', () => {
     register.add('/test');
     var dataReference = register.getData('/test');
     expect(dataReference.test).toBe(true);
@@ -78,7 +78,7 @@ describe('[UNIT] FilesRegister', () => {
     expect(dataReference.test).toBe(false);
   });
 
-  test('should set mtime and reset data if mtime changes', () => {
+  it('should set mtime and reset data if mtime changes', () => {
     register.add('/test');
     register.mutateData('/test', function(data) {
       data.test = false;

@@ -27,7 +27,7 @@ describe('[UNIT] NormalizedMessage', () => {
     });
   });
 
-  test('should create new message', () => {
+  it('should create new message', () => {
     expect(diagnosticMessage.type).toBe('diagnostic');
     expect(diagnosticMessage.code).toBe(123);
     expect(diagnosticMessage.severity).toBe('error');
@@ -37,7 +37,7 @@ describe('[UNIT] NormalizedMessage', () => {
     expect(diagnosticMessage.character).toBe(12);
   });
 
-  test('should serialize and create from json', () => {
+  it('should serialize and create from json', () => {
     var json = diagnosticMessage.toJSON();
 
     expect(typeof json).toBe('object');
@@ -54,28 +54,28 @@ describe('[UNIT] NormalizedMessage', () => {
     expect(jsonMessage.character).toBe(diagnosticMessage.character);
   });
 
-  test('should check type', () => {
+  it('should check type', () => {
     expect(diagnosticMessage.isDiagnosticType()).toBe(true);
     expect(diagnosticMessage.isLintType()).toBe(false);
     expect(lintMessage.isDiagnosticType()).toBe(false);
     expect(lintMessage.isLintType()).toBe(true);
   });
 
-  test('should return formatted code', () => {
+  it('should return formatted code', () => {
     expect(diagnosticMessage.getFormattedCode()).toBe(
       'TS' + diagnosticMessage.code
     );
     expect(lintMessage.getFormattedCode()).toBe(lintMessage.code);
   });
 
-  test('should check severity', () => {
+  it('should check severity', () => {
     expect(diagnosticMessage.isErrorSeverity()).toBe(true);
     expect(diagnosticMessage.isWarningSeverity()).toBe(false);
     expect(lintMessage.isErrorSeverity()).toBe(false);
     expect(lintMessage.isWarningSeverity()).toBe(true);
   });
 
-  test('should compare numbers in asc', () => {
+  it('should compare numbers in asc', () => {
     expect(NormalizedMessage.compareNumbers(123, 126)).toBeLessThan(0);
     expect(NormalizedMessage.compareNumbers(-123, 126)).toBeLessThan(0);
     expect(NormalizedMessage.compareNumbers(-126, -123)).toBeLessThan(0);
@@ -87,7 +87,7 @@ describe('[UNIT] NormalizedMessage', () => {
     expect(NormalizedMessage.compareNumbers(-15, -15)).toBe(0);
   });
 
-  test('should compare strings in asc', () => {
+  it('should compare strings in asc', () => {
     expect(NormalizedMessage.compareOptionalStrings('abc', 'xyz')).toBeLessThan(
       0
     );
@@ -113,7 +113,7 @@ describe('[UNIT] NormalizedMessage', () => {
     expect(NormalizedMessage.compareOptionalStrings(null, null)).toBe(0);
   });
 
-  test('should compare severities in asc', () => {
+  it('should compare severities in asc', () => {
     expect(
       NormalizedMessage.compareSeverities('warning', 'error')
     ).toBeLessThan(0);
@@ -134,7 +134,7 @@ describe('[UNIT] NormalizedMessage', () => {
     ).toBe(0);
   });
 
-  test('should compare types in asc', () => {
+  it('should compare types in asc', () => {
     expect(NormalizedMessage.compareTypes('lint', 'diagnostic')).toBeLessThan(
       0
     );
@@ -153,7 +153,7 @@ describe('[UNIT] NormalizedMessage', () => {
     );
   });
 
-  test('should compare messages', () => {
+  it('should compare messages', () => {
     var messageA = diagnosticMessage;
     function buildMessage(diff) {
       return NormalizedMessage.createFromJSON({
@@ -189,7 +189,7 @@ describe('[UNIT] NormalizedMessage', () => {
     ).toBeGreaterThan(0);
   });
 
-  test('should check if messages are equal', () => {
+  it('should check if messages are equal', () => {
     var messageA = diagnosticMessage;
     var messageB = NormalizedMessage.createFromJSON(diagnosticMessage.toJSON());
     var messageC = lintMessage;
@@ -203,7 +203,7 @@ describe('[UNIT] NormalizedMessage', () => {
     expect(NormalizedMessage.equals(messageC, messageD)).toBe(true);
   });
 
-  test('should deduplicate list of messages', () => {
+  it('should deduplicate list of messages', () => {
     var messageA = diagnosticMessage;
     var messageB = NormalizedMessage.createFromJSON(diagnosticMessage.toJSON());
     var messageC = lintMessage;

@@ -25,7 +25,7 @@ jest.mock('typescript', () => ({
 
 describe('[UNIT] IncrementalChecker', () => {
   describe('isFileExcluded', () => {
-    test('should properly filter definition files and listed exclusions', () => {
+    it('should properly filter definition files and listed exclusions', () => {
       var linterConfig = {
         linterOptions: {
           exclude: ['src/formatter/**/*.ts']
@@ -59,7 +59,7 @@ describe('[UNIT] IncrementalChecker', () => {
   });
 
   describe('loadProgramConfig', () => {
-    test('merges compilerOptions into config file options', () => {
+    it('merges compilerOptions into config file options', () => {
       IncrementalChecker.loadProgramConfig(
         require('typescript'),
         'tsconfig.foo.json',

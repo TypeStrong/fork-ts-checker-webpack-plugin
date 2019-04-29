@@ -48,7 +48,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     }
   });
 
-  test('should not allow multiple workers with incremental API', () => {
+  it('should not allow multiple workers with incremental API', () => {
     expect(() => {
       createCompiler({
         workers: 5
@@ -56,7 +56,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     }).toThrowError();
   });
 
-  test('should fix linting errors with tslintAutofix flag set to true', callback => {
+  it('should fix linting errors with tslintAutofix flag set to true', callback => {
     const fileName = 'lintingError1';
     helpers.testLintAutoFixTest(
       callback,
@@ -81,7 +81,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     );
   });
 
-  test('should not fix linting by default', callback => {
+  it('should not fix linting by default', callback => {
     const fileName = 'lintingError2';
     helpers.testLintAutoFixTest(
       callback,
@@ -96,7 +96,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     );
   });
 
-  test('should get syntactic diagnostics from Vue program', callback => {
+  it('should get syntactic diagnostics from Vue program', callback => {
     createVueCompiler({ checkSyntacticErrors: true }).then(({ compiler }) =>
       compiler.run(function(error, stats) {
         const syntacticErrorFoundInStats = stats.compilation.errors.some(
@@ -111,7 +111,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     );
   });
 
-  test('should not find syntactic errors in Vue program when checkSyntacticErrors is false', callback => {
+  it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', callback => {
     createVueCompiler({ checkSyntacticErrors: false }).then(({ compiler }) =>
       compiler.run(function(error, stats) {
         const syntacticErrorNotFoundInStats = stats.compilation.errors.every(

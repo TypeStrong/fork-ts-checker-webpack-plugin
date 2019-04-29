@@ -17,7 +17,7 @@ describe('[UNIT] CancellationToken', () => {
     mockFs.restore();
   });
 
-  test('should create valid cancellation token', () => {
+  it('should create valid cancellation token', () => {
     var tokenA = new CancellationToken(require('typescript'));
     expect(tokenA.isCancellationRequested()).toBe(false);
 
@@ -42,7 +42,7 @@ describe('[UNIT] CancellationToken', () => {
     expect(tokenD.isCancellationRequested()).toBe(true);
   });
 
-  test('should serialize to JSON', () => {
+  it('should serialize to JSON', () => {
     var tokenA = new CancellationToken(require('typescript'));
     var json = JSON.stringify(tokenA);
 
@@ -64,13 +64,13 @@ describe('[UNIT] CancellationToken', () => {
     );
   });
 
-  test('should generate path in os.tmpdir() directory', () => {
+  it('should generate path in os.tmpdir() directory', () => {
     var tokenA = new CancellationToken(require('typescript'));
 
     expect(tokenA.getCancellationFilePath().indexOf(os.tmpdir())).toBe(0);
   });
 
-  test('should throw ts.OperationCanceledException error on cancelled', () => {
+  it('should throw ts.OperationCanceledException error on cancelled', () => {
     var tokenA = new CancellationToken(require('typescript'));
     expect(function() {
       tokenA.throwIfCancellationRequested();
@@ -86,7 +86,7 @@ describe('[UNIT] CancellationToken', () => {
     }).toThrow(ts.OperationCanceledException);
   });
 
-  test('should write file in filesystem on requestCancellation', () => {
+  it('should write file in filesystem on requestCancellation', () => {
     var tokenA = new CancellationToken(require('typescript'));
     tokenA.requestCancellation();
 
@@ -94,7 +94,7 @@ describe('[UNIT] CancellationToken', () => {
     expect(FsHelper.existsSync(tokenA.getCancellationFilePath())).toBe(true);
   });
 
-  test('should cleanup file on cleanupCancellation', () => {
+  it('should cleanup file on cleanupCancellation', () => {
     var tokenA = new CancellationToken(require('typescript'));
     tokenA.requestCancellation();
     tokenA.cleanupCancellation();
@@ -109,7 +109,7 @@ describe('[UNIT] CancellationToken', () => {
     expect(tokenA.isCancellationRequested()).toBe(false);
   });
 
-  test('should not throw error on cleanupCancellation with no file exists', () => {
+  it('should not throw error on cleanupCancellation with no file exists', () => {
     var tokenA = new CancellationToken(
       require('typescript'),
       'some_file_that_doesnt_exists',
@@ -124,7 +124,7 @@ describe('[UNIT] CancellationToken', () => {
     }).not.toThrowError();
   });
 
-  test('should throttle check for 10ms', done => {
+  it('should throttle check for 10ms', done => {
     var tokenA = new CancellationToken(require('typescript'));
     var tokenB = CancellationToken.createFromJSON(
       require('typescript'),

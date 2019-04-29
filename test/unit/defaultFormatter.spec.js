@@ -5,7 +5,7 @@ var createDefaultFormatter = require('../../lib/formatter/defaultFormatter')
   .createDefaultFormatter;
 
 describe('[UNIT] formatter/defaultFormatter', () => {
-  test('should format normalized diagnostic message', () => {
+  it('should format normalized diagnostic message', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_DIAGNOSTIC,
       code: 123,
@@ -23,7 +23,7 @@ describe('[UNIT] formatter/defaultFormatter', () => {
     );
   });
 
-  test('should format normalized lint message', () => {
+  it('should format normalized lint message', () => {
     var message = new NormalizedMessage({
       type: NormalizedMessage.TYPE_LINT,
       code: 'some-lint-rule',

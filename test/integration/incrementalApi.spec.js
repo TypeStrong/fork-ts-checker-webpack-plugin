@@ -8,7 +8,7 @@
 
 var fs = require('fs');
 var path = require('path');
-var helpers = require('./helpers');
+var helpers = require('./oldHelpers');
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', () => {
   var plugin;

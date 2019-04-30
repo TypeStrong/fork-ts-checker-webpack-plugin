@@ -1,6 +1,6 @@
 var path = require('path');
 var unixify = require('unixify');
-var helpers = require('./helpers');
+var helpers = require('./oldHelpers');
 
 describe.each([/*[true], */ [false]])(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s',

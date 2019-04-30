@@ -261,6 +261,10 @@ This plugin provides some custom webpack hooks (all are sync):
 | `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
 | `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
 
+The **Event name** is there for backward compatibility with webpack 2/3. Regardless
+of the version of webpack (2, 3 or 4) you are using, we will always access plugin hooks with **Hook Access Keys** as
+described below.
+
 ### Accessing plugin hooks
 
 All plugin hooks are compatible with both [webpack](https://webpack.js.org) version
@@ -291,22 +295,37 @@ const tsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
 // =================================================== //
 // Example, if we want to run some code when plugin has received diagnostics
 // and lint
-tsCheckerHooks.receive.tap('yourPluginName', (diagnostics, lint) => {
+tsCheckerHooks.receive.tap('yourListenerName', (diagnostics, lint) => {
   // do something with diagnostics, perhaps show custom message
   console.log(diagnostics);
 });
 // Say we want to show some message when plugin is waiting for typecheck results
-tsCheckerHooks.waiting.tap('yourPluginName', () => {
+tsCheckerHooks.waiting.tap('yourListenerName', () => {
   console.log('waiting for typecheck results');
 });
 ```
+
+Calling `.tap()` on any hooks, requires two arguments.
+
+##### `name` (`string`)
+
+The first argument passed to `.tap` is the name of your listener callback (`yourListenerName`).
+It doesn't need to correspond to anything special. It is intended to be used
+[internally](https://github.com/webpack/tapable#interception) as the `name` of
+the hook.
+
+##### `callback` (`function`)
+
+The second argument is the callback function. Depending on the hook you are
+tapping into, several arguments are passed to the function. Do check the table
+above to find out which arguments are passed to which hooks.
 
 ### Accessing hooks on Webpack Multi-Compiler instance
 
 The above method will not work on webpack [multi compiler](https://webpack.js.org/api/node/#multicompiler)
 instance. The reason is `getCompilerHooks` expects (at lease as of now) the same
 compiler instance to be passed where the plugin was attached. So in case of
-multi compiler, we need to access individual compilers.
+multi compiler, we need to access individual compiler instances.
 
 ```js
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -328,7 +347,7 @@ if ('compilers' in compiler) {
       singleCompiler
     );
     // now access hooks just like before
-    tsCheckerHooks.waiting.tap('yourPluginName', () => {
+    tsCheckerHooks.waiting.tap('yourListenerName', () => {
       console.log('waiting for typecheck results');
     });
   });

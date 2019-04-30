@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var helpers = require('./helpers');
+var oldHelpers = require('./oldHelpers');
 
 describe.each([[true], [false]])(
   '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
@@ -17,19 +18,16 @@ describe.each([[true], [false]])(
     ) {
       options = options || {};
       options = { ...options, ...overrideOptions };
-      var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+      var compiler = helpers.createCompiler({
+        pluginOptions: options,
+        happyPackMode,
+        entryPoint
+      });
       plugin = compiler.plugin;
-      return compiler.webpack;
+      return compiler.compiler;
     }
 
     const skipIfIncremental = useTypescriptIncrementalApi ? it.skip : it;
-
-    afterEach(() => {
-      if (plugin) {
-        plugin.killService();
-        plugin = undefined;
-      }
-    });
 
     /**
      * Implicitly check whether killService was called by checking that
@@ -76,62 +74,63 @@ describe.each([[true], [false]])(
 
     it('should find lint warnings', callback => {
       const fileName = 'lintingError2';
-      helpers.testLintAutoFixTest(
-        callback,
-        fileName,
-        {
+      const { compiler } = helpers.testLintAutoFixTest({
+        pluginOptions: {
           tslint: path.resolve(__dirname, './project/tslint.json'),
           ignoreLintWarnings: false,
           ...overrideOptions
         },
-        (err, stats) => {
-          expect(
-            stats.compilation.warnings.filter(warning =>
-              warning.message.includes('missing whitespace')
-            ).length
-          ).toBeGreaterThan(0);
-        }
-      );
+        fileName
+      });
+
+      compiler.run((err, stats) => {
+        expect(
+          stats.compilation.warnings.filter(warning =>
+            warning.message.includes('missing whitespace')
+          ).length
+        ).toBeGreaterThan(0);
+        callback();
+      });
     });
 
     it('should not print warnings when ignoreLintWarnings passed as option', callback => {
       const fileName = 'lintingError2';
-      helpers.testLintAutoFixTest(
-        callback,
+      const { compiler } = helpers.testLintAutoFixTest({
         fileName,
-        {
+        pluginOptions: {
           tslint: path.resolve(__dirname, './project/tslint.json'),
           ignoreLintWarnings: true,
           ...overrideOptions
-        },
-        (err, stats) => {
-          expect(
-            stats.compilation.warnings.filter(warning =>
-              warning.message.includes('missing whitespace')
-            ).length
-          ).toBe(0);
         }
-      );
+      });
+      compiler.run((err, stats) => {
+        expect(
+          stats.compilation.warnings.filter(warning =>
+            warning.message.includes('missing whitespace')
+          ).length
+        ).toBe(0);
+        callback();
+      });
     });
 
     it('should not mark warnings as errors when ignoreLintWarnings passed as option', callback => {
       const fileName = 'lintingError2';
-      helpers.testLintAutoFixTest(
-        callback,
+      const { compiler } = helpers.testLintAutoFixTest({
         fileName,
-        {
+        pluginOptions: {
           tslint: path.resolve(__dirname, './project/tslint.json'),
           ignoreLintWarnings: true,
           ...overrideOptions
-        },
-        (err, stats) => {
-          expect(
-            stats.compilation.errors.filter(error =>
-              error.message.includes('missing whitespace')
-            ).length
-          ).toBe(0);
         }
-      );
+      });
+      compiler.run((err, stats) => {
+        expect(
+          stats.compilation.errors.filter(error =>
+            error.message.includes('missing whitespace')
+          ).length
+        ).toBe(0);
+        callback();
+      });
     });
 
     it('should find semantic errors', callback => {
@@ -175,42 +174,43 @@ describe.each([[true], [false]])(
 
     it('should fix linting errors with tslintAutofix flag set to true', callback => {
       const fileName = 'lintingError1';
-      helpers.testLintAutoFixTest(
-        callback,
+      const {
+        compiler,
+        formattedFileContents,
+        targetFileName
+      } = helpers.testLintAutoFixTest({
         fileName,
-        {
+        pluginOptions: {
           tslintAutoFix: true,
           tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
           tsconfig: false,
           ...overrideOptions
-        },
-        (err, stats, formattedFileContents) => {
-          expect(stats.compilation.warnings.length).toBe(0);
-
-          var fileContents = fs.readFileSync(
-            path.resolve(__dirname, `./project/src/${fileName}.ts`),
-            {
-              encoding: 'utf-8'
-            }
-          );
-          expect(fileContents).toBe(formattedFileContents);
         }
-      );
+      });
+      compiler.run((err, stats) => {
+        expect(stats.compilation.warnings.length).toBe(0);
+
+        var fileContents = fs.readFileSync(targetFileName, {
+          encoding: 'utf-8'
+        });
+        expect(fileContents).toBe(formattedFileContents);
+        callback();
+      });
     });
 
     it('should not fix linting by default', callback => {
       const fileName = 'lintingError2';
-      helpers.testLintAutoFixTest(
-        callback,
+      const { compiler } = helpers.testLintAutoFixTest({
         fileName,
-        {
+        pluginOptions: {
           tslint: true,
           ...overrideOptions
-        },
-        (err, stats) => {
-          expect(stats.compilation.warnings.length).toBe(7);
         }
-      );
+      });
+      compiler.run((err, stats) => {
+        expect(stats.compilation.warnings.length).toBe(7);
+        callback();
+      });
     });
 
     it('should block emit on build mode', callback => {
@@ -385,23 +385,25 @@ describe.each([[true], [false]])(
     });
 
     it('should respect "tslint.json"s hierarchy when config-file not specified', callback => {
-      helpers.testLintHierarchicalConfigs(
-        callback,
-        {
+      const { compiler } = helpers.createCompiler({
+        pluginOptions: {
           tslint: true,
           ...overrideOptions
         },
-        (err, stats) => {
-          /*
-           * there are three identical arrow functions
-           * in index.ts, lib/func.ts and lib/utils/func.ts
-           * and plugin should warn three times on typedef-rule
-           * twice on "arrow-call-signature" and once on "arrow-parameter"
-           * because this rule is overriden inside lib/tslint.json
-           * */
-          expect(stats.compilation.warnings.length).toBe(3);
-        }
-      );
+        entryPoint: './index.ts',
+        context: './project_hierarchical_tslint'
+      });
+      compiler.run((err, stats) => {
+        /*
+         * there are three identical arrow functions
+         * in index.ts, lib/func.ts and lib/utils/func.ts
+         * and plugin should warn three times on typedef-rule
+         * twice on "arrow-call-signature" and once on "arrow-parameter"
+         * because this rule is overriden inside lib/tslint.json
+         * */
+        expect(stats.compilation.warnings.length).toBe(3);
+        callback();
+      });
     });
 
     it('should not find syntactic errors when checkSyntacticErrors is false', callback => {
@@ -411,7 +413,7 @@ describe.each([[true], [false]])(
         const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
           error =>
             !error.rawMessage.includes(
-              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+              oldHelpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
         expect(syntacticErrorNotFoundInStats).toBe(true);
@@ -426,7 +428,7 @@ describe.each([[true], [false]])(
         const syntacticErrorFoundInStats = stats.compilation.errors.some(
           error =>
             error.rawMessage.includes(
-              helpers.expectedErrorCodes.expectedSyntacticErrorCode
+              oldHelpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
         expect(syntacticErrorFoundInStats).toBe(true);
@@ -446,9 +448,13 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
   ) {
     options = options || {};
     options.useTypescriptIncrementalApi = false;
-    var compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
+    var compiler = helpers.createCompiler({
+      pluginOptions: options,
+      happyPackMode,
+      entryPoint
+    });
     plugin = compiler.plugin;
-    return compiler.webpack;
+    return compiler.compiler;
   }
 
   afterEach(() => {
@@ -467,7 +473,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
     });
   });
 
-  it('should find the same errors on multi-process mode', callback => {
+  it('should find the same errors on multi-process mode', async () => {
     var compilerA = createCompiler({
       workers: 1,
       tslint: true
@@ -476,33 +482,22 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
       workers: 4,
       tslint: true
     });
-    var errorsA, errorsB, warningsA, warningsB;
-    var done = 0;
 
-    compilerA.run(function(error, stats) {
-      errorsA = stats.compilation.errors;
-      warningsA = stats.compilation.warnings;
-      done++;
+    const [a, b] = await Promise.all([
+      new Promise(resolve =>
+        compilerA.run(function(error, stats) {
+          resolve(stats.compilation);
+        })
+      ),
+      new Promise(resolve =>
+        compilerB.run(function(error, stats) {
+          resolve(stats.compilation);
+        })
+      )
+    ]);
 
-      if (done === 2) {
-        compareResults();
-      }
-    });
-    compilerB.run(function(error, stats) {
-      errorsB = stats.compilation.errors;
-      warningsB = stats.compilation.warnings;
-      done++;
-
-      if (done === 2) {
-        compareResults();
-      }
-    });
-
-    function compareResults() {
-      expect(errorsA).toEqual(errorsB);
-      expect(warningsA).toEqual(warningsB);
-      callback();
-    }
+    expect(a.errors).toEqual(b.errors);
+    expect(a.warnings).toEqual(b.warnings);
   });
 
   it('should only show errors matching paths specified in reportFiles when provided', callback => {

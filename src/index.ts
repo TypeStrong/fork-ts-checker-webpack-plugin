@@ -26,39 +26,44 @@ import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
-type Formatter = (message: NormalizedMessage, useColors: boolean) => string;
+namespace ForkTsCheckerWebpackPlugin {
+  export type Formatter = (
+    message: NormalizedMessage,
+    useColors: boolean
+  ) => string;
 
-interface Logger {
-  error(message?: any): void;
-  warn(message?: any): void;
-  info(message?: any): void;
-}
+  export interface Logger {
+    error(message?: any): void;
+    warn(message?: any): void;
+    info(message?: any): void;
+  }
 
-interface Options {
-  typescript: string;
-  tsconfig: string;
-  compilerOptions: object;
-  tslint: string | true;
-  tslintAutoFix: boolean;
-  watch: string | string[];
-  async: boolean;
-  ignoreDiagnostics: number[];
-  ignoreLints: string[];
-  ignoreLintWarnings: boolean;
-  reportFiles: string[];
-  colors: boolean;
-  logger: Logger;
-  formatter: 'default' | 'codeframe' | Formatter;
-  formatterOptions: any;
-  silent: boolean;
-  checkSyntacticErrors: boolean;
-  memoryLimit: number;
-  workers: number;
-  vue: boolean;
-  useTypescriptIncrementalApi: boolean;
-  measureCompilationTime: boolean;
-  resolveModuleNameModule: string;
-  resolveTypeReferenceDirectiveModule: string;
+  export interface Options {
+    typescript: string;
+    tsconfig: string;
+    compilerOptions: object;
+    tslint: string | true;
+    tslintAutoFix: boolean;
+    watch: string | string[];
+    async: boolean;
+    ignoreDiagnostics: number[];
+    ignoreLints: string[];
+    ignoreLintWarnings: boolean;
+    reportFiles: string[];
+    colors: boolean;
+    logger: Logger;
+    formatter: 'default' | 'codeframe' | Formatter;
+    formatterOptions: any;
+    silent: boolean;
+    checkSyntacticErrors: boolean;
+    memoryLimit: number;
+    workers: number;
+    vue: boolean;
+    useTypescriptIncrementalApi: boolean;
+    measureCompilationTime: boolean;
+    resolveModuleNameModule: string;
+    resolveTypeReferenceDirectiveModule: string;
+  }
 }
 
 /**
@@ -87,7 +92,7 @@ class ForkTsCheckerWebpackPlugin {
     return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
-  public readonly options: Partial<Options>;
+  public readonly options: Partial<ForkTsCheckerWebpackPlugin.Options>;
   private tsconfig: string;
   private compilerOptions: object;
   private tslint?: string | true;
@@ -97,7 +102,7 @@ class ForkTsCheckerWebpackPlugin {
   private ignoreLints: string[];
   private ignoreLintWarnings: boolean;
   private reportFiles: string[];
-  private logger: Logger;
+  private logger: ForkTsCheckerWebpackPlugin.Logger;
   private silent: boolean;
   private async: boolean;
   private checkSyntacticErrors: boolean;
@@ -105,7 +110,7 @@ class ForkTsCheckerWebpackPlugin {
   private memoryLimit: number;
   private useColors: boolean;
   private colors: Chalk;
-  private formatter: Formatter;
+  private formatter: ForkTsCheckerWebpackPlugin.Formatter;
   private useTypescriptIncrementalApi: boolean;
   private resolveModuleNameModule: string | undefined;
   private resolveTypeReferenceDirectiveModule: string | undefined;
@@ -141,10 +146,10 @@ class ForkTsCheckerWebpackPlugin {
   private performance: any;
   private startAt: number = 0;
 
-  private nodeArgs: string[] = [];
+  protected nodeArgs: string[] = [];
 
-  constructor(options?: Partial<Options>) {
-    options = options || ({} as Options);
+  constructor(options?: Partial<ForkTsCheckerWebpackPlugin.Options>) {
+    options = options || ({} as ForkTsCheckerWebpackPlugin.Options);
     this.options = { ...options };
 
     this.tsconfig = options.tsconfig || './tsconfig.json';
@@ -937,5 +942,3 @@ class ForkTsCheckerWebpackPlugin {
 }
 
 export = ForkTsCheckerWebpackPlugin;
-
-namespace ForkTsCheckerWebpackPlugin {}

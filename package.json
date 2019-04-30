@@ -98,6 +98,7 @@
     ]
   },
   "dependencies": {
+    "@types/rimraf": "^2.0.2",
     "babel-code-frame": "^6.22.0",
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
@@ -118,6 +119,7 @@
     "@types/semver": "^5.5.0",
     "@types/webpack": "^4.4.19",
     "commitlint": "^7.5.2",
+    "copy-dir": "^0.4.0",
     "css-loader": "0.28.11",
     "eslint": "^5.7.0",
     "git-cz": "^3.0.1",

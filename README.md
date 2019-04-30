@@ -249,17 +249,110 @@ We hope this will be resolved in future; the issue can be tracked [here](https:/
 
 This plugin provides some custom webpack hooks (all are sync):
 
-| Event name                              | Description                                                                    | Params                                                                     |
-| --------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `fork-ts-checker-cancel`                | Cancellation has been requested                                                | `cancellationToken`                                                        |
-| `fork-ts-checker-waiting`               | Waiting for results                                                            | `hasTsLint`                                                                |
-| `fork-ts-checker-service-before-start`  | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
-| `fork-ts-checker-service-start`         | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
-| `fork-ts-checker-service-start-error`   | Cannot start service                                                           | `error`                                                                    |
-| `fork-ts-checker-service-out-of-memory` | Service is out of memory                                                       | -                                                                          |
-| `fork-ts-checker-receive`               | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |
-| `fork-ts-checker-emit`                  | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
-| `fork-ts-checker-done`                  | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
+| Event name                              | Hook Access Key      | Description                                                                    | Params                                                                     |
+| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                                                        |
+| `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                                                |
+| `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
+| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
+| `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                                                    |
+| `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                                                          |
+| `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |
+| `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
+| `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
+
+The **Event name** is there for backward compatibility with webpack 2/3. Regardless
+of the version of webpack (2, 3 or 4) you are using, we will always access plugin hooks with **Hook Access Keys** as
+described below.
+
+### Accessing plugin hooks
+
+All plugin hooks are compatible with both [webpack](https://webpack.js.org) version
+4 and version 2. To access plugin hooks and tap into the event, we need to use
+the `getCompilerHooks` static method. When we call this method with a [webpack compiler instance](https://webpack.js.org/api/node/),
+it returns the series of [tapable](https://github.com/webpack/tapable)
+hooks where you can pass in your callbacks.
+
+```js
+// require the plugin
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+// setup compiler with the plugin
+const compiler = webpack({
+  // .. webpack config
+});
+// Optionally add the plugin to the compiler
+// **Don't do this if already added through configuration**
+new ForkTsCheckerWebpackPlugin({
+  silent: true,
+  async: true
+}).apply(compiler);
+// Now get the plugin hooks from compiler
+const tsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+// These hooks provide acess to different events
+// =================================================== //
+// The properties of tsCheckerHooks corresponds to the //
+// Hook Access Key of the table above.                 //
+// =================================================== //
+// Example, if we want to run some code when plugin has received diagnostics
+// and lint
+tsCheckerHooks.receive.tap('yourListenerName', (diagnostics, lint) => {
+  // do something with diagnostics, perhaps show custom message
+  console.log(diagnostics);
+});
+// Say we want to show some message when plugin is waiting for typecheck results
+tsCheckerHooks.waiting.tap('yourListenerName', () => {
+  console.log('waiting for typecheck results');
+});
+```
+
+Calling `.tap()` on any hooks, requires two arguments.
+
+##### `name` (`string`)
+
+The first argument passed to `.tap` is the name of your listener callback (`yourListenerName`).
+It doesn't need to correspond to anything special. It is intended to be used
+[internally](https://github.com/webpack/tapable#interception) as the `name` of
+the hook.
+
+##### `callback` (`function`)
+
+The second argument is the callback function. Depending on the hook you are
+tapping into, several arguments are passed to the function. Do check the table
+above to find out which arguments are passed to which hooks.
+
+### Accessing hooks on Webpack Multi-Compiler instance
+
+The above method will not work on webpack [multi compiler](https://webpack.js.org/api/node/#multicompiler)
+instance. The reason is `getCompilerHooks` expects (at lease as of now) the same
+compiler instance to be passed where the plugin was attached. So in case of
+multi compiler, we need to access individual compiler instances.
+
+```js
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+// setup multi compiler with the plugin
+const compiler = webpack([
+  {
+    // .. webpack config
+  },
+  {
+    // .. webpack config
+  }
+]);
+
+// safely determine if instance is multi-compiler
+if ('compilers' in compiler) {
+  compiler.compilers.forEach(singleCompiler => {
+    // get plugin hooks from the single compiler instance
+    const tsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+      singleCompiler
+    );
+    // now access hooks just like before
+    tsCheckerHooks.waiting.tap('yourListenerName', () => {
+      console.log('waiting for typecheck results');
+    });
+  });
+}
+```
 
 ## Vue
 

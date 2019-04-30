@@ -1,33 +1,31 @@
-# [1.2.0-beta.4](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.3@beta...v1.2.0-beta.4@beta) (2019-04-23)
-
+# [1.2.0](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.1.1...v1.2.0) (2019-04-22)
 
 ### Bug Fixes
+* 🐛 semantic-release update `CHANGELOG.md` on the git repo ([8ad58af](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/8ad58af))
+### Features
+* ✨ add semantic-release integration ([5fe0653](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/5fe0653))
 
+# [1.2.0-beta.4](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.3@beta...v1.2.0-beta.4@beta) (2019-04-23)
+
+### Bug Fixes
 * **tests:** fix linter tests that were doing nothing ([d078278](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/d078278))
 * **tests:** linter tests - useTypescriptIncrementalApi usage ([e0020d6](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/e0020d6))
-
-
 ### Features
-
 * **apiincrementalchecker:** improve generation of diagnostics ([ae80e5f](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/ae80e5f)), closes [#257](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/257)
 
 # [1.2.0-beta.3](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.2@beta...v1.2.0-beta.3@beta) (2019-04-22)
 
-
 ### Bug Fixes
-
 * **tests:** rework vue integration tests ([5ad2568](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/5ad2568))
 
 # [1.2.0-beta.2](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0-beta.1@beta...v1.2.0-beta.2@beta) (2019-04-22)
 
 ### Bug Fixes
-
 - 🐛 semantic-release update `CHANGELOG.md` on the git repo ([8ad58af](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/8ad58af))
 
 # [1.2.0-beta.1](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.1.0...v1.2.0-beta.1@beta) (2019-04-22)
 
 ### Features
-
 - ✨ add semantic-release integration ([5fe0653](https://github.com/Realytics/fork-ts-checker-webpack-plugin/commit/5fe0653))
 
 ## v1.1.1

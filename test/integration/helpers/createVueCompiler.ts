@@ -1,7 +1,13 @@
-import VueLoaderPlugin from 'vue-loader/lib/plugin';
 import { rpcMethods } from './rpc';
 import * as path from 'path';
 import { CreateCompilerOptions, createCompiler, webpackMajorVersion } from '.';
+
+let VueLoaderPlugin: any;
+try {
+  VueLoaderPlugin = require('vue-loader/lib/plugin');
+} catch {
+  /** older versions of vue-loader come without that import - that's fine. */
+}
 
 export async function createVueCompiler({
   pluginOptions = {},
@@ -47,7 +53,7 @@ export async function createVueCompiler({
         },
         plugins: [
           ...(config.plugins || []),
-          ...(webpackMajorVersion >= 4 ? [new VueLoaderPlugin()] : [])
+          ...(!!VueLoaderPlugin ? [new VueLoaderPlugin()] : [])
         ]
       };
     }

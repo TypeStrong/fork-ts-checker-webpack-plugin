@@ -1,34 +1,28 @@
-var path = require('path');
-var unixify = require('unixify');
-var helpers = require('./helpers');
+import path from 'path';
+import unixify from 'unixify';
+import { createVueCompiler, expectedErrorCodes } from './helpers';
+
+type FirstArgOf<T extends Function> = T extends (a: infer FirstArg) => any
+  ? FirstArg
+  : never;
+
+type Error = { file: string; rawMessage: string };
 
 describe.each([/*[true], */ [false]])(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s',
   useTypescriptIncrementalApi => {
-    var files;
-    var compiler;
-    var rpc;
-
-    const getKnownFileNames = () =>
-      rpc.rpc(helpers.rpcMethods.checker_getKnownFileNames);
-    const getSourceFile = fileName =>
-      rpc.rpc(helpers.rpcMethods.checker_getSourceFile, fileName);
-    const getSyntacticDiagnostics = () =>
-      rpc.rpc(helpers.rpcMethods.checker_getSyntacticDiagnostics);
-
-    async function createCompiler(options) {
-      options = options || {};
-      options.useTypescriptIncrementalApi = useTypescriptIncrementalApi;
-      var results = await helpers.createVueCompiler({
-        pluginOptions: options
+    const createCompiler = (
+      options: FirstArgOf<typeof createVueCompiler> = {}
+    ) =>
+      createVueCompiler({
+        ...options,
+        pluginOptions: { ...options.pluginOptions, useTypescriptIncrementalApi }
       });
-      files = results.files;
-      compiler = results.compiler;
-      rpc = results.rpcProvider;
-    }
 
     it('should create a Vue program config if vue=true', async () => {
-      await createCompiler({ vue: true });
+      const { getKnownFileNames, files } = await createCompiler({
+        pluginOptions: { vue: true }
+      });
 
       const fileNames = await getKnownFileNames();
 
@@ -43,7 +37,7 @@ describe.each([/*[true], */ [false]])(
     });
 
     it('should not create a Vue program config if vue=false', async () => {
-      await createCompiler();
+      const { getKnownFileNames, files } = await createCompiler();
 
       const fileNames = await getKnownFileNames();
 
@@ -59,7 +53,9 @@ describe.each([/*[true], */ [false]])(
     });
 
     it('should create a Vue program if vue=true', async () => {
-      await createCompiler({ vue: true });
+      const { getSourceFile, files } = await createCompiler({
+        pluginOptions: { vue: true }
+      });
 
       var source;
 
@@ -71,7 +67,7 @@ describe.each([/*[true], */ [false]])(
     });
 
     it('should not create a Vue program if vue=false', async () => {
-      await createCompiler();
+      const { getSourceFile, files } = await createCompiler();
 
       var source;
 
@@ -83,38 +79,44 @@ describe.each([/*[true], */ [false]])(
     });
 
     it('should get syntactic diagnostics from Vue program', async () => {
-      await createCompiler({ tslint: true, vue: true });
+      const { getSyntacticDiagnostics } = await createCompiler({
+        pluginOptions: { tslint: true, vue: true }
+      });
 
       const diagnostics = await getSyntacticDiagnostics();
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics).toBeDefined();
+      expect(diagnostics!.length).toBe(1);
     });
 
     it('should not find syntactic errors when checkSyntacticErrors is false', callback => {
-      createCompiler({ tslint: true, vue: true }).then(() =>
-        compiler.run(function(error, stats) {
-          const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
-            error =>
-              !error.rawMessage.includes(
-                helpers.expectedErrorCodes.expectedSyntacticErrorCode
-              )
-          );
-          expect(syntacticErrorNotFoundInStats).toBe(true);
-          callback();
-        })
+      createCompiler({ pluginOptions: { tslint: true, vue: true } }).then(
+        ({ compiler }) =>
+          compiler.run(function(error, stats) {
+            const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+              error =>
+                !error.rawMessage.includes(
+                  expectedErrorCodes.expectedSyntacticErrorCode
+                )
+            );
+            expect(syntacticErrorNotFoundInStats).toBe(true);
+            callback();
+          })
       );
     });
 
     it('should find syntactic errors when checkSyntacticErrors is true', callback => {
       createCompiler({
-        tslint: true,
-        vue: true,
-        checkSyntacticErrors: true
-      }).then(() =>
+        pluginOptions: {
+          tslint: true,
+          vue: true,
+          checkSyntacticErrors: true
+        }
+      }).then(({ compiler }) =>
         compiler.run(function(error, stats) {
           const syntacticErrorFoundInStats = stats.compilation.errors.some(
             error =>
               error.rawMessage.includes(
-                helpers.expectedErrorCodes.expectedSyntacticErrorCode
+                expectedErrorCodes.expectedSyntacticErrorCode
               )
           );
           expect(syntacticErrorFoundInStats).toBe(true);
@@ -124,20 +126,23 @@ describe.each([/*[true], */ [false]])(
     });
 
     it('should not report no-consecutive-blank-lines tslint rule', callback => {
-      createCompiler({ tslint: true, vue: true }).then(() =>
-        compiler.run(function(error, stats) {
-          stats.compilation.warnings.forEach(function(warning) {
-            expect(warning.rawMessage).not.toMatch(
-              /no-consecutive-blank-lines/
-            );
-          });
-          callback();
-        })
+      createCompiler({ pluginOptions: { tslint: true, vue: true } }).then(
+        ({ compiler }) =>
+          compiler.run(function(error, stats) {
+            stats.compilation.warnings.forEach(function(warning) {
+              expect(warning.rawMessage).not.toMatch(
+                /no-consecutive-blank-lines/
+              );
+            });
+            callback();
+          })
       );
     });
 
     it('should resolve src attribute but not report not found error', callback => {
-      createCompiler({ vue: true, tsconfig: 'tsconfig-attrs.json' }).then(() =>
+      createCompiler({
+        pluginOptions: { vue: true, tsconfig: 'tsconfig-attrs.json' }
+      }).then(({ compiler }) =>
         compiler.run(function(error, stats) {
           const errors = stats.compilation.errors;
           expect(errors.length).toBe(1);
@@ -155,21 +160,20 @@ describe.each([/*[true], */ [false]])(
       'example-nolang.vue'
     ].forEach(fileName => {
       it('should be able to extract script from ' + fileName, async () => {
-        await createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' });
-        var sourceFilePath = path.resolve(
-          compiler.context,
-          'src/langs/' + fileName
-        );
+        const { compiler, getSourceFile, contextDir } = await createCompiler({
+          pluginOptions: { vue: true, tsconfig: 'tsconfig-langs.json' }
+        });
+        var sourceFilePath = path.resolve(contextDir, 'src/langs/' + fileName);
         var source = await getSourceFile(sourceFilePath);
         expect(source).toBeDefined();
         // remove padding lines
-        var text = source.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();
+        var text = source!.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();
         expect(text.startsWith('/* OK */')).toBe(true);
       });
     });
 
-    function groupByFileName(errors) {
-      var ret = {
+    function groupByFileName(errors: Error[]) {
+      var ret: { [key: string]: Error[] } = {
         'index.ts': [],
         'example-ts.vue': [],
         'example-tsx.vue': [],
@@ -185,14 +189,15 @@ describe.each([/*[true], */ [false]])(
     }
 
     describe('should be able to compile *.vue with each lang', () => {
-      var errors;
+      var errors: { [key: string]: Error[] };
       beforeAll(function(callback) {
-        createCompiler({ vue: true, tsconfig: 'tsconfig-langs.json' }).then(
-          () =>
-            compiler.run(function(error, stats) {
-              errors = groupByFileName(stats.compilation.errors);
-              callback();
-            })
+        createCompiler({
+          pluginOptions: { vue: true, tsconfig: 'tsconfig-langs.json' }
+        }).then(({ compiler }) =>
+          compiler.run(function(error, stats) {
+            errors = groupByFileName(stats.compilation.errors);
+            callback();
+          })
         );
       });
       it('lang=ts', () => {
@@ -216,13 +221,15 @@ describe.each([/*[true], */ [false]])(
     });
 
     describe('should be able to detect errors in *.vue', () => {
-      var errors;
+      var errors: { [key: string]: Error[] };
       beforeAll(function(callback) {
         // tsconfig-langs-strict.json === tsconfig-langs.json + noUnusedLocals
         createCompiler({
-          vue: true,
-          tsconfig: 'tsconfig-langs-strict.json'
-        }).then(() =>
+          pluginOptions: {
+            vue: true,
+            tsconfig: 'tsconfig-langs-strict.json'
+          }
+        }).then(({ compiler }) =>
           compiler.run(function(error, stats) {
             errors = groupByFileName(stats.compilation.errors);
             callback();
@@ -253,14 +260,15 @@ describe.each([/*[true], */ [false]])(
     });
 
     describe('should resolve *.vue in the same way as TypeScript', () => {
-      var errors;
+      var errors: Error[];
       beforeAll(function(callback) {
-        createCompiler({ vue: true, tsconfig: 'tsconfig-imports.json' }).then(
-          () =>
-            compiler.run(function(error, stats) {
-              errors = stats.compilation.errors;
-              callback();
-            })
+        createCompiler({
+          pluginOptions: { vue: true, tsconfig: 'tsconfig-imports.json' }
+        }).then(({ compiler }) =>
+          compiler.run(function(error, stats) {
+            errors = stats.compilation.errors;
+            callback();
+          })
         );
       });
 

@@ -9,6 +9,7 @@ As a contributor, here are the guidelines we would like you to follow:
 - [Submitting a Pull Request](#submitting-a-pull-request)
 - [Coding rules](#coding-rules)
 - [Working with the code](#working-with-the-code)
+- [Releasing a new version](#releasing-a-new-version)
 
 We also recommend that you read [How to Contribute to Open Source](https://opensource.guide/how-to-contribute).
 
@@ -58,7 +59,6 @@ Here is a summary of the steps to follow:
 ```bash
 $ git checkout beta
 $ git pull upstream beta
-$ rm -rf node_modules
 $ yarn install
 ```
 
@@ -102,7 +102,7 @@ To ensure consistency and quality, all documentation modifications must:
 - Refer to brand in [bold](https://help.github.com/articles/basic-writing-and-formatting-syntax/#styling-text) with proper capitalization, i.e. **GitHub**, **fork-ts-checker-webpack-plugin**, **npm**
 - Prefer [tables](https://help.github.com/articles/organizing-information-with-tables) over [lists](https://help.github.com/articles/basic-writing-and-formatting-syntax/#lists) when listing key values, i.e. List of options with their description
 - Use [links](https://help.github.com/articles/basic-writing-and-formatting-syntax/#links) when you are referring to:
-  - a \*fork-ts-checker-webpack-plugin\*\* concept described somewhere else in the documentation, i.e. How to [contribute](CONTRIBUTING.md)
+  - a _fork-ts-checker-webpack-plugin_ concept described somewhere else in the documentation, i.e. How to [contribute](CONTRIBUTING.md)
   - a third-party product/brand/service, i.e. Integrate with [GitHub](https://github.com)
   - an external concept or feature, i.e. Create a [GitHub release](https://help.github.com/articles/creating-releases)
   - a package or module, i.e. The [`typescript`](https://github.com/Microsoft/TypeScript) module
@@ -169,7 +169,7 @@ The footer should contain any information about **Breaking Changes** and is also
 #### Examples
 
 ```commit
-`fix(pencil): stop graphite breaking when too much pressure applied`
+fix(pencil): stop graphite breaking when too much pressure applied
 ```
 
 ```commit
@@ -199,6 +199,26 @@ $ yarn install
 
 ### Commits
 
-This repository use [Commitizen](https://github.com/commitizen/cz-cli) to help you create [valid commit messages](#commit-message-guidelines).
+Commit message have to follow [conventional-commit](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) standard, for example:
 
+This repository use [Commitizen](https://github.com/commitizen/cz-cli) to help you create [valid commit messages](#commit-message-guidelines).
 After staging your changes with `git add`, run `yarn commit` to start the interactive commit message CLI.
+
+## Releasing a new version
+
+This plugin uses [`📦🚀 semantic-release`](https://github.com/semantic-release/semantic-release) to automatically generate new versions and
+publish them on the [npm](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin) and [GitHub](https://github.com/Realytics/fork-ts-checker-webpack-plugin/releases).
+
+### Releasing a beta version
+
+All new features, fixes and improvements should be merged into the `beta` branch.
+If commits are messy, use **squash and merge** and put a [proper commit message](#commit-message-guidelines),
+otherwise use **rebase and merge**.
+
+### Releasing a stable version
+
+When beta version is tested and stable, [create a Pull Request from the `beta`
+to the `master` branch](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/master...beta).
+If everything is ok, use **rebase and merge** to update the `master` branch.
+Please **do not use squash and merge commit** as it will desynchronize `master` and `beta`
+branches.

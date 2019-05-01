@@ -288,7 +288,7 @@ new ForkTsCheckerWebpackPlugin({
 }).apply(compiler);
 // Now get the plugin hooks from compiler
 const tsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-// These hooks provide acess to different events
+// These hooks provide access to different events
 // =================================================== //
 // The properties of tsCheckerHooks corresponds to the //
 // Hook Access Key of the table above.                 //

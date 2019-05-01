@@ -1,3 +1,5 @@
+## ⚠️ Next versions are available only on the [GitHub Releases](https://github.com/Realytics/fork-ts-checker-webpack-plugin/releases) page ⚠️
+
 # [1.3.0-beta.1](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/v1.2.0...v1.3.0-beta.1@beta) (2019-04-30)
 
 ### Bug Fixes

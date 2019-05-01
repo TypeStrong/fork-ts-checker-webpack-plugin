@@ -8,11 +8,9 @@
 
 var fs = require('fs');
 var path = require('path');
-var helpers = require('./oldHelpers');
+var helpers = require('./helpers');
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', () => {
-  var plugin;
-
   function createCompiler(
     options,
     happyPackMode,
@@ -20,9 +18,12 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
   ) {
     options.useTypescriptIncrementalApi = true;
 
-    const compiler = helpers.createCompiler(options, happyPackMode, entryPoint);
-    plugin = compiler.plugin;
-    return compiler.webpack;
+    const { compiler } = helpers.createCompiler({
+      pluginOptions: options,
+      happyPackMode,
+      entryPoint
+    });
+    return compiler;
   }
 
   function createVueCompiler(
@@ -33,20 +34,12 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     options = options || {};
     options.useTypescriptIncrementalApi = true;
     options.vue = true;
-    return helpers
-      .createVueCompiler(options, happyPackMode, entryPoint)
-      .then(result => {
-        plugin = result.plugin;
-        return result;
-      });
+    return helpers.createVueCompiler({
+      pluginOptions: options,
+      happyPackMode,
+      entryPoint
+    });
   }
-
-  afterEach(() => {
-    if (plugin) {
-      plugin.killService();
-      plugin = undefined;
-    }
-  });
 
   it('should not allow multiple workers with incremental API', () => {
     expect(() => {
@@ -58,42 +51,44 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
 
   it('should fix linting errors with tslintAutofix flag set to true', callback => {
     const fileName = 'lintingError1';
-    helpers.testLintAutoFixTest(
-      callback,
+    const {
+      compiler,
+      targetFileName,
+      formattedFileContents
+    } = helpers.testLintAutoFixTest({
       fileName,
-      {
+      pluginOptions: {
         useTypescriptIncrementalApi: true,
         tslintAutoFix: true,
         tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
         tsconfig: false
-      },
-      (err, stats, formattedFileContents) => {
-        expect(stats.compilation.warnings.length).toBe(0);
-
-        var fileContents = fs.readFileSync(
-          path.resolve(__dirname, `./project/src/${fileName}.ts`),
-          {
-            encoding: 'utf-8'
-          }
-        );
-        expect(fileContents).toBe(formattedFileContents);
       }
-    );
+    });
+
+    compiler.run((err, stats) => {
+      expect(stats.compilation.warnings.length).toBe(0);
+
+      var fileContents = fs.readFileSync(targetFileName, {
+        encoding: 'utf-8'
+      });
+      expect(fileContents).toBe(formattedFileContents);
+      callback();
+    });
   });
 
   it('should not fix linting by default', callback => {
     const fileName = 'lintingError2';
-    helpers.testLintAutoFixTest(
-      callback,
+    const { compiler } = helpers.testLintAutoFixTest({
       fileName,
-      {
+      pluginOptions: {
         useTypescriptIncrementalApi: true,
         tslint: true
-      },
-      (err, stats) => {
-        expect(stats.compilation.warnings.length).toBe(7);
       }
-    );
+    });
+    compiler.run((err, stats) => {
+      expect(stats.compilation.warnings.length).toBe(7);
+      callback();
+    });
   });
 
   it('should get syntactic diagnostics from Vue program', callback => {

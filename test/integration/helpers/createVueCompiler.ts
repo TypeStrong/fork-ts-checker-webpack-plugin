@@ -1,6 +1,7 @@
 import { rpcMethods } from './rpc';
 import * as path from 'path';
 import { CreateCompilerOptions, createCompiler, webpackMajorVersion } from '.';
+import { RpcProvider } from 'worker-rpc';
 
 let VueLoaderPlugin: any;
 try {
@@ -70,8 +71,24 @@ export async function createVueCompiler({
   };
 
   plugin['spawnService']();
-  const rpcProvider = plugin['serviceRpc']!;
+  const rpcProvider: RpcProvider = plugin['serviceRpc']!;
   await rpcProvider.rpc(rpcMethods.checker_nextIteration);
 
-  return { ...results, files, rpcProvider };
+  return {
+    ...results,
+    files,
+    rpcProvider,
+    getKnownFileNames(): Promise<string[]> {
+      return rpcProvider.rpc(rpcMethods.checker_getKnownFileNames);
+    },
+    getSourceFile(fileName: string): Promise<{ text: string } | undefined> {
+      return rpcProvider.rpc(rpcMethods.checker_getSourceFile, fileName);
+    },
+    getSyntacticDiagnostics(): Promise<
+      | Array<{ start: number; length: number; file: { text: string } }>
+      | undefined
+    > {
+      return rpcProvider.rpc(rpcMethods.checker_getSyntacticDiagnostics);
+    }
+  };
 }

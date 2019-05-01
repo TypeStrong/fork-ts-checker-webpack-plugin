@@ -48,7 +48,7 @@ export class CompilerHost
   private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
     ts.EmitAndSemanticDiagnosticsBuilderProgram
   >;
-  private lastProcessing?: Promise<ts.Diagnostic[]>;
+  protected lastProcessing?: Promise<ts.Diagnostic[]>;
 
   private compilationStarted = false;
 

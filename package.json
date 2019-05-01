@@ -111,6 +111,8 @@
     "worker-rpc": "^0.1.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.4.4",
+    "@babel/preset-typescript": "^7.3.3",
     "@commitlint/config-conventional": "^7.5.0",
     "@semantic-release/changelog": "^3.0.2",
     "@semantic-release/git": "^7.1.0-beta.3",
@@ -136,7 +138,6 @@
     "prettier": "^1.14.3",
     "rimraf": "^2.5.4",
     "semantic-release": "^16.0.0-beta.18",
-    "ts-jest": "^24.0.2",
     "ts-loader": "^5.0.0",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",

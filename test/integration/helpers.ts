@@ -1,6 +1,6 @@
-import ForkTsCheckerWebpackPlugin = require('../../lib');
-import webpack = require('webpack');
-import getWebpackVersion = require('./webpackVersion');
+import ForkTsCheckerWebpackPlugin from '../../lib';
+import webpack from 'webpack';
+import getWebpackVersion from './webpackVersion';
 import VueLoaderPlugin from 'vue-loader/lib/plugin';
 import { rpcMethods } from './oldHelpers';
 import { RpcProvider } from 'worker-rpc';

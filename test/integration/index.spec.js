@@ -2,7 +2,6 @@ var fs = require('fs');
 var path = require('path');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
 var helpers = require('./helpers');
-var oldHelpers = require('./oldHelpers');
 
 describe.each([[true], [false]])(
   '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
@@ -413,7 +412,7 @@ describe.each([[true], [false]])(
         const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
           error =>
             !error.rawMessage.includes(
-              oldHelpers.expectedErrorCodes.expectedSyntacticErrorCode
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
         expect(syntacticErrorNotFoundInStats).toBe(true);
@@ -428,7 +427,7 @@ describe.each([[true], [false]])(
         const syntacticErrorFoundInStats = stats.compilation.errors.some(
           error =>
             error.rawMessage.includes(
-              oldHelpers.expectedErrorCodes.expectedSyntacticErrorCode
+              helpers.expectedErrorCodes.expectedSyntacticErrorCode
             )
         );
         expect(syntacticErrorFoundInStats).toBe(true);

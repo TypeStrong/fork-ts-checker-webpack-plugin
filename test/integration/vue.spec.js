@@ -1,6 +1,6 @@
 var path = require('path');
 var unixify = require('unixify');
-var helpers = require('./oldHelpers');
+var helpers = require('./helpers');
 
 describe.each([/*[true], */ [false]])(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s',
@@ -8,7 +8,6 @@ describe.each([/*[true], */ [false]])(
     var files;
     var compiler;
     var rpc;
-    var plugin;
 
     const getKnownFileNames = () =>
       rpc.rpc(helpers.rpcMethods.checker_getKnownFileNames);
@@ -20,19 +19,13 @@ describe.each([/*[true], */ [false]])(
     async function createCompiler(options) {
       options = options || {};
       options.useTypescriptIncrementalApi = useTypescriptIncrementalApi;
-      var vueCompiler = await helpers.createVueCompiler(options);
-      files = vueCompiler.files;
-      compiler = vueCompiler.compiler;
-      rpc = vueCompiler.plugin.serviceRpc;
-      plugin = vueCompiler.plugin;
+      var results = await helpers.createVueCompiler({
+        pluginOptions: options
+      });
+      files = results.files;
+      compiler = results.compiler;
+      rpc = results.rpcProvider;
     }
-
-    afterEach(() => {
-      if (plugin) {
-        plugin.killService();
-        plugin = undefined;
-      }
-    });
 
     it('should create a Vue program config if vue=true', async () => {
       await createCompiler({ vue: true });
@@ -148,9 +141,7 @@ describe.each([/*[true], */ [false]])(
         compiler.run(function(error, stats) {
           const errors = stats.compilation.errors;
           expect(errors.length).toBe(1);
-          expect(errors[0].file).toMatch(
-            /test\/integration\/vue\/src\/attrs\/test.ts$/
-          );
+          expect(errors[0].file).toBe('/test-context/src/attrs/test.ts');
           callback();
         })
       );

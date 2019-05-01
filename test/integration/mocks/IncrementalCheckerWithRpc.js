@@ -2,7 +2,7 @@ const mock = require('mock-require');
 
 const origImport = require('../../../lib/IncrementalChecker');
 
-const { rpcMethods, getRpcProvider } = require('../oldHelpers');
+const { rpcMethods, getRpcProvider } = require('../helpers/rpc');
 
 mock('../../../lib/IncrementalChecker', {
   IncrementalChecker: class extends origImport.IncrementalChecker {

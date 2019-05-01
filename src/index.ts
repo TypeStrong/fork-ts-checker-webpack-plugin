@@ -138,7 +138,7 @@ class ForkTsCheckerWebpackPlugin {
   private tslintVersion: string;
 
   private service?: childProcess.ChildProcess;
-  private serviceRpc?: RpcProvider;
+  protected serviceRpc?: RpcProvider;
 
   private vue: boolean;
 

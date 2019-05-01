@@ -40,8 +40,8 @@
     "lint": "tslint --project src/tsconfig.json && eslint ./test",
     "lint:fix": "tslint --project src/tsconfig.json --fix && eslint ./test --fix",
     "test": "yarn build && yarn test:unit && yarn test:integration",
-    "test:coverage": "rimraf coverage && jest --coverage --runInBand && rimraf tmp",
-    "test:integration": "jest integration --runInBand && rimraf tmp",
+    "test:coverage": "rimraf coverage && jest --coverage && rimraf tmp",
+    "test:integration": "jest integration && rimraf tmp",
     "test:unit": "jest unit",
     "test:watch": "jest unit --watch",
     "watch": "tsc --version && tsc --project \"./src\" --watch",
@@ -98,6 +98,7 @@
     ]
   },
   "dependencies": {
+    "@types/mock-require": "^2.0.0",
     "@types/rimraf": "^2.0.2",
     "babel-code-frame": "^6.22.0",
     "chalk": "^2.4.1",

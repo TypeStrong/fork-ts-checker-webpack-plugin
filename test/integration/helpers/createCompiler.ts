@@ -1,13 +1,10 @@
-import ForkTsCheckerWebpackPlugin from '../../lib';
 import webpack from 'webpack';
-import getWebpackVersion from './webpackVersion';
 import VueLoaderPlugin from 'vue-loader/lib/plugin';
-import { rpcMethods } from './oldHelpers';
-import { RpcProvider } from 'worker-rpc';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as copyDir from 'copy-dir';
 import * as rimraf from 'rimraf';
+import { ForkTsCheckerWebpackPlugin, webpackMajorVersion } from './';
 
 if (!beforeAll || !afterAll) {
   throw new Error('file should not be included outside of jest!');
@@ -16,8 +13,6 @@ if (!beforeAll || !afterAll) {
 const baseTmpDir = path.resolve(__dirname, '../../tmp');
 let tmpDirParent: string;
 let lastInstantiatedPlugin: ForkTsCheckerWebpackPlugin | undefined;
-
-const webpackMajorVersion = getWebpackVersion();
 
 beforeAll(function init() {
   if (!fs.existsSync(baseTmpDir)) fs.mkdirSync(baseTmpDir);
@@ -37,7 +32,7 @@ afterEach(function killPlugin() {
   }
 });
 
-interface CreateCompilerOptions {
+export interface CreateCompilerOptions {
   entryPoint: string;
   context: string;
   happyPackMode: boolean;
@@ -67,7 +62,7 @@ function prepareDirectory({ context }: { context: string }) {
   const outDir = path.resolve(tmpDir, 'out');
   fs.mkdirSync(contextDir);
   fs.mkdirSync(outDir);
-  copyDir.sync(path.resolve(__dirname, context), contextDir);
+  copyDir.sync(path.resolve(__dirname, '..', context), contextDir);
   return { contextDir, outDir, tmpDir };
 }
 
@@ -77,20 +72,20 @@ function doNormalizePaths(
     message: string;
     file: string;
     location: any[];
-  }>
+  }>,
+  contextDir: string
 ) {
-  const normalizeRegex = /^.*\/project\//g;
+  contextDir = contextDir.replace(/\/$/, '');
   return diagnostics.map(diagnostic => ({
     ...diagnostic,
     file:
-      diagnostic.file &&
-      diagnostic.file.replace(normalizeRegex, '/test-folder/'),
+      diagnostic.file && diagnostic.file.replace(contextDir, '/test-context'),
     message:
       diagnostic.message &&
-      diagnostic.message.replace(normalizeRegex, '/test-folder/'),
+      diagnostic.message.replace(contextDir, '/test-context'),
     rawMessage:
       diagnostic.message &&
-      diagnostic.message.replace(normalizeRegex, '/test-folder/')
+      diagnostic.message.replace(contextDir, '/test-context')
   }));
 }
 
@@ -143,9 +138,13 @@ export function createCompiler({
     const originalRun = compiler.run;
     compiler.run = function(handler) {
       originalRun.call(compiler, (error: Error, stats: webpack.Stats) => {
-        stats.compilation.errors = doNormalizePaths(stats.compilation.errors);
+        stats.compilation.errors = doNormalizePaths(
+          stats.compilation.errors,
+          contextDir
+        );
         stats.compilation.warnings = doNormalizePaths(
-          stats.compilation.warnings
+          stats.compilation.warnings,
+          contextDir
         );
         return handler(error, stats);
       });
@@ -160,95 +159,4 @@ export function createCompiler({
     outDir,
     tmpDir
   };
-}
-
-export async function createVueCompiler({
-  pluginOptions = {}
-}: Partial<CreateCompilerOptions> = {}) {
-  const results = createCompiler({
-    pluginOptions,
-    nodeRequires: [
-      './mocks/IncrementalCheckerWithRpc.js',
-      './mocks/ApiIncrementalCheckerWithRpc.js'
-    ],
-    prepareWebpackConfig(config) {
-      return {
-        ...config,
-        resolve: {
-          extensions: ['.ts', '.js', '.vue', '.json'],
-          alias: {
-            '@': path.resolve(__dirname, './vue/src'),
-            surprise: './src/index.ts'
-          }
-        },
-        module: {
-          rules: [
-            {
-              test: /\.vue$/,
-              loader: 'vue-loader'
-            },
-            {
-              test: /\.ts$/,
-              loader: 'ts-loader',
-              options: {
-                appendTsSuffixTo: [/\.vue$/],
-                transpileOnly: true,
-                silent: true
-              }
-            },
-            {
-              test: /\.css$/,
-              loader: 'css-loader'
-            }
-          ]
-        },
-        plugins: [
-          ...(config.plugins || []),
-          ...(webpackMajorVersion >= 4 ? [new VueLoaderPlugin()] : [])
-        ]
-      };
-    }
-  });
-
-  const { compilerConfig, plugin } = results;
-
-  var files = {
-    'example.vue': path.resolve(compilerConfig.context!, 'src/example.vue'),
-    'syntacticError.ts': path.resolve(
-      compilerConfig.context!,
-      'src/syntacticError.ts'
-    )
-  };
-
-  plugin['spawnService']();
-  await plugin['serviceRpc'].rpc(rpcMethods.checker_nextIteration);
-
-  return { ...results, files, rpc: plugin['serviceRpc'].rpc as RpcProvider };
-}
-
-export function testLintAutoFixTest({
-  fileName,
-  pluginOptions
-}: {
-  fileName: string;
-  pluginOptions: Partial<ForkTsCheckerWebpackPlugin.Options>;
-}) {
-  const lintErrorFileContents = `function someFunctionName(param1,param2){return param1+param2};
-`;
-  const formattedFileContents = `function someFunctionName(param1, param2) {return param1 + param2; }
-`;
-
-  const results = createCompiler({
-    pluginOptions,
-    entryPoint: `./src/${fileName}.ts`
-  });
-
-  const targetFileName = path.resolve(
-    results.contextDir,
-    `./src/${fileName}.ts`
-  );
-
-  fs.writeFileSync(targetFileName, lintErrorFileContents, { flag: 'w' });
-
-  return { ...results, targetFileName, formattedFileContents };
 }

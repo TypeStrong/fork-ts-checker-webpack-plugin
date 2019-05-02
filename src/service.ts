@@ -13,6 +13,7 @@ import {
 } from './NormalizedMessageFactories';
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
+import { TypeScriptPatchConfig, patchTypescript } from './patchTypescript';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -25,6 +26,13 @@ const rpc = new RpcProvider(message => {
 process.on('message', message => rpc.dispatch(message));
 
 const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
+const patchConfig: TypeScriptPatchConfig = {
+  skipGetSyntacticDiagnostics:
+    process.env.USE_INCREMENTAL_API === 'true' &&
+    process.env.CHECK_SYNTACTIC_ERRORS !== 'true'
+};
+
+patchTypescript(typescript, patchConfig);
 
 // message factories
 export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessageFromDiagnostic(

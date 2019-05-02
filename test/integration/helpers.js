@@ -2,16 +2,27 @@ var fs = require('fs');
 var path = require('path');
 var webpack = require('webpack');
 var ForkTsCheckerWebpackPlugin = require('../../lib/index');
-var IncrementalChecker = require('../../lib/IncrementalChecker')
-  .IncrementalChecker;
-var NormalizedMessageFactories = require('../../lib/NormalizedMessageFactories');
+var RpcProvider = require('worker-rpc').RpcProvider;
 
 var webpackMajorVersion = require('./webpackVersion')();
 var VueLoaderPlugin =
   webpackMajorVersion >= 4 ? require('vue-loader/lib/plugin') : undefined;
 
-exports.createVueCompiler = function(options) {
+const rpcMethods = {
+  checker_nextIteration: 'checker_nextIteration',
+  checker_getKnownFileNames: 'checker_getKnownFileNames',
+  checker_getSourceFile: 'checker_getSourceFile',
+  checker_getSyntacticDiagnostics: 'checker_getSyntacticDiagnostics'
+};
+
+exports.createVueCompiler = async function(options) {
   var plugin = new ForkTsCheckerWebpackPlugin({ ...options, silent: true });
+  plugin.nodeArgs = [
+    `--require`,
+    `${path.resolve(__dirname, './mocks/IncrementalCheckerWithRpc.js')}`,
+    `--require`,
+    `${path.resolve(__dirname, './mocks/ApiIncrementalCheckerWithRpc.js')}`
+  ];
 
   var compiler = webpack({
     ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
@@ -57,27 +68,10 @@ exports.createVueCompiler = function(options) {
     'syntacticError.ts': path.resolve(compiler.context, 'src/syntacticError.ts')
   };
 
-  var checker = new IncrementalChecker(
-    require('typescript'),
-    NormalizedMessageFactories.makeCreateNormalizedMessageFromDiagnostic(
-      require('typescript')
-    ),
-    NormalizedMessageFactories.makeCreateNormalizedMessageFromRuleFailure,
-    plugin.tsconfigPath,
-    {},
-    path.resolve(__dirname, './vue'),
-    plugin.tslintPath || false,
-    plugin.tslintAutoFix || false,
-    [compiler.context],
-    ForkTsCheckerWebpackPlugin.ONE_CPU,
-    1,
-    plugin.checkSyntacticErrors,
-    plugin.vue
-  );
+  plugin.spawnService();
+  await plugin.serviceRpc.rpc(rpcMethods.checker_nextIteration);
 
-  checker.nextIteration();
-
-  return { plugin, compiler, files, checker };
+  return { plugin, compiler, files };
 };
 
 exports.createCompiler = function(
@@ -193,4 +187,15 @@ exports.testLintHierarchicalConfigs = (
 exports.expectedErrorCodes = {
   expectedSyntacticErrorCode: 'TS1005',
   expectedSemanticErrorCode: 'TS2322'
+};
+
+exports.rpcMethods = rpcMethods;
+
+let rpc;
+exports.getRpcProvider = () => {
+  if (!rpc) {
+    rpc = new RpcProvider(message => process.send(message));
+    process.on('message', message => rpc.dispatch(message));
+  }
+  return rpc;
 };

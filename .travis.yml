@@ -34,7 +34,4 @@ jobs:
         script:
           - yarn exec semantic-release
         on:
-          branches:
-            only:
-              - beta
-              - master
+          all_branches: true

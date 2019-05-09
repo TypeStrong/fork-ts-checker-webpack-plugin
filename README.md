@@ -174,51 +174,45 @@ new ForkTsCheckerWebpackPlugin({
 
 - **resolveModuleNameModule** and **resolveTypeReferenceDirectiveModule** `string`:
   Both of those options refer to files on the disk that respectively export a `resolveModuleName` or a `resolveTypeReferenceDirectiveModule` function. These functions will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. Check the following code for an example of what those functions should look like:
+
   <details>
     <summary>Code sample</summary>
 
-```js
-const { resolveModuleName } = require(`ts-pnp`);
+  ```js
+  const { resolveModuleName } = require(`ts-pnp`);
 
-exports.resolveModuleName = (
-  typescript,
-  moduleName,
-  containingFile,
-  compilerOptions,
-  resolutionHost
-) => {
-  return resolveModuleName(
+  exports.resolveModuleName = (
+    typescript,
     moduleName,
     containingFile,
     compilerOptions,
-    resolutionHost,
-    typescript.resolveModuleName
-  );
-};
+    resolutionHost
+  ) => {
+    return resolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptions,
+      resolutionHost,
+      typescript.resolveModuleName
+    );
+  };
 
-exports.resolveTypeReferenceDirective = (
-  typescript,
-  moduleName,
-  containingFile,
-  compilerOptions,
-  resolutionHost
-) => {
-  return resolveModuleName(
+  exports.resolveTypeReferenceDirective = (
+    typescript,
     moduleName,
     containingFile,
     compilerOptions,
-    resolutionHost,
-    typescript.resolveTypeReferenceDirective
-  );
-};
-```
-
-### Pre-computed consts:
-
-- `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
-- `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
-- `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one CPU for build (probably will increase build time)
-- `ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE` - **recommended** - leave two CPUs free (one for build, one for system)
+    resolutionHost
+  ) => {
+    return resolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptions,
+      resolutionHost,
+      typescript.resolveTypeReferenceDirective
+    );
+  };
+  ```
 
 </details>
 

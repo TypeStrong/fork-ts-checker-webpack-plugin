@@ -17,7 +17,11 @@ import { createCodeframeFormatter } from './formatter/codeframeFormatter';
 import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
-import { getForkTsCheckerWebpackPluginHooks, legacyHookMap } from './hooks';
+import {
+  getForkTsCheckerWebpackPluginHooks,
+  legacyHookMap,
+  ForkTsCheckerHooks
+} from './hooks';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
@@ -77,7 +81,9 @@ class ForkTsCheckerWebpackPlugin {
     ForkTsCheckerWebpackPlugin.ALL_CPUS - 2
   );
 
-  public static getCompilerHooks(compiler: webpack.Compiler) {
+  public static getCompilerHooks(
+    compiler: any
+  ): Record<ForkTsCheckerHooks, any> {
     return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
@@ -261,7 +267,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  public apply(compiler: webpack.Compiler) {
+  public apply(compiler: any) {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);

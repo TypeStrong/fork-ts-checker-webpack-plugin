@@ -57,8 +57,8 @@ Here is a summary of the steps to follow:
 2. If you cloned a while ago, get the latest changes from upstream and update dependencies:
 
 ```bash
-$ git checkout beta
-$ git pull upstream beta
+$ git checkout master
+$ git pull upstream master
 $ yarn install
 ```
 
@@ -75,7 +75,7 @@ $ git checkout -b <topic-branch-name>
 $ git push origin <topic-branch-name>
 ```
 
-6. [Open a Pull Request](https://help.github.com/articles/creating-a-pull-request/#creating-the-pull-request) to the `beta` branch with a clear title and description.
+6. [Open a Pull Request](https://help.github.com/articles/creating-a-pull-request/#creating-the-pull-request) to the `master` branch with a clear title and description.
 
 **Tips**:
 
@@ -211,14 +211,11 @@ publish them on the [npm](https://www.npmjs.com/package/fork-ts-checker-webpack-
 
 ### Releasing a beta version
 
-All new features, fixes and improvements should be merged into the `beta` branch.
+Experimental features and improvements should be merged into the `beta` branch.
 If commits are messy, use **squash and merge** and put a [proper commit message](#commit-message-guidelines),
 otherwise use **rebase and merge**.
 
 ### Releasing a stable version
 
-When beta version is tested and stable, [create a Pull Request from the `beta`
-to the `master` branch](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/master...beta).
-If everything is ok, use **rebase and merge** to update the `master` branch.
-Please **do not use squash and merge commit** as it will desynchronize `master` and `beta`
-branches.
+Fixes and tested features from the `beta` branch can be merged with the `master` branch. Please ensure your branch is
+up to date with the `master` and then [open a Pull Request](https://github.com/Realytics/fork-ts-checker-webpack-plugin/compare/master...).

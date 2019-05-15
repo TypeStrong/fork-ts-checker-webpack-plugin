@@ -1,18 +1,24 @@
 # Fork TS Checker Webpack Plugin
 
 [![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
+
 [![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
+
 [![build status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
+
 [![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
+
 [![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Webpack plugin that runs typescript type checker on a separate process.
+Webpack plugin that runs TypeScript type checker on a separate process.
 
 ## Installation
 
-This plugin requires minimum **webpack 2.3**, **typescript 2.1** and optionally **tslint 4.0**
+This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **tslint 4.0**
 
 ```sh
 npm install --save-dev fork-ts-checker-webpack-plugin
@@ -53,19 +59,19 @@ these trees with tslint. It can be scaled with a multi-process mode to utilize m
 
 ## Modules resolution
 
-It's very important to be aware that **this plugin uses [typescript](https://github.com/Microsoft/TypeScript)'s, not
+It's very important to be aware that **this plugin uses [TypeScript](https://github.com/Microsoft/TypeScript)'s, not
 [webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. For example
 if you set `files: ['./src/someFile.ts']` in `tsconfig.json`, this plugin will check only `someFile.ts` for semantic errors. It's because
-of performance. The goal of this plugin is to be _as fast as possible_. With typescript's module resolution we don't have to wait for webpack
+of performance. The goal of this plugin is to be _as fast as possible_. With TypeScript's module resolution we don't have to wait for webpack
 to compile files (which traverses dependency graph during compilation) - we have a full list of files from the begin.
 
-To debug typescript's modules resolution, you can use `tsc --traceResolution` command.
+To debug TypeScript's modules resolution, you can use `tsc --traceResolution` command.
 
 ## TSLint
 
 If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
 `tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file.
-It helps to distinguish lints from typescript's diagnostics.
+It helps to distinguish lints from TypeScript's diagnostics.
 
 ## Options
 
@@ -110,7 +116,7 @@ It helps to distinguish lints from typescript's diagnostics.
   We recommend to set this to `false` in projects where type checking is faster than webpack's build - it's better for integration with other plugins. Another scenario where you might want to set this to `false` is if you use the `overlay` functionality of `webpack-dev-server`.
 
 - **ignoreDiagnostics** `number[]`:
-  List of typescript diagnostic codes to ignore.
+  List of TypeScript diagnostic codes to ignore.
 
 - **ignoreLints** `string[]`:
   List of tslint rule names to ignore.
@@ -161,9 +167,9 @@ new ForkTsCheckerWebpackPlugin({
   [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
-  If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1
+  If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. In this mode you can only have 1
   worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation
-  may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with typescript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
+  may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
 
 - **measureCompilationTime** `boolean`:
   If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,

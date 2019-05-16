@@ -106,6 +106,7 @@
     "chokidar": "^2.0.4",
     "micromatch": "^3.1.10",
     "minimatch": "^3.0.4",
+    "mock-require": "^3.0.3",
     "semver": "^5.6.0",
     "tapable": "^1.0.0",
     "worker-rpc": "^0.1.0"
@@ -118,6 +119,7 @@
     "@types/chokidar": "^1.7.5",
     "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",
+    "@types/mock-require": "^2.0.0",
     "@types/node": "^8.10.38",
     "@types/semver": "^5.5.0",
     "@types/webpack": "^4.4.19",
@@ -131,7 +133,6 @@
     "lint-staged": "^8.0.5",
     "mocha": "^5.2.0",
     "mock-fs": "^4.3.0",
-    "mock-require": "^3.0.2",
     "prettier": "^1.14.3",
     "rimraf": "^2.5.4",
     "semantic-release": "^16.0.0-beta.18",

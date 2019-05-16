@@ -12,7 +12,7 @@ export function patchTypescript(
   const origTypescript = { ...typescript };
   const origSys = { ...origTypescript.sys };
 
-  const { wrapFileName, unwrapFileName } = getWrapperUtils(config);
+  const { unwrapFileName } = getWrapperUtils(config);
 
   const handleFileContents = (
     originalFileName: string,
@@ -24,72 +24,13 @@ export function patchTypescript(
       : originalContents;
   };
 
-  // @ts-ignore
-  const wrapWatcherCallback = <
-    T extends ts.FileWatcherCallback | ts.DirectoryWatcherCallback
-  >(
-    callback: T
-  ) =>
-    ((unwrappedFileName: string, ...args: any[]) => {
-      /*
-      console.log(
-        'watcherCallback(',
-        wrapFileName(unwrappedFileName),
-        ...args,
-        ')'
-      );
-      */
-      (callback as any)(wrapFileName(unwrappedFileName), ...args);
-    }) as T;
-
-  const origFileExtensions = ['.ts', '.tsx', '.d.ts'];
-
-  function arrayContentsEqual(
-    a: ReadonlyArray<string>,
-    b: ReadonlyArray<string>
-  ) {
-    return a.length === b.length && b.every(item => a.includes(item));
-  }
-
   const systemPatchedFunctions: Partial<ts.System> = {
-    readDirectory(path, extensions, ...rest) {
-      if (extensions && arrayContentsEqual(extensions, origFileExtensions)) {
-        extensions = [...extensions, ...config.wrapExtensions];
-      }
-      return origSys.readDirectory(path, extensions, ...rest).map(wrapFileName);
-    },
     readFile(fileName, ...rest) {
       const originalFileName = unwrapFileName(fileName);
       return handleFileContents(
         originalFileName,
-        origSys.readFile(unwrapFileName(fileName), ...rest)
+        origSys.readFile(fileName, ...rest)
       );
-    },
-    fileExists(fileName) {
-      return origSys.fileExists(unwrapFileName(fileName));
-    },
-    watchFile(fileName, callback, ...rest) {
-      return origSys.watchFile!(
-        unwrapFileName(fileName),
-        wrapWatcherCallback(callback),
-        ...rest
-      );
-    },
-    watchDirectory(dirName, callback, ...rest) {
-      return origSys.watchDirectory!(
-        dirName,
-        wrapWatcherCallback(callback),
-        ...rest
-      );
-    },
-    getModifiedTime(fileName) {
-      return origSys.getModifiedTime!(unwrapFileName(fileName));
-    },
-    setModifiedTime(fileName, ...args) {
-      return origSys.setModifiedTime!(unwrapFileName(fileName), ...args);
-    },
-    deleteFile(fileName) {
-      return origSys.deleteFile!(unwrapFileName(fileName));
     }
   };
 

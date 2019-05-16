@@ -1,39 +1,12 @@
+import * as mockRequire from 'mock-require';
 import * as process from 'process';
-// tslint:disable-next-line:no-implicit-dependencies
-import * as ts from 'typescript'; // import for types alone
-import { IncrementalChecker } from './IncrementalChecker';
-import { CancellationToken } from './CancellationToken';
-import { NormalizedMessage } from './NormalizedMessage';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
-import { ApiIncrementalChecker } from './ApiIncrementalChecker';
-import {
-  makeCreateNormalizedMessageFromDiagnostic,
-  makeCreateNormalizedMessageFromRuleFailure,
-  makeCreateNormalizedMessageFromInternalError
-} from './NormalizedMessageFactories';
-import { patchTypescript } from './wrapTypeScript';
 import {
   TypeScriptWrapperConfig,
   wrapperConfigWithVue,
   emptyWrapperConfig,
   getWrapperUtils
 } from './wrapperUtils';
-import { RpcProvider } from 'worker-rpc';
-import { RunPayload, RunResult, RUN } from './RpcTypes';
-import {
-  TypeScriptPatchConfig,
-  patchTypescript as patchTypescript2
-} from './patchTypescript';
-
-const rpc = new RpcProvider(message => {
-  try {
-    process.send!(message);
-  } catch (e) {
-    // channel closed...
-    process.exit();
-  }
-});
-process.on('message', message => rpc.dispatch(message));
+import { link } from './fakeExtensionFs';
 
 const resolveModuleName = process.env.RESOLVE_MODULE_NAME
   ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
@@ -51,6 +24,45 @@ const wrapperConfig: TypeScriptWrapperConfig = {
   ...(process.env.VUE === 'true' ? wrapperConfigWithVue : {})
 };
 
+const { unwrapFileName, wrapFileName } = getWrapperUtils(wrapperConfig);
+
+const originalFs = require('fs');
+const fakeFs = link(originalFs, unwrapFileName, wrapFileName);
+mockRequire('fs', fakeFs);
+mockRequire.reRequire('fs');
+
+// now continue with everything as normal
+
+// tslint:disable-next-line:no-implicit-dependencies
+import * as ts from 'typescript'; // import for types alone
+import { IncrementalChecker } from './IncrementalChecker';
+import { CancellationToken } from './CancellationToken';
+import { NormalizedMessage } from './NormalizedMessage';
+import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import { ApiIncrementalChecker } from './ApiIncrementalChecker';
+import {
+  makeCreateNormalizedMessageFromDiagnostic,
+  makeCreateNormalizedMessageFromRuleFailure,
+  makeCreateNormalizedMessageFromInternalError
+} from './NormalizedMessageFactories';
+import { patchTypescript } from './wrapTypeScript';
+import { RpcProvider } from 'worker-rpc';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
+import {
+  TypeScriptPatchConfig,
+  patchTypescript as patchTypescript2
+} from './patchTypescript';
+
+const rpc = new RpcProvider(message => {
+  try {
+    process.send!(message);
+  } catch (e) {
+    // channel closed...
+    process.exit();
+  }
+});
+process.on('message', message => rpc.dispatch(message));
+
 const typescript: typeof ts = patchTypescript(
   require(process.env.TYPESCRIPT_PATH!),
   wrapperConfig
@@ -63,8 +75,6 @@ const patchConfig: TypeScriptPatchConfig = {
 };
 
 patchTypescript2(typescript, patchConfig);
-
-const { unwrapFileName } = getWrapperUtils(wrapperConfig);
 
 // message factories
 export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessageFromDiagnostic(

@@ -17,11 +17,6 @@ import { CancellationToken } from './CancellationToken';
 import * as minimatch from 'minimatch';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
-import {
-  emptyWrapperConfig,
-  TypeScriptWrapperConfig,
-  getWrapperUtils
-} from './wrapperUtils';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -62,8 +57,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private watchPaths: string[],
     private workNumber: number = 0,
     private workDivision: number = 1,
-    private checkSyntacticErrors: boolean = false,
-    private wrapperConfig: TypeScriptWrapperConfig = emptyWrapperConfig
+    private checkSyntacticErrors: boolean = false
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
@@ -106,16 +100,12 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
     watcher: FilesWatcher,
-    oldProgram: ts.Program,
-    wrapperConfig: TypeScriptWrapperConfig
+    oldProgram: ts.Program
   ) {
     const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
 
-    const { unwrapFileName, wrapFileName } = getWrapperUtils(wrapperConfig);
-
     host.getSourceFile = (filePath, languageVersion, onError) => {
-      filePath = unwrapFileName(filePath);
       // first check if watcher is watching file - if not - check it's mtime
       if (!watcher.isWatchingFile(filePath)) {
         try {
@@ -131,11 +121,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       // get source file only if there is no source in files register
       if (!files.has(filePath) || !files.getData(filePath).source) {
         files.mutateData(filePath, data => {
-          data.source = realGetSourceFile(
-            wrapFileName(filePath),
-            languageVersion,
-            onError
-          );
+          data.source = realGetSourceFile(filePath, languageVersion, onError);
         });
       }
 
@@ -173,7 +159,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   public nextIteration() {
     if (!this.watcher) {
-      const { watchExtensions } = getWrapperUtils(this.wrapperConfig);
+      const watchExtensions = ['.ts', '.tsx'];
       this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
 
       // connect watcher with register
@@ -224,8 +210,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.programConfig,
       this.files,
       this.watcher!,
-      this.program!,
-      this.wrapperConfig
+      this.program!
     );
   }
 

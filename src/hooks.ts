@@ -2,7 +2,7 @@
 import * as webpack from 'webpack';
 import { AsyncSeriesHook, SyncHook } from 'tapable';
 
-type ForkTsCheckerHooks =
+export type ForkTsCheckerHooks =
   | 'serviceBeforeStart'
   | 'cancel'
   | 'serviceStartError'

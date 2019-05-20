@@ -8,11 +8,11 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Webpack plugin that runs typescript type checker on a separate process.
+Webpack plugin that runs TypeScript type checker on a separate process.
 
 ## Installation
 
-This plugin requires minimum **webpack 2.3**, **typescript 2.1** and optionally **tslint 4.0**
+This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **tslint 4.0**
 
 ```sh
 npm install --save-dev fork-ts-checker-webpack-plugin
@@ -53,19 +53,19 @@ these trees with tslint. It can be scaled with a multi-process mode to utilize m
 
 ## Modules resolution
 
-It's very important to be aware that **this plugin uses [typescript](https://github.com/Microsoft/TypeScript)'s, not
+It's very important to be aware that **this plugin uses [TypeScript](https://github.com/Microsoft/TypeScript)'s, not
 [webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. For example
 if you set `files: ['./src/someFile.ts']` in `tsconfig.json`, this plugin will check only `someFile.ts` for semantic errors. It's because
-of performance. The goal of this plugin is to be _as fast as possible_. With typescript's module resolution we don't have to wait for webpack
+of performance. The goal of this plugin is to be _as fast as possible_. With TypeScript's module resolution we don't have to wait for webpack
 to compile files (which traverses dependency graph during compilation) - we have a full list of files from the begin.
 
-To debug typescript's modules resolution, you can use `tsc --traceResolution` command.
+To debug TypeScript's modules resolution, you can use `tsc --traceResolution` command.
 
 ## TSLint
 
 If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
 `tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file.
-It helps to distinguish lints from typescript's diagnostics.
+It helps to distinguish lints from TypeScript's diagnostics.
 
 ## Options
 
@@ -110,7 +110,7 @@ It helps to distinguish lints from typescript's diagnostics.
   We recommend to set this to `false` in projects where type checking is faster than webpack's build - it's better for integration with other plugins. Another scenario where you might want to set this to `false` is if you use the `overlay` functionality of `webpack-dev-server`.
 
 - **ignoreDiagnostics** `number[]`:
-  List of typescript diagnostic codes to ignore.
+  List of TypeScript diagnostic codes to ignore.
 
 - **ignoreLints** `string[]`:
   List of tslint rule names to ignore.
@@ -161,9 +161,9 @@ new ForkTsCheckerWebpackPlugin({
   [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
-  If true, the plugin will use incremental compilation API introduced in typescript 2.7. In this mode you can only have 1
+  If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. In this mode you can only have 1
   worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation
-  may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with typescript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
+  may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
 
 - **measureCompilationTime** `boolean`:
   If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
@@ -174,51 +174,45 @@ new ForkTsCheckerWebpackPlugin({
 
 - **resolveModuleNameModule** and **resolveTypeReferenceDirectiveModule** `string`:
   Both of those options refer to files on the disk that respectively export a `resolveModuleName` or a `resolveTypeReferenceDirectiveModule` function. These functions will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. Check the following code for an example of what those functions should look like:
+
   <details>
     <summary>Code sample</summary>
 
-```js
-const { resolveModuleName } = require(`ts-pnp`);
+  ```js
+  const { resolveModuleName } = require(`ts-pnp`);
 
-exports.resolveModuleName = (
-  typescript,
-  moduleName,
-  containingFile,
-  compilerOptions,
-  resolutionHost
-) => {
-  return resolveModuleName(
+  exports.resolveModuleName = (
+    typescript,
     moduleName,
     containingFile,
     compilerOptions,
-    resolutionHost,
-    typescript.resolveModuleName
-  );
-};
+    resolutionHost
+  ) => {
+    return resolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptions,
+      resolutionHost,
+      typescript.resolveModuleName
+    );
+  };
 
-exports.resolveTypeReferenceDirective = (
-  typescript,
-  moduleName,
-  containingFile,
-  compilerOptions,
-  resolutionHost
-) => {
-  return resolveModuleName(
+  exports.resolveTypeReferenceDirective = (
+    typescript,
     moduleName,
     containingFile,
     compilerOptions,
-    resolutionHost,
-    typescript.resolveTypeReferenceDirective
-  );
-};
-```
-
-### Pre-computed consts:
-
-- `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
-- `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
-- `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one CPU for build (probably will increase build time)
-- `ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE` - **recommended** - leave two CPUs free (one for build, one for system)
+    resolutionHost
+  ) => {
+    return resolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptions,
+      resolutionHost,
+      typescript.resolveTypeReferenceDirective
+    );
+  };
+  ```
 
 </details>
 
@@ -249,17 +243,110 @@ We hope this will be resolved in future; the issue can be tracked [here](https:/
 
 This plugin provides some custom webpack hooks (all are sync):
 
-| Event name                              | Description                                                                    | Params                                                                     |
-| --------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `fork-ts-checker-cancel`                | Cancellation has been requested                                                | `cancellationToken`                                                        |
-| `fork-ts-checker-waiting`               | Waiting for results                                                            | `hasTsLint`                                                                |
-| `fork-ts-checker-service-before-start`  | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
-| `fork-ts-checker-service-start`         | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
-| `fork-ts-checker-service-start-error`   | Cannot start service                                                           | `error`                                                                    |
-| `fork-ts-checker-service-out-of-memory` | Service is out of memory                                                       | -                                                                          |
-| `fork-ts-checker-receive`               | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |
-| `fork-ts-checker-emit`                  | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
-| `fork-ts-checker-done`                  | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
+| Event name                              | Hook Access Key      | Description                                                                    | Params                                                                     |
+| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                                                        |
+| `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                                                |
+| `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
+| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
+| `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                                                    |
+| `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                                                          |
+| `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |
+| `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
+| `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
+
+The **Event name** is there for backward compatibility with webpack 2/3. Regardless
+of the version of webpack (2, 3 or 4) you are using, we will always access plugin hooks with **Hook Access Keys** as
+described below.
+
+### Accessing plugin hooks
+
+All plugin hooks are compatible with both [webpack](https://webpack.js.org) version
+4 and version 2. To access plugin hooks and tap into the event, we need to use
+the `getCompilerHooks` static method. When we call this method with a [webpack compiler instance](https://webpack.js.org/api/node/),
+it returns the series of [tapable](https://github.com/webpack/tapable)
+hooks where you can pass in your callbacks.
+
+```js
+// require the plugin
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+// setup compiler with the plugin
+const compiler = webpack({
+  // .. webpack config
+});
+// Optionally add the plugin to the compiler
+// **Don't do this if already added through configuration**
+new ForkTsCheckerWebpackPlugin({
+  silent: true,
+  async: true
+}).apply(compiler);
+// Now get the plugin hooks from compiler
+const tsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+// These hooks provide access to different events
+// =================================================== //
+// The properties of tsCheckerHooks corresponds to the //
+// Hook Access Key of the table above.                 //
+// =================================================== //
+// Example, if we want to run some code when plugin has received diagnostics
+// and lint
+tsCheckerHooks.receive.tap('yourListenerName', (diagnostics, lint) => {
+  // do something with diagnostics, perhaps show custom message
+  console.log(diagnostics);
+});
+// Say we want to show some message when plugin is waiting for typecheck results
+tsCheckerHooks.waiting.tap('yourListenerName', () => {
+  console.log('waiting for typecheck results');
+});
+```
+
+Calling `.tap()` on any hooks, requires two arguments.
+
+##### `name` (`string`)
+
+The first argument passed to `.tap` is the name of your listener callback (`yourListenerName`).
+It doesn't need to correspond to anything special. It is intended to be used
+[internally](https://github.com/webpack/tapable#interception) as the `name` of
+the hook.
+
+##### `callback` (`function`)
+
+The second argument is the callback function. Depending on the hook you are
+tapping into, several arguments are passed to the function. Do check the table
+above to find out which arguments are passed to which hooks.
+
+### Accessing hooks on Webpack Multi-Compiler instance
+
+The above method will not work on webpack [multi compiler](https://webpack.js.org/api/node/#multicompiler)
+instance. The reason is `getCompilerHooks` expects (at lease as of now) the same
+compiler instance to be passed where the plugin was attached. So in case of
+multi compiler, we need to access individual compiler instances.
+
+```js
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+// setup multi compiler with the plugin
+const compiler = webpack([
+  {
+    // .. webpack config
+  },
+  {
+    // .. webpack config
+  }
+]);
+
+// safely determine if instance is multi-compiler
+if ('compilers' in compiler) {
+  compiler.compilers.forEach(singleCompiler => {
+    // get plugin hooks from the single compiler instance
+    const tsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+      singleCompiler
+    );
+    // now access hooks just like before
+    tsCheckerHooks.waiting.tap('yourListenerName', () => {
+      console.log('waiting for typecheck results');
+    });
+  });
+}
+```
 
 ## Vue
 

@@ -11,6 +11,11 @@ if (!beforeAll || !afterAll) {
 }
 
 const baseTmpDir = path.resolve(__dirname, '../../tmp');
+/**
+ * parent folder to create all files for integration tests in
+ * needs to be a random folder so that jest may execute multiple tests in parallel without conflicts
+ * will be set in beforeAll callback
+ */
 let tmpDirParent: string;
 let lastInstantiatedPlugin: ForkTsCheckerWebpackPlugin | undefined;
 
@@ -41,7 +46,7 @@ export interface CreateCompilerOptions {
   pluginOptions: Partial<ForkTsCheckerWebpackPlugin.Options>;
   prepareWebpackConfig(config: webpack.Configuration): webpack.Configuration;
   nodeRequires: string[];
-  normalizePaths: boolean;
+  normalizeDiagnosticsPaths: boolean;
 }
 
 const defaultOptions: Partial<ForkTsCheckerWebpackPlugin.Options> = {
@@ -57,6 +62,12 @@ interface CreateCompilerResults {
   tmpDir: string;
 }
 
+/**
+ * prepares a directory to run an integration test in by
+ * * creating a new temporary folder below `tmpDirParent`
+ * * copying the contents of the passed `context` directory (relative to ../../fixtures) over
+ * * returning the name of the newly created temporary folder
+ */
 function prepareDirectory({ context }: { context: string }) {
   if (!fs.existsSync(tmpDirParent)) {
     fs.mkdirSync(tmpDirParent);
@@ -70,7 +81,10 @@ function prepareDirectory({ context }: { context: string }) {
   return { contextDir, outDir, tmpDir };
 }
 
-function doNormalizePaths(
+/**
+ * removes the "temporary folder" part from all diagnostics' paths and replaces it with "/test-context"
+ */
+function normalizeDiagnosticsPaths(
   diagnostics: {
     rawMessage: string;
     message: string;
@@ -100,7 +114,7 @@ export function createCompiler({
   context = './project',
   prepareWebpackConfig = config => config,
   nodeRequires = [],
-  normalizePaths = true
+  normalizeDiagnosticsPaths: normalizePaths = true
 }: Partial<CreateCompilerOptions> = {}): CreateCompilerResults {
   const { contextDir, outDir, tmpDir } = prepareDirectory({ context });
 
@@ -142,11 +156,11 @@ export function createCompiler({
     const originalRun = compiler.run;
     compiler.run = handler => {
       originalRun.call(compiler, (error: Error, stats: webpack.Stats) => {
-        stats.compilation.errors = doNormalizePaths(
+        stats.compilation.errors = normalizeDiagnosticsPaths(
           stats.compilation.errors,
           contextDir
         );
-        stats.compilation.warnings = doNormalizePaths(
+        stats.compilation.warnings = normalizeDiagnosticsPaths(
           stats.compilation.warnings,
           contextDir
         );

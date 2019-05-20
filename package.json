@@ -98,8 +98,6 @@
     ]
   },
   "dependencies": {
-    "@types/mock-require": "^2.0.0",
-    "@types/rimraf": "^2.0.2",
     "babel-code-frame": "^6.22.0",
     "chalk": "^2.4.1",
     "chokidar": "^2.0.4",
@@ -118,7 +116,9 @@
     "@types/jest": "^24.0.11",
     "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",
+    "@types/mock-require": "^2.0.0",
     "@types/node": "^8.10.38",
+    "@types/rimraf": "^2.0.2",
     "@types/semver": "^5.5.0",
     "@types/webpack": "^4.4.19",
     "commitlint": "^7.5.2",

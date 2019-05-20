@@ -1,4 +1,5 @@
 // tslint:disable:no-implicit-dependencies
+// @ts-ignore
 import { rpcMethods } from './rpc';
 import * as path from 'path';
 import { CreateCompilerOptions, createCompiler, webpackMajorVersion } from '.';
@@ -13,18 +14,21 @@ try {
 }
 
 export async function createVueCompiler({
-  pluginOptions = {},
-  context = './vue'
-}: Partial<Pick<CreateCompilerOptions, 'pluginOptions' | 'context'>> = {}) {
+  context = './vue',
+  nodeRequires = [],
+  prepareWebpackConfig = x => x,
+  ...otherOptions
+}: Partial<CreateCompilerOptions> = {}) {
   const results = createCompiler({
-    pluginOptions,
+    ...otherOptions,
     context,
     nodeRequires: [
+      ...nodeRequires,
       '../mocks/IncrementalCheckerWithRpc.js',
       '../mocks/ApiIncrementalCheckerWithRpc.js'
     ],
     prepareWebpackConfig(config) {
-      return {
+      return prepareWebpackConfig({
         ...config,
         resolve: {
           extensions: ['.ts', '.js', '.vue', '.json'],
@@ -58,7 +62,7 @@ export async function createVueCompiler({
           ...(config.plugins || []),
           ...(!!VueLoaderPlugin ? [new VueLoaderPlugin()] : [])
         ]
-      };
+      });
     }
   });
 

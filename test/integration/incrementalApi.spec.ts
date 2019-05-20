@@ -5,46 +5,36 @@
  * here vs. other files.
  *
  * */
-
-var fs = require('fs');
-var path = require('path');
-var helpers = require('./helpers');
+import fs from 'fs';
+import * as helpers from './helpers';
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', () => {
-  function createCompiler(
-    options,
-    happyPackMode,
-    entryPoint = './src/index.ts'
-  ) {
-    options.useTypescriptIncrementalApi = true;
-
+  function createCompiler(options: Partial<helpers.CreateCompilerOptions>) {
     const { compiler } = helpers.createCompiler({
-      pluginOptions: options,
-      happyPackMode,
-      entryPoint
+      ...options,
+      pluginOptions: {
+        ...options.pluginOptions,
+        useTypescriptIncrementalApi: true
+      }
     });
     return compiler;
   }
 
-  function createVueCompiler(
-    options,
-    happyPackMode,
-    entryPoint = './src/index.ts'
-  ) {
-    options = options || {};
-    options.useTypescriptIncrementalApi = true;
-    options.vue = true;
+  function createVueCompiler(options: Partial<helpers.CreateCompilerOptions>) {
     return helpers.createVueCompiler({
-      pluginOptions: options,
-      happyPackMode,
-      entryPoint
+      ...options,
+      pluginOptions: {
+        ...options.pluginOptions,
+        useTypescriptIncrementalApi: true,
+        vue: true
+      }
     });
   }
 
   it('should not allow multiple workers with incremental API', () => {
     expect(() => {
       createCompiler({
-        workers: 5
+        pluginOptions: { workers: 5 }
       });
     }).toThrowError();
   });
@@ -61,14 +51,14 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
         useTypescriptIncrementalApi: true,
         tslintAutoFix: true,
         tslint: './tslint.autofix.json',
-        tsconfig: false
+        tsconfig: undefined
       }
     });
 
     compiler.run((err, stats) => {
       expect(stats.compilation.warnings.length).toBe(0);
 
-      var fileContents = fs.readFileSync(targetFileName, {
+      const fileContents = fs.readFileSync(targetFileName, {
         encoding: 'utf-8'
       });
       expect(fileContents).toBe(formattedFileContents);
@@ -92,32 +82,34 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
   });
 
   it('should get syntactic diagnostics from Vue program', callback => {
-    createVueCompiler({ checkSyntacticErrors: true }).then(({ compiler }) =>
-      compiler.run(function(error, stats) {
-        const syntacticErrorFoundInStats = stats.compilation.errors.some(
-          error =>
-            error.rawMessage.includes(
-              helpers.expectedErrorCodes.expectedSyntacticErrorCode
-            )
-        );
-        expect(syntacticErrorFoundInStats).toBe(true);
-        callback();
-      })
+    createVueCompiler({ pluginOptions: { checkSyntacticErrors: true } }).then(
+      ({ compiler }) =>
+        compiler.run((_error, stats) => {
+          const syntacticErrorFoundInStats = stats.compilation.errors.some(
+            error =>
+              error.rawMessage.includes(
+                helpers.expectedErrorCodes.expectedSyntacticErrorCode
+              )
+          );
+          expect(syntacticErrorFoundInStats).toBe(true);
+          callback();
+        })
     );
   });
 
   it('should not find syntactic errors in Vue program when checkSyntacticErrors is false', callback => {
-    createVueCompiler({ checkSyntacticErrors: false }).then(({ compiler }) =>
-      compiler.run(function(error, stats) {
-        const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
-          error =>
-            !error.rawMessage.includes(
-              helpers.expectedErrorCodes.expectedSyntacticErrorCode
-            )
-        );
-        expect(syntacticErrorNotFoundInStats).toBe(true);
-        callback();
-      })
+    createVueCompiler({ pluginOptions: { checkSyntacticErrors: false } }).then(
+      ({ compiler }) =>
+        compiler.run((_error, stats) => {
+          const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
+            error =>
+              !error.rawMessage.includes(
+                helpers.expectedErrorCodes.expectedSyntacticErrorCode
+              )
+          );
+          expect(syntacticErrorNotFoundInStats).toBe(true);
+          callback();
+        })
     );
   });
 });

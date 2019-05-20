@@ -1,28 +1,23 @@
-var fs = require('fs');
-var path = require('path');
-var ForkTsCheckerWebpackPlugin = require('../../lib/index');
-var helpers = require('./helpers');
+import fs from 'fs';
+import path from 'path';
+import ForkTsCheckerWebpackPlugin from '../../lib/index';
+import * as helpers from './helpers';
 
 describe.each([[true], [false]])(
   '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
   useTypescriptIncrementalApi => {
-    var plugin;
+    let compilerPlugin: ForkTsCheckerWebpackPlugin;
 
     const overrideOptions = { useTypescriptIncrementalApi };
 
     function createCompiler(
-      options,
-      happyPackMode,
-      entryPoint = './src/index.ts'
+      options: Partial<helpers.CreateCompilerOptions> = {}
     ) {
-      options = options || {};
-      options = { ...options, ...overrideOptions };
-      var compiler = helpers.createCompiler({
-        entryPoint,
-        happyPackMode,
-        pluginOptions: options
+      const compiler = helpers.createCompiler({
+        ...options,
+        pluginOptions: { ...options.pluginOptions, ...overrideOptions }
       });
-      plugin = compiler.plugin;
+      compilerPlugin = compiler.plugin;
       return compiler.compiler;
     }
 
@@ -34,41 +29,42 @@ describe.each([[true], [false]])(
      * @returns [boolean] true if killService was called
      */
     function killServiceWasCalled() {
-      return plugin.service === undefined;
+      return compilerPlugin['service'] === undefined;
     }
 
     it('should allow to pass no options', () => {
-      expect(function() {
+      expect(() => {
+        // tslint:disable-next-line: no-unused-expression
         new ForkTsCheckerWebpackPlugin();
       }).not.toThrowError();
     });
 
     it('should detect paths', () => {
-      var plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
+      const plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
 
-      expect(plugin.tsconfig).toBe('./tsconfig.json');
-      expect(plugin.tslint).toBe(true);
+      expect(plugin['tsconfig']).toBe('./tsconfig.json');
+      expect(plugin['tslint']).toBe(true);
     });
 
     it('should set logger to console by default', () => {
-      var plugin = new ForkTsCheckerWebpackPlugin({});
+      const plugin = new ForkTsCheckerWebpackPlugin({});
 
-      expect(plugin.logger).toBe(console);
+      expect(plugin['logger']).toBe(console);
     });
 
     it('should set watch to empty array by default', () => {
-      var plugin = new ForkTsCheckerWebpackPlugin({});
+      const plugin = new ForkTsCheckerWebpackPlugin({});
 
-      expect(plugin.watch).toEqual([]);
+      expect(plugin['watch']).toEqual([]);
     });
 
     it('should set watch to one element array for string', () => {
-      var plugin = new ForkTsCheckerWebpackPlugin({
+      const plugin = new ForkTsCheckerWebpackPlugin({
         useTypescriptIncrementalApi: false,
         watch: '/test'
       });
 
-      expect(plugin.watch).toEqual(['/test']);
+      expect(plugin['watch']).toEqual(['/test']);
     });
 
     it('should find lint warnings', callback => {
@@ -133,59 +129,66 @@ describe.each([[true], [false]])(
     });
 
     it('should find semantic errors', callback => {
-      var compiler = createCompiler({
-        tsconfig: 'tsconfig-semantic-error-only.json'
+      const compiler = createCompiler({
+        pluginOptions: {
+          tsconfig: 'tsconfig-semantic-error-only.json'
+        }
       });
 
-      compiler.run(function(err, stats) {
+      compiler.run((err, stats) => {
         expect(stats.compilation.errors.length).toBeGreaterThanOrEqual(1);
         callback();
       });
     });
 
-    it('should support custom resolution', function(callback) {
-      var compiler = createCompiler({
-        tsconfig: 'tsconfig-weird-resolutions.json',
-        resolveModuleNameModule: path.resolve(
-          __dirname,
-          '../fixtures/project/',
-          'weirdResolver.js'
-        ),
-        resolveTypeReferenceDirectiveModule: path.resolve(
-          __dirname,
-          '../fixtures/project/',
-          'weirdResolver.js'
-        )
+    it('should support custom resolution', callback => {
+      const compiler = createCompiler({
+        pluginOptions: {
+          tsconfig: 'tsconfig-weird-resolutions.json',
+          resolveModuleNameModule: path.resolve(
+            __dirname,
+            '../fixtures/project/',
+            'weirdResolver.js'
+          ),
+          resolveTypeReferenceDirectiveModule: path.resolve(
+            __dirname,
+            '../fixtures/project/',
+            'weirdResolver.js'
+          )
+        }
       });
 
-      compiler.run(function(err, stats) {
+      compiler.run((err, stats) => {
         expect(stats.compilation.errors.length).toBe(0);
         callback();
       });
     });
 
-    skipIfIncremental('should support custom resolution w/ "paths"', function(
-      callback
-    ) {
-      var compiler = createCompiler({
-        tsconfig: 'tsconfig-weird-resolutions-with-paths.json',
-        resolveModuleNameModule: path.resolve(
-          __dirname,
-          '../fixtures/project/',
-          'weirdResolver.js'
-        ),
-        resolveTypeReferenceDirectiveModule: path.resolve(
-          __dirname,
-          '../fixtures/project/',
-          'weirdResolver.js'
-        )
-      });
+    skipIfIncremental(
+      'should support custom resolution w/ "paths"',
+      callback => {
+        const compiler = createCompiler({
+          pluginOptions: {
+            tsconfig: 'tsconfig-weird-resolutions-with-paths.json',
+            resolveModuleNameModule: path.resolve(
+              __dirname,
+              '../fixtures/project/',
+              'weirdResolver.js'
+            ),
+            resolveTypeReferenceDirectiveModule: path.resolve(
+              __dirname,
+              '../fixtures/project/',
+              'weirdResolver.js'
+            )
+          }
+        });
 
-      compiler.run(function(err, stats) {
-        expect(stats.compilation.errors.length).toBe(0);
-        callback();
-      });
-    });
+        compiler.run((err, stats) => {
+          expect(stats.compilation.errors.length).toBe(0);
+          callback();
+        });
+      }
+    );
 
     it('should fix linting errors with tslintAutofix flag set to true', callback => {
       const fileName = 'lintingError1';
@@ -198,14 +201,14 @@ describe.each([[true], [false]])(
         pluginOptions: {
           tslintAutoFix: true,
           tslint: './tslint.autofix.json',
-          tsconfig: false,
+          tsconfig: undefined,
           ...overrideOptions
         }
       });
       compiler.run((err, stats) => {
         expect(stats.compilation.warnings.length).toBe(0);
 
-        var fileContents = fs.readFileSync(targetFileName, {
+        const fileContents = fs.readFileSync(targetFileName, {
           encoding: 'utf-8'
         });
         expect(fileContents).toBe(formattedFileContents);
@@ -229,32 +232,33 @@ describe.each([[true], [false]])(
     });
 
     it('should block emit on build mode', callback => {
-      var compiler = createCompiler();
+      const compiler = createCompiler();
 
       if ('hooks' in compiler) {
         const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
           compiler
         );
-        forkTsCheckerHooks.emit.tap(
-          'should block emit on build mode',
-          function() {
-            expect(true).toBe(true);
-            callback();
-          }
-        );
+        forkTsCheckerHooks.emit.tap('should block emit on build mode', () => {
+          expect(true).toBe(true);
+          callback();
+        });
       } else {
-        compiler.plugin('fork-ts-checker-emit', function() {
+        (compiler as any).plugin('fork-ts-checker-emit', () => {
           expect(true).toBe(true);
           callback();
         });
       }
 
-      compiler.run(function() {});
+      compiler.run(() => {
+        /**/
+      });
     });
 
     it('should not block emit on watch mode', callback => {
-      var compiler = createCompiler();
-      var watching = compiler.watch({}, function() {});
+      const compiler = createCompiler();
+      const watching = compiler.watch({}, () => {
+        /**/
+      });
 
       if ('hooks' in compiler) {
         const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
@@ -262,16 +266,16 @@ describe.each([[true], [false]])(
         );
         forkTsCheckerHooks.done.tap(
           'should not block emit on watch mode',
-          function() {
-            watching.close(function() {
+          () => {
+            watching.close(() => {
               expect(true).toBe(true);
               callback();
             });
           }
         );
       } else {
-        compiler.plugin('fork-ts-checker-done', function() {
-          watching.close(function() {
+        (compiler as any).plugin('fork-ts-checker-done', () => {
+          watching.close(() => {
             expect(true).toBe(true);
             callback();
           });
@@ -280,8 +284,10 @@ describe.each([[true], [false]])(
     });
 
     it('should block emit if async flag is false', callback => {
-      var compiler = createCompiler({ async: false });
-      var watching = compiler.watch({}, function() {});
+      const compiler = createCompiler({ pluginOptions: { async: false } });
+      const watching = compiler.watch({}, () => {
+        /**/
+      });
 
       if ('hooks' in compiler) {
         const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
@@ -289,16 +295,16 @@ describe.each([[true], [false]])(
         );
         forkTsCheckerHooks.emit.tap(
           'should block emit if async flag is false',
-          function() {
-            watching.close(function() {
+          () => {
+            watching.close(() => {
               expect(true).toBe(true);
               callback();
             });
           }
         );
       } else {
-        compiler.plugin('fork-ts-checker-emit', function() {
-          watching.close(function() {
+        (compiler as any).plugin('fork-ts-checker-emit', () => {
+          watching.close(() => {
             expect(true).toBe(true);
             callback();
           });
@@ -307,8 +313,10 @@ describe.each([[true], [false]])(
     });
 
     it('kills the service when the watch is done', done => {
-      var compiler = createCompiler();
-      var watching = compiler.watch({}, function() {});
+      const compiler = createCompiler();
+      const watching = compiler.watch({}, () => {
+        /**/
+      });
 
       if ('hooks' in compiler) {
         const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
@@ -316,16 +324,16 @@ describe.each([[true], [false]])(
         );
         forkTsCheckerHooks.done.tap(
           'kills the service when the watch is done',
-          function() {
-            watching.close(function() {
+          () => {
+            watching.close(() => {
               expect(killServiceWasCalled()).toBe(true);
               done();
             });
           }
         );
       } else {
-        compiler.plugin('fork-ts-checker-done', function() {
-          watching.close(function() {
+        (compiler as any).plugin('fork-ts-checker-done', () => {
+          watching.close(() => {
             expect(killServiceWasCalled()).toBe(true);
             done();
           });
@@ -334,30 +342,34 @@ describe.each([[true], [false]])(
     });
 
     it('should throw error if config container wrong tsconfig.json path', () => {
-      expect(function() {
+      expect(() => {
         createCompiler({
-          tsconfig: '/some/path/that/not/exists/tsconfig.json'
+          pluginOptions: {
+            tsconfig: '/some/path/that/not/exists/tsconfig.json'
+          }
         });
       }).toThrowError();
     });
 
     it('should throw error if config container wrong tslint.json path', () => {
-      expect(function() {
+      expect(() => {
         createCompiler({
-          tslint: '/some/path/that/not/exists/tslint.json'
+          pluginOptions: {
+            tslint: '/some/path/that/not/exists/tslint.json'
+          }
         });
       }).toThrowError();
     });
 
     it('should detect tslint path for true option', () => {
-      expect(function() {
-        createCompiler({ tslint: true });
+      expect(() => {
+        createCompiler({ pluginOptions: { tslint: true } });
       }).not.toThrowError();
     });
 
     it('should allow delaying service-start', callback => {
-      var compiler = createCompiler();
-      var delayed = false;
+      const compiler = createCompiler();
+      let delayed = false;
 
       if ('hooks' in compiler) {
         const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
@@ -365,8 +377,8 @@ describe.each([[true], [false]])(
         );
         forkTsCheckerHooks.serviceBeforeStart.tapAsync(
           'should allow delaying service-start',
-          function(cb) {
-            setTimeout(function() {
+          cb => {
+            setTimeout(() => {
               delayed = true;
 
               cb();
@@ -376,27 +388,32 @@ describe.each([[true], [false]])(
 
         forkTsCheckerHooks.serviceBeforeStart.tap(
           'should allow delaying service-start',
-          function() {
+          () => {
             expect(delayed).toBe(true);
             callback();
           }
         );
       } else {
-        compiler.plugin('fork-ts-checker-service-before-start', function(cb) {
-          setTimeout(function() {
-            delayed = true;
+        (compiler as any).plugin(
+          'fork-ts-checker-service-before-start',
+          (cb: Function) => {
+            setTimeout(() => {
+              delayed = true;
 
-            cb();
-          }, 0);
-        });
+              cb();
+            }, 0);
+          }
+        );
 
-        compiler.plugin('fork-ts-checker-service-start', function() {
+        (compiler as any).plugin('fork-ts-checker-service-start', () => {
           expect(delayed).toBe(true);
           callback();
         });
       }
 
-      compiler.run(function() {});
+      compiler.run(() => {
+        /**  */
+      });
     });
 
     it('should respect "tslint.json"s hierarchy when config-file not specified', callback => {
@@ -422,9 +439,12 @@ describe.each([[true], [false]])(
     });
 
     it('should not find syntactic errors when checkSyntacticErrors is false', callback => {
-      var compiler = createCompiler({ checkSyntacticErrors: false }, true);
+      const compiler = createCompiler({
+        pluginOptions: { checkSyntacticErrors: false },
+        happyPackMode: true
+      });
 
-      compiler.run(function(error, stats) {
+      compiler.run((_error, stats) => {
         const syntacticErrorNotFoundInStats = stats.compilation.errors.every(
           error =>
             !error.rawMessage.includes(
@@ -437,9 +457,12 @@ describe.each([[true], [false]])(
     });
 
     it('should find syntactic errors when checkSyntacticErrors is true', callback => {
-      var compiler = createCompiler({ checkSyntacticErrors: true }, true);
+      const compiler = createCompiler({
+        pluginOptions: { checkSyntacticErrors: true },
+        happyPackMode: true
+      });
 
-      compiler.run(function(error, stats) {
+      compiler.run((_error, stats) => {
         const syntacticErrorFoundInStats = stats.compilation.errors.some(
           error =>
             error.rawMessage.includes(

@@ -1,52 +1,56 @@
-var path = require('path');
-var helpers = require('./helpers');
+// tslint:disable:no-implicit-dependencies
+import path from 'path';
+import * as helpers from './helpers';
+import webpack from 'webpack';
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', () => {
-  var plugin;
+  let plugin: helpers.ForkTsCheckerWebpackPlugin;
 
   function createCompiler(
-    options,
-    happyPackMode,
-    entryPoint = './src/index.ts'
+    options: Partial<helpers.CreateCompilerOptions> = {}
   ) {
-    options = options || {};
-    options.useTypescriptIncrementalApi = false;
-    var compiler = helpers.createCompiler({
-      pluginOptions: options,
-      happyPackMode,
-      entryPoint
+    const compiler = helpers.createCompiler({
+      ...options,
+      pluginOptions: {
+        ...options.pluginOptions,
+        useTypescriptIncrementalApi: false
+      }
     });
     plugin = compiler.plugin;
     return compiler.compiler;
   }
 
   it('should work without configuration', callback => {
-    var compiler = createCompiler();
+    const compiler = createCompiler();
 
-    compiler.run(function(err, stats) {
+    compiler.run((err, stats) => {
       expect(stats.compilation.errors.length).toBeGreaterThanOrEqual(1);
       callback();
     });
   });
 
   it('should find the same errors on multi-process mode', async () => {
-    var compilerA = createCompiler({
-      workers: 1,
-      tslint: true
+    const compilerA = createCompiler({
+      pluginOptions: {
+        workers: 1,
+        tslint: true
+      }
     });
-    var compilerB = createCompiler({
-      workers: 4,
-      tslint: true
+    const compilerB = createCompiler({
+      pluginOptions: {
+        workers: 4,
+        tslint: true
+      }
     });
 
     const [a, b] = await Promise.all([
-      new Promise(resolve =>
-        compilerA.run(function(error, stats) {
+      new Promise<webpack.compilation.Compilation>(resolve =>
+        compilerA.run((error, stats) => {
           resolve(stats.compilation);
         })
       ),
-      new Promise(resolve =>
-        compilerB.run(function(error, stats) {
+      new Promise<webpack.compilation.Compilation>(resolve =>
+        compilerB.run((error, stats) => {
           resolve(stats.compilation);
         })
       )
@@ -57,18 +61,18 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
   });
 
   it('should only show errors matching paths specified in reportFiles when provided', callback => {
-    var compiler = createCompiler(
-      {
+    const compiler = createCompiler({
+      pluginOptions: {
         checkSyntacticErrors: true,
         reportFiles: ['**/index.ts']
       },
-      true
-    );
+      happyPackMode: true
+    });
 
     // this test doesn't make as much sense in the context of using the incremental API
     // as in that case the compiler will stop looking for further errors when it finds one
     // see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/198#issuecomment-453790649 for details
-    compiler.run(function(error, stats) {
+    compiler.run((error, stats) => {
       expect(stats.compilation.errors.length).toBe(1);
       expect(stats.compilation.errors[0]).toEqual(
         expect.objectContaining({ file: expect.stringMatching(/index.ts$/) })
@@ -78,13 +82,13 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
   });
 
   it('should handle errors within the IncrementalChecker gracefully as diagnostic', callback => {
-    var compiler = createCompiler();
-    plugin.nodeArgs = [
+    const compiler = createCompiler();
+    plugin['nodeArgs'] = [
       `--require`,
       `${path.resolve(__dirname, './mocks/IncrementalCheckerWithError.js')}`
     ];
 
-    compiler.run(function(error, stats) {
+    compiler.run((error, stats) => {
       expect(stats.compilation.errors.length).toBe(1);
       expect(stats.compilation.errors[0]).toEqual(
         expect.objectContaining({

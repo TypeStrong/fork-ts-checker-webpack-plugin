@@ -1,5 +1,5 @@
+// tslint:disable:no-implicit-dependencies
 import webpack from 'webpack';
-import VueLoaderPlugin from 'vue-loader/lib/plugin';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as copyDir from 'copy-dir';
@@ -15,7 +15,9 @@ let tmpDirParent: string;
 let lastInstantiatedPlugin: ForkTsCheckerWebpackPlugin | undefined;
 
 beforeAll(function init() {
-  if (!fs.existsSync(baseTmpDir)) fs.mkdirSync(baseTmpDir);
+  if (!fs.existsSync(baseTmpDir)) {
+    fs.mkdirSync(baseTmpDir);
+  }
 
   tmpDirParent = fs.mkdtempSync(
     path.join(baseTmpDir, 'fork-ts-checker-webpack-plugin-test')
@@ -46,17 +48,19 @@ const defaultOptions: Partial<ForkTsCheckerWebpackPlugin.Options> = {
   silent: true
 };
 
-type CreateCompilerResults = {
+interface CreateCompilerResults {
   compiler: webpack.Compiler;
   readonly compilerConfig: webpack.Configuration;
   plugin: ForkTsCheckerWebpackPlugin;
   contextDir: string;
   outDir: string;
   tmpDir: string;
-};
+}
 
 function prepareDirectory({ context }: { context: string }) {
-  if (!fs.existsSync(tmpDirParent)) fs.mkdirSync(tmpDirParent);
+  if (!fs.existsSync(tmpDirParent)) {
+    fs.mkdirSync(tmpDirParent);
+  }
   const tmpDir = fs.mkdtempSync(path.join(tmpDirParent, 'test'));
   const contextDir = path.resolve(tmpDir, context);
   const outDir = path.resolve(tmpDir, 'out');
@@ -67,12 +71,12 @@ function prepareDirectory({ context }: { context: string }) {
 }
 
 function doNormalizePaths(
-  diagnostics: Array<{
+  diagnostics: {
     rawMessage: string;
     message: string;
     file: string;
     location: any[];
-  }>,
+  }[],
   contextDir: string
 ) {
   contextDir = contextDir.replace(/\/$/, '');
@@ -136,7 +140,7 @@ export function createCompiler({
 
   if (normalizePaths) {
     const originalRun = compiler.run;
-    compiler.run = function(handler) {
+    compiler.run = handler => {
       originalRun.call(compiler, (error: Error, stats: webpack.Stats) => {
         stats.compilation.errors = doNormalizePaths(
           stats.compilation.errors,

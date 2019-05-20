@@ -60,7 +60,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
       pluginOptions: {
         useTypescriptIncrementalApi: true,
         tslintAutoFix: true,
-        tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+        tslint: './tslint.autofix.json',
         tsconfig: false
       }
     });

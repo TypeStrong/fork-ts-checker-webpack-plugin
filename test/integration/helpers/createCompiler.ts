@@ -62,7 +62,7 @@ function prepareDirectory({ context }: { context: string }) {
   const outDir = path.resolve(tmpDir, 'out');
   fs.mkdirSync(contextDir);
   fs.mkdirSync(outDir);
-  copyDir.sync(path.resolve(__dirname, '..', context), contextDir);
+  copyDir.sync(path.resolve(__dirname, '../../fixtures/', context), contextDir);
   return { contextDir, outDir, tmpDir };
 }
 

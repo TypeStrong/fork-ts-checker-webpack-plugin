@@ -75,7 +75,7 @@ describe.each([[true], [false]])(
       const fileName = 'lintingError2';
       const { compiler } = helpers.testLintAutoFixTest({
         pluginOptions: {
-          tslint: path.resolve(__dirname, './project/tslint.json'),
+          tslint: './tslint.json',
           ignoreLintWarnings: false,
           ...overrideOptions
         },
@@ -97,7 +97,7 @@ describe.each([[true], [false]])(
       const { compiler } = helpers.testLintAutoFixTest({
         fileName,
         pluginOptions: {
-          tslint: path.resolve(__dirname, './project/tslint.json'),
+          tslint: './tslint.json',
           ignoreLintWarnings: true,
           ...overrideOptions
         }
@@ -117,7 +117,7 @@ describe.each([[true], [false]])(
       const { compiler } = helpers.testLintAutoFixTest({
         fileName,
         pluginOptions: {
-          tslint: path.resolve(__dirname, './project/tslint.json'),
+          tslint: './tslint.json',
           ignoreLintWarnings: true,
           ...overrideOptions
         }
@@ -146,8 +146,16 @@ describe.each([[true], [false]])(
     it('should support custom resolution', function(callback) {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-weird-resolutions.json',
-        resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
-        resolveTypeReferenceDirectiveModule: `${__dirname}/project/weirdResolver.js`
+        resolveModuleNameModule: path.resolve(
+          __dirname,
+          '../fixtures/project/',
+          'weirdResolver.js'
+        ),
+        resolveTypeReferenceDirectiveModule: path.resolve(
+          __dirname,
+          '../fixtures/project/',
+          'weirdResolver.js'
+        )
       });
 
       compiler.run(function(err, stats) {
@@ -161,8 +169,16 @@ describe.each([[true], [false]])(
     ) {
       var compiler = createCompiler({
         tsconfig: 'tsconfig-weird-resolutions-with-paths.json',
-        resolveModuleNameModule: `${__dirname}/project/weirdResolver.js`,
-        resolveTypeReferenceDirectiveModule: `${__dirname}/project/weirdResolver.js`
+        resolveModuleNameModule: path.resolve(
+          __dirname,
+          '../fixtures/project/',
+          'weirdResolver.js'
+        ),
+        resolveTypeReferenceDirectiveModule: path.resolve(
+          __dirname,
+          '../fixtures/project/',
+          'weirdResolver.js'
+        )
       });
 
       compiler.run(function(err, stats) {
@@ -181,7 +197,7 @@ describe.each([[true], [false]])(
         fileName,
         pluginOptions: {
           tslintAutoFix: true,
-          tslint: path.resolve(__dirname, './project/tslint.autofix.json'),
+          tslint: './tslint.autofix.json',
           tsconfig: false,
           ...overrideOptions
         }

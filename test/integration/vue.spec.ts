@@ -1,11 +1,11 @@
 // tslint:disable:no-implicit-dependencies
 import path from 'path';
 import unixify from 'unixify';
-import { createVueCompiler, expectedErrorCodes } from './helpers';
-
-type FirstArgOf<T extends Function> = T extends (a: infer FirstArg) => any
-  ? FirstArg
-  : never;
+import {
+  createVueCompiler,
+  expectedErrorCodes,
+  CreateCompilerOptions
+} from './helpers';
 
 interface Error {
   file: string;
@@ -15,9 +15,7 @@ interface Error {
 describe.each([/*[true], */ [false]])(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s',
   useTypescriptIncrementalApi => {
-    const createCompiler = (
-      options: FirstArgOf<typeof createVueCompiler> = {}
-    ) =>
+    const createCompiler = (options: Partial<CreateCompilerOptions> = {}) =>
       createVueCompiler({
         ...options,
         pluginOptions: { ...options.pluginOptions, useTypescriptIncrementalApi }

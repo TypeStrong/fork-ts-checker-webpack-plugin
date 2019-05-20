@@ -1,3 +1,4 @@
+// tslint:disable:no-implicit-dependencies
 import { rpcMethods } from './rpc';
 import * as path from 'path';
 import { CreateCompilerOptions, createCompiler, webpackMajorVersion } from '.';
@@ -5,6 +6,7 @@ import { RpcProvider } from 'worker-rpc';
 
 let VueLoaderPlugin: any;
 try {
+  // tslint:disable-next-line: no-submodule-imports
   VueLoaderPlugin = require('vue-loader/lib/plugin');
 } catch {
   /** older versions of vue-loader come without that import - that's fine. */
@@ -62,7 +64,7 @@ export async function createVueCompiler({
 
   const { compilerConfig, plugin } = results;
 
-  var files = {
+  const files = {
     'example.vue': path.resolve(compilerConfig.context!, 'src/example.vue'),
     'syntacticError.ts': path.resolve(
       compilerConfig.context!,
@@ -85,8 +87,7 @@ export async function createVueCompiler({
       return rpcProvider.rpc(rpcMethods.checker_getSourceFile, fileName);
     },
     getSyntacticDiagnostics(): Promise<
-      | Array<{ start: number; length: number; file: { text: string } }>
-      | undefined
+      { start: number; length: number; file: { text: string } }[] | undefined
     > {
       return rpcProvider.rpc(rpcMethods.checker_getSyntacticDiagnostics);
     }

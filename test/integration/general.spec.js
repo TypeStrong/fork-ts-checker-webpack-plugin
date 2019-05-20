@@ -18,9 +18,9 @@ describe.each([[true], [false]])(
       options = options || {};
       options = { ...options, ...overrideOptions };
       var compiler = helpers.createCompiler({
-        pluginOptions: options,
+        entryPoint,
         happyPackMode,
-        entryPoint
+        pluginOptions: options
       });
       plugin = compiler.plugin;
       return compiler.compiler;

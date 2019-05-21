@@ -8,5 +8,6 @@ export { webpackMajorVersion } from './webpackVersion';
 
 export const expectedErrorCodes = {
   expectedSyntacticErrorCode: 'TS1005',
-  expectedSemanticErrorCode: 'TS2322'
+  expectedSemanticErrorCode: 'TS2322',
+  expectedGlobalErrorCode: 'TS1149'
 };

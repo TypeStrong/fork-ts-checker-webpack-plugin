@@ -112,4 +112,28 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
         })
     );
   });
+
+  const isCaseInsensitiveFilesystem = fs.existsSync(
+    __dirname + '/../fixtures/caseSensitiveProject/src/Lib.ts'
+  );
+
+  (isCaseInsensitiveFilesystem ? it : it.skip)(
+    'should find global errors even when checkSyntacticErrors is false (can only be tested on case-insensitive file systems)',
+    callback => {
+      const compiler = createCompiler({
+        context: './caseSensitiveProject',
+        pluginOptions: { checkSyntacticErrors: false }
+      });
+
+      compiler.run((_error, stats) => {
+        const globalErrorFoundInStats = stats.compilation.errors.some(error =>
+          error.rawMessage.includes(
+            helpers.expectedErrorCodes.expectedGlobalErrorCode
+          )
+        );
+        expect(globalErrorFoundInStats).toBe(true);
+        callback();
+      });
+    }
+  );
 });

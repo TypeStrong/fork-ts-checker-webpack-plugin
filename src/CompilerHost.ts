@@ -82,7 +82,12 @@ export class CompilerHost
       typescript.sys,
       typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
       (diag: ts.Diagnostic) => {
-        if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
+        if (
+          !checkSyntacticErrors &&
+          diag.code >= 1000 &&
+          diag.code < 2000 &&
+          diag.file // if diag.file is undefined, this is not a syntactic error, but a global error that should be emitted
+        ) {
           return;
         }
         this.gatheredDiagnostic.push(diag);

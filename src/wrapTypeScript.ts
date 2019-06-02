@@ -1,4 +1,3 @@
-/* tslint:disable:no-console */
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 import { extname } from 'path';
@@ -31,34 +30,6 @@ export function patchTypescript(
         originalFileName,
         origSys.readFile(fileName, ...rest)
       );
-    }
-  };
-
-  // @ts-ignore
-  const loggingHandler: ProxyHandler<{}> = {
-    get(target, name) {
-      if (typeof target[name] !== 'function') {
-        // console.log('get', name, '=', target[name]);
-        return target[name];
-      }
-
-      return (...args: any) => {
-        if (!/node_modules/g.test(args[0])) {
-          console.log(name, '(', ...args, ')');
-        }
-        const result = target[name](...args);
-        if (!/node_modules/g.test(args[0])) {
-          console.log(
-            `# result for `,
-            name,
-            '(',
-            ...args,
-            '):',
-            typeof result === 'string' ? JSON.stringify(result) : result
-          );
-        }
-        return result;
-      };
     }
   };
 
@@ -116,7 +87,6 @@ export function patchTypescript(
   return typescript;
 }
 
-// @ts-ignore
 function isTsProgram(
   x: ReadonlyArray<string> | undefined | ts.Program
 ): x is ts.Program {

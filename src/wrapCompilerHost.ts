@@ -1,11 +1,9 @@
-/* tslint:disable:no-console */
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 import { TypeScriptWrapperConfig } from './wrapperUtils';
 import { makeResolutionFunctions } from './resolution';
 
 type HostType = ts.CompilerHost | ts.WatchCompilerHostOfConfigFile<any>;
-// @ts-ignore
 type ScriptKindName =
   | 'Unknown'
   | 'JS'
@@ -48,14 +46,6 @@ export function wrapCompilerHost<T extends HostType>(
     ) {
       return moduleNames.map(moduleName => {
         for (const suffix of wrapSuffixes) {
-          /*
-          console.log(
-            START_YELLOW,
-            'try resolving',
-            moduleName + suffix,
-            RESET
-          );
-          */
           const result = resolveModuleName(
             typescript,
             moduleName + suffix,
@@ -64,20 +54,9 @@ export function wrapCompilerHost<T extends HostType>(
             wrappedCompilerHost
           );
           if (result.resolvedModule) {
-            /*
-            console.log(
-              START_YELLOW,
-              'resolved',
-              moduleName,
-              'as',
-              result.resolvedModule.resolvedFileName,
-              RESET
-            );
-            */
             return result.resolvedModule;
           }
         }
-        // console.log(START_RED, 'could not revolve', moduleName, RESET);
         return undefined;
       });
     },
@@ -119,13 +98,6 @@ export function wrapCompilerHost<T extends HostType>(
             result['version'] = origResult['version'];
           }
         }
-        /*
-        console.log(
-          'getSourceFile =>',
-          result.fileName,
-          ts.ScriptKind[(result as any).scriptKind]
-        );
-        */
       }
       return result;
     }
@@ -134,10 +106,3 @@ export function wrapCompilerHost<T extends HostType>(
   wrappedCompilerHost = { ...origHost, ...compilerHostWrappers };
   return wrappedCompilerHost;
 }
-
-// @ts-ignore
-const START_YELLOW = '\x1b[33m';
-// @ts-ignore
-const START_RED = '\x1b[31m';
-// @ts-ignore
-const RESET = '\x1b[0m';

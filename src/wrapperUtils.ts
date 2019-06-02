@@ -1,4 +1,3 @@
-/* tslint:disable:no-console */
 // tslint:disable-next-line:no-implicit-dependencies
 import { extname } from 'path';
 import { handleVueContents } from './handleVueContents';

@@ -1,7 +1,6 @@
 /* tslint:disable:no-console */
 // tslint:disable-next-line:no-implicit-dependencies
 import { extname } from 'path';
-import { handleMdxContents } from './handleMdxContents';
 import { handleVueContents } from './handleVueContents';
 
 export interface TypeScriptWrapperConfig {
@@ -18,11 +17,10 @@ export interface TypeScriptWrapperConfig {
 
 export const wrapperConfigWithVue: TypeScriptWrapperConfig = {
   extensionHandlers: {
-    '.mdx': handleMdxContents,
     '.vue': handleVueContents,
     '.vuex': handleVueContents
   },
-  wrapExtensions: ['.mdx', '.vue', '.vuex']
+  wrapExtensions: ['.vue', '.vuex']
 };
 
 export const emptyWrapperConfig: TypeScriptWrapperConfig = {

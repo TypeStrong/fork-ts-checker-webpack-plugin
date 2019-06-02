@@ -84,16 +84,38 @@ export async function createVueCompiler({
     ...results,
     files,
     rpcProvider,
-    getKnownFileNames(): Promise<string[]> {
-      return rpcProvider.rpc(rpcMethods.checker_getKnownFileNames);
+    getKnownFileNames() {
+      return rpcProvider
+        .rpc<{}, string[]>(rpcMethods.checker_getKnownFileNames)
+        .then(fileNames => fileNames.map(unwrapFileName));
     },
-    getSourceFile(fileName: string): Promise<{ text: string } | undefined> {
-      return rpcProvider.rpc(rpcMethods.checker_getSourceFile, fileName);
+    getSourceFile(fileName: string) {
+      return rpcProvider.rpc<string, { text: string } | undefined>(
+        rpcMethods.checker_getSourceFile,
+        wrapFileName(fileName)
+      );
     },
-    getSyntacticDiagnostics(): Promise<
-      { start: number; length: number; file: { text: string } }[] | undefined
-    > {
-      return rpcProvider.rpc(rpcMethods.checker_getSyntacticDiagnostics);
+    getSyntacticDiagnostics() {
+      return rpcProvider.rpc<
+        {},
+        { start: number; length: number; file: { text: string } }[] | undefined
+      >(rpcMethods.checker_getSyntacticDiagnostics);
     }
   };
+}
+
+const SUFFIX = '.__fake__.ts';
+
+function unwrapFileName(fileName: string) {
+  if (fileName.endsWith(SUFFIX)) {
+    return fileName.slice(0, -SUFFIX.length);
+  }
+  return fileName;
+}
+
+function wrapFileName(fileName: string) {
+  if (fileName.endsWith('.vue')) {
+    return fileName + SUFFIX;
+  }
+  return fileName;
 }

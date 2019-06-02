@@ -19,7 +19,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
   private linterConfigs: Record<string, ConfigurationFile | undefined> = {};
 
-  public readonly tsIncrementalCompiler: CompilerHost;
+  protected readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   private currentLintErrors = new Map<string, LintResult>();

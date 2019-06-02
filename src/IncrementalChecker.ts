@@ -35,8 +35,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   // to check of its existence later on.
   private linterExclusions: minimatch.IMinimatch[] = [];
 
-  public program?: ts.Program;
-  public programConfig?: ts.ParsedCommandLine;
+  protected program?: ts.Program;
+  protected programConfig?: ts.ParsedCommandLine;
   private watcher?: FilesWatcher;
 
   private readonly hasFixedConfig: boolean;

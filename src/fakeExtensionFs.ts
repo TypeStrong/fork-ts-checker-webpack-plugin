@@ -1,15 +1,10 @@
-/**
- * loosely based on [linkfs](https://github.com/streamich/linkfs)
- */
-
-import * as fs from 'fs';
-
 interface Dirent {
   path: string;
 }
 
-export const props = ['constants', 'F_OK', 'R_OK', 'W_OK', 'X_OK', 'Stats'];
-
+/**
+ * names of methods that can receive a path/filename as first argument
+ */
 export const rewritableMethods = [
   'accessSync',
   'access',
@@ -66,84 +61,77 @@ export const rewritableMethods = [
   'writeFile'
 ];
 
-export const proxyableMethods = [
-  'ftruncateSync',
-  'fchownSync',
-  'fchmodSync',
-  'fstatSync',
-  'closeSync',
-  'futimesSync',
-  'fsyncSync',
-  'writeSync',
-  'readSync',
-  'fdatasyncSync',
-  'ftruncate',
-  'fchown',
-  'fchmod',
-  'fstat',
-  'close',
-  'futimes',
-  'fsync',
-  'write',
-  'read',
-  'fdatasync',
-  '_toUnixTimestamp'
-];
-
+/**
+ * creates a wrapper around the `fs` module passed as `fsOriginal`
+ * * all path/filenames passed to methods will be passed through `unwrapFn` before calling the `fsOriginal` method
+ * * all path/filenames returned by `readdir` or `readdirSync` will be passed through `wrapFn`
+ */
 export function build(
-  fsOriginal: typeof fs,
+  fsOriginal: typeof import('fs'),
   unwrapFn: (path: string) => string,
   wrapFn: (path: string) => string
 ): any {
-  const lfs: typeof fs = {} as any;
+  const fakeFs = { ...fsOriginal };
 
-  // Rewrite the path of the selected methods.
   for (const method of rewritableMethods) {
-    const func = fsOriginal[method];
-    if (typeof func !== 'function') {
-      lfs[method] = fsOriginal[method];
-    }
-
-    lfs[method] = (...args: any[]) => {
-      let path = args[0];
-      if (typeof path === 'string' || Buffer.isBuffer(path)) {
-        path = unwrapFn(String(path));
-        args[0] = path;
-      }
-
-      if (method === 'readdir' && args.length > 1) {
-        const callback = args[args.length - 1];
-        if (typeof callback === 'function') {
-          args[args.length - 1] = (
-            err: Error,
-            files: (string | Buffer | Dirent)[]
-          ) => {
-            callback(err, files.map(wrapReaddirResult));
-          };
-        }
-      }
-
-      const result = func.apply(fsOriginal, args);
-
-      if (method === 'readdirSync') {
-        return (result as any[]).map(wrapReaddirResult);
-      } else {
-        return result;
-      }
-    };
-  }
-
-  // Just proxy the rest of the methods.
-  for (const method of proxyableMethods) {
-    const func = fsOriginal[method];
-    if (typeof func !== 'function') {
+    if (typeof fakeFs[method] !== 'function') {
       continue;
     }
-
-    lfs[method] = func.bind(fsOriginal);
+    fakeFs[method] = new Proxy(fakeFs[method], {
+      apply: handlePathArgument
+    });
   }
 
-  return lfs;
+  fakeFs['readdir'] = new Proxy(fakeFs['readdir'], {
+    apply: handleReaddirResultCallback
+  });
+
+  fakeFs['readdirSync'] = new Proxy(fakeFs['readdirSync'], {
+    apply: handleReaddirSyncReturnValue
+  });
+
+  return fakeFs;
+
+  /**
+   * function proxy handler to wrap the path/filename that is passed as first argument to many `fs` functions
+   */
+  function handlePathArgument(target: any, thisArg: any, args: any[]) {
+    if (typeof args[0] === 'string') {
+      args[0] = unwrapFn(args[0]);
+    }
+    return target.apply(thisArg, args);
+  }
+
+  /**
+   * function proxy handler to wrap the results passed to the callback of the `fs.readdir` function
+   */
+  function handleReaddirResultCallback(target: any, thisArg: any, args: any[]) {
+    if (args.length > 1) {
+      const callback = args[args.length - 1];
+      if (typeof callback === 'function') {
+        args[args.length - 1] = (
+          err: Error,
+          files: (string | Buffer | Dirent)[]
+        ) => {
+          callback(err, files.map(wrapReaddirResult));
+        };
+      }
+    }
+    return target.apply(thisArg, args);
+  }
+
+  /**
+   * function proxy handler to wrap the results returned by the `fs.readdirSync` function
+   */
+  function handleReaddirSyncReturnValue(
+    target: any,
+    thisArg: any,
+    args: any[]
+  ) {
+    return (target.apply(thisArg, args) as (string | Buffer | Dirent)[]).map(
+      wrapReaddirResult
+    );
+  }
 
   function wrapReaddirResult(file: string | Buffer | Dirent) {
     if (typeof file === 'string') {

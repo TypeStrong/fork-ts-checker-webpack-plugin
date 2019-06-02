@@ -1,34 +1,18 @@
 import * as mockRequire from 'mock-require';
-import * as process from 'process';
-import {
-  TypeScriptWrapperConfig,
-  wrapperConfigWithVue,
-  emptyWrapperConfig,
-  getWrapperUtils
-} from './wrapperUtils';
-import { link } from './fakeExtensionFs';
+import { serviceConfig as config } from './serviceConfig';
+import { getWrapperUtils } from './wrapperUtils';
 
-const resolveModuleName = process.env.RESOLVE_MODULE_NAME
-  ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
-  : undefined;
-const resolveTypeReferenceDirective = process.env
-  .RESOLVE_TYPE_REFERENCE_DIRECTIVE
-  ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE!)
-      .resolveTypeReferenceDirective
-  : undefined;
+const { unwrapFileName, wrapFileName } = getWrapperUtils(config.wrapperConfig);
 
-const wrapperConfig: TypeScriptWrapperConfig = {
-  ...emptyWrapperConfig,
-  resolveModuleName,
-  resolveTypeReferenceDirective,
-  ...(process.env.VUE === 'true' ? wrapperConfigWithVue : {})
-};
-
-const { unwrapFileName, wrapFileName } = getWrapperUtils(wrapperConfig);
-
-const originalFs = require('fs');
-const fakeFs = link(originalFs, unwrapFileName, wrapFileName);
-mockRequire('fs', fakeFs);
+// mock the "fs" module
+mockRequire(
+  'fs',
+  require('./fakeExtensionFs').build(
+    require('fs'),
+    unwrapFileName,
+    wrapFileName
+  )
+);
 mockRequire.reRequire('fs');
 
 // now continue with everything as normal
@@ -64,14 +48,13 @@ const rpc = new RpcProvider(message => {
 process.on('message', message => rpc.dispatch(message));
 
 const typescript: typeof ts = patchTypescript(
-  require(process.env.TYPESCRIPT_PATH!),
-  wrapperConfig
+  require(config.typescriptPath),
+  config.wrapperConfig
 );
 
 const patchConfig: TypeScriptPatchConfig = {
   skipGetSyntacticDiagnostics:
-    process.env.USE_INCREMENTAL_API === 'true' &&
-    process.env.CHECK_SYNTACTIC_ERRORS !== 'true'
+    config.useIncrementalApi && !config.checkSyntacticErrors
 };
 
 patchTypescript2(typescript, patchConfig);
@@ -83,33 +66,32 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
 export const createNormalizedMessageFromInternalError = makeCreateNormalizedMessageFromInternalError();
 
-const checker: IncrementalCheckerInterface =
-  process.env.USE_INCREMENTAL_API === 'true'
-    ? new ApiIncrementalChecker(
-        typescript,
-        createNormalizedMessageFromDiagnostic,
-        createNormalizedMessageFromRuleFailure,
-        process.env.TSCONFIG!,
-        JSON.parse(process.env.COMPILER_OPTIONS!),
-        process.env.CONTEXT!,
-        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-        process.env.TSLINTAUTOFIX === 'true',
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true'
-      )
-    : new IncrementalChecker(
-        typescript,
-        createNormalizedMessageFromDiagnostic,
-        createNormalizedMessageFromRuleFailure,
-        process.env.TSCONFIG!,
-        JSON.parse(process.env.COMPILER_OPTIONS!),
-        process.env.CONTEXT!,
-        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-        process.env.TSLINTAUTOFIX === 'true',
-        process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
-        parseInt(process.env.WORK_NUMBER!, 10) || 0,
-        parseInt(process.env.WORK_DIVISION!, 10) || 1,
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true'
-      );
+const checker: IncrementalCheckerInterface = config.useIncrementalApi
+  ? new ApiIncrementalChecker(
+      typescript,
+      createNormalizedMessageFromDiagnostic,
+      createNormalizedMessageFromRuleFailure,
+      config.programConfigFile,
+      config.compilerOptions,
+      config.context,
+      config.linterConfigFile,
+      config.linterAutoFix,
+      config.checkSyntacticErrors
+    )
+  : new IncrementalChecker(
+      typescript,
+      createNormalizedMessageFromDiagnostic,
+      createNormalizedMessageFromRuleFailure,
+      config.programConfigFile,
+      config.compilerOptions,
+      config.context,
+      config.linterConfigFile,
+      config.linterAutoFix,
+      config.watchPaths,
+      config.workNumber,
+      config.workDivision,
+      config.checkSyntacticErrors
+    );
 
 async function run(cancellationToken: CancellationToken) {
   let diagnostics: NormalizedMessage[] = [];

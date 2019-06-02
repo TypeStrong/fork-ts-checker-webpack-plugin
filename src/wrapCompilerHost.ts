@@ -30,8 +30,13 @@ export function wrapCompilerHost<T extends HostType>(
     resolveModuleName,
     resolveTypeReferenceDirective
   } = makeResolutionFunctions(
-    config.resolveModuleName,
+    config.resolveModuleName
+      ? require(config.resolveModuleName).resolveModuleName
+      : undefined,
     config.resolveTypeReferenceDirective
+      ? require(config.resolveTypeReferenceDirective)
+          .resolveTypeReferenceDirective
+      : undefined
   );
 
   const compilerHostWrappers: Partial<ts.CompilerHost> = {

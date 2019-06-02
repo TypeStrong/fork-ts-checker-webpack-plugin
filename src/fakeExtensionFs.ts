@@ -90,7 +90,7 @@ export const proxyableMethods = [
   '_toUnixTimestamp'
 ];
 
-export function link(
+export function build(
   fsOriginal: typeof fs,
   unwrapFn: (path: string) => string,
   wrapFn: (path: string) => string

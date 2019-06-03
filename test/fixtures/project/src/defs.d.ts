@@ -1,0 +1,1 @@
+declare function helloWorld(): void;

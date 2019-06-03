@@ -22,6 +22,16 @@ export function createCodeframeFormatter(options: any) {
       : colors.bold.red;
     const positionColor = colors.dim;
 
+    if (message.code === NormalizedMessage.ERROR_CODE_INTERNAL) {
+      return (
+        messageColor(`INTERNAL ${message.severity.toUpperCase()}: `) +
+        message.content +
+        (message.stack
+          ? os.EOL + 'stack trace:' + os.EOL + colors.gray(message.stack)
+          : '')
+      );
+    }
+
     const file = message.file;
     const source =
       file && FsHelper.existsSync(file) && fs.readFileSync(file, 'utf-8');

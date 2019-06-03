@@ -2,7 +2,7 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
-import { outputFileSync } from 'fs-extra';
+import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -48,10 +48,25 @@ export class CompilerHost
   private readonly tsHost: ts.WatchCompilerHostOfConfigFile<
     ts.EmitAndSemanticDiagnosticsBuilderProgram
   >;
-
-  private lastProcessing?: Promise<ts.Diagnostic[]>;
+  protected lastProcessing?: Promise<ts.Diagnostic[]>;
 
   private compilationStarted = false;
+
+  public resolveModuleNames:
+    | ((
+        moduleNames: string[],
+        containingFile: string,
+        reusedNames?: string[] | undefined,
+        redirectedReference?: ts.ResolvedProjectReference | undefined
+      ) => (ts.ResolvedModule | undefined)[])
+    | undefined;
+  public resolveTypeReferenceDirectives:
+    | ((
+        typeReferenceDirectiveNames: string[],
+        containingFile: string,
+        redirectedReference?: ts.ResolvedProjectReference | undefined
+      ) => (ts.ResolvedTypeReferenceDirective | undefined)[])
+    | undefined;
 
   constructor(
     private typescript: typeof ts,
@@ -59,6 +74,8 @@ export class CompilerHost
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean,
     private enableEmitFiles: boolean = false
+    userResolveModuleName?: ResolveModuleName,
+    userResolveTypeReferenceDirective?: ResolveTypeReferenceDirective
   ) {
     this.tsHost = typescript.createWatchCompilerHost(
       programConfigFile,
@@ -66,7 +83,12 @@ export class CompilerHost
       typescript.sys,
       typescript.createEmitAndSemanticDiagnosticsBuilderProgram,
       (diag: ts.Diagnostic) => {
-        if (!checkSyntacticErrors && diag.code >= 1000 && diag.code < 2000) {
+        if (
+          !checkSyntacticErrors &&
+          diag.code >= 1000 &&
+          diag.code < 2000 &&
+          diag.file // if diag.file is undefined, this is not a syntactic error, but a global error that should be emitted
+        ) {
           return;
         }
         this.gatheredDiagnostic.push(diag);
@@ -78,6 +100,40 @@ export class CompilerHost
 
     this.configFileName = this.tsHost.configFileName;
     this.optionsToExtend = this.tsHost.optionsToExtend || {};
+
+    if (userResolveModuleName) {
+      this.resolveModuleNames = (
+        moduleNames: string[],
+        containingFile: string
+      ) => {
+        return moduleNames.map(moduleName => {
+          return userResolveModuleName(
+            this.typescript,
+            moduleName,
+            containingFile,
+            this.optionsToExtend,
+            this
+          ).resolvedModule;
+        });
+      };
+    }
+
+    if (userResolveTypeReferenceDirective) {
+      this.resolveTypeReferenceDirectives = (
+        typeDirectiveNames: string[],
+        containingFile: string
+      ) => {
+        return typeDirectiveNames.map(typeDirectiveName => {
+          return userResolveTypeReferenceDirective(
+            this.typescript,
+            typeDirectiveName,
+            containingFile,
+            this.optionsToExtend,
+            this
+          ).resolvedTypeReferenceDirective;
+        });
+      };
+    }
   }
 
   public async processChanges(): Promise<{

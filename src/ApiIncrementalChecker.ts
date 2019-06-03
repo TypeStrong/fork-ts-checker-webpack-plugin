@@ -13,13 +13,14 @@ import {
 } from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
+import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 import { FsHelper } from './FsHelper';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
   private linterConfigs: Record<string, ConfigurationFile | undefined> = {};
 
-  private readonly tsIncrementalCompiler: CompilerHost;
+  protected readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   private currentLintErrors = new Map<string, LintResult>();
@@ -43,6 +44,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean,
     enableEmitFiles: boolean = false
+    resolveModuleName: ResolveModuleName | undefined,
+    resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
   ) {
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
@@ -53,7 +56,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       programConfigFile,
       compilerOptions,
       checkSyntacticErrors,
-      enableEmitFiles
+      enableEmitFiles,
+      resolveModuleName,
+      resolveTypeReferenceDirective
     );
   }
 

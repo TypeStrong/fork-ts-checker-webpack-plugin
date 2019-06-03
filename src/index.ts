@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as process from 'process';
 import * as childProcess from 'child_process';
+import { RpcProvider } from 'worker-rpc';
 import * as semver from 'semver';
 import chalk, { Chalk } from 'chalk';
 import * as micromatch from 'micromatch';
@@ -16,42 +17,54 @@ import { createCodeframeFormatter } from './formatter/codeframeFormatter';
 import { FsHelper } from './FsHelper';
 import { Message } from './Message';
 
-import { getForkTsCheckerWebpackPluginHooks, legacyHookMap } from './hooks';
+import {
+  getForkTsCheckerWebpackPluginHooks,
+  legacyHookMap,
+  ForkTsCheckerHooks
+} from './hooks';
+import { RunPayload, RunResult, RUN } from './RpcTypes';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
-type Formatter = (message: NormalizedMessage, useColors: boolean) => string;
+namespace ForkTsCheckerWebpackPlugin {
+  export type Formatter = (
+    message: NormalizedMessage,
+    useColors: boolean
+  ) => string;
 
-interface Logger {
-  error(message?: any): void;
-  warn(message?: any): void;
-  info(message?: any): void;
-}
+  export interface Logger {
+    error(message?: any): void;
+    warn(message?: any): void;
+    info(message?: any): void;
+  }
 
-interface Options {
-  typescript: string;
-  tsconfig: string;
-  compilerOptions: object;
-  tslint: string | true;
-  tslintAutoFix: boolean;
-  watch: string | string[];
-  async: boolean;
-  ignoreDiagnostics: number[];
-  ignoreLints: string[];
-  ignoreLintWarnings: boolean;
-  reportFiles: string[];
-  colors: boolean;
-  logger: Logger;
-  formatter: 'default' | 'codeframe' | Formatter;
-  formatterOptions: any;
-  silent: boolean;
-  checkSyntacticErrors: boolean;
-  memoryLimit: number;
-  workers: number;
-  vue: boolean;
-  useTypescriptIncrementalApi: boolean;
-  enableEmitFiles: boolean;
-  measureCompilationTime: boolean;
+  export interface Options {
+    typescript: string;
+    tsconfig: string;
+    compilerOptions: object;
+    tslint: string | true;
+    tslintAutoFix: boolean;
+    watch: string | string[];
+    async: boolean;
+    ignoreDiagnostics: number[];
+    ignoreLints: string[];
+    ignoreLintWarnings: boolean;
+    reportFiles: string[];
+    colors: boolean;
+    logger: Logger;
+    formatter: 'default' | 'codeframe' | Formatter;
+    formatterOptions: any;
+    silent: boolean;
+    checkSyntacticErrors: boolean;
+    memoryLimit: number;
+    workers: number;
+    vue: boolean;
+    useTypescriptIncrementalApi: boolean;
+    enableEmitFiles: boolean;
+    measureCompilationTime: boolean;
+    resolveModuleNameModule: string;
+    resolveTypeReferenceDirectiveModule: string;
+  }
 }
 
 /**
@@ -74,11 +87,13 @@ class ForkTsCheckerWebpackPlugin {
     ForkTsCheckerWebpackPlugin.ALL_CPUS - 2
   );
 
-  public static getCompilerHooks(compiler: webpack.Compiler) {
+  public static getCompilerHooks(
+    compiler: any
+  ): Record<ForkTsCheckerHooks, any> {
     return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
-  public readonly options: Partial<Options>;
+  public readonly options: Partial<ForkTsCheckerWebpackPlugin.Options>;
   private tsconfig: string;
   private compilerOptions: object;
   private tslint?: string | true;
@@ -88,7 +103,7 @@ class ForkTsCheckerWebpackPlugin {
   private ignoreLints: string[];
   private ignoreLintWarnings: boolean;
   private reportFiles: string[];
-  private logger: Logger;
+  private logger: ForkTsCheckerWebpackPlugin.Logger;
   private silent: boolean;
   private async: boolean;
   private checkSyntacticErrors: boolean;
@@ -96,8 +111,10 @@ class ForkTsCheckerWebpackPlugin {
   private memoryLimit: number;
   private useColors: boolean;
   private colors: Chalk;
-  private formatter: Formatter;
+  private formatter: ForkTsCheckerWebpackPlugin.Formatter;
   private useTypescriptIncrementalApi: boolean;
+  private resolveModuleNameModule: string | undefined;
+  private resolveTypeReferenceDirectiveModule: string | undefined;
 
   private enableEmitFiles: boolean;
 
@@ -124,14 +141,18 @@ class ForkTsCheckerWebpackPlugin {
   private tslintVersion: string;
 
   private service?: childProcess.ChildProcess;
+  protected serviceRpc?: RpcProvider;
 
   private vue: boolean;
 
   private measureTime: boolean;
   private performance: any;
   private startAt: number = 0;
-  constructor(options?: Partial<Options>) {
-    options = options || ({} as Options);
+
+  protected nodeArgs: string[] = [];
+
+  constructor(options?: Partial<ForkTsCheckerWebpackPlugin.Options>) {
+    options = options || ({} as ForkTsCheckerWebpackPlugin.Options);
     this.options = { ...options };
 
     this.tsconfig = options.tsconfig || './tsconfig.json';
@@ -155,6 +176,9 @@ class ForkTsCheckerWebpackPlugin {
     this.silent = options.silent === true; // default false
     this.async = options.async !== false; // default true
     this.checkSyntacticErrors = options.checkSyntacticErrors === true; // default false
+    this.resolveModuleNameModule = options.resolveModuleNameModule;
+    this.resolveTypeReferenceDirectiveModule =
+      options.resolveTypeReferenceDirectiveModule;
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit =
       options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
@@ -254,7 +278,7 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  public apply(compiler: webpack.Compiler) {
+  public apply(compiler: any) {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
@@ -401,7 +425,14 @@ class ForkTsCheckerWebpackPlugin {
             if (this.measureTime) {
               this.startAt = this.performance.now();
             }
-            this.service!.send(this.cancellationToken);
+            this.serviceRpc!.rpc<RunPayload, RunResult>(
+              RUN,
+              this.cancellationToken.toJSON()
+            ).then(result => {
+              if (result) {
+                this.handleServiceMessage(result);
+              }
+            });
           } catch (error) {
             if (!this.silent && this.logger) {
               this.logger.error(
@@ -446,7 +477,14 @@ class ForkTsCheckerWebpackPlugin {
             }
 
             try {
-              this.service!.send(this.cancellationToken);
+              this.serviceRpc!.rpc<RunPayload, RunResult>(
+                RUN,
+                this.cancellationToken.toJSON()
+              ).then(result => {
+                if (result) {
+                  this.handleServiceMessage(result);
+                }
+              });
             } catch (error) {
               if (!this.silent && this.logger) {
                 this.logger.error(
@@ -555,6 +593,35 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private spawnService() {
+    const env: { [key: string]: string | undefined } = {
+      ...process.env,
+      TYPESCRIPT_PATH: this.typescriptPath,
+      TSCONFIG: this.tsconfigPath,
+      COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
+      TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
+      CONTEXT: this.compiler.options.context,
+      TSLINTAUTOFIX: String(this.tslintAutoFix),
+      WATCH: this.isWatching ? this.watchPaths.join('|') : '',
+      WORK_DIVISION: String(Math.max(1, this.workersNumber)),
+      MEMORY_LIMIT: String(this.memoryLimit),
+      CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
+      USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
+      ENABLE_EMIT_FILES: this.enableEmitFiles === true,
+      VUE: String(this.vue)
+    };
+
+    if (typeof this.resolveModuleNameModule !== 'undefined') {
+      env.RESOLVE_MODULE_NAME = this.resolveModuleNameModule;
+    } else {
+      delete env.RESOLVE_MODULE_NAME;
+    }
+
+    if (typeof this.resolveTypeReferenceDirectiveModule !== 'undefined') {
+      env.RESOLVE_TYPE_REFERENCE_DIRECTIVE = this.resolveTypeReferenceDirectiveModule;
+    } else {
+      delete env.RESOLVE_TYPE_REFERENCE_DIRECTIVE;
+    }
+
     this.service = childProcess.fork(
       path.resolve(
         __dirname,
@@ -562,29 +629,17 @@ class ForkTsCheckerWebpackPlugin {
       ),
       [],
       {
-        execArgv:
-          this.workersNumber > 1
-            ? []
-            : ['--max-old-space-size=' + this.memoryLimit],
-        env: {
-          ...process.env,
-          TYPESCRIPT_PATH: this.typescriptPath,
-          TSCONFIG: this.tsconfigPath,
-          COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
-          TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
-          CONTEXT: this.compiler.options.context,
-          TSLINTAUTOFIX: this.tslintAutoFix,
-          WATCH: this.isWatching ? this.watchPaths.join('|') : '',
-          WORK_DIVISION: Math.max(1, this.workersNumber),
-          MEMORY_LIMIT: this.memoryLimit,
-          CHECK_SYNTACTIC_ERRORS: this.checkSyntacticErrors,
-          USE_INCREMENTAL_API: this.useTypescriptIncrementalApi === true,
-          ENABLE_EMIT_FILES: this.enableEmitFiles === true,
-          VUE: this.vue
-        },
+        env,
+        execArgv: (this.workersNumber > 1
+          ? []
+          : ['--max-old-space-size=' + this.memoryLimit]
+        ).concat(this.nodeArgs),
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     );
+
+    this.serviceRpc = new RpcProvider(message => this.service!.send(message));
+    this.service.on('message', message => this.serviceRpc!.dispatch(message));
 
     if ('hooks' in this.compiler) {
       // webpack 4+
@@ -637,9 +692,6 @@ class ForkTsCheckerWebpackPlugin {
       }
     }
 
-    this.service.on('message', (message: Message) =>
-      this.handleServiceMessage(message)
-    );
     this.service.on('exit', (code: string | number, signal: string) =>
       this.handleServiceExit(code, signal)
     );
@@ -656,6 +708,7 @@ class ForkTsCheckerWebpackPlugin {
 
       this.service.kill();
       this.service = undefined;
+      this.serviceRpc = undefined;
     } catch (e) {
       if (this.logger && !this.silent) {
         this.logger.error(e);
@@ -896,5 +949,3 @@ class ForkTsCheckerWebpackPlugin {
 }
 
 export = ForkTsCheckerWebpackPlugin;
-
-namespace ForkTsCheckerWebpackPlugin {}

@@ -19,6 +19,16 @@ export function createDefaultFormatter() {
     const fileAndNumberColor = colors.bold.cyan;
     const codeColor = colors.grey;
 
+    if (message.code === NormalizedMessage.ERROR_CODE_INTERNAL) {
+      return (
+        messageColor(`INTERNAL ${message.severity.toUpperCase()}: `) +
+        message.content +
+        (message.stack
+          ? os.EOL + 'stack trace:' + os.EOL + colors.gray(message.stack)
+          : '')
+      );
+    }
+
     return [
       messageColor(`${message.severity.toUpperCase()} in `) +
         fileAndNumberColor(

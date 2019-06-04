@@ -548,7 +548,7 @@ class ForkTsCheckerWebpackPlugin {
             this.doneCallback();
           } else {
             if (this.compiler) {
-              forkTsCheckerHooks.waiting.call(this.tslint !== false);
+              forkTsCheckerHooks.waiting.call(this.tslint !== String(false));
             }
             if (!this.silent && this.logger) {
               this.logger.info(
@@ -575,7 +575,7 @@ class ForkTsCheckerWebpackPlugin {
           if (this.compiler) {
             this.compiler.applyPlugins(
               legacyHookMap.waiting,
-              this.tslint !== false
+              this.tslint !== String(false)
             );
           }
           if (!this.silent && this.logger) {
@@ -606,7 +606,7 @@ class ForkTsCheckerWebpackPlugin {
       MEMORY_LIMIT: String(this.memoryLimit),
       CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
       USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
-      ENABLE_EMIT_FILES: this.enableEmitFiles === true,
+      ENABLE_EMIT_FILES: String(this.enableEmitFiles === true),
       VUE: String(this.vue)
     };
 

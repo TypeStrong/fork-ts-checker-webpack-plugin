@@ -2,6 +2,7 @@
 import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
+import { outputFileSync } from 'fs-extra';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 
 interface DirectoryWatchDelaySlot {
@@ -73,7 +74,7 @@ export class CompilerHost
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean,
-    private enableEmitFiles: boolean = false
+    private enableEmitFiles: boolean = false,
     userResolveModuleName?: ResolveModuleName,
     userResolveTypeReferenceDirective?: ResolveTypeReferenceDirective
   ) {

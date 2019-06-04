@@ -65,7 +65,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private workDivision: number = 1,
     private checkSyntacticErrors: boolean = false,
     private vue: boolean = false,
-    private enableEmitFiles: boolean = false
+    private enableEmitFiles: boolean = false,
     private resolveModuleName: ResolveModuleName | undefined,
     private resolveTypeReferenceDirective:
       | ResolveTypeReferenceDirective

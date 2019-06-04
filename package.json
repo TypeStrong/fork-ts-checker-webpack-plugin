@@ -113,6 +113,7 @@
     "@commitlint/config-conventional": "^7.5.0",
     "@types/babel-code-frame": "^6.20.1",
     "@types/chokidar": "^1.7.5",
+    "@types/fs-extra": "^5.0.5",
     "@types/jest": "^24.0.11",
     "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",

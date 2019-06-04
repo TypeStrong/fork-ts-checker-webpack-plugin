@@ -43,7 +43,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
     checkSyntacticErrors: boolean,
-    enableEmitFiles: boolean = false
+    enableEmitFiles: boolean = false,
     resolveModuleName: ResolveModuleName | undefined,
     resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
   ) {

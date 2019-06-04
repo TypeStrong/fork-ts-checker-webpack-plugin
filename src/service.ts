@@ -62,7 +62,7 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.ENABLE_EMIT_FILES === 'true'
+        process.env.ENABLE_EMIT_FILES === 'true',
         resolveModuleName,
         resolveTypeReferenceDirective
       )
@@ -80,7 +80,7 @@ const checker: IncrementalCheckerInterface =
         parseInt(process.env.WORK_DIVISION!, 10) || 1,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
         process.env.VUE === 'true',
-        process.env.ENABLE_EMIT_FILES === 'true'
+        process.env.ENABLE_EMIT_FILES === 'true',
         resolveModuleName,
         resolveTypeReferenceDirective
       );

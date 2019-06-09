@@ -144,7 +144,7 @@ module.exports = {
   //   "**/__tests__/**/*.[jt]s?(x)",
   //   "**/?(*.)+(spec|test).[tj]s?(x)"
   // ],
-  testMatch: ['**/?(*.)+(spec).[tj]s?(x)']
+  testMatch: ['**/?(*.)+(spec).[tj]s?(x)'],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
@@ -181,7 +181,7 @@ module.exports = {
   // verbose: null,
 
   // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
-  // watchPathIgnorePatterns: [],
+  watchPathIgnorePatterns: ['test/tmp']
 
   // Whether to use watchman for file crawling
   // watchman: true,

@@ -1,5 +1,7 @@
+import * as util from 'util';
+
 interface Dirent {
-  path: string;
+  name: string;
 }
 
 /**
@@ -61,13 +63,15 @@ export const rewritableMethods = [
   'writeFile'
 ];
 
+type FS = typeof import('fs');
+
 /**
  * creates a wrapper around the `fs` module passed as `fsOriginal`
  * * all path/filenames passed to methods will be passed through `unwrapFn` before calling the `fsOriginal` method
  * * all path/filenames returned by `readdir` or `readdirSync` will be passed through `wrapFn`
  */
 export function build(
-  fsOriginal: typeof import('fs'),
+  fsOriginal: FS,
   unwrapFn: (path: string) => string,
   wrapFn: (path: string) => string
 ): any {
@@ -77,17 +81,35 @@ export function build(
     if (typeof fakeFs[method] !== 'function') {
       continue;
     }
-    fakeFs[method] = new Proxy(fakeFs[method], {
-      apply: handlePathArgument
-    });
+
+    /**
+     * we need to create identity wrappers of the original methods, as `fsOriginal[method][util.promisify.custom]` cannot be proxied directly
+     */
+    fakeFs[method] = (...args: any) => fsOriginal[method].apply(fakeFs, args);
+    if (fsOriginal[method][util.promisify.custom]) {
+      fakeFs[method][util.promisify.custom] = (...args: any[]) =>
+        fsOriginal[method][util.promisify.custom].apply(fakeFs[method], args);
+    }
+
+    fakeFs[method] = proxyFunction(
+      fakeFs[method],
+      { apply: handlePathArgument },
+      { apply: handlePathArgument }
+    );
   }
 
-  fakeFs['readdir'] = new Proxy(fakeFs['readdir'], {
-    apply: handleReaddirResultCallback
+  fakeFs['readdir'] = proxyFunction(
+    fakeFs['readdir'],
+    { apply: handleReaddirResultCallback },
+    { apply: handleReaddirPromisifiedResult }
+  );
+
+  fakeFs['readdirSync'] = proxyFunction(fakeFs['readdirSync'], {
+    apply: handleReaddirSyncReturnValue
   });
 
-  fakeFs['readdirSync'] = new Proxy(fakeFs['readdirSync'], {
-    apply: handleReaddirSyncReturnValue
+  fakeFs['watch'] = proxyFunction(fakeFs['watch'], {
+    apply: handleWatch
   });
 
   return fakeFs;
@@ -106,18 +128,25 @@ export function build(
    * function proxy handler to wrap the results passed to the callback of the `fs.readdir` function
    */
   function handleReaddirResultCallback(target: any, thisArg: any, args: any[]) {
-    if (args.length > 1) {
-      const callback = args[args.length - 1];
-      if (typeof callback === 'function') {
-        args[args.length - 1] = (
-          err: Error,
-          files: (string | Buffer | Dirent)[]
-        ) => {
-          callback(err, files.map(wrapReaddirResult));
-        };
-      }
-    }
-    return target.apply(thisArg, args);
+    return target.apply(
+      thisArg,
+      handleCallbackArg(
+        args,
+        callback => (err: Error, files: (string | Buffer | Dirent)[]) =>
+          callback(err, files.map(wrapFilenameInResult))
+      )
+    );
+  }
+
+  /**
+   * function proxy handler to wrap the results of the promisified `fs.readdir` function
+   */
+  function handleReaddirPromisifiedResult(
+    target: any,
+    thisArg: any,
+    args: any[]
+  ) {
+    return target.apply(thisArg, args).then(wrapFilenameInResult);
   }
 
   /**
@@ -129,19 +158,99 @@ export function build(
     args: any[]
   ) {
     return (target.apply(thisArg, args) as (string | Buffer | Dirent)[]).map(
-      wrapReaddirResult
+      wrapFilenameInResult
     );
   }
 
-  function wrapReaddirResult(file: string | Buffer | Dirent) {
+  /**
+   * function proxy handler to wrap the callback passed to the `fs.watch` function and all callbacks passed to the returned EventEmitter for the 'change' event
+   */
+  function handleWatch(target: any, thisArg: any, args: any[]) {
+    const eventEmitter = target.apply(
+      thisArg,
+      handleCallbackArg(args, wrapListenerCallback)
+    );
+
+    eventEmitter.on = new Proxy(eventEmitter.on, {
+      apply: handleFsWatcherOn
+    });
+
+    return eventEmitter;
+  }
+
+  /**
+   * function proxy handler to wrapp callbacks to `EventEmitter.on` for 'change' events
+   */
+  function handleFsWatcherOn(target: any, thisArg: any, args: any[]) {
+    if (args[0] === 'change') {
+      return target.apply(
+        thisArg,
+        handleCallbackArg(args, wrapListenerCallback)
+      );
+    }
+    return target.apply(thisArg, args);
+  }
+
+  /**
+   * wrapper function for filesystem change listener callbacks
+   */
+  function wrapListenerCallback(
+    callback: (eventType: string, fileName: string | Buffer) => void
+  ) {
+    return (eventType: string, fileName: string | Buffer) =>
+      callback(eventType, wrapFilenameInResult(fileName));
+  }
+
+  /**
+   * Used to wrap callback parameters.
+   * If the last argument is a function, wrap it in `wrapCallbackFunction`.
+   * Returns a new array.
+   */
+  function handleCallbackArg<CB extends Function, T extends any[]>(
+    args: T,
+    wrapCallbackFunction: (cb: CB) => CB
+  ): T {
+    if (args.length > 1) {
+      const callback = args[args.length - 1];
+      if (typeof callback === 'function') {
+        return [...args.slice(0, -1), wrapCallbackFunction(callback)] as T;
+      }
+    }
+    return [...args] as T;
+  }
+
+  function wrapFilenameInResult<T extends string | Buffer | Dirent>(file: T): T;
+  function wrapFilenameInResult(file: string | Buffer | Dirent) {
     if (typeof file === 'string') {
       return wrapFn(file);
     } else if (Buffer.isBuffer(file)) {
-      // not going to handle buffers right now...
-      return file;
+      return Buffer.from(wrapFn(file.toString()));
     } else {
-      file.path = wrapFn(file.path);
+      file.name = wrapFn(file.name);
       return file;
     }
   }
+}
+
+/**
+ * shorthand method to create a proxy on the method, and if applicable a proxy on the promisify symbol
+ */
+function proxyFunction<F extends Function>(
+  func: F,
+  handler: ProxyHandler<F>,
+  promisifyHandler?: ProxyHandler<Function>
+) {
+  let ret = new Proxy(func, handler);
+  if (promisifyHandler && ret[util.promisify.custom]) {
+    const promisify = new Proxy(ret[util.promisify.custom], promisifyHandler);
+    ret = new Proxy(ret, {
+      get(target, prop) {
+        if (prop === util.promisify.custom) {
+          return promisify;
+        }
+        return target[prop];
+      }
+    });
+  }
+  return ret;
 }

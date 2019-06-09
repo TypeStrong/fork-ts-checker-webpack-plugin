@@ -12,7 +12,7 @@ interface Error {
   rawMessage: string;
 }
 
-describe.each([/*[true], */ [false]])(
+describe.each([[true], [false]])(
   '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s',
   useTypescriptIncrementalApi => {
     const createCompiler = (options: Partial<CreateCompilerOptions> = {}) =>

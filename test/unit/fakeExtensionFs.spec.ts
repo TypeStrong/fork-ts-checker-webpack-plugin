@@ -203,9 +203,13 @@ describe('fakeExtensionFs', () => {
       expect(unwrapFilename(filename)).toBe(filename);
       let callback!: (e: string, f: string) => void, watcher!: fs.FSWatcher;
 
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         callback = jest.fn(resolve);
-        watcher = fakeFs.watch(tmpTestDir, callback);
+        watcher = fakeFs.watch(
+          tmpTestDir,
+          (e, f) => e === 'change' && callback(e, f)
+        );
+        await wait();
         fs.writeFileSync(filename, 'test');
       });
 
@@ -219,9 +223,13 @@ describe('fakeExtensionFs', () => {
       expect(originalFileName).not.toBe(wrappedFileName);
       let callback!: (e: string, f: string) => void, watcher!: fs.FSWatcher;
 
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         callback = jest.fn(resolve);
-        watcher = fakeFs.watch(tmpTestDir, callback);
+        watcher = fakeFs.watch(
+          tmpTestDir,
+          (e, f) => e === 'change' && callback(e, f)
+        );
+        await wait();
         fs.writeFileSync(originalFileName, 'test');
       });
 
@@ -235,12 +243,14 @@ describe('fakeExtensionFs', () => {
     test('event: watches changes in unwrapped filenames', async () => {
       const filename = currentFixtures[0][0];
       expect(unwrapFilename(filename)).toBe(filename);
-      let callback!: (e: string, f: string) => void, watcher!: fs.FSWatcher;
+      let callback!: (e: string, f: string | Buffer) => void,
+        watcher!: fs.FSWatcher;
 
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         callback = jest.fn(resolve);
         watcher = fakeFs.watch(tmpTestDir);
-        watcher.on('change', callback);
+        watcher.on('change', (e, f) => e === 'change' && callback(e, f));
+        await wait();
         fs.writeFileSync(filename, 'test');
       });
 
@@ -252,12 +262,14 @@ describe('fakeExtensionFs', () => {
       const originalFileName = currentFixtures[2][0];
       const wrappedFileName = wrapFilename(originalFileName);
       expect(originalFileName).not.toBe(wrappedFileName);
-      let callback!: (e: string, f: string) => void, watcher!: fs.FSWatcher;
+      let callback!: (e: string, f: string | Buffer) => void,
+        watcher!: fs.FSWatcher;
 
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         callback = jest.fn(resolve);
         watcher = fakeFs.watch(tmpTestDir);
-        watcher.on('change', callback);
+        watcher.on('change', (e, f) => e === 'change' && callback(e, f));
+        await wait();
         fs.writeFileSync(originalFileName, 'test');
       });
 
@@ -275,13 +287,14 @@ describe('fakeExtensionFs', () => {
       expect(unwrapFilename(filename)).toBe(filename);
       let callback;
 
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         callback = jest.fn(resolve);
         fakeFs.watchFile(
           filename,
           { interval: 100, persistent: false },
           callback
         );
+        await wait();
         fs.writeFileSync(filename, 'test');
       });
 
@@ -295,13 +308,14 @@ describe('fakeExtensionFs', () => {
       expect(originalFileName).not.toBe(wrappedFileName);
       let callback;
 
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         callback = jest.fn(resolve);
         fakeFs.watchFile(
           wrappedFileName,
           { interval: 100, persistent: false },
           callback
         );
+        await wait();
         fs.writeFileSync(originalFileName, 'test');
       });
 
@@ -310,3 +324,7 @@ describe('fakeExtensionFs', () => {
     });
   });
 });
+
+function wait(ms = 50) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

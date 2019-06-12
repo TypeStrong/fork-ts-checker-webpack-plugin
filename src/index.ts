@@ -338,10 +338,11 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  private computeContextPath = (filePath: string) =>
-    path.isAbsolute(filePath)
-      ? filePath
-      : path.resolve(this.compiler.options.context, filePath);
+  private computeContextPath(filePath: string) {
+    return path.isAbsolute(filePath)
+        ? filePath
+        : path.resolve(this.compiler.options.context, filePath);
+  }
 
   private pluginStart() {
     const run = (_compiler: webpack.Compiler, callback: () => void) => {

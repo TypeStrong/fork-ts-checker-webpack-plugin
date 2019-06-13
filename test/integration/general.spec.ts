@@ -1,7 +1,9 @@
+// tslint:disable: no-implicit-dependencies - tests might also use devDependencies
 import fs from 'fs';
 import path from 'path';
 import ForkTsCheckerWebpackPlugin from '../../lib/index';
 import * as helpers from './helpers';
+import { cloneDeep } from 'lodash';
 
 describe.each([[true], [false]])(
   '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
@@ -470,6 +472,50 @@ describe.each([[true], [false]])(
             )
         );
         expect(syntacticErrorFoundInStats).toBe(true);
+        callback();
+      });
+    });
+
+    /**
+     * regression test for #267, #299
+     */
+    it('should work even when the plugin has been deep-cloned', callback => {
+      const compiler = createCompiler({
+        pluginOptions: {
+          tsconfig: 'tsconfig-semantic-error-only.json'
+        },
+        prepareWebpackConfig({ plugins, ...config }) {
+          return { ...config, plugins: cloneDeep(plugins) };
+        }
+      });
+
+      compiler.run((err, stats) => {
+        expect(stats.compilation.errors).toEqual([
+          expect.objectContaining({
+            message: expect.stringContaining('TS2322')
+          })
+        ]);
+        callback();
+      });
+    });
+
+    /**
+     * regression test for #300
+     */
+    it('should work when `path` is set with relative paths', callback => {
+      const compiler = createCompiler({
+        pluginOptions: {
+          tsconfig: 'tsconfig-semantic-error-only.json',
+          watch: ['./test1', './test2']
+        }
+      });
+
+      compiler.run((err, stats) => {
+        expect(stats.compilation.errors).toEqual([
+          expect.objectContaining({
+            message: expect.stringContaining('TS2322')
+          })
+        ]);
         callback();
       });
     });

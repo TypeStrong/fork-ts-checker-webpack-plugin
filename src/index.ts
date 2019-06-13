@@ -280,7 +280,7 @@ class ForkTsCheckerWebpackPlugin {
       typeof this.tslint === 'string'
         ? this.computeContextPath(this.tslint as string)
         : undefined;
-    this.watchPaths = this.watch.map(this.computeContextPath);
+    this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
     const tsconfigOk = FsHelper.existsSync(this.tsconfigPath);
@@ -340,8 +340,8 @@ class ForkTsCheckerWebpackPlugin {
 
   private computeContextPath(filePath: string) {
     return path.isAbsolute(filePath)
-        ? filePath
-        : path.resolve(this.compiler.options.context, filePath);
+      ? filePath
+      : path.resolve(this.compiler.options.context, filePath);
   }
 
   private pluginStart() {

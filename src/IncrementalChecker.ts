@@ -413,4 +413,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       lints.map(this.createNormalizedMessageFromRuleFailure)
     );
   }
+
+  public getEsLints(_cancellationToken: CancellationToken) {
+    // TODO: Implement
+    return [] as NormalizedMessage[];
+  }
 }

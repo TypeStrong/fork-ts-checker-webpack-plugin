@@ -15,6 +15,7 @@ import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 import { FsHelper } from './FsHelper';
+import * as eslinttypes from 'eslint';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -24,6 +25,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   private currentLintErrors = new Map<string, LintResult>();
+  private currentEsLintErrors = new Map<
+    string,
+    eslinttypes.CLIEngine.LintReport
+  >();
   private lastUpdatedFiles: string[] = [];
   private lastRemovedFiles: string[] = [];
 
@@ -36,6 +41,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     ) => NormalizedMessage,
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
+    ) => NormalizedMessage,
+    private createNormalizedMessageFromEsLintFailure: (
+      ruleFailure: eslinttypes.Linter.LintMessage,
+      filePath: string
     ) => NormalizedMessage,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
@@ -169,5 +178,53 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     return NormalizedMessage.deduplicate(
       allLints.map(this.createNormalizedMessageFromRuleFailure)
     );
+  }
+
+  public getEsLints(_cancellationToken: CancellationToken) {
+    for (const updatedFile of this.lastUpdatedFiles) {
+      if (this.isFileExcluded(updatedFile)) {
+        continue;
+      }
+
+      try {
+        // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+        const eslint: typeof eslinttypes = require('eslint');
+        const linter = new eslint.CLIEngine({});
+
+        const lints = linter.executeOnFiles([updatedFile]);
+        this.currentEsLintErrors.set(updatedFile, lints);
+      } catch (e) {
+        if (
+          FsHelper.existsSync(updatedFile) &&
+          // check the error type due to file system lag
+          !(e instanceof Error) &&
+          !(e.constructor.name === 'FatalError') &&
+          !(e.message && e.message.trim().startsWith('Invalid source file'))
+        ) {
+          // it's not because file doesn't exist - throw error
+          throw e;
+        }
+      }
+
+      for (const removedFile of this.lastRemovedFiles) {
+        this.currentEsLintErrors.delete(removedFile);
+      }
+    }
+
+    const allEsLints = [];
+    for (const [, value] of this.currentEsLintErrors) {
+      for (const lint of value.results) {
+        allEsLints.push(
+          ...lint.messages.map(message =>
+            this.createNormalizedMessageFromEsLintFailure(
+              message,
+              lint.filePath
+            )
+          )
+        );
+      }
+    }
+
+    return NormalizedMessage.deduplicate(allEsLints);
   }
 }

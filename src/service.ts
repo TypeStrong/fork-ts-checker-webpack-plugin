@@ -9,6 +9,7 @@ import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure,
+  makeCreateNormalizedMessageFromEsLintFailure,
   makeCreateNormalizedMessageFromInternalError
 } from './NormalizedMessageFactories';
 import { RpcProvider } from 'worker-rpc';
@@ -39,6 +40,7 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
   typescript
 );
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
+export const createNormalizedMessageFromEsLintFailure = makeCreateNormalizedMessageFromEsLintFailure();
 export const createNormalizedMessageFromInternalError = makeCreateNormalizedMessageFromInternalError();
 
 const resolveModuleName = process.env.RESOLVE_MODULE_NAME
@@ -56,6 +58,7 @@ const checker: IncrementalCheckerInterface =
         typescript,
         createNormalizedMessageFromDiagnostic,
         createNormalizedMessageFromRuleFailure,
+        createNormalizedMessageFromEsLintFailure,
         process.env.TSCONFIG!,
         JSON.parse(process.env.COMPILER_OPTIONS!),
         process.env.CONTEXT!,
@@ -93,7 +96,7 @@ async function run(cancellationToken: CancellationToken) {
 
     diagnostics = await checker.getDiagnostics(cancellationToken);
     if (checker.hasEsLinter()) {
-      // lints = checker.getLints(cancellationToken);
+      lints = checker.getEsLints(cancellationToken);
     } else if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }

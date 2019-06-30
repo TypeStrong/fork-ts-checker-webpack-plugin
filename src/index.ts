@@ -44,6 +44,7 @@ namespace ForkTsCheckerWebpackPlugin {
     compilerOptions: object;
     tslint: string | true;
     tslintAutoFix: boolean;
+    eslint: boolean;
     watch: string | string[];
     async: boolean;
     ignoreDiagnostics: number[];
@@ -96,6 +97,7 @@ class ForkTsCheckerWebpackPlugin {
   private tsconfig: string;
   private compilerOptions: object;
   private tslint?: string | true;
+  private eslint: boolean;
   private tslintAutoFix: boolean;
   private watch: string[];
   private ignoreDiagnostics: number[];
@@ -163,6 +165,7 @@ class ForkTsCheckerWebpackPlugin {
         : options.tslint
       : undefined;
     this.tslintAutoFix = options.tslintAutoFix || false;
+    this.eslint = options.eslint === true;
     this.watch =
       typeof options.watch === 'string' ? [options.watch] : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
@@ -543,7 +546,7 @@ class ForkTsCheckerWebpackPlugin {
             this.doneCallback();
           } else {
             if (this.compiler) {
-              forkTsCheckerHooks.waiting.call(this.tslint !== false);
+              forkTsCheckerHooks.waiting.call(this.tslint !== undefined);
             }
             if (!this.silent && this.logger) {
               this.logger.info(
@@ -570,7 +573,7 @@ class ForkTsCheckerWebpackPlugin {
           if (this.compiler) {
             this.compiler.applyPlugins(
               legacyHookMap.waiting,
-              this.tslint !== false
+              this.tslint !== undefined
             );
           }
           if (!this.silent && this.logger) {
@@ -596,6 +599,7 @@ class ForkTsCheckerWebpackPlugin {
       TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
       CONTEXT: this.compiler.options.context,
       TSLINTAUTOFIX: String(this.tslintAutoFix),
+      ESLINT: String(this.eslint),
       WATCH: this.isWatching ? this.watchPaths.join('|') : '',
       WORK_DIVISION: String(Math.max(1, this.workersNumber)),
       MEMORY_LIMIT: String(this.memoryLimit),

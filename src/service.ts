@@ -61,6 +61,7 @@ const checker: IncrementalCheckerInterface =
         process.env.CONTEXT!,
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
+        process.env.ESLINT === 'true',
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
         resolveModuleName,
         resolveTypeReferenceDirective
@@ -91,7 +92,9 @@ async function run(cancellationToken: CancellationToken) {
     checker.nextIteration();
 
     diagnostics = await checker.getDiagnostics(cancellationToken);
-    if (checker.hasLinter()) {
+    if (checker.hasEsLinter()) {
+      // lints = checker.getLints(cancellationToken);
+    } else if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }
   } catch (error) {

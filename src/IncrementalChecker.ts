@@ -195,6 +195,10 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return !!this.linter;
   }
 
+  public hasEsLinter(): boolean {
+    return false; // TODO: implement
+  }
+
   public static isFileExcluded(
     filePath: string,
     linterExclusions: minimatch.IMinimatch[]

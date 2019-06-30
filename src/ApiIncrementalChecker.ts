@@ -42,6 +42,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private context: string,
     private linterConfigFile: string | boolean,
     private linterAutoFix: boolean,
+    private eslint: boolean,
     checkSyntacticErrors: boolean,
     resolveModuleName: ResolveModuleName | undefined,
     resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
@@ -95,6 +96,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   public hasLinter(): boolean {
     return !!this.linterConfigFile;
+  }
+
+  public hasEsLinter(): boolean {
+    return this.eslint;
   }
 
   public isFileExcluded(filePath: string): boolean {

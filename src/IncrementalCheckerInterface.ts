@@ -10,5 +10,7 @@ export interface IncrementalCheckerInterface {
 
   hasLinter(): boolean;
 
+  hasEsLinter(): boolean;
+
   getLints(cancellationToken: CancellationToken): NormalizedMessage[];
 }

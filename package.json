@@ -67,7 +67,6 @@
         "git add"
       ],
       "*.ts": [
-        "tslint --fix",
         "prettier --write",
         "git add"
       ],
@@ -122,6 +121,8 @@
     "@types/rimraf": "^2.0.2",
     "@types/semver": "^5.5.0",
     "@types/webpack": "^4.4.19",
+    "@typescript-eslint/eslint-plugin": "^1.11.0",
+    "@typescript-eslint/parser": "^1.11.0",
     "commitlint": "^7.5.2",
     "copy-dir": "^0.4.0",
     "css-loader": "0.28.11",

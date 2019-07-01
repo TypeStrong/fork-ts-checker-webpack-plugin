@@ -5,6 +5,6 @@ module.exports = {
     sourceType: 'module'
   },
   rules: {
-    '@typescript-eslint/array-type': 'off'
+    '@typescript-eslint/array-type': 'error'
   }
 };

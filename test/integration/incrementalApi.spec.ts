@@ -42,12 +42,13 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
 
   it('should detect eslints with incremental API', callback => {
     const compiler = createCompiler({
-      context: 'project_eslint',
+      context: './project_eslint',
+      entryPoint: './src/index.ts',
       pluginOptions: { eslint: true }
     });
 
     compiler.run((err, stats) => {
-      const { warnings } = stats.compilation;
+      const { warnings, errors } = stats.compilation;
       expect(warnings.length).toBe(1);
 
       const [warning] = warnings;
@@ -62,6 +63,22 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
       expect(warning.location).toEqual({
         character: 44,
         line: 3
+      });
+
+      const error = errors.find(err =>
+        err.rawMessage.includes('@typescript-eslint/array-type')
+      );
+      const actualErrorFile = unixify(error.file);
+      const expectedErrorFile = unixify('src/index.ts');
+      expect(actualErrorFile).toContain(expectedErrorFile);
+      expect(error.rawMessage).toContain('ERROR');
+      expect(error.rawMessage).toContain('@typescript-eslint/array-type');
+      expect(error.rawMessage).toContain(
+        "Array type using 'Array<string>' is forbidden. Use 'string[]' instead."
+      );
+      expect(error.location).toEqual({
+        character: 43,
+        line: 4
       });
 
       callback();

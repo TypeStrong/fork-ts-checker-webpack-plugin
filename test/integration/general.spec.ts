@@ -379,7 +379,7 @@ describe.each([[true], [false]])(
         );
         forkTsCheckerHooks.serviceBeforeStart.tapAsync(
           'should allow delaying service-start',
-          cb => {
+          (cb: () => void) => {
             setTimeout(() => {
               delayed = true;
 

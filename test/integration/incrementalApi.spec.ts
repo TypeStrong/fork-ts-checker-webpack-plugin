@@ -7,6 +7,7 @@
  * */
 import fs from 'fs';
 import * as helpers from './helpers';
+import unixify from 'unixify';
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', () => {
   function createCompiler(options: Partial<helpers.CreateCompilerOptions>) {
@@ -37,6 +38,34 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
         pluginOptions: { workers: 5 }
       });
     }).toThrowError();
+  });
+
+  it('should detect eslints with incremental API', callback => {
+    const compiler = createCompiler({
+      context: 'project_eslint',
+      pluginOptions: { eslint: true }
+    });
+
+    compiler.run((err, stats) => {
+      const { warnings } = stats.compilation;
+      expect(warnings.length).toBe(1);
+
+      const [warning] = warnings;
+      const actualFile = unixify(warning.file);
+      const expectedFile = unixify('src/lib/func.ts');
+      expect(actualFile).toContain(expectedFile);
+      expect(warning.rawMessage).toContain('WARNING');
+      expect(warning.rawMessage).toContain('@typescript-eslint/array-type');
+      expect(warning.rawMessage).toContain(
+        "Array type using 'Array<string>' is forbidden. Use 'string[]' instead."
+      );
+      expect(warning.location).toEqual({
+        character: 44,
+        line: 3
+      });
+
+      callback();
+    });
   });
 
   it('should fix linting errors with tslintAutofix flag set to true', callback => {

@@ -40,51 +40,6 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     }).toThrowError();
   });
 
-  it('should detect eslints with incremental API', callback => {
-    const compiler = createCompiler({
-      context: './project_eslint',
-      entryPoint: './src/index.ts',
-      pluginOptions: { eslint: true }
-    });
-
-    compiler.run((err, stats) => {
-      const { warnings, errors } = stats.compilation;
-      expect(warnings.length).toBe(1);
-
-      const [warning] = warnings;
-      const actualFile = unixify(warning.file);
-      const expectedFile = unixify('src/lib/func.ts');
-      expect(actualFile).toContain(expectedFile);
-      expect(warning.rawMessage).toContain('WARNING');
-      expect(warning.rawMessage).toContain('@typescript-eslint/array-type');
-      expect(warning.rawMessage).toContain(
-        "Array type using 'Array<string>' is forbidden. Use 'string[]' instead."
-      );
-      expect(warning.location).toEqual({
-        character: 44,
-        line: 3
-      });
-
-      const error = errors.find(err =>
-        err.rawMessage.includes('@typescript-eslint/array-type')
-      );
-      const actualErrorFile = unixify(error.file);
-      const expectedErrorFile = unixify('src/index.ts');
-      expect(actualErrorFile).toContain(expectedErrorFile);
-      expect(error.rawMessage).toContain('ERROR');
-      expect(error.rawMessage).toContain('@typescript-eslint/array-type');
-      expect(error.rawMessage).toContain(
-        "Array type using 'Array<string>' is forbidden. Use 'string[]' instead."
-      );
-      expect(error.location).toEqual({
-        character: 43,
-        line: 4
-      });
-
-      callback();
-    });
-  });
-
   it('should fix linting errors with tslintAutofix flag set to true', callback => {
     const fileName = 'lintingError1';
     const {

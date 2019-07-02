@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
 // tslint:disable-next-line:no-implicit-dependencies
 import { Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+import * as eslinttypes from 'eslint';
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
 import {
@@ -49,17 +50,22 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   constructor(
     private typescript: typeof ts,
+    private context: string,
+    private programConfigFile: string,
+    private compilerOptions: object,
     private createNormalizedMessageFromDiagnostic: (
       diagnostic: ts.Diagnostic
     ) => NormalizedMessage,
+    private linterConfigFile: string | boolean,
+    private linterAutoFix: boolean,
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
-    private programConfigFile: string,
-    private compilerOptions: object,
-    private context: string,
-    private linterConfigFile: string | boolean,
-    private linterAutoFix: boolean,
+    private eslint: boolean,
+    private createNormalizedMessageFromEsLintFailure: (
+      ruleFailure: eslinttypes.Linter.LintMessage,
+      filePath: string
+    ) => NormalizedMessage,
     private watchPaths: string[],
     private workNumber: number = 0,
     private workDivision: number = 1,
@@ -196,7 +202,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public hasEsLinter(): boolean {
-    return false; // TODO: implement
+    return this.eslint;
   }
 
   public static isFileExcluded(
@@ -404,7 +410,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       .keys()
       .reduce(
         (innerLints, filePath) =>
-          innerLints.concat(this.files.getData(filePath).lints),
+          innerLints.concat(this.files.getData(filePath)
+            .lints as RuleFailure[]),
         [] as RuleFailure[]
       );
 
@@ -414,8 +421,91 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public getEsLints(_cancellationToken: CancellationToken) {
-    // TODO: Implement
-    return [] as NormalizedMessage[];
+  public getEsLints(cancellationToken: CancellationToken) {
+    // select files to lint
+    const filesToLint = this.files
+      .keys()
+      .filter(
+        filePath =>
+          !this.files.getData(filePath).linted &&
+          !IncrementalChecker.isFileExcluded(filePath, this.linterExclusions)
+      );
+
+    // calculate subset of work to do
+    const workSet = new WorkSet<string>(
+      filesToLint,
+      this.workNumber,
+      this.workDivision
+    );
+
+    // lint given work set
+    const currentEsLintErrors = new Map<
+      string,
+      eslinttypes.CLIEngine.LintReport
+    >();
+    workSet.forEach(fileName => {
+      cancellationToken.throwIfCancellationRequested();
+
+      try {
+        // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+        const eslint: typeof eslinttypes = require('eslint');
+        const linter = new eslint.CLIEngine({});
+
+        const lints = linter.executeOnFiles([fileName]);
+        currentEsLintErrors.set(fileName, lints);
+      } catch (e) {
+        if (
+          FsHelper.existsSync(fileName) &&
+          // check the error type due to file system lag
+          !(e instanceof Error) &&
+          !(e.constructor.name === 'FatalError') &&
+          !(e.message && e.message.trim().startsWith('Invalid source file'))
+        ) {
+          // it's not because file doesn't exist - throw error
+          throw e;
+        }
+      }
+    });
+
+    // set lints in files register
+    for (const [filePath, lint] of currentEsLintErrors) {
+      this.files.mutateData(filePath, data => {
+        data.linted = true;
+        data.lints.push(lint);
+      });
+    }
+
+    // set all files as linted
+    this.files.keys().forEach(filePath => {
+      this.files.mutateData(filePath, data => {
+        data.linted = true;
+      });
+    });
+
+    // get all lints
+    const allEsLintReports = this.files
+      .keys()
+      .reduce(
+        (innerLints, filePath) =>
+          innerLints.concat(this.files.getData(filePath)
+            .lints as eslinttypes.CLIEngine.LintReport[]),
+        [] as eslinttypes.CLIEngine.LintReport[]
+      );
+
+    const allEsLints = [];
+    for (const value of allEsLintReports) {
+      for (const lint of value.results) {
+        allEsLints.push(
+          ...lint.messages.map(message =>
+            this.createNormalizedMessageFromEsLintFailure(
+              message,
+              lint.filePath
+            )
+          )
+        );
+      }
+    }
+
+    return NormalizedMessage.deduplicate(allEsLints);
   }
 }

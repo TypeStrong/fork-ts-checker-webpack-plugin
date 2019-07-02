@@ -2,11 +2,12 @@
 import * as ts from 'typescript'; // import for types alone
 // tslint:disable-next-line:no-implicit-dependencies
 import { RuleFailure } from 'tslint'; // import for types alone
+import { CLIEngine } from 'eslint'; // import for types alone
 
 export interface DataShape {
   source?: ts.SourceFile;
   linted: boolean;
-  lints: RuleFailure[];
+  lints: (RuleFailure | CLIEngine.LintReport)[];
 }
 
 export class FilesRegister {

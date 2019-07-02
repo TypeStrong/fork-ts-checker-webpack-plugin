@@ -2,6 +2,7 @@
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
 import { Linter, LintResult, RuleFailure } from 'tslint';
+import * as eslinttypes from 'eslint';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
@@ -15,7 +16,6 @@ import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 import { FsHelper } from './FsHelper';
-import * as eslinttypes from 'eslint';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -36,22 +36,22 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   constructor(
     typescript: typeof ts,
+    private context: string,
+    programConfigFile: string,
+    compilerOptions: ts.CompilerOptions,
     private createNormalizedMessageFromDiagnostic: (
       diagnostic: ts.Diagnostic
     ) => NormalizedMessage,
+    private linterConfigFile: string | boolean,
+    private linterAutoFix: boolean,
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
+    private eslint: boolean,
     private createNormalizedMessageFromEsLintFailure: (
       ruleFailure: eslinttypes.Linter.LintMessage,
       filePath: string
     ) => NormalizedMessage,
-    programConfigFile: string,
-    compilerOptions: ts.CompilerOptions,
-    private context: string,
-    private linterConfigFile: string | boolean,
-    private linterAutoFix: boolean,
-    private eslint: boolean,
     checkSyntacticErrors: boolean,
     resolveModuleName: ResolveModuleName | undefined,
     resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined

@@ -1,11 +1,11 @@
 # Fork TS Checker Webpack Plugin
 
-[![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-[![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-[![build status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
-[![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
-[![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
+[![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
+[![build status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
+[![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
+[![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Webpack plugin that runs TypeScript type checker on a separate process.
@@ -61,6 +61,36 @@ to compile files (which traverses dependency graph during compilation) - we have
 
 To debug TypeScript's modules resolution, you can use `tsc --traceResolution` command.
 
+## ESLint
+
+ESLint is the future of linting in the TypeScript world. ([TSLint is being replaced by ESLint](https://medium.com/palantir/tslint-in-2019-1a144c2317a9).
+https://eslint.org/blog/2019/01/future-typescript-eslint)
+
+If you'd like to use eslint with the plugin, supply this option: `eslint: true` and ensure you have the relevant dependencies installed:
+
+`yarn add eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin --dev`
+
+You should have an `.eslintrc.js` configuration file in your root project directory. Here is a sample configuration for a TypeScript project:
+
+```js
+module.exports = {
+  parser: '@typescript-eslint/parser', // Specifies the ESLint parser
+  extends: [
+    'plugin:@typescript-eslint/recommended' // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+  ],
+  parserOptions: {
+    ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
+    sourceType: 'module' // Allows for the use of imports
+  },
+  rules: {
+    // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
+    // e.g. "@typescript-eslint/explicit-function-return-type": "off",
+  }
+};
+```
+
+There's a good explanation on setting up TypeScript ESLint support by Robert Cooper [here](https://dev.to/robertcoopercode/using-eslint-and-prettier-in-a-typescript-project-53jb).
+
 ## TSLint
 
 If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
@@ -74,6 +104,10 @@ It helps to distinguish lints from TypeScript's diagnostics.
 
 - **compilerOptions** `object`:
   Allows overriding TypeScript options. Should be specified in the same format as you would do for the `compilerOptions` property in tsconfig.json. Default: `{}`.
+
+- **eslint** `true | undefined`:
+
+  - If `true`, this activates eslint support.
 
 - **tslint** `string | true | undefined`:
 

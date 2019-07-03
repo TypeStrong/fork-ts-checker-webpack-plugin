@@ -48,6 +48,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
     private eslint: boolean,
+    private eslintOptions: eslinttypes.CLIEngine.Options,
     private createNormalizedMessageFromEsLintFailure: (
       ruleFailure: eslinttypes.Linter.LintMessage,
       filePath: string
@@ -189,7 +190,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       try {
         // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
         const eslint: typeof eslinttypes = require('eslint');
-        const linter = new eslint.CLIEngine({});
+        const linter = new eslint.CLIEngine(this.eslintOptions);
 
         const lints = linter.executeOnFiles([updatedFile]);
         this.currentEsLintErrors.set(updatedFile, lints);

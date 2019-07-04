@@ -10,7 +10,6 @@ import * as os from 'os';
 import * as webpack from 'webpack';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript';
-import * as eslinttypes from 'eslint';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
@@ -302,8 +301,7 @@ class ForkTsCheckerWebpackPlugin {
       typeof options.eslintOptions === 'object' ? options.eslintOptions : {};
 
     try {
-      const eslint: typeof eslinttypes = require('eslint');
-      eslintVersion = new eslint.CLIEngine({}).version;
+      eslintVersion = require('eslint').Linter.version;
     } catch (_ignored) {
       throw new Error(
         'When you use `eslint` option, make sure to install `eslint`.'

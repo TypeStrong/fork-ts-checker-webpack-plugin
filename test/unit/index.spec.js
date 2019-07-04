@@ -43,6 +43,16 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
         new ForkTsCheckerWebpackPlugin({ eslint: true });
       }).toThrowError(Error);
     });
+
+    it('should not throw if eslint is present', () => {
+      jest.setMock('typescript', { version: '2.1.0' });
+      jest.setMock('eslint', { Linter: { VERSION: '5.7.0' } });
+      var ForkTsCheckerWebpackPlugin = require('../../lib/index');
+
+      expect(function() {
+        new ForkTsCheckerWebpackPlugin({ eslint: true });
+      }).not.toThrowError();
+    });
   });
 
   describe('tslint', () => {

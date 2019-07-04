@@ -25,6 +25,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   private currentLintErrors = new Map<string, LintResult>();
+  private eslinter: eslinttypes.CLIEngine | undefined = undefined;
   private currentEsLintErrors = new Map<
     string,
     eslinttypes.CLIEngine.LintReport
@@ -188,11 +189,13 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       }
 
       try {
-        // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-        const eslint: typeof eslinttypes = require('eslint');
-        const linter = new eslint.CLIEngine(this.eslintOptions);
+        if (this.eslinter === undefined) {
+          // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+          const eslint: typeof eslinttypes = require('eslint');
+          this.eslinter = new eslint.CLIEngine(this.eslintOptions);
+        }
 
-        const lints = linter.executeOnFiles([updatedFile]);
+        const lints = this.eslinter.executeOnFiles([updatedFile]);
         this.currentEsLintErrors.set(updatedFile, lints);
       } catch (e) {
         if (

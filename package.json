@@ -127,7 +127,7 @@
     "commitlint": "^7.5.2",
     "copy-dir": "^0.4.0",
     "css-loader": "0.28.11",
-    "eslint": "^5.7.0",
+    "eslint": "^6.0.0",
     "git-cz": "^3.0.1",
     "husky": "^1.1.4",
     "istanbul": "^0.4.5",

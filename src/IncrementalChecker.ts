@@ -35,6 +35,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     lints: []
   }));
 
+  private eslinter: eslinttypes.CLIEngine | undefined = undefined;
   private linter?: Linter;
   private linterConfig?: ConfigurationFile;
 
@@ -448,11 +449,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       cancellationToken.throwIfCancellationRequested();
 
       try {
-        // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-        const eslint: typeof eslinttypes = require('eslint');
-        const linter = new eslint.CLIEngine(this.eslintOptions);
+        if (this.eslinter === undefined) {
+          // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+          const eslint: typeof eslinttypes = require('eslint');
+          this.eslinter = new eslint.CLIEngine(this.eslintOptions);
+        }
 
-        const lints = linter.executeOnFiles([fileName]);
+        const lints = this.eslinter.executeOnFiles([fileName]);
         currentEsLintErrors.set(fileName, lints);
       } catch (e) {
         if (

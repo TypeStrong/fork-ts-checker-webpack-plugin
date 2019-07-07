@@ -1,7 +1,6 @@
 import * as process from 'process';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
-import * as eslinttypes from 'eslint'; // import for types alone
 
 import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
@@ -11,12 +10,12 @@ import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 import {
   makeCreateNormalizedMessageFromDiagnostic,
   makeCreateNormalizedMessageFromRuleFailure,
-  makeCreateNormalizedMessageFromEsLintFailure,
   makeCreateNormalizedMessageFromInternalError
 } from './NormalizedMessageFactories';
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
 import { TypeScriptPatchConfig, patchTypescript } from './patchTypescript';
+import { makeEslinter } from './makeEslinter';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -42,7 +41,6 @@ export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessage
   typescript
 );
 export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
-export const createNormalizedMessageFromEsLintFailure = makeCreateNormalizedMessageFromEsLintFailure();
 export const createNormalizedMessageFromInternalError = makeCreateNormalizedMessageFromInternalError();
 
 const resolveModuleName = process.env.RESOLVE_MODULE_NAME
@@ -54,12 +52,10 @@ const resolveTypeReferenceDirective = process.env
       .resolveTypeReferenceDirective
   : undefined;
 
-let eslinter: eslinttypes.CLIEngine | undefined = undefined;
-if (process.env.ESLINT === 'true') {
-  // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-  const eslint: typeof eslinttypes = require('eslint');
-  eslinter = new eslint.CLIEngine(JSON.parse(process.env.ESLINT_OPTIONS!));
-}
+const eslinter =
+  process.env.ESLINT === 'true'
+    ? makeEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
+    : undefined;
 
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
@@ -73,7 +69,6 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINTAUTOFIX === 'true',
         createNormalizedMessageFromRuleFailure,
         eslinter,
-        createNormalizedMessageFromEsLintFailure,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
         resolveModuleName,
         resolveTypeReferenceDirective
@@ -88,7 +83,6 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINTAUTOFIX === 'true',
         createNormalizedMessageFromRuleFailure,
         eslinter,
-        createNormalizedMessageFromEsLintFailure,
         process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
         parseInt(process.env.WORK_NUMBER!, 10) || 0,
         parseInt(process.env.WORK_DIVISION!, 10) || 1,

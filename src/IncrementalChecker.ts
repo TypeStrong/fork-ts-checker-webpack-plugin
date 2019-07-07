@@ -24,6 +24,7 @@ import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { FsHelper } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import { makeEslinter } from './makeEslinter';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -61,11 +62,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
-    private eslinter: eslinttypes.CLIEngine | undefined,
-    private createNormalizedMessageFromEsLintFailure: (
-      ruleFailure: eslinttypes.Linter.LintMessage,
-      filePath: string
-    ) => NormalizedMessage,
+    private eslinter: ReturnType<typeof makeEslinter> | undefined,
     private watchPaths: string[],
     private workNumber: number = 0,
     private workDivision: number = 1,
@@ -446,20 +443,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     workSet.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
 
-      try {
-        const lints = this.eslinter!.executeOnFiles([fileName]);
+      const lints = this.eslinter!.getLints(fileName);
+      if (lints !== undefined) {
         currentEsLintErrors.set(fileName, lints);
-      } catch (e) {
-        if (
-          FsHelper.existsSync(fileName) &&
-          // check the error type due to file system lag
-          !(e instanceof Error) &&
-          !(e.constructor.name === 'FatalError') &&
-          !(e.message && e.message.trim().startsWith('Invalid source file'))
-        ) {
-          // it's not because file doesn't exist - throw error
-          throw e;
-        }
       }
     });
 
@@ -488,20 +474,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         [] as eslinttypes.CLIEngine.LintReport[]
       );
 
-    const allEsLints = [];
-    for (const value of allEsLintReports) {
-      for (const lint of value.results) {
-        allEsLints.push(
-          ...lint.messages.map(message =>
-            this.createNormalizedMessageFromEsLintFailure(
-              message,
-              lint.filePath
-            )
-          )
-        );
-      }
-    }
-
-    return NormalizedMessage.deduplicate(allEsLints);
+    return this.eslinter!.getFormattedLints(allEsLintReports);
   }
 }

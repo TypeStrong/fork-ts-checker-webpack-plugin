@@ -16,6 +16,7 @@ import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 import { FsHelper } from './FsHelper';
+import { makeEslinter } from './makeEslinter';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -47,11 +48,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
-    private eslinter: eslinttypes.CLIEngine | undefined,
-    private createNormalizedMessageFromEsLintFailure: (
-      ruleFailure: eslinttypes.Linter.LintMessage,
-      filePath: string
-    ) => NormalizedMessage,
+    private eslinter: ReturnType<typeof makeEslinter> | undefined,
     checkSyntacticErrors: boolean,
     resolveModuleName: ResolveModuleName | undefined,
     resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
@@ -186,20 +183,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         continue;
       }
 
-      try {
-        const lints = this.eslinter!.executeOnFiles([updatedFile]);
+      const lints = this.eslinter!.getLints(updatedFile);
+      if (lints !== undefined) {
         this.currentEsLintErrors.set(updatedFile, lints);
-      } catch (e) {
-        if (
-          FsHelper.existsSync(updatedFile) &&
-          // check the error type due to file system lag
-          !(e instanceof Error) &&
-          !(e.constructor.name === 'FatalError') &&
-          !(e.message && e.message.trim().startsWith('Invalid source file'))
-        ) {
-          // it's not because file doesn't exist - throw error
-          throw e;
-        }
       }
 
       for (const removedFile of this.lastRemovedFiles) {
@@ -207,20 +193,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       }
     }
 
-    const allEsLints = [];
-    for (const [, value] of this.currentEsLintErrors) {
-      for (const lint of value.results) {
-        allEsLints.push(
-          ...lint.messages.map(message =>
-            this.createNormalizedMessageFromEsLintFailure(
-              message,
-              lint.filePath
-            )
-          )
-        );
-      }
-    }
-
-    return NormalizedMessage.deduplicate(allEsLints);
+    return this.eslinter!.getFormattedLints(this.currentEsLintErrors.values());
   }
 }

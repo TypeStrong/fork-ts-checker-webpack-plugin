@@ -1,6 +1,8 @@
 import * as process from 'process';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
+import * as eslinttypes from 'eslint'; // import for types alone
+
 import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
@@ -52,6 +54,13 @@ const resolveTypeReferenceDirective = process.env
       .resolveTypeReferenceDirective
   : undefined;
 
+let eslinter: eslinttypes.CLIEngine | undefined = undefined;
+if (process.env.ESLINT === 'true') {
+  // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+  const eslint: typeof eslinttypes = require('eslint');
+  eslinter = new eslint.CLIEngine(JSON.parse(process.env.ESLINT_OPTIONS!));
+}
+
 const checker: IncrementalCheckerInterface =
   process.env.USE_INCREMENTAL_API === 'true'
     ? new ApiIncrementalChecker(
@@ -63,8 +72,7 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         createNormalizedMessageFromRuleFailure,
-        process.env.ESLINT === 'true',
-        JSON.parse(process.env.ESLINT_OPTIONS!),
+        eslinter,
         createNormalizedMessageFromEsLintFailure,
         process.env.CHECK_SYNTACTIC_ERRORS === 'true',
         resolveModuleName,
@@ -79,8 +87,7 @@ const checker: IncrementalCheckerInterface =
         process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
         process.env.TSLINTAUTOFIX === 'true',
         createNormalizedMessageFromRuleFailure,
-        process.env.ESLINT === 'true',
-        JSON.parse(process.env.ESLINT_OPTIONS!),
+        eslinter,
         createNormalizedMessageFromEsLintFailure,
         process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
         parseInt(process.env.WORK_NUMBER!, 10) || 0,

@@ -25,7 +25,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   private currentLintErrors = new Map<string, LintResult>();
-  private eslinter: eslinttypes.CLIEngine | undefined = undefined;
   private currentEsLintErrors = new Map<
     string,
     eslinttypes.CLIEngine.LintReport
@@ -48,8 +47,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
-    private eslint: boolean,
-    private eslintOptions: eslinttypes.CLIEngine.Options,
+    private eslinter: eslinttypes.CLIEngine | undefined,
     private createNormalizedMessageFromEsLintFailure: (
       ruleFailure: eslinttypes.Linter.LintMessage,
       filePath: string
@@ -110,7 +108,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public hasEsLinter(): boolean {
-    return this.eslint;
+    return this.eslinter !== undefined;
   }
 
   public isFileExcluded(filePath: string): boolean {
@@ -189,13 +187,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       }
 
       try {
-        if (this.eslinter === undefined) {
-          // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-          const eslint: typeof eslinttypes = require('eslint');
-          this.eslinter = new eslint.CLIEngine(this.eslintOptions);
-        }
-
-        const lints = this.eslinter.executeOnFiles([updatedFile]);
+        const lints = this.eslinter!.executeOnFiles([updatedFile]);
         this.currentEsLintErrors.set(updatedFile, lints);
       } catch (e) {
         if (

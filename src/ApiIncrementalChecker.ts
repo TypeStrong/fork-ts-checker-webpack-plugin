@@ -180,6 +180,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   public getEsLints(cancellationToken: CancellationToken) {
     cancellationToken.throwIfCancellationRequested();
 
+    for (const removedFile of this.lastRemovedFiles) {
+      this.currentEsLintErrors.delete(removedFile);
+    }
+
     for (const updatedFile of this.lastUpdatedFiles) {
       if (this.isFileExcluded(updatedFile)) {
         continue;
@@ -189,10 +193,6 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       if (lints !== undefined) {
         this.currentEsLintErrors.set(updatedFile, lints);
       }
-    }
-
-    for (const removedFile of this.lastRemovedFiles) {
-      this.currentEsLintErrors.delete(removedFile);
     }
 
     return this.eslinter!.getFormattedLints(this.currentEsLintErrors.values());

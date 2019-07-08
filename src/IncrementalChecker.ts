@@ -22,9 +22,9 @@ import {
 } from './resolution';
 import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
-import { FsHelper } from './FsHelper';
+import { throwIfIsInvalidSourceFileError } from './FsHelper';
 import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
-import { makeEslinter } from './makeEslinter';
+import { createEslinter } from './createEslinter';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -33,7 +33,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // data shape
     source: undefined,
     linted: false,
-    lints: []
+    tslints: [],
+    eslints: []
   }));
 
   private linter?: Linter;
@@ -62,7 +63,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
-    private eslinter: ReturnType<typeof makeEslinter> | undefined,
+    private eslinter: ReturnType<typeof createEslinter> | undefined,
     private watchPaths: string[],
     private workNumber: number = 0,
     private workDivision: number = 1,
@@ -372,16 +373,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         // Assertion: `.lint` second parameter can be undefined
         linter.lint(fileName, undefined!, config);
       } catch (e) {
-        if (
-          FsHelper.existsSync(fileName) &&
-          // check the error type due to file system lag
-          !(e instanceof Error) &&
-          !(e.constructor.name === 'FatalError') &&
-          !(e.message && e.message.trim().startsWith('Invalid source file'))
-        ) {
-          // it's not because file doesn't exist - throw error
-          throw e;
-        }
+        throwIfIsInvalidSourceFileError(fileName, e);
       }
     });
 
@@ -391,7 +383,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
       this.files.mutateData(filePath, data => {
         data.linted = true;
-        data.lints.push(lint);
+        data.tslints.push(lint);
       });
     });
 
@@ -407,8 +399,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       .keys()
       .reduce(
         (innerLints, filePath) =>
-          innerLints.concat(this.files.getData(filePath)
-            .lints as RuleFailure[]),
+          innerLints.concat(this.files.getData(filePath).tslints),
         [] as RuleFailure[]
       );
 
@@ -453,7 +444,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     for (const [filePath, lint] of currentEsLintErrors) {
       this.files.mutateData(filePath, data => {
         data.linted = true;
-        data.lints.push(lint);
+        data.eslints.push(lint);
       });
     }
 
@@ -469,8 +460,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       .keys()
       .reduce(
         (innerLints, filePath) =>
-          innerLints.concat(this.files.getData(filePath)
-            .lints as eslinttypes.CLIEngine.LintReport[]),
+          innerLints.concat(this.files.getData(filePath).eslints),
         [] as eslinttypes.CLIEngine.LintReport[]
       );
 

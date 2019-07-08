@@ -7,7 +7,8 @@ import { CLIEngine } from 'eslint'; // import for types alone
 export interface DataShape {
   source?: ts.SourceFile;
   linted: boolean;
-  lints: (RuleFailure | CLIEngine.LintReport)[];
+  tslints: RuleFailure[];
+  eslints: CLIEngine.LintReport[];
 }
 
 export class FilesRegister {

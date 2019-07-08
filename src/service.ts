@@ -15,7 +15,7 @@ import {
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
 import { TypeScriptPatchConfig, patchTypescript } from './patchTypescript';
-import { makeEslinter } from './makeEslinter';
+import { createEslinter } from './createEslinter';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -54,7 +54,7 @@ const resolveTypeReferenceDirective = process.env
 
 const eslinter =
   process.env.ESLINT === 'true'
-    ? makeEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
+    ? createEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
     : undefined;
 
 const checker: IncrementalCheckerInterface =

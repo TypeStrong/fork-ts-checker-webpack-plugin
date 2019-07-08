@@ -5,7 +5,7 @@ import * as path from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 
-import { FsHelper } from './FsHelper';
+import { fileExistsSync } from './FsHelper';
 
 export interface CancellationTokenData {
   isCancelled: boolean;
@@ -60,7 +60,7 @@ export class CancellationToken {
     if (duration > 10) {
       // check no more than once every 10ms
       this.lastCancellationCheckTime = time;
-      this.isCancelled = FsHelper.existsSync(this.getCancellationFilePath());
+      this.isCancelled = fileExistsSync(this.getCancellationFilePath());
     }
 
     return this.isCancelled;
@@ -78,10 +78,7 @@ export class CancellationToken {
   }
 
   public cleanupCancellation() {
-    if (
-      this.isCancelled &&
-      FsHelper.existsSync(this.getCancellationFilePath())
-    ) {
+    if (this.isCancelled && fileExistsSync(this.getCancellationFilePath())) {
       fs.unlinkSync(this.getCancellationFilePath());
       this.isCancelled = false;
     }

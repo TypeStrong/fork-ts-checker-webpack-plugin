@@ -15,8 +15,8 @@ import {
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
-import { FsHelper } from './FsHelper';
-import { makeEslinter } from './makeEslinter';
+import { fileExistsSync } from './FsHelper';
+import { createEslinter } from './createEslinter';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -48,7 +48,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     private createNormalizedMessageFromRuleFailure: (
       ruleFailure: RuleFailure
     ) => NormalizedMessage,
-    private eslinter: ReturnType<typeof makeEslinter> | undefined,
+    private eslinter: ReturnType<typeof createEslinter> | undefined,
     checkSyntacticErrors: boolean,
     resolveModuleName: ResolveModuleName | undefined,
     resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
@@ -151,7 +151,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         this.currentLintErrors.set(updatedFile, lints);
       } catch (e) {
         if (
-          FsHelper.existsSync(updatedFile) &&
+          fileExistsSync(updatedFile) &&
           // check the error type due to file system lag
           !(e instanceof Error) &&
           !(e.constructor.name === 'FatalError') &&
@@ -177,7 +177,9 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public getEsLints(_cancellationToken: CancellationToken) {
+  public getEsLints(cancellationToken: CancellationToken) {
+    cancellationToken.throwIfCancellationRequested();
+
     for (const updatedFile of this.lastUpdatedFiles) {
       if (this.isFileExcluded(updatedFile)) {
         continue;
@@ -187,10 +189,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       if (lints !== undefined) {
         this.currentEsLintErrors.set(updatedFile, lints);
       }
+    }
 
-      for (const removedFile of this.lastRemovedFiles) {
-        this.currentEsLintErrors.delete(removedFile);
-      }
+    for (const removedFile of this.lastRemovedFiles) {
+      this.currentEsLintErrors.delete(removedFile);
     }
 
     return this.eslinter!.getFormattedLints(this.currentEsLintErrors.values());

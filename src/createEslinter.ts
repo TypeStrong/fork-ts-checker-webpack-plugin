@@ -1,9 +1,9 @@
 import * as eslinttypes from 'eslint'; // import for types alone
 import { NormalizedMessage } from './NormalizedMessage';
-import { FsHelper } from './FsHelper';
+import { throwIfIsInvalidSourceFileError } from './FsHelper';
 import { makeCreateNormalizedMessageFromEsLintFailure } from './NormalizedMessageFactories';
 
-export function makeEslinter(eslintOptions: object) {
+export function createEslinter(eslintOptions: object) {
   // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
   const eslint: typeof eslinttypes = require('eslint');
   const eslinter = new eslint.CLIEngine(eslintOptions);
@@ -14,16 +14,7 @@ export function makeEslinter(eslintOptions: object) {
       const lints = eslinter.executeOnFiles([filepath]);
       return lints;
     } catch (e) {
-      if (
-        FsHelper.existsSync(filepath) &&
-        // check the error type due to file system lag
-        !(e instanceof Error) &&
-        !(e.constructor.name === 'FatalError') &&
-        !(e.message && e.message.trim().startsWith('Invalid source file'))
-      ) {
-        // it's not because file doesn't exist - throw error
-        throw e;
-      }
+      throwIfIsInvalidSourceFileError(filepath, e);
     }
     return undefined;
   }

@@ -12,8 +12,9 @@ module.exports = {
     'plugin:@typescript-eslint/recommended' // Uses the recommended rules from the @typescript-eslint/eslint-plugin
   ],
   rules: {
-    '@typescript-eslint/explicit-function-return-type': 0,
-    '@typescript-eslint/indent': 0,
-    '@typescript-eslint/no-non-null-assertion': 0
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/indent': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-var-requires': 'off'
   }
 };

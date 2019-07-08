@@ -14,7 +14,7 @@ import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
 import { createCodeframeFormatter } from './formatter/codeframeFormatter';
-import { FsHelper } from './FsHelper';
+import { fileExistsSync } from './FsHelper';
 import { Message } from './Message';
 
 import {
@@ -335,8 +335,8 @@ class ForkTsCheckerWebpackPlugin {
     this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
-    const tsconfigOk = FsHelper.existsSync(this.tsconfigPath);
-    const tslintOk = !this.tslintPath || FsHelper.existsSync(this.tslintPath);
+    const tsconfigOk = fileExistsSync(this.tsconfigPath);
+    const tslintOk = !this.tslintPath || fileExistsSync(this.tslintPath);
 
     if (this.useTypescriptIncrementalApi && this.workersNumber !== 1) {
       throw new Error(

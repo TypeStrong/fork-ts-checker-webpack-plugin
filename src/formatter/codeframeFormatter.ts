@@ -3,7 +3,7 @@ import codeFrame = require('babel-code-frame');
 import chalk from 'chalk';
 import * as fs from 'fs';
 import { NormalizedMessage } from '../NormalizedMessage';
-import { FsHelper } from '../FsHelper';
+import { fileExistsSync } from '../FsHelper';
 
 /**
  * Create new code frame formatter.
@@ -34,7 +34,7 @@ export function createCodeframeFormatter(options: any) {
 
     const file = message.file;
     const source =
-      file && FsHelper.existsSync(file) && fs.readFileSync(file, 'utf-8');
+      file && fileExistsSync(file) && fs.readFileSync(file, 'utf-8');
     let frame = '';
 
     if (source) {

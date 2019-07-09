@@ -18,7 +18,9 @@ import { TypeScriptPatchConfig, patchTypescript } from './patchTypescript';
 const rpc = new RpcProvider(message => {
   try {
     process.send!(message, undefined, undefined, error => {
-      if (error) process.exit();
+      if (error) {
+        process.exit();
+      }
     });
   } catch (e) {
     // channel closed...

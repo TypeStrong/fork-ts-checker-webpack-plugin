@@ -15,7 +15,7 @@ for (let num = 0; num < division; num++) {
   workers.push(
     childProcess.fork(path.resolve(__dirname, './service.js'), [], {
       execArgv: ['--max-old-space-size=' + process.env.MEMORY_LIMIT],
-      env: { ...process.env, WORK_NUMBER: num },
+      env: { ...process.env, WORK_NUMBER: num.toString() },
       stdio: ['inherit', 'inherit', 'inherit', 'ipc']
     })
   );

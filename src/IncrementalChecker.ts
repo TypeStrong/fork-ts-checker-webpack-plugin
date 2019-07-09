@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
 // tslint:disable-next-line:no-implicit-dependencies
 import { Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+// tslint:disable-next-line:no-implicit-dependencies
 import * as eslinttypes from 'eslint';
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
@@ -23,7 +24,10 @@ import {
 import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { throwIfIsInvalidSourceFileError } from './FsHelper';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import {
+  IncrementalCheckerInterface,
+  IncrementalCheckerParams
+} from './IncrementalCheckerInterface';
 import { createEslinter } from './createEslinter';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
@@ -50,30 +54,64 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   private readonly hasFixedConfig: boolean;
 
-  constructor(
-    private typescript: typeof ts,
-    private context: string,
-    private programConfigFile: string,
-    private compilerOptions: object,
-    private createNormalizedMessageFromDiagnostic: (
-      diagnostic: ts.Diagnostic
-    ) => NormalizedMessage,
-    private linterConfigFile: string | boolean,
-    private linterAutoFix: boolean,
-    private createNormalizedMessageFromRuleFailure: (
-      ruleFailure: RuleFailure
-    ) => NormalizedMessage,
-    private eslinter: ReturnType<typeof createEslinter> | undefined,
-    private watchPaths: string[],
-    private workNumber: number = 0,
-    private workDivision: number = 1,
-    private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false,
-    private resolveModuleName: ResolveModuleName | undefined,
-    private resolveTypeReferenceDirective:
-      | ResolveTypeReferenceDirective
-      | undefined
-  ) {
+  private readonly typescript: typeof ts;
+  private readonly context: string;
+  private readonly programConfigFile: string;
+  private readonly compilerOptions: object;
+  private readonly createNormalizedMessageFromDiagnostic: (
+    diagnostic: ts.Diagnostic
+  ) => NormalizedMessage;
+  private readonly linterConfigFile: string | boolean;
+  private readonly linterAutoFix: boolean;
+  private readonly createNormalizedMessageFromRuleFailure: (
+    ruleFailure: RuleFailure
+  ) => NormalizedMessage;
+  private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
+  private readonly watchPaths: string[];
+  private readonly workNumber: number;
+  private readonly workDivision: number;
+  private readonly vue: boolean;
+  private readonly checkSyntacticErrors: boolean;
+  private readonly resolveModuleName: ResolveModuleName | undefined;
+  private readonly resolveTypeReferenceDirective:
+    | ResolveTypeReferenceDirective
+    | undefined;
+
+  constructor({
+    typescript,
+    context,
+    programConfigFile,
+    compilerOptions,
+    createNormalizedMessageFromDiagnostic,
+    linterConfigFile,
+    linterAutoFix,
+    createNormalizedMessageFromRuleFailure,
+    eslinter,
+    watchPaths,
+    workNumber = 0,
+    workDivision = 1,
+    vue = false,
+    checkSyntacticErrors = false,
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  }: IncrementalCheckerParams) {
+    this.typescript = typescript;
+    this.context = context;
+    this.programConfigFile = programConfigFile;
+    this.compilerOptions = compilerOptions;
+    this.createNormalizedMessageFromDiagnostic = createNormalizedMessageFromDiagnostic;
+    this.linterConfigFile = linterConfigFile;
+    this.linterAutoFix = linterAutoFix;
+    this.createNormalizedMessageFromRuleFailure = createNormalizedMessageFromRuleFailure;
+    this.eslinter = eslinter;
+    this.watchPaths = watchPaths;
+    this.workNumber = workNumber;
+    this.workDivision = workDivision;
+    this.vue = vue;
+    this.checkSyntacticErrors = checkSyntacticErrors;
+    this.resolveModuleName = resolveModuleName;
+    this.resolveTypeReferenceDirective = resolveTypeReferenceDirective;
+
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
 

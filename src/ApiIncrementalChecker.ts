@@ -1,11 +1,15 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { Linter, LintResult, RuleFailure } from 'tslint';
-import * as eslinttypes from 'eslint';
+import { Linter, LintResult, RuleFailure } from 'tslint'; // Imported for types alone
+// tslint:disable-next-line:no-implicit-dependencies
+import * as eslinttypes from 'eslint'; // Imported for types alone
 import * as minimatch from 'minimatch';
 import * as path from 'path';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import {
+  IncrementalCheckerInterface,
+  ApiIncrementalCheckerParams
+} from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
 import {
   ConfigurationFile,
@@ -14,7 +18,6 @@ import {
 } from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
-import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
 import { fileExistsSync } from './FsHelper';
 import { createEslinter } from './createEslinter';
 
@@ -35,24 +38,38 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
   private readonly hasFixedConfig: boolean;
 
-  constructor(
-    typescript: typeof ts,
-    private context: string,
-    programConfigFile: string,
-    compilerOptions: ts.CompilerOptions,
-    private createNormalizedMessageFromDiagnostic: (
-      diagnostic: ts.Diagnostic
-    ) => NormalizedMessage,
-    private linterConfigFile: string | boolean,
-    private linterAutoFix: boolean,
-    private createNormalizedMessageFromRuleFailure: (
-      ruleFailure: RuleFailure
-    ) => NormalizedMessage,
-    private eslinter: ReturnType<typeof createEslinter> | undefined,
-    checkSyntacticErrors: boolean,
-    resolveModuleName: ResolveModuleName | undefined,
-    resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
-  ) {
+  private readonly context: string;
+  private readonly createNormalizedMessageFromDiagnostic: (
+    diagnostic: ts.Diagnostic
+  ) => NormalizedMessage;
+  private readonly linterConfigFile: string | boolean;
+  private readonly linterAutoFix: boolean;
+  private readonly createNormalizedMessageFromRuleFailure: (
+    ruleFailure: RuleFailure
+  ) => NormalizedMessage;
+  private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
+
+  constructor({
+    typescript,
+    context,
+    programConfigFile,
+    compilerOptions,
+    createNormalizedMessageFromDiagnostic,
+    linterConfigFile,
+    linterAutoFix,
+    createNormalizedMessageFromRuleFailure,
+    eslinter,
+    checkSyntacticErrors = false,
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  }: ApiIncrementalCheckerParams) {
+    this.context = context;
+    this.createNormalizedMessageFromDiagnostic = createNormalizedMessageFromDiagnostic;
+    this.linterConfigFile = linterConfigFile;
+    this.linterAutoFix = linterAutoFix;
+    this.createNormalizedMessageFromRuleFailure = createNormalizedMessageFromRuleFailure;
+    this.eslinter = eslinter;
+
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
     this.initLinterConfig();

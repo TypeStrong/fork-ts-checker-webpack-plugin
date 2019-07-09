@@ -5,7 +5,11 @@ import * as ts from 'typescript'; // import for types alone
 import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import {
+  IncrementalCheckerInterface,
+  ApiIncrementalCheckerParams,
+  IncrementalCheckerParams
+} from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 import {
   makeCreateNormalizedMessageFromDiagnostic,
@@ -57,40 +61,44 @@ const eslinter =
     ? createEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
     : undefined;
 
-const checker: IncrementalCheckerInterface =
-  process.env.USE_INCREMENTAL_API === 'true'
-    ? new ApiIncrementalChecker(
-        typescript,
-        process.env.CONTEXT!,
-        process.env.TSCONFIG!,
-        JSON.parse(process.env.COMPILER_OPTIONS!),
-        createNormalizedMessageFromDiagnostic,
-        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-        process.env.TSLINTAUTOFIX === 'true',
-        createNormalizedMessageFromRuleFailure,
-        eslinter,
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        resolveModuleName,
-        resolveTypeReferenceDirective
-      )
-    : new IncrementalChecker(
-        typescript,
-        process.env.CONTEXT!,
-        process.env.TSCONFIG!,
-        JSON.parse(process.env.COMPILER_OPTIONS!),
-        createNormalizedMessageFromDiagnostic,
-        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-        process.env.TSLINTAUTOFIX === 'true',
-        createNormalizedMessageFromRuleFailure,
-        eslinter,
-        process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
-        parseInt(process.env.WORK_NUMBER!, 10) || 0,
-        parseInt(process.env.WORK_DIVISION!, 10) || 1,
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.VUE === 'true',
-        resolveModuleName,
-        resolveTypeReferenceDirective
-      );
+function createChecker(
+  useIncrementalApi: boolean
+): IncrementalCheckerInterface {
+  const apiIncrementalCheckerParams: ApiIncrementalCheckerParams = {
+    typescript,
+    context: process.env.CONTEXT!,
+    programConfigFile: process.env.TSCONFIG!,
+    compilerOptions: JSON.parse(process.env.COMPILER_OPTIONS!),
+    createNormalizedMessageFromDiagnostic,
+    linterConfigFile:
+      process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
+    linterAutoFix: process.env.TSLINTAUTOFIX === 'true',
+    createNormalizedMessageFromRuleFailure,
+    eslinter,
+    checkSyntacticErrors: process.env.CHECK_SYNTACTIC_ERRORS === 'true',
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  };
+
+  if (useIncrementalApi) {
+    return new ApiIncrementalChecker(apiIncrementalCheckerParams);
+  }
+
+  const incrementalCheckerParams: IncrementalCheckerParams = Object.assign(
+    {},
+    apiIncrementalCheckerParams,
+    {
+      watchPaths: process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
+      workNumber: parseInt(process.env.WORK_NUMBER!, 10) || 0,
+      workDivision: parseInt(process.env.WORK_DIVISION!, 10) || 1,
+      vue: process.env.VUE === 'true'
+    }
+  );
+
+  return new IncrementalChecker(incrementalCheckerParams);
+}
+
+const checker = createChecker(process.env.USE_INCREMENTAL_API === 'true');
 
 async function run(cancellationToken: CancellationToken) {
   let diagnostics: NormalizedMessage[] = [];

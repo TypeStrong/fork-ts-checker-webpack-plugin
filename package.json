@@ -69,10 +69,6 @@
       "*.ts": [
         "prettier --write",
         "git add"
-      ],
-      "*.{yml,json,md,html}": [
-        "prettier --write",
-        "git add"
       ]
     }
   },

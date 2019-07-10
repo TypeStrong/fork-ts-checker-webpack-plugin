@@ -440,6 +440,10 @@ import Hello from '@/components/hello.vue'
 
 7. If you are working in **VSCode**, you can get extensions [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) and [TSLint Vue](https://marketplace.visualstudio.com/items?itemName=prograhammer.tslint-vue) to complete the developer workflow.
 
+## Credits
+
+This plugin was created in [Realytics](https://www.realytics.io/) in 2017. Thank you for supporting Open Source.
+
 ## License
 
 MIT License

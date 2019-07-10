@@ -442,4 +442,4 @@ import Hello from '@/components/hello.vue'
 
 ## License
 
-MIT
+MIT License

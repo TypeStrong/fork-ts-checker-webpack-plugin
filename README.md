@@ -4,7 +4,7 @@
 
 [![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
 
-[![build status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
+[![build status](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin)
 
 [![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
 
@@ -203,7 +203,7 @@ new ForkTsCheckerWebpackPlugin({
 
 - **vue** `boolean`:
   If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
-  [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
+  [Vue section](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
   If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. In this mode you can only have 1
@@ -282,7 +282,7 @@ You may already be using the excellent [webpack-notifier](https://github.com/Tur
 
 At present there is an issue with the plugin regarding the triggering of type-checking when a change is made in a source file that will not emit js. If you have a file which contains only `interface`s and / or `type`s then changes to it will **not** trigger the type checker whilst in watch mode. Sorry about that.
 
-We hope this will be resolved in future; the issue can be tracked [here](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/36).
+We hope this will be resolved in future; the issue can be tracked [here](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/36).
 
 ## Plugin Hooks
 
@@ -485,6 +485,10 @@ import Hello from '@/components/hello.vue'
 
 7. If you are working in **VSCode**, you can get extensions [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) and [TSLint Vue](https://marketplace.visualstudio.com/items?itemName=prograhammer.tslint-vue) to complete the developer workflow.
 
+## Credits
+
+This plugin was created in [Realytics](https://www.realytics.io/) in 2017. Thank you for supporting Open Source.
+
 ## License
 
-MIT
+MIT License

@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
 [![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-[![build status](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/Realytics/fork-ts-checker-webpack-plugin)
+[![build status](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin)
 [![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
 [![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -158,7 +158,7 @@ new ForkTsCheckerWebpackPlugin({
 
 - **vue** `boolean`:
   If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
-  [Vue section](https://github.com/Realytics/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
+  [Vue section](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
   If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. In this mode you can only have 1
@@ -237,7 +237,7 @@ You may already be using the excellent [webpack-notifier](https://github.com/Tur
 
 At present there is an issue with the plugin regarding the triggering of type-checking when a change is made in a source file that will not emit js. If you have a file which contains only `interface`s and / or `type`s then changes to it will **not** trigger the type checker whilst in watch mode. Sorry about that.
 
-We hope this will be resolved in future; the issue can be tracked [here](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/36).
+We hope this will be resolved in future; the issue can be tracked [here](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/36).
 
 ## Plugin Hooks
 

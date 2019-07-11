@@ -195,13 +195,12 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public getEsLints(cancellationToken: CancellationToken) {
-    cancellationToken.throwIfCancellationRequested();
-
     for (const removedFile of this.lastRemovedFiles) {
       this.currentEsLintErrors.delete(removedFile);
     }
 
     for (const updatedFile of this.lastUpdatedFiles) {
+      cancellationToken.throwIfCancellationRequested();
       if (this.isFileExcluded(updatedFile)) {
         continue;
       }

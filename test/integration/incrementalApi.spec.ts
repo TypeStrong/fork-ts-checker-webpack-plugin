@@ -7,7 +7,6 @@
  * */
 import fs from 'fs';
 import * as helpers from './helpers';
-import unixify from 'unixify';
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', () => {
   function createCompiler(options: Partial<helpers.CreateCompilerOptions>) {

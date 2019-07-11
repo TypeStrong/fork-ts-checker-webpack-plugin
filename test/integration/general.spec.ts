@@ -243,9 +243,9 @@ describe.each([[true], [false]])(
 
       compiler.run((err, stats) => {
         const { warnings, errors } = stats.compilation;
-        expect(warnings.length).toBe(1);
+        expect(warnings.length).toBe(2);
 
-        const [warning] = warnings;
+        const [warning, warning2] = warnings;
         const actualFile = unixify(warning.file);
         const expectedFile = unixify('src/lib/func.ts');
         expect(actualFile).toContain(expectedFile);
@@ -257,6 +257,21 @@ describe.each([[true], [false]])(
         expect(warning.location).toEqual({
           character: 44,
           line: 3
+        });
+
+        const actualFile2 = unixify(warning2.file);
+        const expectedFile2 = unixify('src/lib/otherFunc.js');
+        expect(actualFile2).toContain(expectedFile2);
+        expect(warning2.rawMessage).toContain('WARNING');
+        expect(warning2.rawMessage).toContain(
+          '@typescript-eslint/no-unused-vars'
+        );
+        expect(warning2.rawMessage).toContain(
+          "'i' is assigned a value but never used."
+        );
+        expect(warning2.location).toEqual({
+          character: 5,
+          line: 4
         });
 
         const error = errors.find(err =>
@@ -272,7 +287,7 @@ describe.each([[true], [false]])(
         );
         expect(error.location).toEqual({
           character: 43,
-          line: 4
+          line: 5
         });
 
         callback();

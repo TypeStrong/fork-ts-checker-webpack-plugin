@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -29,6 +30,28 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       expect(function() {
         new ForkTsCheckerWebpackPlugin();
       }).toThrowError(Error);
+    });
+  });
+
+  describe('eslint', () => {
+    it('should throw if eslint not present', () => {
+      jest.setMock('typescript', { version: '2.1.0' });
+      jest.setMock('eslint', undefined);
+      var ForkTsCheckerWebpackPlugin = require('../../lib/index');
+
+      expect(function() {
+        new ForkTsCheckerWebpackPlugin({ eslint: true });
+      }).toThrowError(Error);
+    });
+
+    it('should not throw if eslint is present', () => {
+      jest.setMock('typescript', { version: '2.1.0' });
+      jest.setMock('eslint', { Linter: { VERSION: '5.7.0' } });
+      var ForkTsCheckerWebpackPlugin = require('../../lib/index');
+
+      expect(function() {
+        new ForkTsCheckerWebpackPlugin({ eslint: true });
+      }).not.toThrowError();
     });
   });
 

@@ -67,11 +67,6 @@
         "git add"
       ],
       "*.ts": [
-        "tslint --fix",
-        "prettier --write",
-        "git add"
-      ],
-      "*.{yml,json,md,html}": [
         "prettier --write",
         "git add"
       ]
@@ -113,6 +108,7 @@
     "@commitlint/config-conventional": "^7.5.0",
     "@types/babel-code-frame": "^6.20.1",
     "@types/chokidar": "^1.7.5",
+    "@types/eslint": "^4.16.6",
     "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.134",
     "@types/micromatch": "^3.1.0",
@@ -122,10 +118,12 @@
     "@types/rimraf": "^2.0.2",
     "@types/semver": "^5.5.0",
     "@types/webpack": "^4.4.19",
+    "@typescript-eslint/eslint-plugin": "^1.11.0",
+    "@typescript-eslint/parser": "^1.11.0",
     "commitlint": "^7.5.2",
     "copy-dir": "^0.4.0",
     "css-loader": "0.28.11",
-    "eslint": "^5.7.0",
+    "eslint": "^6.0.0",
     "git-cz": "^3.0.1",
     "husky": "^1.1.4",
     "istanbul": "^0.4.5",

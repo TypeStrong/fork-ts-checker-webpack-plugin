@@ -1,10 +1,15 @@
 import * as process from 'process';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
+
 import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import {
+  IncrementalCheckerInterface,
+  ApiIncrementalCheckerParams,
+  IncrementalCheckerParams
+} from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
 import {
   makeCreateNormalizedMessageFromDiagnostic,
@@ -14,6 +19,7 @@ import {
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
 import { TypeScriptPatchConfig, patchTypescript } from './patchTypescript';
+import { createEslinter } from './createEslinter';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -50,38 +56,49 @@ const resolveTypeReferenceDirective = process.env
       .resolveTypeReferenceDirective
   : undefined;
 
-const checker: IncrementalCheckerInterface =
-  process.env.USE_INCREMENTAL_API === 'true'
-    ? new ApiIncrementalChecker(
-        typescript,
-        createNormalizedMessageFromDiagnostic,
-        createNormalizedMessageFromRuleFailure,
-        process.env.TSCONFIG!,
-        JSON.parse(process.env.COMPILER_OPTIONS!),
-        process.env.CONTEXT!,
-        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-        process.env.TSLINTAUTOFIX === 'true',
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        resolveModuleName,
-        resolveTypeReferenceDirective
-      )
-    : new IncrementalChecker(
-        typescript,
-        createNormalizedMessageFromDiagnostic,
-        createNormalizedMessageFromRuleFailure,
-        process.env.TSCONFIG!,
-        JSON.parse(process.env.COMPILER_OPTIONS!),
-        process.env.CONTEXT!,
-        process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-        process.env.TSLINTAUTOFIX === 'true',
-        process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
-        parseInt(process.env.WORK_NUMBER!, 10) || 0,
-        parseInt(process.env.WORK_DIVISION!, 10) || 1,
-        process.env.CHECK_SYNTACTIC_ERRORS === 'true',
-        process.env.VUE === 'true',
-        resolveModuleName,
-        resolveTypeReferenceDirective
-      );
+const eslinter =
+  process.env.ESLINT === 'true'
+    ? createEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
+    : undefined;
+
+function createChecker(
+  useIncrementalApi: boolean
+): IncrementalCheckerInterface {
+  const apiIncrementalCheckerParams: ApiIncrementalCheckerParams = {
+    typescript,
+    context: process.env.CONTEXT!,
+    programConfigFile: process.env.TSCONFIG!,
+    compilerOptions: JSON.parse(process.env.COMPILER_OPTIONS!),
+    createNormalizedMessageFromDiagnostic,
+    linterConfigFile:
+      process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
+    linterAutoFix: process.env.TSLINTAUTOFIX === 'true',
+    createNormalizedMessageFromRuleFailure,
+    eslinter,
+    checkSyntacticErrors: process.env.CHECK_SYNTACTIC_ERRORS === 'true',
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  };
+
+  if (useIncrementalApi) {
+    return new ApiIncrementalChecker(apiIncrementalCheckerParams);
+  }
+
+  const incrementalCheckerParams: IncrementalCheckerParams = Object.assign(
+    {},
+    apiIncrementalCheckerParams,
+    {
+      watchPaths: process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
+      workNumber: parseInt(process.env.WORK_NUMBER!, 10) || 0,
+      workDivision: parseInt(process.env.WORK_DIVISION!, 10) || 1,
+      vue: process.env.VUE === 'true'
+    }
+  );
+
+  return new IncrementalChecker(incrementalCheckerParams);
+}
+
+const checker = createChecker(process.env.USE_INCREMENTAL_API === 'true');
 
 async function run(cancellationToken: CancellationToken) {
   let diagnostics: NormalizedMessage[] = [];
@@ -91,7 +108,9 @@ async function run(cancellationToken: CancellationToken) {
     checker.nextIteration();
 
     diagnostics = await checker.getDiagnostics(cancellationToken);
-    if (checker.hasLinter()) {
+    if (checker.hasEsLinter()) {
+      lints = checker.getEsLints(cancellationToken);
+    } else if (checker.hasLinter()) {
       lints = checker.getLints(cancellationToken);
     }
   } catch (error) {

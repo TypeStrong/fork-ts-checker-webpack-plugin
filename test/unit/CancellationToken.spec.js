@@ -3,7 +3,7 @@ var ts = require('typescript');
 var mockFs = require('mock-fs');
 var CancellationToken = require('../../lib/CancellationToken')
   .CancellationToken;
-var FsHelper = require('../../lib/FsHelper').FsHelper;
+var fileExistsSync = require('../../lib/FsHelper').fileExistsSync;
 
 describe('[UNIT] CancellationToken', () => {
   beforeEach(() => {
@@ -91,7 +91,7 @@ describe('[UNIT] CancellationToken', () => {
     tokenA.requestCancellation();
 
     expect(tokenA.isCancellationRequested()).toBe(true);
-    expect(FsHelper.existsSync(tokenA.getCancellationFilePath())).toBe(true);
+    expect(fileExistsSync(tokenA.getCancellationFilePath())).toBe(true);
   });
 
   it('should cleanup file on cleanupCancellation', () => {
@@ -100,7 +100,7 @@ describe('[UNIT] CancellationToken', () => {
     tokenA.cleanupCancellation();
 
     expect(tokenA.isCancellationRequested()).toBe(false);
-    expect(FsHelper.existsSync(tokenA.getCancellationFilePath())).toBe(false);
+    expect(fileExistsSync(tokenA.getCancellationFilePath())).toBe(false);
 
     // make sure we can call it as many times as we want to
     expect(function() {

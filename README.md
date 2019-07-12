@@ -1,29 +1,35 @@
 # Fork TS Checker Webpack Plugin
 
 [![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
+
 [![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
+
 [![build status](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin)
+
 [![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
+
 [![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Webpack plugin that runs TypeScript type checker on a separate process.
 
 ## Installation
 
-This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **tslint 4.0**
+This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **ESLint 6.0.0** or **TSLint 4.0**
 
 ```sh
-npm install --save-dev fork-ts-checker-webpack-plugin
+yarn add fork-ts-checker-webpack-plugin --dev
 ```
 
 Basic webpack config (with [ts-loader](https://github.com/TypeStrong/ts-loader))
 
 ```js
-var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-var webpackConfig = {
+const webpackConfig = {
   context: __dirname, // to automatically find tsconfig.json
   entry: './src/index.ts',
   module: {
@@ -44,12 +50,12 @@ var webpackConfig = {
 
 ## Motivation
 
-There is already similar solution - [awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader). You can
+There was already similar solution - [awesome-typescript-loader](https://github.com/s-panferov/awesome-typescript-loader). You can
 add `CheckerPlugin` and delegate checker to the separate process. The problem with `awesome-typescript-loader` was that, in our case,
 it was a lot slower than [ts-loader](https://github.com/TypeStrong/ts-loader) on an incremental build (~20s vs ~3s).
-Secondly, we use [tslint](https://palantir.github.io/tslint) and we wanted to run this, along with type checker, in a separate process.
-This is why we've created this plugin. To provide better performance, plugin reuses Abstract Syntax Trees between compilations and shares
-these trees with tslint. It can be scaled with a multi-process mode to utilize maximum CPU power.
+Secondly, we used [tslint](https://palantir.github.io/tslint) and we wanted to run this, along with type checker, in a separate process.
+This is why this plugin was created. To provide better performance, the plugin reuses Abstract Syntax Trees between compilations and shares
+these trees with TSLint. It can be scaled with a multi-process mode to utilize maximum CPU power.
 
 ## Modules resolution
 
@@ -61,11 +67,46 @@ to compile files (which traverses dependency graph during compilation) - we have
 
 To debug TypeScript's modules resolution, you can use `tsc --traceResolution` command.
 
+## ESLint
+
+[ESLint is the future of linting in the TypeScript world.](https://eslint.org/blog/2019/01/future-typescript-eslint) If you'd like to use eslint with the plugin, supply this option: `eslint: true` and ensure you have the relevant dependencies installed:
+
+`yarn add eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin --dev`
+
+You should have an ESLint configuration file in your root project directory. Here is a sample `.eslintrc.js` configuration for a TypeScript project:
+
+```js
+const path = require('path');
+module.exports = {
+  parser: '@typescript-eslint/parser', // Specifies the ESLint parser
+  extends: [
+    'plugin:@typescript-eslint/recommended' // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+  ],
+  parserOptions: {
+    project: path.resolve(__dirname, './tsconfig.json'),
+    tsconfigRootDir: __dirname,
+    ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
+    sourceType: 'module', // Allows for the use of imports
+  },
+  rules: {
+    // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
+    // e.g. "@typescript-eslint/explicit-function-return-type": "off",
+  }
+};
+```
+
+There's a good explanation on setting up TypeScript ESLint support by Robert Cooper [here](https://dev.to/robertcoopercode/using-eslint-and-prettier-in-a-typescript-project-53jb).
+
 ## TSLint
+
+*[TSLint is being replaced by ESLint](https://medium.com/palantir/tslint-in-2019-1a144c2317a9).
+https://eslint.org/blog/2019/01/future-typescript-eslint. As a consequence, support for TSLint in fork-ts-checker-webpack-plugin will be deprecated and removed in future versions of the plugin.*
 
 If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
 `tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file.
 It helps to distinguish lints from TypeScript's diagnostics.
+
+
 
 ## Options
 
@@ -74,6 +115,14 @@ It helps to distinguish lints from TypeScript's diagnostics.
 
 - **compilerOptions** `object`:
   Allows overriding TypeScript options. Should be specified in the same format as you would do for the `compilerOptions` property in tsconfig.json. Default: `{}`.
+
+- **eslint** `true | undefined`:
+
+  - If `true`, this activates eslint support.
+
+- **eslintOptions** `object`:
+
+  - Options that can be used to initialise ESLint. See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
 
 - **tslint** `string | true | undefined`:
 

@@ -1,10 +1,15 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { Linter, LintResult, RuleFailure } from 'tslint';
+import { Linter, LintResult, RuleFailure } from 'tslint'; // Imported for types alone
+// tslint:disable-next-line:no-implicit-dependencies
+import * as eslinttypes from 'eslint'; // Imported for types alone
 import * as minimatch from 'minimatch';
 import * as path from 'path';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import {
+  IncrementalCheckerInterface,
+  ApiIncrementalCheckerParams
+} from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
 import {
   ConfigurationFile,
@@ -13,8 +18,8 @@ import {
 } from './linterConfigHelpers';
 import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
-import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
-import { FsHelper } from './FsHelper';
+import { fileExistsSync } from './FsHelper';
+import { createEslinter } from './createEslinter';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -24,28 +29,47 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterExclusions: minimatch.IMinimatch[] = [];
 
   private currentLintErrors = new Map<string, LintResult>();
+  private currentEsLintErrors = new Map<
+    string,
+    eslinttypes.CLIEngine.LintReport
+  >();
   private lastUpdatedFiles: string[] = [];
   private lastRemovedFiles: string[] = [];
 
   private readonly hasFixedConfig: boolean;
 
-  constructor(
-    typescript: typeof ts,
-    private createNormalizedMessageFromDiagnostic: (
-      diagnostic: ts.Diagnostic
-    ) => NormalizedMessage,
-    private createNormalizedMessageFromRuleFailure: (
-      ruleFailure: RuleFailure
-    ) => NormalizedMessage,
-    programConfigFile: string,
-    compilerOptions: ts.CompilerOptions,
-    private context: string,
-    private linterConfigFile: string | boolean,
-    private linterAutoFix: boolean,
-    checkSyntacticErrors: boolean,
-    resolveModuleName: ResolveModuleName | undefined,
-    resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
-  ) {
+  private readonly context: string;
+  private readonly createNormalizedMessageFromDiagnostic: (
+    diagnostic: ts.Diagnostic
+  ) => NormalizedMessage;
+  private readonly linterConfigFile: string | boolean;
+  private readonly linterAutoFix: boolean;
+  private readonly createNormalizedMessageFromRuleFailure: (
+    ruleFailure: RuleFailure
+  ) => NormalizedMessage;
+  private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
+
+  constructor({
+    typescript,
+    context,
+    programConfigFile,
+    compilerOptions,
+    createNormalizedMessageFromDiagnostic,
+    linterConfigFile,
+    linterAutoFix,
+    createNormalizedMessageFromRuleFailure,
+    eslinter,
+    checkSyntacticErrors = false,
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  }: ApiIncrementalCheckerParams) {
+    this.context = context;
+    this.createNormalizedMessageFromDiagnostic = createNormalizedMessageFromDiagnostic;
+    this.linterConfigFile = linterConfigFile;
+    this.linterAutoFix = linterAutoFix;
+    this.createNormalizedMessageFromRuleFailure = createNormalizedMessageFromRuleFailure;
+    this.eslinter = eslinter;
+
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
 
     this.initLinterConfig();
@@ -97,6 +121,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     return !!this.linterConfigFile;
   }
 
+  public hasEsLinter(): boolean {
+    return this.eslinter !== undefined;
+  }
+
   public isFileExcluded(filePath: string): boolean {
     return (
       filePath.endsWith('.d.ts') ||
@@ -140,7 +168,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         this.currentLintErrors.set(updatedFile, lints);
       } catch (e) {
         if (
-          FsHelper.existsSync(updatedFile) &&
+          fileExistsSync(updatedFile) &&
           // check the error type due to file system lag
           !(e instanceof Error) &&
           !(e.constructor.name === 'FatalError') &&
@@ -164,5 +192,25 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     return NormalizedMessage.deduplicate(
       allLints.map(this.createNormalizedMessageFromRuleFailure)
     );
+  }
+
+  public getEsLints(cancellationToken: CancellationToken) {
+    for (const removedFile of this.lastRemovedFiles) {
+      this.currentEsLintErrors.delete(removedFile);
+    }
+
+    for (const updatedFile of this.lastUpdatedFiles) {
+      cancellationToken.throwIfCancellationRequested();
+      if (this.isFileExcluded(updatedFile)) {
+        continue;
+      }
+
+      const lints = this.eslinter!.getLints(updatedFile);
+      if (lints !== undefined) {
+        this.currentEsLintErrors.set(updatedFile, lints);
+      }
+    }
+
+    return this.eslinter!.getFormattedLints(this.currentEsLintErrors.values());
   }
 }

@@ -138,6 +138,9 @@ export function createCompiler({
     output: {
       path: outDir
     },
+    resolve: {
+      extensions: ['.ts', '.js', '.tsx', '.json']
+    },
     module: {
       rules: [
         {

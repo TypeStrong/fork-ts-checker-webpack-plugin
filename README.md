@@ -152,7 +152,7 @@ It helps to distinguish lints from TypeScript's diagnostics.
   Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.
 
 - **watch** `string | string[]`:
-  Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls).
+  Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls). Not applicable when `useTypescriptIncrementalApi` is `true`, in which case watching is handled automatically.
 
 - **async** `boolean`:
   True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.

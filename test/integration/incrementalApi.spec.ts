@@ -39,33 +39,6 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     }).toThrowError();
   });
 
-  it('should fix linting errors with tslintAutofix flag set to true', callback => {
-    const fileName = 'lintingError1';
-    const {
-      compiler,
-      targetFileName,
-      formattedFileContents
-    } = helpers.testLintAutoFixTest({
-      fileName,
-      pluginOptions: {
-        useTypescriptIncrementalApi: true,
-        tslintAutoFix: true,
-        tslint: './tslint.autofix.json',
-        tsconfig: undefined
-      }
-    });
-
-    compiler.run((err, stats) => {
-      expect(stats.compilation.warnings.length).toBe(0);
-
-      const fileContents = fs.readFileSync(targetFileName, {
-        encoding: 'utf-8'
-      });
-      expect(fileContents).toBe(formattedFileContents);
-      callback();
-    });
-  });
-
   it('should not fix linting by default', callback => {
     const fileName = 'lintingError2';
     const { compiler } = helpers.testLintAutoFixTest({

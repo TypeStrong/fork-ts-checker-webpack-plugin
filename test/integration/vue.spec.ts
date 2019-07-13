@@ -148,7 +148,7 @@ describe.each([/*[true], */ [false]])(
         compiler.run((error, stats) => {
           const errors = stats.compilation.errors;
           expect(errors.length).toBe(1);
-          expect(errors[0].file).toBe('/test-context/src/attrs/test.ts');
+          expect(errors[0].file).toContain('/src/attrs/test.ts');
           callback();
         })
       );

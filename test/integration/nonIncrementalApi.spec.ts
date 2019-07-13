@@ -71,7 +71,7 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
 
     // this test doesn't make as much sense in the context of using the incremental API
     // as in that case the compiler will stop looking for further errors when it finds one
-    // see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/198#issuecomment-453790649 for details
+    // see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/pull/198#issuecomment-453790649 for details
     compiler.run((error, stats) => {
       expect(stats.compilation.errors.length).toBe(1);
       expect(stats.compilation.errors[0]).toEqual(

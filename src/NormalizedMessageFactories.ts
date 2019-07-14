@@ -3,6 +3,7 @@ import * as ts from 'typescript'; // import for types alone
 // tslint:disable-next-line:no-implicit-dependencies
 import * as tslint from 'tslint'; // import for types alone
 import { NormalizedMessage, Severity } from './NormalizedMessage';
+import * as eslint from 'eslint'; // import for types alone
 
 export const makeCreateNormalizedMessageFromDiagnostic = (
   typescript: typeof ts
@@ -57,6 +58,27 @@ export const makeCreateNormalizedMessageFromRuleFailure = () => {
     });
   };
   return createNormalizedMessageFromRuleFailure;
+};
+
+export const makeCreateNormalizedMessageFromEsLintFailure = () => {
+  const createNormalizedMessageFromEsLintFailure = (
+    lint: eslint.Linter.LintMessage,
+    filePath: string
+  ) => {
+    return new NormalizedMessage({
+      type: NormalizedMessage.TYPE_LINT,
+      code: lint.ruleId!,
+      severity:
+        lint.severity === 1
+          ? NormalizedMessage.SEVERITY_WARNING
+          : NormalizedMessage.SEVERITY_ERROR,
+      content: lint.message,
+      file: filePath,
+      line: lint.line,
+      character: lint.column
+    });
+  };
+  return createNormalizedMessageFromEsLintFailure;
 };
 
 export const makeCreateNormalizedMessageFromInternalError = () => {

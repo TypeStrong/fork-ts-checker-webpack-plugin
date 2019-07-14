@@ -4,6 +4,8 @@ import * as path from 'path';
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
 // tslint:disable-next-line:no-implicit-dependencies
 import { Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+// tslint:disable-next-line:no-implicit-dependencies
+import * as eslinttypes from 'eslint';
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
 import {
@@ -21,8 +23,12 @@ import {
 } from './resolution';
 import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
-import { FsHelper } from './FsHelper';
-import { IncrementalCheckerInterface } from './IncrementalCheckerInterface';
+import { throwIfIsInvalidSourceFileError } from './FsHelper';
+import {
+  IncrementalCheckerInterface,
+  IncrementalCheckerParams
+} from './IncrementalCheckerInterface';
+import { createEslinter } from './createEslinter';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -31,7 +37,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // data shape
     source: undefined,
     linted: false,
-    lints: []
+    tslints: [],
+    eslints: []
   }));
 
   private linter?: Linter;
@@ -47,29 +54,64 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   private readonly hasFixedConfig: boolean;
 
-  constructor(
-    private typescript: typeof ts,
-    private createNormalizedMessageFromDiagnostic: (
-      diagnostic: ts.Diagnostic
-    ) => NormalizedMessage,
-    private createNormalizedMessageFromRuleFailure: (
-      ruleFailure: RuleFailure
-    ) => NormalizedMessage,
-    private programConfigFile: string,
-    private compilerOptions: object,
-    private context: string,
-    private linterConfigFile: string | boolean,
-    private linterAutoFix: boolean,
-    private watchPaths: string[],
-    private workNumber: number = 0,
-    private workDivision: number = 1,
-    private checkSyntacticErrors: boolean = false,
-    private vue: boolean = false,
-    private resolveModuleName: ResolveModuleName | undefined,
-    private resolveTypeReferenceDirective:
-      | ResolveTypeReferenceDirective
-      | undefined
-  ) {
+  private readonly typescript: typeof ts;
+  private readonly context: string;
+  private readonly programConfigFile: string;
+  private readonly compilerOptions: object;
+  private readonly createNormalizedMessageFromDiagnostic: (
+    diagnostic: ts.Diagnostic
+  ) => NormalizedMessage;
+  private readonly linterConfigFile: string | boolean;
+  private readonly linterAutoFix: boolean;
+  private readonly createNormalizedMessageFromRuleFailure: (
+    ruleFailure: RuleFailure
+  ) => NormalizedMessage;
+  private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
+  private readonly watchPaths: string[];
+  private readonly workNumber: number;
+  private readonly workDivision: number;
+  private readonly vue: boolean;
+  private readonly checkSyntacticErrors: boolean;
+  private readonly resolveModuleName: ResolveModuleName | undefined;
+  private readonly resolveTypeReferenceDirective:
+    | ResolveTypeReferenceDirective
+    | undefined;
+
+  constructor({
+    typescript,
+    context,
+    programConfigFile,
+    compilerOptions,
+    createNormalizedMessageFromDiagnostic,
+    linterConfigFile,
+    linterAutoFix,
+    createNormalizedMessageFromRuleFailure,
+    eslinter,
+    watchPaths,
+    workNumber = 0,
+    workDivision = 1,
+    vue = false,
+    checkSyntacticErrors = false,
+    resolveModuleName,
+    resolveTypeReferenceDirective
+  }: IncrementalCheckerParams) {
+    this.typescript = typescript;
+    this.context = context;
+    this.programConfigFile = programConfigFile;
+    this.compilerOptions = compilerOptions;
+    this.createNormalizedMessageFromDiagnostic = createNormalizedMessageFromDiagnostic;
+    this.linterConfigFile = linterConfigFile;
+    this.linterAutoFix = linterAutoFix;
+    this.createNormalizedMessageFromRuleFailure = createNormalizedMessageFromRuleFailure;
+    this.eslinter = eslinter;
+    this.watchPaths = watchPaths;
+    this.workNumber = workNumber;
+    this.workDivision = workDivision;
+    this.vue = vue;
+    this.checkSyntacticErrors = checkSyntacticErrors;
+    this.resolveModuleName = resolveModuleName;
+    this.resolveTypeReferenceDirective = resolveTypeReferenceDirective;
+
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
   }
 
@@ -193,6 +235,10 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   public hasLinter(): boolean {
     return !!this.linter;
+  }
+
+  public hasEsLinter(): boolean {
+    return this.eslinter !== undefined;
   }
 
   public static isFileExcluded(
@@ -365,16 +411,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         // Assertion: `.lint` second parameter can be undefined
         linter.lint(fileName, undefined!, config);
       } catch (e) {
-        if (
-          FsHelper.existsSync(fileName) &&
-          // check the error type due to file system lag
-          !(e instanceof Error) &&
-          !(e.constructor.name === 'FatalError') &&
-          !(e.message && e.message.trim().startsWith('Invalid source file'))
-        ) {
-          // it's not because file doesn't exist - throw error
-          throw e;
-        }
+        throwIfIsInvalidSourceFileError(fileName, e);
       }
     });
 
@@ -384,7 +421,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
       this.files.mutateData(filePath, data => {
         data.linted = true;
-        data.lints.push(lint);
+        data.tslints.push(lint);
       });
     });
 
@@ -400,7 +437,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       .keys()
       .reduce(
         (innerLints, filePath) =>
-          innerLints.concat(this.files.getData(filePath).lints),
+          innerLints.concat(this.files.getData(filePath).tslints),
         [] as RuleFailure[]
       );
 
@@ -408,5 +445,63 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return NormalizedMessage.deduplicate(
       lints.map(this.createNormalizedMessageFromRuleFailure)
     );
+  }
+
+  public getEsLints(cancellationToken: CancellationToken) {
+    // select files to lint
+    const filesToLint = this.files
+      .keys()
+      .filter(
+        filePath =>
+          !this.files.getData(filePath).linted &&
+          !IncrementalChecker.isFileExcluded(filePath, this.linterExclusions)
+      );
+
+    // calculate subset of work to do
+    const workSet = new WorkSet<string>(
+      filesToLint,
+      this.workNumber,
+      this.workDivision
+    );
+
+    // lint given work set
+    const currentEsLintErrors = new Map<
+      string,
+      eslinttypes.CLIEngine.LintReport
+    >();
+    workSet.forEach(fileName => {
+      cancellationToken.throwIfCancellationRequested();
+
+      const lints = this.eslinter!.getLints(fileName);
+      if (lints !== undefined) {
+        currentEsLintErrors.set(fileName, lints);
+      }
+    });
+
+    // set lints in files register
+    for (const [filePath, lint] of currentEsLintErrors) {
+      this.files.mutateData(filePath, data => {
+        data.linted = true;
+        data.eslints.push(lint);
+      });
+    }
+
+    // set all files as linted
+    this.files.keys().forEach(filePath => {
+      this.files.mutateData(filePath, data => {
+        data.linted = true;
+      });
+    });
+
+    // get all lints
+    const allEsLintReports = this.files
+      .keys()
+      .reduce(
+        (innerLints, filePath) =>
+          innerLints.concat(this.files.getData(filePath).eslints),
+        [] as eslinttypes.CLIEngine.LintReport[]
+      );
+
+    return this.eslinter!.getFormattedLints(allEsLintReports);
   }
 }

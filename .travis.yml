@@ -15,7 +15,6 @@ install:
   - yarn add $WEBPACK $TSLOADER $VUELOADER -D
 
 script:
-  - yarn lint
   - yarn test
 
 env:

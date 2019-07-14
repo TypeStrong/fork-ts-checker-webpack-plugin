@@ -4,6 +4,7 @@ import path from 'path';
 import ForkTsCheckerWebpackPlugin from '../../lib/index';
 import * as helpers from './helpers';
 import { cloneDeep } from 'lodash';
+import unixify from 'unixify';
 
 describe.each([[true], [false]])(
   '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
@@ -233,6 +234,66 @@ describe.each([[true], [false]])(
       });
     });
 
+    it('should detect eslints', callback => {
+      const compiler = createCompiler({
+        context: './project_eslint',
+        entryPoint: './src/index.ts',
+        pluginOptions: { eslint: true }
+      });
+
+      compiler.run((err, stats) => {
+        const { warnings, errors } = stats.compilation;
+        expect(warnings.length).toBe(2);
+
+        const [warning, warning2] = warnings;
+        const actualFile = unixify(warning.file);
+        const expectedFile = unixify('src/lib/func.ts');
+        expect(actualFile).toContain(expectedFile);
+        expect(warning.rawMessage).toContain('WARNING');
+        expect(warning.rawMessage).toContain('@typescript-eslint/array-type');
+        expect(warning.rawMessage).toContain(
+          "Array type using 'Array<string>' is forbidden. Use 'string[]' instead."
+        );
+        expect(warning.location).toEqual({
+          character: 44,
+          line: 3
+        });
+
+        const actualFile2 = unixify(warning2.file);
+        const expectedFile2 = unixify('src/lib/otherFunc.js');
+        expect(actualFile2).toContain(expectedFile2);
+        expect(warning2.rawMessage).toContain('WARNING');
+        expect(warning2.rawMessage).toContain(
+          '@typescript-eslint/no-unused-vars'
+        );
+        expect(warning2.rawMessage).toContain(
+          "'i' is assigned a value but never used."
+        );
+        expect(warning2.location).toEqual({
+          character: 5,
+          line: 4
+        });
+
+        const error = errors.find(err =>
+          err.rawMessage.includes('@typescript-eslint/array-type')
+        );
+        const actualErrorFile = unixify(error.file);
+        const expectedErrorFile = unixify('src/index.ts');
+        expect(actualErrorFile).toContain(expectedErrorFile);
+        expect(error.rawMessage).toContain('ERROR');
+        expect(error.rawMessage).toContain('@typescript-eslint/array-type');
+        expect(error.rawMessage).toContain(
+          "Array type using 'Array<string>' is forbidden. Use 'string[]' instead."
+        );
+        expect(error.location).toEqual({
+          character: 43,
+          line: 5
+        });
+
+        callback();
+      });
+    });
+
     it('should block emit on build mode', callback => {
       const compiler = createCompiler();
 
@@ -379,7 +440,7 @@ describe.each([[true], [false]])(
         );
         forkTsCheckerHooks.serviceBeforeStart.tapAsync(
           'should allow delaying service-start',
-          cb => {
+          (cb: () => void) => {
             setTimeout(() => {
               delayed = true;
 

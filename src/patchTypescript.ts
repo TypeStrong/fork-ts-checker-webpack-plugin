@@ -37,7 +37,7 @@ export function patchTypescript(
  * method from bailing during diagnostic collection in the [`emitFilesAndReportErrors`](https://github.com/Microsoft/TypeScript/blob/89386ddda7dafc63cb35560e05412487f47cc267/src/compiler/watch.ts#L141) callback.
  *
  * See the description of TypeScriptPatchConfig.skipGetSyntacticDiagnostics and
- * [this github discussion](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/257#issuecomment-485414182)
+ * [this github discussion](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/257#issuecomment-485414182)
  * for further information on this problem & solution.
  */
 function patchSkipGetSyntacticDiagnostics(typescript: typeof ts) {

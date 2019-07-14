@@ -2,7 +2,7 @@ import * as path from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import { Configuration } from 'tslint';
 import * as minimatch from 'minimatch';
-import { FsHelper } from './FsHelper';
+import { fileExistsSync } from './FsHelper';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
@@ -33,7 +33,7 @@ export function makeGetLinterConfig(
       return linterConfigs[dirname];
     }
 
-    if (FsHelper.existsSync(path.join(dirname, 'tslint.json'))) {
+    if (fileExistsSync(path.join(dirname, 'tslint.json'))) {
       const config = loadLinterConfig(path.join(dirname, 'tslint.json'));
 
       if (config.linterOptions && config.linterOptions.exclude) {

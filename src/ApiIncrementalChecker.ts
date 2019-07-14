@@ -201,13 +201,18 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
     for (const updatedFile of this.lastUpdatedFiles) {
       cancellationToken.throwIfCancellationRequested();
-      if (this.isFileExcluded(updatedFile)) {
+      if (
+        this.isFileExcluded(updatedFile) ||
+        updatedFile.endsWith('tsconfig.json')
+      ) {
         continue;
       }
 
       const lints = this.eslinter!.getLints(updatedFile);
       if (lints !== undefined) {
         this.currentEsLintErrors.set(updatedFile, lints);
+      } else if (this.currentEsLintErrors.has(updatedFile)) {
+        this.currentEsLintErrors.delete(updatedFile);
       }
     }
 

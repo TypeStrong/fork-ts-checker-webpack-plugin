@@ -114,7 +114,7 @@
     "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",
     "@types/mock-require": "^2.0.0",
-    "@types/node": "^8.10.38",
+    "@types/node": "^11.0.0",
     "@types/rimraf": "^2.0.2",
     "@types/semver": "^5.5.0",
     "@types/webpack": "^4.4.19",

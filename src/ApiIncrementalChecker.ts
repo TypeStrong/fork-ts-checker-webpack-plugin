@@ -201,10 +201,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
     for (const updatedFile of this.lastUpdatedFiles) {
       cancellationToken.throwIfCancellationRequested();
-      if (
-        this.isFileExcluded(updatedFile) ||
-        updatedFile.endsWith('tsconfig.json')
-      ) {
+      if (this.isFileExcluded(updatedFile)) {
         continue;
       }
 

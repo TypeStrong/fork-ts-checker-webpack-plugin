@@ -3,6 +3,7 @@ import * as eslinttypes from 'eslint'; // import for types alone
 import { NormalizedMessage } from './NormalizedMessage';
 import { throwIfIsInvalidSourceFileError } from './FsHelper';
 import { makeCreateNormalizedMessageFromEsLintFailure } from './NormalizedMessageFactories';
+import * as path from 'path';
 
 export function createEslinter(eslintOptions: object) {
   // tslint:disable-next-line:no-implicit-dependencies
@@ -14,6 +15,15 @@ export function createEslinter(eslintOptions: object) {
 
   function getLintsForFile(filepath: string) {
     try {
+      if (
+        eslinter.isPathIgnored(filepath) ||
+        path.extname(filepath).localeCompare('.json', undefined, {
+          sensitivity: 'accent'
+        }) === 0
+      ) {
+        return undefined;
+      }
+
       const lints = eslinter.executeOnFiles([filepath]);
       return lints;
     } catch (e) {

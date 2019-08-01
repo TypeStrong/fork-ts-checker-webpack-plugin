@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import ForkTsCheckerWebpackPlugin from '../../lib/index';
+import defaultLogger from '../../lib/defaultLogger';
 import * as helpers from './helpers';
 import { cloneDeep } from 'lodash';
 import unixify from 'unixify';
@@ -49,10 +50,10 @@ describe.each([[true], [false]])(
       expect(plugin['tslint']).toBe(true);
     });
 
-    it('should set logger to console by default', () => {
+    it('should set logger to the default logger by default', () => {
       const plugin = new ForkTsCheckerWebpackPlugin({});
 
-      expect(plugin['logger']).toBe(console);
+      expect(plugin['logger']).toBe(defaultLogger);
     });
 
     it('should set watch to empty array by default', () => {

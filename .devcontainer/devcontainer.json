@@ -2,9 +2,6 @@
     "name": "fork-ts-checker-webpack-plugin devcontainer",
     "dockerFile": "Dockerfile",
 
-    // Specifies a list of ports that should be published.
-    "appPort": [3000],
-
     // Comment out the next line to run as root instead. Linux users, update
     // Dockerfile with your user's UID/GID if not 1000.
     "runArgs": [ "-u", "node" ],

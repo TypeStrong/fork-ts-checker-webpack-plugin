@@ -571,7 +571,7 @@ class ForkTsCheckerWebpackPlugin {
 
     if ('hooks' in this.compiler) {
       // webpack 4+
-      this.compiler.hooks.emit.tapAsync(checkerPluginName, emit);
+      this.compiler.hooks.afterCompile.tapAsync(checkerPluginName, emit);
     } else {
       // webpack 2 / 3
       this.compiler.plugin('emit', emit);

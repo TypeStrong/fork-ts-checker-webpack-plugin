@@ -10,6 +10,8 @@ import * as os from 'os';
 import * as webpack from 'webpack';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as eslinttypes from 'eslint';
 import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { createDefaultFormatter } from './formatter/defaultFormatter';
@@ -45,8 +47,8 @@ namespace ForkTsCheckerWebpackPlugin {
     tslint: string | true | undefined;
     tslintAutoFix: boolean;
     eslint: true | undefined;
-    /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
-    eslintOptions: object;
+    /** Options to supply to eslint https://eslint.org/docs/6.0.0/developer-guide/nodejs-api#cliengine */
+    eslintOptions: eslinttypes.CLIEngine.Options;
     watch: string | string[];
     async: boolean;
     ignoreDiagnostics: number[];
@@ -100,7 +102,7 @@ class ForkTsCheckerWebpackPlugin {
   private compilerOptions: object;
   private tslint: string | boolean | undefined = false;
   private eslint: boolean = false;
-  private eslintOptions: object = {};
+  private eslintOptions: eslinttypes.CLIEngine.Options = {};
   private tslintAutoFix: boolean = false;
   private watch: string[];
   private ignoreDiagnostics: number[];

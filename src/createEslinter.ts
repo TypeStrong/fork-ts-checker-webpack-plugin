@@ -5,11 +5,11 @@ import { throwIfIsInvalidSourceFileError } from './FsHelper';
 import { makeCreateNormalizedMessageFromEsLintFailure } from './NormalizedMessageFactories';
 import * as path from 'path';
 
-export function createEslinter(eslintOptions: object) {
+export function createEslinter(eslintOptions: eslinttypes.CLIEngine.Options) {
   // tslint:disable-next-line:no-implicit-dependencies
   const eslint: typeof eslinttypes = require('eslint');
 
-  // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+  // See https://eslint.org/docs/6.0.0/developer-guide/nodejs-api#cliengine
   const eslinter = new eslint.CLIEngine(eslintOptions);
   const createNormalizedMessageFromEsLintFailure = makeCreateNormalizedMessageFromEsLintFailure();
 
@@ -25,6 +25,9 @@ export function createEslinter(eslintOptions: object) {
       }
 
       const lints = eslinter.executeOnFiles([filepath]);
+      if (eslintOptions && eslintOptions.fix) {
+        eslint.CLIEngine.outputFixes(lints);
+      }
       return lints;
     } catch (e) {
       throwIfIsInvalidSourceFileError(filepath, e);

@@ -122,7 +122,7 @@ It helps to distinguish lints from TypeScript's diagnostics.
 
 - **eslintOptions** `object`:
 
-  - Options that can be used to initialise ESLint. See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+  - Options that can be used to initialise ESLint. See https://eslint.org/docs/6.0.0/developer-guide/nodejs-api#cliengine
 
 - **tslint** `string | true | undefined`:
 

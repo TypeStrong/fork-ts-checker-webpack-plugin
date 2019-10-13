@@ -24,7 +24,11 @@ export function createCodeframeFormatter(options: any) {
 
     if (message.code === NormalizedMessage.ERROR_CODE_INTERNAL) {
       return (
-        messageColor(`INTERNAL ${message.severity.toUpperCase()}: `) +
+        messageColor(
+          `INTERNAL ${message.severity.toUpperCase()}(${message.line},${
+            message.character
+          }) `
+        ) +
         message.content +
         (message.stack
           ? os.EOL + 'stack trace:' + os.EOL + colors.gray(message.stack)
@@ -53,7 +57,11 @@ export function createCodeframeFormatter(options: any) {
     }
 
     return (
-      messageColor(message.severity.toUpperCase() + ' in ' + message.file) +
+      messageColor(
+        message.severity.toUpperCase() +
+          ' in ' +
+          `${message.file}(${message.line},${message.character}):`
+      ) +
       os.EOL +
       positionColor(message.line + ':' + message.character) +
       ' ' +

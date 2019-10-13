@@ -42,7 +42,7 @@ describe('[UNIT] formatter/codeframeFormatter', () => {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).toBe(
-      'ERROR in some/file.ts' +
+      'ERROR in some/file.ts(1,7):' +
         os.EOL +
         '1:7 Some diagnostic content' +
         os.EOL +
@@ -71,7 +71,7 @@ describe('[UNIT] formatter/codeframeFormatter', () => {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).toBe(
-      'WARNING in some/file.ts' +
+      'WARNING in some/file.ts(2,11):' +
         os.EOL +
         '2:11 Some lint content' +
         os.EOL +
@@ -102,7 +102,9 @@ describe('[UNIT] formatter/codeframeFormatter', () => {
     var formattedMessage = formatter(message, false);
 
     expect(formattedMessage).toBe(
-      'WARNING in some/unknown-file.ts' + os.EOL + '2:11 Some lint content'
+      'WARNING in some/unknown-file.ts(2,11):' +
+        os.EOL +
+        '2:11 Some lint content'
     );
   });
 });

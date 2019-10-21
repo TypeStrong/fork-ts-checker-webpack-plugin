@@ -60,9 +60,10 @@ const resolveTypeReferenceDirective = process.env
       .resolveTypeReferenceDirective
   : undefined;
 
+const eslintQuiet = process.env.ESLINT_QUIET === 'true';
 const eslinter =
   process.env.ESLINT === 'true'
-    ? createEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
+    ? createEslinter(JSON.parse(process.env.ESLINT_OPTIONS!), eslintQuiet)
     : undefined;
 
 function createChecker(

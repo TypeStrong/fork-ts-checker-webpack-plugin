@@ -5,7 +5,7 @@ import { throwIfIsInvalidSourceFileError } from './FsHelper';
 import { makeCreateNormalizedMessageFromEsLintFailure } from './NormalizedMessageFactories';
 import * as path from 'path';
 
-export function createEslinter(eslintOptions: object) {
+export function createEslinter(eslintOptions: object, eslintQuiet: boolean) {
   // tslint:disable-next-line:no-implicit-dependencies
   const eslint: typeof eslinttypes = require('eslint');
 
@@ -37,9 +37,13 @@ export function createEslinter(eslintOptions: object) {
       | IterableIterator<eslinttypes.CLIEngine.LintReport>
       | eslinttypes.CLIEngine.LintReport[]
   ) {
+    const eslint: typeof eslinttypes = require('eslint');
     const allEsLints = [];
     for (const value of lintReports) {
-      for (const lint of value.results) {
+      const lints = eslintQuiet
+        ? eslint.CLIEngine.getErrorResults(value.results)
+        : value.results;
+      for (const lint of lints) {
         allEsLints.push(
           ...lint.messages.map(message =>
             createNormalizedMessageFromEsLintFailure(message, lint.filePath)

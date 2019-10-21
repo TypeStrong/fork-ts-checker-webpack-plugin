@@ -48,6 +48,7 @@ namespace ForkTsCheckerWebpackPlugin {
     eslint: true | undefined;
     /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
     eslintOptions: object;
+    eslintQuiet: boolean;
     watch: string | string[];
     async: boolean;
     ignoreDiagnostics: number[];
@@ -102,6 +103,7 @@ class ForkTsCheckerWebpackPlugin {
   private tslint: string | boolean | undefined = false;
   private eslint: boolean = false;
   private eslintOptions: object = {};
+  private eslintQuiet: boolean = false;
   private tslintAutoFix: boolean = false;
   private watch: string[];
   private ignoreDiagnostics: number[];
@@ -207,6 +209,7 @@ class ForkTsCheckerWebpackPlugin {
       this.eslint = true;
       this.eslintVersion = eslintVersion;
       this.eslintOptions = eslintOptions;
+      this.eslintQuiet = options.eslintQuiet === true; // default false
     } else {
       const { tslint, tslintVersion, tslintAutoFix } = this.validateTslint(
         options
@@ -651,6 +654,7 @@ class ForkTsCheckerWebpackPlugin {
       TSLINTAUTOFIX: String(this.tslintAutoFix),
       ESLINT: String(this.eslint),
       ESLINT_OPTIONS: JSON.stringify(this.eslintOptions),
+      ESLINT_QUIET: String(this.eslintQuiet),
       WATCH: this.isWatching ? this.watchPaths.join('|') : '',
       WORK_DIVISION: String(Math.max(1, this.workersNumber)),
       MEMORY_LIMIT: String(this.memoryLimit),

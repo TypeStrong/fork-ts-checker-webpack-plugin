@@ -44,7 +44,7 @@ namespace ForkTsCheckerWebpackPlugin {
     compilerOptions: object;
     tslint: string | true | undefined;
     tslintAutoFix: boolean;
-    eslint: true | undefined;
+    eslint: boolean;
     /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
     eslintOptions: object;
     watch: string | string[];

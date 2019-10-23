@@ -25,7 +25,7 @@ env:
 jobs:
   include:
     - stage: release
-      node_js: 10
+      node_js: 12
       script: skip
       deploy:
         provider: script

@@ -135,7 +135,7 @@ class ForkTsCheckerWebpackPlugin {
   private diagnostics: NormalizedMessage[] = [];
   private lints: NormalizedMessage[] = [];
 
-  private afterCompileCallback: () => void;
+  private emitCallback: () => void;
   private doneCallback: () => void;
   private typescriptPath: string;
   private typescript: typeof ts;
@@ -184,7 +184,7 @@ class ForkTsCheckerWebpackPlugin {
             options.formatterOptions || {}
           );
 
-    this.afterCompileCallback = this.createNoopAfterCompileCallback();
+    this.emitCallback = this.createNoopEmitCallback();
     this.doneCallback = this.createDoneCallback();
 
     const {
@@ -560,13 +560,10 @@ class ForkTsCheckerWebpackPlugin {
         return;
       }
 
-      this.afterCompileCallback = this.createAfterCompileCallback(
-        compilation,
-        callback
-      );
+      this.emitCallback = this.createEmitCallback(compilation, callback);
 
       if (this.checkDone) {
-        this.afterCompileCallback();
+        this.emitCallback();
       }
 
       this.compilationDone = true;
@@ -837,9 +834,7 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     if (this.compilationDone) {
-      this.isWatching && this.async
-        ? this.doneCallback()
-        : this.afterCompileCallback();
+      this.isWatching && this.async ? this.doneCallback() : this.emitCallback();
     }
   }
 
@@ -870,11 +865,11 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  private createAfterCompileCallback(
+  private createEmitCallback(
     compilation: webpack.compilation.Compilation,
     callback: () => void
   ) {
-    return function afterCompileCallback(this: ForkTsCheckerWebpackPlugin) {
+    return function emitCallback(this: ForkTsCheckerWebpackPlugin) {
       if (!this.elapsed) {
         throw new Error('Execution order error');
       }
@@ -926,9 +921,9 @@ class ForkTsCheckerWebpackPlugin {
     };
   }
 
-  private createNoopAfterCompileCallback() {
+  private createNoopEmitCallback() {
     // tslint:disable-next-line:no-empty
-    return function noopAfterCompileCallback() {};
+    return function noopEmitCallback() {};
   }
 
   private printLoggerMessage(

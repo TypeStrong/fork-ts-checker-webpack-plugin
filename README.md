@@ -206,8 +206,8 @@ new ForkTsCheckerWebpackPlugin({
   node doesn't share memory between workers - keep in mind that memory usage will increase. Be aware that in some scenarios increasing workers
   number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
 
-- **vue** `boolean`:
-  If `true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
+- **vue** `boolean | { enabled: boolean, compiler: string }`:
+  If `true` or `enabled: true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
   [Vue section](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
@@ -406,6 +406,13 @@ if ('compilers' in compiler) {
 new ForkTsCheckerWebpackPlugin({
   tslint: true,
   vue: true
+});
+```
+Optionally change default [vue-template-compiler](https://github.com/vuejs/vue/tree/dev/packages/vue-template-compiler) to [nativescript-vue-template-compiler](https://github.com/nativescript-vue/nativescript-vue/tree/master/packages/nativescript-vue-template-compiler) if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue)
+```
+new ForkTsCheckerWebpackPlugin({
+  tslint: true,
+  vue: { enabled: true, compiler: 'nativescript-vue-template-compiler' }
 });
 ```
 

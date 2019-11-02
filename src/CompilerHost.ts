@@ -3,6 +3,7 @@ import * as ts from 'typescript'; // Imported for types alone
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
+import { VueOptions } from './types/vue-options';
 
 interface DirectoryWatchDelaySlot {
   events: { fileName: string }[];
@@ -70,6 +71,7 @@ export class CompilerHost
 
   constructor(
     private typescript: typeof ts,
+    private vueOptions: VueOptions,
     programConfigFile: string,
     compilerOptions: ts.CompilerOptions,
     checkSyntacticErrors: boolean,
@@ -320,7 +322,11 @@ export class CompilerHost
 
     // get typescript contents from Vue file
     if (content && VueProgram.isVue(path)) {
-      const resolved = VueProgram.resolveScriptBlock(this.typescript, content);
+      const resolved = VueProgram.resolveScriptBlock(
+        this.typescript,
+        content,
+        this.vueOptions.compiler
+      );
       return resolved.content;
     }
 

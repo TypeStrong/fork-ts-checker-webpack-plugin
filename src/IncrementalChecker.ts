@@ -29,6 +29,7 @@ import {
   IncrementalCheckerParams
 } from './IncrementalCheckerInterface';
 import { createEslinter } from './createEslinter';
+import { VueOptions } from './types/vue-options';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -70,7 +71,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private readonly watchPaths: string[];
   private readonly workNumber: number;
   private readonly workDivision: number;
-  private readonly vue: boolean;
+  private readonly vue: VueOptions;
   private readonly checkSyntacticErrors: boolean;
   private readonly resolveModuleName: ResolveModuleName | undefined;
   private readonly resolveTypeReferenceDirective:
@@ -90,7 +91,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     watchPaths,
     workNumber = 0,
     workDivision = 1,
-    vue = false,
+    vue,
     checkSyntacticErrors = false,
     resolveModuleName,
     resolveTypeReferenceDirective
@@ -253,7 +254,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   public nextIteration() {
     if (!this.watcher) {
-      const watchExtensions = this.vue
+      const watchExtensions = this.vue.enabled
         ? ['.ts', '.tsx', '.vue']
         : ['.ts', '.tsx'];
       this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
@@ -285,14 +286,16 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       }
     }
 
-    this.program = this.vue ? this.loadVueProgram() : this.loadDefaultProgram();
+    this.program = this.vue.enabled
+      ? this.loadVueProgram(this.vue)
+      : this.loadDefaultProgram();
 
     if (this.linterConfigFile) {
       this.linter = this.createLinter(this.program!);
     }
   }
 
-  private loadVueProgram() {
+  private loadVueProgram(vueOptions: VueOptions) {
     this.programConfig =
       this.programConfig ||
       VueProgram.loadProgramConfig(
@@ -309,7 +312,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.watcher!,
       this.program!,
       this.resolveModuleName,
-      this.resolveTypeReferenceDirective
+      this.resolveTypeReferenceDirective,
+      vueOptions
     );
   }
 

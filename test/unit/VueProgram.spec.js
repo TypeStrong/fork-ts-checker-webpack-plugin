@@ -1,6 +1,11 @@
 var unixify = require('unixify');
 var ts = require('typescript');
 var VueProgram = require('../../lib/VueProgram').VueProgram;
+var ForkTsCheckerWebpackPlugin = require('../../lib/index');
+var templateCompilers = [
+  'vue-template-compiler',
+  'nativescript-vue-template-compiler'
+];
 
 jest.mock('typescript', () => {
   var originalTs = jest.requireActual('typescript');
@@ -105,25 +110,50 @@ describe('[UNIT] VueProgram', () => {
     expect(unixify(resolvedModuleName)).toBe('/baseurl3/src1/src2/test.vue');
   });
 
-  it('should extract script block', () => {
-    var content = [
-      '<script lang="ts">',
-      'import Vue from "vue";',
-      'export default Vue.extend({});',
-      '</script>'
-    ].join('\n');
+  const vueOptionsVariants = [
+    void 0,
+    true,
+    false,
+    {},
+    { enabled: true },
+    { enabled: false },
+    { compiler: 'vue-template-compiler' }
+  ];
 
-    var result = VueProgram.resolveScriptBlock(ts, content);
+  it.each(vueOptionsVariants)(
+    'should init valid vue options with: %p',
+    option => {
+      var result = ForkTsCheckerWebpackPlugin.prepareVueOptions(option);
+      expect(typeof result.enabled).toBe('boolean');
+      expect(typeof result.compiler).toBe('string');
+    }
+  );
 
-    expect(result.scriptKind).toBe(ts.ScriptKind.TS);
-    expect(result.content).toBe(
-      ['', 'import Vue from "vue";', 'export default Vue.extend({});', ''].join(
-        '\n'
-      )
-    );
-  });
+  it.each(templateCompilers)(
+    'should extract script block with compiler=%s',
+    templateCompiler => {
+      var content = [
+        '<script lang="ts">',
+        'import Vue from "vue";',
+        'export default Vue.extend({});',
+        '</script>'
+      ].join('\n');
 
-  it('should pad lines', () => {
+      var result = VueProgram.resolveScriptBlock(ts, content, templateCompiler);
+
+      expect(result.scriptKind).toBe(ts.ScriptKind.TS);
+      expect(result.content).toBe(
+        [
+          '',
+          'import Vue from "vue";',
+          'export default Vue.extend({});',
+          ''
+        ].join('\n')
+      );
+    }
+  );
+
+  it.each(templateCompilers)('should pad lines with %s', templateCompiler => {
     var content = [
       '<template>',
       '  <p>Hello</p>',
@@ -135,8 +165,7 @@ describe('[UNIT] VueProgram', () => {
       '</script>'
     ].join('\n');
 
-    var result = VueProgram.resolveScriptBlock(ts, content);
-
+    var result = VueProgram.resolveScriptBlock(ts, content, templateCompiler);
     expect(result.content).toBe(
       [
         '//',

@@ -6,6 +6,7 @@ import { CancellationToken } from './CancellationToken';
 import { NormalizedMessage } from './NormalizedMessage';
 import { ResolveTypeReferenceDirective, ResolveModuleName } from './resolution';
 import { createEslinter } from './createEslinter';
+import { VueOptions } from './types/vue-options';
 
 export interface IncrementalCheckerInterface {
   nextIteration(): void;
@@ -40,11 +41,11 @@ export interface ApiIncrementalCheckerParams {
   checkSyntacticErrors: boolean;
   resolveModuleName: ResolveModuleName | undefined;
   resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined;
+  vue: VueOptions;
 }
 
 export interface IncrementalCheckerParams extends ApiIncrementalCheckerParams {
   watchPaths: string[];
   workNumber: number;
   workDivision: number;
-  vue: boolean;
 }

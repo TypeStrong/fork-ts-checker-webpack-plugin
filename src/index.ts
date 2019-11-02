@@ -23,6 +23,7 @@ import {
   ForkTsCheckerHooks
 } from './hooks';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
+import { VueOptions } from './types/vue-options';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -61,7 +62,7 @@ namespace ForkTsCheckerWebpackPlugin {
     checkSyntacticErrors: boolean;
     memoryLimit: number;
     workers: number;
-    vue: boolean;
+    vue: boolean | Partial<VueOptions>;
     useTypescriptIncrementalApi: boolean;
     measureCompilationTime: boolean;
     resolveModuleNameModule: string;
@@ -146,7 +147,7 @@ class ForkTsCheckerWebpackPlugin {
   private service?: childProcess.ChildProcess;
   protected serviceRpc?: RpcProvider;
 
-  private vue: boolean;
+  private vue: VueOptions;
 
   private measureTime: boolean;
   private performance: any;
@@ -216,11 +217,11 @@ class ForkTsCheckerWebpackPlugin {
       this.tslintAutoFix = tslintAutoFix;
     }
 
-    this.vue = options.vue === true; // default false
+    this.vue = ForkTsCheckerWebpackPlugin.prepareVueOptions(options.vue);
 
     this.useTypescriptIncrementalApi =
       options.useTypescriptIncrementalApi === undefined
-        ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue
+        ? semver.gte(this.typescriptVersion, '3.0.0') && !this.vue.enabled
         : options.useTypescriptIncrementalApi;
 
     this.measureTime = options.measureCompilationTime === true;
@@ -309,6 +310,23 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     return { eslintVersion, eslintOptions };
+  }
+
+  private static prepareVueOptions(
+    vueOptions?: boolean | Partial<VueOptions>
+  ): VueOptions {
+    const defaultVueOptions: VueOptions = {
+      compiler: 'vue-template-compiler',
+      enabled: false
+    };
+
+    if (typeof vueOptions === 'boolean') {
+      return Object.assign(defaultVueOptions, { enabled: vueOptions });
+    } else if (typeof vueOptions === 'object' && vueOptions !== null) {
+      return Object.assign(defaultVueOptions, vueOptions);
+    } else {
+      return defaultVueOptions;
+    }
   }
 
   private static createFormatter(type: 'default' | 'codeframe', options: any) {
@@ -655,7 +673,7 @@ class ForkTsCheckerWebpackPlugin {
       MEMORY_LIMIT: String(this.memoryLimit),
       CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
       USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
-      VUE: String(this.vue)
+      VUE: JSON.stringify(this.vue)
     };
 
     if (typeof this.resolveModuleNameModule !== 'undefined') {

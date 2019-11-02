@@ -81,7 +81,8 @@ function createChecker(
     eslinter,
     checkSyntacticErrors: process.env.CHECK_SYNTACTIC_ERRORS === 'true',
     resolveModuleName,
-    resolveTypeReferenceDirective
+    resolveTypeReferenceDirective,
+    vue: JSON.parse(process.env.VUE!)
   };
 
   if (useIncrementalApi) {
@@ -94,8 +95,7 @@ function createChecker(
     {
       watchPaths: process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
       workNumber: parseInt(process.env.WORK_NUMBER!, 10) || 0,
-      workDivision: parseInt(process.env.WORK_DIVISION!, 10) || 1,
-      vue: process.env.VUE === 'true'
+      workDivision: parseInt(process.env.WORK_DIVISION!, 10) || 1
     }
   );
 

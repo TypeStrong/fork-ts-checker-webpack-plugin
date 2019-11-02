@@ -12,18 +12,60 @@ interface Error {
   rawMessage: string;
 }
 
-describe.each([/*[true], */ [false]])(
-  '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s',
-  useTypescriptIncrementalApi => {
+const vueTplCompilers = [
+  'vue-template-compiler',
+  'nativescript-vue-template-compiler'
+] as const;
+
+const useTypescriptIncrementalApiOptions = [
+  /* true, */
+  false
+] as const;
+
+// eslint-disable-next-line @typescript-eslint/array-type
+function mixLists<T1, T2>(list1: ReadonlyArray<T1>, list2: ReadonlyArray<T2>) {
+  return list1.reduce((acc, item1) => acc.concat(list2.map(item2 => [item1, item2])), [] as [T1, T2][]);
+}
+
+describe.each(mixLists(useTypescriptIncrementalApiOptions, vueTplCompilers))(
+  '[INTEGRATION] vue tests - useTypescriptIncrementalApi: %s, vue tpl compiler: %s',
+  (useTypescriptIncrementalApi, vueTplCompiler) => {
+    const vueEnabledOption = { enabled: true, compiler: vueTplCompiler };
+    const testOnlyFirstVueTplCompiler = vueEnabledOption.compiler !== vueTplCompilers[0] ? it.skip : it;
+
     const createCompiler = (options: Partial<CreateCompilerOptions> = {}) =>
       createVueCompiler({
         ...options,
         pluginOptions: { ...options.pluginOptions, useTypescriptIncrementalApi }
       });
 
-    it('should create a Vue program config if vue=true', async () => {
+    it('should require valid template compiler: %s', async () => {
+      const tplCompiler = vueEnabledOption.compiler;
+      const bannedMocks = vueTplCompilers
+        .filter(dep => dep !== tplCompiler)
+        .map(bannedDep => {
+          const bannedMock = jest.fn(() => jest.requireActual(bannedDep));
+          jest.doMock(bannedDep, bannedMock);
+          return bannedMock;
+        });
+      const requiredMock = jest.fn(() => jest.requireActual(tplCompiler));
+      jest.doMock(tplCompiler, requiredMock);
+
+      const { compiler } = await createCompiler({
+        pluginOptions: { vue: { enabled: true, compiler: tplCompiler } }
+      });
+
+      compiler.run(() => {
+        expect(requiredMock).toBeCalled();
+        bannedMocks.forEach(bannedMock => {
+          expect(bannedMock).not.toBeCalled();
+        });
+      });
+    });
+
+    it('should create a Vue program config if vue is enabled', async () => {
       const { getKnownFileNames, files } = await createCompiler({
-        pluginOptions: { vue: true }
+        pluginOptions: { vue: vueEnabledOption }
       });
 
       const fileNames = await getKnownFileNames();
@@ -38,7 +80,7 @@ describe.each([/*[true], */ [false]])(
       expect(fileFound).toBe(true);
     });
 
-    it('should not create a Vue program config if vue=false', async () => {
+    testOnlyFirstVueTplCompiler('should not create a Vue program config if vue is disabled', async () => {
       const { getKnownFileNames, files } = await createCompiler();
 
       const fileNames = await getKnownFileNames();
@@ -54,9 +96,9 @@ describe.each([/*[true], */ [false]])(
       expect(fileFound).toBe(true);
     });
 
-    it('should create a Vue program if vue=true', async () => {
+    it('should create a Vue program if vue is enabled', async () => {
       const { getSourceFile, files } = await createCompiler({
-        pluginOptions: { vue: true }
+        pluginOptions: { vue: vueEnabledOption }
       });
 
       let source;
@@ -68,7 +110,7 @@ describe.each([/*[true], */ [false]])(
       expect(source).toBeDefined();
     });
 
-    it('should not create a Vue program if vue=false', async () => {
+    testOnlyFirstVueTplCompiler('should not create a Vue program if vue is disabled', async () => {
       const { getSourceFile, files } = await createCompiler();
 
       let source;
@@ -82,7 +124,7 @@ describe.each([/*[true], */ [false]])(
 
     it('should get syntactic diagnostics from Vue program', async () => {
       const { getSyntacticDiagnostics } = await createCompiler({
-        pluginOptions: { tslint: true, vue: true }
+        pluginOptions: { tslint: true, vue: vueEnabledOption }
       });
 
       const diagnostics = await getSyntacticDiagnostics();
@@ -128,7 +170,7 @@ describe.each([/*[true], */ [false]])(
     });
 
     it('should not report no-consecutive-blank-lines tslint rule', callback => {
-      createCompiler({ pluginOptions: { tslint: true, vue: true } }).then(
+      createCompiler({ pluginOptions: { tslint: true, vue: vueEnabledOption } }).then(
         ({ compiler }) =>
           compiler.run((error, stats) => {
             stats.compilation.warnings.forEach(warning => {
@@ -143,7 +185,7 @@ describe.each([/*[true], */ [false]])(
 
     it('should resolve src attribute but not report not found error', callback => {
       createCompiler({
-        pluginOptions: { vue: true, tsconfig: 'tsconfig-attrs.json' }
+        pluginOptions: { vue: vueEnabledOption, tsconfig: 'tsconfig-attrs.json' }
       }).then(({ compiler }) =>
         compiler.run((error, stats) => {
           const errors = stats.compilation.errors;
@@ -154,16 +196,16 @@ describe.each([/*[true], */ [false]])(
       );
     });
 
-    [
+    it.each([
       'example-ts.vue',
       'example-tsx.vue',
       'example-js.vue',
       'example-jsx.vue',
       'example-nolang.vue'
-    ].forEach(fileName => {
-      it('should be able to extract script from ' + fileName, async () => {
-        const { compiler, getSourceFile, contextDir } = await createCompiler({
-          pluginOptions: { vue: true, tsconfig: 'tsconfig-langs.json' }
+    ])('should be able to extract script from %s',
+      async fileName => {
+        const { getSourceFile, contextDir } = await createCompiler({
+          pluginOptions: { vue: vueEnabledOption, tsconfig: 'tsconfig-langs.json' }
         });
         const sourceFilePath = path.resolve(
           contextDir,
@@ -174,7 +216,6 @@ describe.each([/*[true], */ [false]])(
         // remove padding lines
         const text = source!.text.replace(/^\s*\/\/.*$\r*\n/gm, '').trim();
         expect(text.startsWith('/* OK */')).toBe(true);
-      });
     });
 
     function groupByFileName(errors: Error[]) {
@@ -197,7 +238,10 @@ describe.each([/*[true], */ [false]])(
       let errors: { [key: string]: Error[] };
       beforeAll(callback => {
         createCompiler({
-          pluginOptions: { vue: true, tsconfig: 'tsconfig-langs.json' }
+          pluginOptions: {
+            vue: vueEnabledOption,
+            tsconfig: 'tsconfig-langs.json'
+          }
         }).then(({ compiler }) =>
           compiler.run((error, stats) => {
             errors = groupByFileName(stats.compilation.errors);
@@ -231,7 +275,7 @@ describe.each([/*[true], */ [false]])(
         // tsconfig-langs-strict.json === tsconfig-langs.json + noUnusedLocals
         createCompiler({
           pluginOptions: {
-            vue: true,
+            vue: vueEnabledOption,
             tsconfig: 'tsconfig-langs-strict.json'
           }
         }).then(({ compiler }) =>
@@ -268,7 +312,10 @@ describe.each([/*[true], */ [false]])(
       let errors: Error[];
       beforeAll(callback => {
         createCompiler({
-          pluginOptions: { vue: true, tsconfig: 'tsconfig-imports.json' }
+          pluginOptions: {
+            vue: vueEnabledOption,
+            tsconfig: 'tsconfig-imports.json'
+          }
         }).then(({ compiler }) =>
           compiler.run((error, stats) => {
             errors = stats.compilation.errors;

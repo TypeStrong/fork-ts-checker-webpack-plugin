@@ -16,7 +16,6 @@ import { createDefaultFormatter } from './formatter/defaultFormatter';
 import { createCodeframeFormatter } from './formatter/codeframeFormatter';
 import { fileExistsSync } from './FsHelper';
 import { Message } from './Message';
-import defaultLogger from './defaultLogger';
 
 import {
   getForkTsCheckerWebpackPluginHooks,
@@ -45,7 +44,7 @@ namespace ForkTsCheckerWebpackPlugin {
     compilerOptions: object;
     tslint: string | true | undefined;
     tslintAutoFix: boolean;
-    eslint: true | undefined;
+    eslint: boolean;
     /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
     eslintOptions: object;
     eslintQuiet: boolean;
@@ -167,7 +166,7 @@ class ForkTsCheckerWebpackPlugin {
     this.ignoreLints = options.ignoreLints || [];
     this.ignoreLintWarnings = options.ignoreLintWarnings === true;
     this.reportFiles = options.reportFiles || [];
-    this.logger = options.logger || defaultLogger;
+    this.logger = options.logger || console;
     this.silent = options.silent === true; // default false
     this.async = options.async !== false; // default true
     this.checkSyntacticErrors = options.checkSyntacticErrors === true; // default false

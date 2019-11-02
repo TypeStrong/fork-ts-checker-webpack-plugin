@@ -1,27 +1,28 @@
-# Fork TS Checker Webpack Plugin
+<div align="center">
+
+<h1>Fork TS Checker Webpack Plugin</h1>
+<p>Webpack plugin that runs TypeScript type checker on a separate process.</p>
 
 [![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-
 [![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-
 [![build status](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin)
-
 [![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
-
 [![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
-
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Webpack plugin that runs TypeScript type checker on a separate process.
+</div>
 
 ## Installation
 
 This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **ESLint 6.0.0** or **TSLint 4.0**
 
 ```sh
-yarn add fork-ts-checker-webpack-plugin --dev
+# with npm
+npm install --save-dev fork-ts-checker-webpack-plugin
+
+# with yarn
+yarn add --dev fork-ts-checker-webpack-plugin
 ```
 
 Basic webpack config (with [ts-loader](https://github.com/TypeStrong/ts-loader))

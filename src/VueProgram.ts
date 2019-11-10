@@ -11,6 +11,7 @@ import {
 } from './resolution';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as vueCompiler from 'vue-template-compiler';
+import { VueOptions } from './types/vue-options';
 
 interface ResolvedScript {
   scriptKind: ts.ScriptKind;
@@ -127,7 +128,10 @@ export class VueProgram {
     watcher: FilesWatcher,
     oldProgram: ts.Program,
     userResolveModuleName: ResolveModuleName | undefined,
-    userResolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
+    userResolveTypeReferenceDirective:
+      | ResolveTypeReferenceDirective
+      | undefined,
+    vueOptions: VueOptions
   ) {
     const host = typescript.createCompilerHost(programConfig.options);
     const realGetSourceFile = host.getSourceFile;
@@ -192,7 +196,11 @@ export class VueProgram {
 
       // get typescript contents from Vue file
       if (source && VueProgram.isVue(filePath)) {
-        const resolved = VueProgram.resolveScriptBlock(typescript, source.text);
+        const resolved = VueProgram.resolveScriptBlock(
+          typescript,
+          source.text,
+          vueOptions.compiler
+        );
         source = typescript.createSourceFile(
           filePath,
           resolved.content,
@@ -300,19 +308,20 @@ export class VueProgram {
 
   public static resolveScriptBlock(
     typescript: typeof ts,
-    content: string
+    content: string,
+    compiler: string
   ): ResolvedScript {
-    // We need to import vue-template-compiler lazily because it cannot be included it
+    // We need to import template compiler for vue lazily because it cannot be included it
     // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
     // Since its version must not mismatch with user-installed Vue.js,
-    // we should let the users install vue-template-compiler by themselves.
+    // we should let the users install template compiler for vue by themselves.
     let parser: typeof vueCompiler;
     try {
       // tslint:disable-next-line
-      parser = require('vue-template-compiler');
+      parser = require(compiler);
     } catch (err) {
       throw new Error(
-        'When you use `vue` option, make sure to install `vue-template-compiler`.'
+        'When you use `vue` option, make sure to install `' + compiler + '`.'
       );
     }
 

@@ -6099,6 +6099,14 @@ nanomatch@^1.2.5, nanomatch@^1.2.9:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
+nativescript-vue-template-compiler@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/nativescript-vue-template-compiler/-/nativescript-vue-template-compiler-2.4.0.tgz#af77f127c611aa9e32c98a15a2403633995d6f57"
+  integrity sha512-EPkYmPkfh/UvkcJ4aXvNaj5c7NK1LqvdSW3rs6qaUyLJJuIvMZm3vPPQen6Mn8TGDIZQzwykA+HLniObVV4CJA==
+  dependencies:
+    de-indent "^1.0.2"
+    he "^1.1.0"
+
 natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"

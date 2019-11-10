@@ -59,6 +59,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     linterAutoFix,
     createNormalizedMessageFromRuleFailure,
     eslinter,
+    vue,
     checkSyntacticErrors = false,
     resolveModuleName,
     resolveTypeReferenceDirective
@@ -76,6 +77,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
 
     this.tsIncrementalCompiler = new CompilerHost(
       typescript,
+      vue,
       programConfigFile,
       compilerOptions,
       checkSyntacticErrors,

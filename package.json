@@ -144,6 +144,7 @@
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
     "vue-template-compiler": "^2.5.16",
+    "nativescript-vue-template-compiler": "^2.4.0",
     "webpack": "^5.0.0-alpha.5"
   },
   "engines": {

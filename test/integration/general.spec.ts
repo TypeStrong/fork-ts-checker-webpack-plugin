@@ -296,7 +296,7 @@ describe.each([[true], [false]])(
 
     it('should only emit errors when eslintQuiet option is provided', callback => {
       const compiler = createCompiler({
-        context: './project_eslint',
+        context: './project_eslintQuiet',
         entryPoint: './src/index.ts',
         pluginOptions: {
           eslint: true,

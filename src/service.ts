@@ -4,22 +4,17 @@ import * as ts from 'typescript'; // import for types alone
 
 import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
-import { NormalizedMessage } from './NormalizedMessage';
 import {
   IncrementalCheckerInterface,
   ApiIncrementalCheckerParams,
   IncrementalCheckerParams
 } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
-import {
-  makeCreateNormalizedMessageFromDiagnostic,
-  makeCreateNormalizedMessageFromRuleFailure,
-  makeCreateNormalizedMessageFromInternalError
-} from './NormalizedMessageFactories';
 import { RpcProvider } from 'worker-rpc';
 import { RunPayload, RunResult, RUN } from './RpcTypes';
 import { TypeScriptPatchConfig, patchTypescript } from './patchTypescript';
 import { createEslinter } from './createEslinter';
+import { createIssueFromInternalError, Issue } from './issue';
 
 const rpc = new RpcProvider(message => {
   try {
@@ -44,13 +39,6 @@ const patchConfig: TypeScriptPatchConfig = {
 
 patchTypescript(typescript, patchConfig);
 
-// message factories
-export const createNormalizedMessageFromDiagnostic = makeCreateNormalizedMessageFromDiagnostic(
-  typescript
-);
-export const createNormalizedMessageFromRuleFailure = makeCreateNormalizedMessageFromRuleFailure();
-export const createNormalizedMessageFromInternalError = makeCreateNormalizedMessageFromInternalError();
-
 const resolveModuleName = process.env.RESOLVE_MODULE_NAME
   ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
   : undefined;
@@ -73,11 +61,9 @@ function createChecker(
     context: process.env.CONTEXT!,
     programConfigFile: process.env.TSCONFIG!,
     compilerOptions: JSON.parse(process.env.COMPILER_OPTIONS!),
-    createNormalizedMessageFromDiagnostic,
     linterConfigFile:
       process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
     linterAutoFix: process.env.TSLINTAUTOFIX === 'true',
-    createNormalizedMessageFromRuleFailure,
     eslinter,
     checkSyntacticErrors: process.env.CHECK_SYNTACTIC_ERRORS === 'true',
     resolveModuleName,
@@ -105,24 +91,24 @@ function createChecker(
 const checker = createChecker(process.env.USE_INCREMENTAL_API === 'true');
 
 async function run(cancellationToken: CancellationToken) {
-  let diagnostics: NormalizedMessage[] = [];
-  let lints: NormalizedMessage[] = [];
+  const diagnostics: Issue[] = [];
+  const lints: Issue[] = [];
 
   try {
     checker.nextIteration();
 
-    diagnostics = await checker.getDiagnostics(cancellationToken);
+    diagnostics.push(...(await checker.getTypeScriptIssues(cancellationToken)));
     if (checker.hasEsLinter()) {
-      lints = checker.getEsLints(cancellationToken);
-    } else if (checker.hasLinter()) {
-      lints = checker.getLints(cancellationToken);
+      lints.push(...(await checker.getEsLintIssues(cancellationToken)));
+    } else if (checker.hasTsLinter()) {
+      lints.push(...(await checker.getTsLintIssues(cancellationToken)));
     }
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
       return undefined;
     }
 
-    diagnostics.push(createNormalizedMessageFromInternalError(error));
+    diagnostics.push(createIssueFromInternalError(error));
   }
 
   if (cancellationToken.isCancellationRequested()) {

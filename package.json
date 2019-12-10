@@ -45,12 +45,12 @@
     "test:unit": "jest unit",
     "test:watch": "jest unit --watch",
     "watch": "tsc --version && tsc --project \"./src\" --watch",
-    "precommit": "lint-staged && yarn build",
+    "precommit": "lint-staged && yarn build && yarn test:unit",
     "commit": "./node_modules/.bin/git-cz"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && yarn build",
+      "pre-commit": "lint-staged && yarn build && yarn test:unit",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
@@ -146,7 +146,7 @@
     "vue-class-component": "^6.1.1",
     "vue-loader": "^15.2.4",
     "vue-template-compiler": "^2.5.16",
-    "webpack": "^5.0.0-alpha.5"
+    "webpack": "^4.0.0"
   },
   "engines": {
     "node": ">=6.11.5",

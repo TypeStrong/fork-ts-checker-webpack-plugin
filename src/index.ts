@@ -1,38 +1,38 @@
 import * as path from 'path';
 import * as process from 'process';
 import * as childProcess from 'child_process';
-import { RpcProvider } from 'worker-rpc';
-import * as semver from 'semver';
-import chalk, { Chalk } from 'chalk';
-import * as micromatch from 'micromatch';
 import * as os from 'os';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript';
+import * as semver from 'semver';
+import * as micromatch from 'micromatch';
+import chalk from 'chalk';
+import { RpcProvider } from 'worker-rpc';
+
 import { CancellationToken } from './CancellationToken';
-import { NormalizedMessage } from './NormalizedMessage';
-import { createDefaultFormatter } from './formatter/defaultFormatter';
-import { createCodeframeFormatter } from './formatter/codeframeFormatter';
+import {
+  Formatter,
+  createFormatter,
+  createRawFormatter,
+  FormatterType,
+  FormatterOptions
+} from './formatter';
 import { fileExistsSync } from './FsHelper';
 import { Message } from './Message';
-
 import {
+  ForkTsCheckerHooks,
   getForkTsCheckerWebpackPluginHooks,
-  legacyHookMap,
-  ForkTsCheckerHooks
+  legacyHookMap
 } from './hooks';
-import { RunPayload, RunResult, RUN } from './RpcTypes';
+import { RUN, RunPayload, RunResult } from './RpcTypes';
+import { Issue, IssueSeverity } from './issue';
 import { VueOptions } from './types/vue-options';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
 namespace ForkTsCheckerWebpackPlugin {
-  export type Formatter = (
-    message: NormalizedMessage,
-    useColors: boolean
-  ) => string;
-
   export interface Logger {
     error(message?: any): void;
     warn(message?: any): void;
@@ -54,10 +54,9 @@ namespace ForkTsCheckerWebpackPlugin {
     ignoreLints: string[];
     ignoreLintWarnings: boolean;
     reportFiles: string[];
-    colors: boolean;
     logger: Logger;
-    formatter: 'default' | 'codeframe' | Formatter;
-    formatterOptions: any;
+    formatter: FormatterType;
+    formatterOptions: FormatterOptions;
     silent: boolean;
     checkSyntacticErrors: boolean;
     memoryLimit: number;
@@ -114,9 +113,8 @@ class ForkTsCheckerWebpackPlugin {
   private checkSyntacticErrors: boolean;
   private workersNumber: number;
   private memoryLimit: number;
-  private useColors: boolean;
-  private colors: Chalk;
-  private formatter: ForkTsCheckerWebpackPlugin.Formatter;
+  private formatter: Formatter;
+  private rawFormatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
   private resolveModuleNameModule: string | undefined;
   private resolveTypeReferenceDirectiveModule: string | undefined;
@@ -133,8 +131,8 @@ class ForkTsCheckerWebpackPlugin {
   private isWatching: boolean = false;
   private checkDone: boolean = false;
   private compilationDone: boolean = false;
-  private diagnostics: NormalizedMessage[] = [];
-  private lints: NormalizedMessage[] = [];
+  private diagnostics: Issue[] = [];
+  private lints: Issue[] = [];
 
   private emitCallback: () => void;
   private doneCallback: () => void;
@@ -175,15 +173,11 @@ class ForkTsCheckerWebpackPlugin {
     this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit =
       options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
-    this.useColors = options.colors !== false; // default true
-    this.colors = new chalk.constructor({ enabled: this.useColors });
-    this.formatter =
-      options.formatter && typeof options.formatter === 'function'
-        ? options.formatter
-        : ForkTsCheckerWebpackPlugin.createFormatter(
-            (options.formatter as 'default' | 'codeframe') || 'default',
-            options.formatterOptions || {}
-          );
+    this.formatter = createFormatter(
+      options.formatter,
+      options.formatterOptions
+    );
+    this.rawFormatter = createRawFormatter();
 
     this.emitCallback = this.createNoopEmitCallback();
     this.doneCallback = this.createDoneCallback();
@@ -326,19 +320,6 @@ class ForkTsCheckerWebpackPlugin {
       return Object.assign(defaultVueOptions, vueOptions);
     } else {
       return defaultVueOptions;
-    }
-  }
-
-  private static createFormatter(type: 'default' | 'codeframe', options: any) {
-    switch (type) {
-      case 'default':
-        return createDefaultFormatter();
-      case 'codeframe':
-        return createCodeframeFormatter(options);
-      default:
-        throw new Error(
-          'Unknown "' + type + '" formatter. Available are: default, codeframe.'
-        );
     }
   }
 
@@ -501,7 +482,7 @@ class ForkTsCheckerWebpackPlugin {
           } catch (error) {
             if (!this.silent && this.logger) {
               this.logger.error(
-                this.colors.red(
+                chalk.red(
                   'Cannot start checker service: ' +
                     (error ? error.toString() : 'Unknown error')
                 )
@@ -553,7 +534,7 @@ class ForkTsCheckerWebpackPlugin {
             } catch (error) {
               if (!this.silent && this.logger) {
                 this.logger.error(
-                  this.colors.red(
+                  chalk.red(
                     'Cannot start checker service: ' +
                       (error ? error.toString() : 'Unknown error')
                   )
@@ -739,13 +720,13 @@ class ForkTsCheckerWebpackPlugin {
       );
       this.logger.info(
         'Using ' +
-          this.colors.bold(
+          chalk.bold(
             this.workersNumber === 1
               ? '1 worker'
               : this.workersNumber + ' workers'
           ) +
           ' with ' +
-          this.colors.bold(this.memoryLimit + 'MB') +
+          chalk.bold(this.memoryLimit + 'MB') +
           ' memory limit'
       );
 
@@ -753,7 +734,7 @@ class ForkTsCheckerWebpackPlugin {
         this.logger.info(
           'Watching:' +
             (this.watchPaths.length > 1 ? '\n' : ' ') +
-            this.watchPaths.map(wpath => this.colors.grey(wpath)).join('\n')
+            this.watchPaths.map(wpath => chalk.grey(wpath)).join('\n')
         );
       }
     }
@@ -796,10 +777,8 @@ class ForkTsCheckerWebpackPlugin {
 
     this.checkDone = true;
     this.elapsed = process.hrtime(this.started);
-    this.diagnostics = message.diagnostics.map(
-      NormalizedMessage.createFromJSON
-    );
-    this.lints = message.lints.map(NormalizedMessage.createFromJSON);
+    this.diagnostics = message.diagnostics;
+    this.lints = message.lints;
 
     if (this.ignoreDiagnostics.length) {
       this.diagnostics = this.diagnostics.filter(
@@ -817,11 +796,11 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     if (this.reportFiles.length) {
-      const reportFilesPredicate = (diagnostic: NormalizedMessage): boolean => {
-        if (diagnostic.file) {
+      const reportFilesPredicate = (issue: Issue): boolean => {
+        if (issue.file) {
           const relativeFileName = path.relative(
             this.compiler.options.context,
-            diagnostic.file
+            issue.file
           );
           const matchResult = micromatch([relativeFileName], this.reportFiles);
 
@@ -875,7 +854,7 @@ class ForkTsCheckerWebpackPlugin {
     }
     if (!this.silent && this.logger) {
       this.logger.error(
-        this.colors.red(
+        chalk.red(
           'Type checking and linting aborted - probably out of memory. ' +
             'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
         )
@@ -909,24 +888,19 @@ class ForkTsCheckerWebpackPlugin {
         );
       }
 
-      this.diagnostics.concat(this.lints).forEach(message => {
+      this.diagnostics.concat(this.lints).forEach(issue => {
         // webpack message format
         const formatted = {
-          rawMessage:
-            message.severity.toUpperCase() +
-            ' ' +
-            message.getFormattedCode() +
-            ': ' +
-            message.content,
-          message: this.formatter(message, this.useColors),
+          rawMessage: this.rawFormatter(issue),
+          message: this.formatter(issue),
           location: {
-            line: message.line,
-            character: message.character
+            line: issue.line,
+            character: issue.character
           },
-          file: message.file
+          file: issue.file
         };
 
-        if (message.isWarningSeverity()) {
+        if (issue.severity === IssueSeverity.WARNING) {
           if (!this.ignoreLintWarnings) {
             compilation.warnings.push(formatted);
           }
@@ -944,17 +918,14 @@ class ForkTsCheckerWebpackPlugin {
     return function noopEmitCallback() {};
   }
 
-  private printLoggerMessage(
-    message: NormalizedMessage,
-    formattedMessage: string
-  ): void {
-    if (message.isWarningSeverity()) {
+  private printLoggerMessage(issue: Issue, formattedIssue: string): void {
+    if (issue.severity === IssueSeverity.WARNING) {
       if (this.ignoreLintWarnings) {
         return;
       }
-      this.logger.warn(formattedMessage);
+      this.logger.warn(formattedIssue);
     } else {
-      this.logger.error(formattedMessage);
+      this.logger.error(formattedIssue);
     }
   }
 
@@ -985,31 +956,29 @@ class ForkTsCheckerWebpackPlugin {
 
       if (!this.silent && this.logger) {
         if (this.diagnostics.length || this.lints.length) {
-          (this.lints || []).concat(this.diagnostics).forEach(message => {
-            const formattedMessage = this.formatter(message, this.useColors);
+          (this.lints || []).concat(this.diagnostics).forEach(diagnostic => {
+            const formattedDiagnostic = this.formatter(diagnostic);
 
-            this.printLoggerMessage(message, formattedMessage);
+            this.printLoggerMessage(diagnostic, formattedDiagnostic);
           });
         }
         if (!this.diagnostics.length) {
-          this.logger.info(this.colors.green('No type errors found'));
+          this.logger.info(chalk.green('No type errors found'));
         }
         if (this.tslint && !this.lints.length) {
-          this.logger.info(this.colors.green('No lint errors found'));
+          this.logger.info(chalk.green('No lint errors found'));
         }
         this.logger.info(
           'Version: typescript ' +
-            this.colors.bold(this.typescriptVersion) +
+            chalk.bold(this.typescriptVersion) +
             (this.eslint
-              ? ', eslint ' + this.colors.bold(this.eslintVersion as string)
+              ? ', eslint ' + chalk.bold(this.eslintVersion as string)
               : this.tslint
-              ? ', tslint ' + this.colors.bold(this.tslintVersion as string)
+              ? ', tslint ' + chalk.bold(this.tslintVersion as string)
               : '')
         );
         this.logger.info(
-          'Time: ' +
-            this.colors.bold(Math.round(elapsed / 1e6).toString()) +
-            'ms'
+          'Time: ' + chalk.bold(Math.round(elapsed / 1e6).toString()) + 'ms'
         );
       }
     };

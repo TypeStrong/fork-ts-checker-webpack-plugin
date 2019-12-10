@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[UNIT] issue/tslint/TsLintIssueFactory creates Issue from TsLint RuleFailure: {"getFailure": [Function getFailure], "getFileName": [Function getFileName], "getRuleName": [Function getRuleName], "getRuleSeverity": [Function getRuleSeverity], "getStartPosition": [Function getStartPosition]} 1`] = `
+Object {
+  "character": 3,
+  "code": "no-unused-vars",
+  "file": "src/test.ts",
+  "line": 3,
+  "message": "'x' is assigned a value but never used.",
+  "origin": "tslint",
+  "severity": "warning",
+}
+`;
+
+exports[`[UNIT] issue/tslint/TsLintIssueFactory creates Issue from TsLint RuleFailure: {"getFailure": [Function getFailure], "getFileName": [Function getFileName], "getRuleName": [Function getRuleName], "getRuleSeverity": [Function getRuleSeverity], "getStartPosition": [Function getStartPosition]} 2`] = `
+Object {
+  "character": 15,
+  "code": "no-unused-vars",
+  "file": "src/index.ts",
+  "line": 11,
+  "message": "'y' is assigned a value but never used.",
+  "origin": "tslint",
+  "severity": "error",
+}
+`;
+
+exports[`[UNIT] issue/tslint/TsLintIssueFactory creates Issues from TsLint RuleFailures: [[Object], [Object]] 1`] = `
+Array [
+  Object {
+    "character": 15,
+    "code": "no-unused-vars",
+    "file": "src/index.ts",
+    "line": 11,
+    "message": "'y' is assigned a value but never used.",
+    "origin": "tslint",
+    "severity": "error",
+  },
+  Object {
+    "character": 3,
+    "code": "no-unused-vars",
+    "file": "src/test.ts",
+    "line": 3,
+    "message": "'x' is assigned a value but never used.",
+    "origin": "tslint",
+    "severity": "warning",
+  },
+]
+`;

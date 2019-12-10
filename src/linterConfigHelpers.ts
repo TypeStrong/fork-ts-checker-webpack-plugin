@@ -1,12 +1,14 @@
 import * as path from 'path';
-// tslint:disable-next-line:no-implicit-dependencies
-import { Configuration } from 'tslint';
 import * as minimatch from 'minimatch';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as tslint from 'tslint'; // imported for types alone
+
 import { fileExistsSync } from './FsHelper';
 
 // Need some augmentation here - linterOptions.exclude is not (yet) part of the official
 // types for tslint.
-export interface ConfigurationFile extends Configuration.IConfigurationFile {
+export interface ConfigurationFile
+  extends tslint.Configuration.IConfigurationFile {
   linterOptions?: {
     typeCheck?: boolean;
     exclude?: string[];
@@ -15,9 +17,9 @@ export interface ConfigurationFile extends Configuration.IConfigurationFile {
 
 export function loadLinterConfig(configFile: string): ConfigurationFile {
   // tslint:disable-next-line:no-implicit-dependencies
-  const tslint = require('tslint');
+  const { Configuration } = require('tslint');
 
-  return tslint.Configuration.loadConfigurationFromPath(
+  return Configuration.loadConfigurationFromPath(
     configFile
   ) as ConfigurationFile;
 }

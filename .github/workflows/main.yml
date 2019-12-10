@@ -48,7 +48,7 @@ jobs:
           - '10'
           - '12'
         packages:
-          - webpack@^5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4
+          - webpack@5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4
           - webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.4
           - webpack@^3.10.0 ts-loader@^3.4.0 vue-loader@^13.5.0
           - webpack@^2.7.0 ts-loader@^3.4.0 vue-loader@^13.5.0

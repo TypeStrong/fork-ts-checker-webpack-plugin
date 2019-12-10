@@ -1,14 +1,15 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { RuleFailure } from 'tslint'; // import for types alone
-import { CLIEngine } from 'eslint'; // import for types alone
+import * as tslint from 'tslint'; // import for types alone
+// tslint:disable-next-line:no-implicit-dependencies
+import * as eslint from 'eslint'; // import for types alone
 
 export interface DataShape {
   source?: ts.SourceFile;
   linted: boolean;
-  tslints: RuleFailure[];
-  eslints: CLIEngine.LintReport[];
+  tslints: tslint.RuleFailure[];
+  eslints: eslint.CLIEngine.LintReport[];
 }
 
 export class FilesRegister {

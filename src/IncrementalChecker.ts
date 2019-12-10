@@ -3,9 +3,11 @@ import * as path from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
 // tslint:disable-next-line:no-implicit-dependencies
-import { Linter, RuleFailure } from 'tslint'; // Imported for types alone; actual requires take place in methods below
+import * as tslint from 'tslint'; // Imported for types alone; actual requires take place in methods below
 // tslint:disable-next-line:no-implicit-dependencies
-import * as eslinttypes from 'eslint';
+import * as eslint from 'eslint';
+import * as minimatch from 'minimatch';
+
 import { FilesRegister } from './FilesRegister';
 import { FilesWatcher } from './FilesWatcher';
 import {
@@ -14,14 +16,12 @@ import {
   makeGetLinterConfig
 } from './linterConfigHelpers';
 import { WorkSet } from './WorkSet';
-import { NormalizedMessage } from './NormalizedMessage';
 import { CancellationToken } from './CancellationToken';
 import {
   ResolveModuleName,
   ResolveTypeReferenceDirective,
   makeResolutionFunctions
 } from './resolution';
-import * as minimatch from 'minimatch';
 import { VueProgram } from './VueProgram';
 import { throwIfIsInvalidSourceFileError } from './FsHelper';
 import {
@@ -30,6 +30,12 @@ import {
 } from './IncrementalCheckerInterface';
 import { createEslinter } from './createEslinter';
 import { VueOptions } from './types/vue-options';
+import {
+  Issue,
+  createIssuesFromEsLintReports,
+  createIssuesFromTsDiagnostics,
+  createIssuesFromTsLintRuleFailures
+} from './issue';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   // it's shared between compilations
@@ -42,7 +48,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     eslints: []
   }));
 
-  private linter?: Linter;
+  private linter?: tslint.Linter;
   private linterConfig?: ConfigurationFile;
 
   // Use empty array of exclusions in general to avoid having
@@ -59,14 +65,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private readonly context: string;
   private readonly programConfigFile: string;
   private readonly compilerOptions: object;
-  private readonly createNormalizedMessageFromDiagnostic: (
-    diagnostic: ts.Diagnostic
-  ) => NormalizedMessage;
   private readonly linterConfigFile: string | boolean;
   private readonly linterAutoFix: boolean;
-  private readonly createNormalizedMessageFromRuleFailure: (
-    ruleFailure: RuleFailure
-  ) => NormalizedMessage;
   private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
   private readonly watchPaths: string[];
   private readonly workNumber: number;
@@ -83,10 +83,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     context,
     programConfigFile,
     compilerOptions,
-    createNormalizedMessageFromDiagnostic,
     linterConfigFile,
     linterAutoFix,
-    createNormalizedMessageFromRuleFailure,
     eslinter,
     watchPaths,
     workNumber = 0,
@@ -100,10 +98,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     this.context = context;
     this.programConfigFile = programConfigFile;
     this.compilerOptions = compilerOptions;
-    this.createNormalizedMessageFromDiagnostic = createNormalizedMessageFromDiagnostic;
     this.linterConfigFile = linterConfigFile;
     this.linterAutoFix = linterAutoFix;
-    this.createNormalizedMessageFromRuleFailure = createNormalizedMessageFromRuleFailure;
     this.eslinter = eslinter;
     this.watchPaths = watchPaths;
     this.workNumber = workNumber;
@@ -234,7 +230,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     return new tslint.Linter({ fix: this.linterAutoFix }, program);
   }
 
-  public hasLinter(): boolean {
+  public hasTsLinter(): boolean {
     return !!this.linter;
   }
 
@@ -337,12 +333,14 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     );
   }
 
-  public getDiagnostics(cancellationToken: CancellationToken) {
+  public async getTypeScriptIssues(
+    cancellationToken: CancellationToken
+  ): Promise<Issue[]> {
     const { program } = this;
     if (!program) {
       throw new Error('Invoked called before program initialized');
     }
-    const diagnostics: ts.Diagnostic[] = [];
+    const tsDiagnostics: ts.Diagnostic[] = [];
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
 
@@ -359,7 +357,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
         cancellationToken.throwIfCancellationRequested();
       }
 
-      const diagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
+      const tsDiagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
         .checkSyntacticErrors
         ? program
             .getSemanticDiagnostics(sourceFile, cancellationToken)
@@ -368,18 +366,15 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
             )
         : program.getSemanticDiagnostics(sourceFile, cancellationToken);
 
-      diagnostics.push(...diagnosticsToRegister);
+      tsDiagnostics.push(...tsDiagnosticsToRegister);
     });
 
-    // normalize and deduplicate diagnostics
-    return Promise.resolve(
-      NormalizedMessage.deduplicate(
-        diagnostics.map(this.createNormalizedMessageFromDiagnostic)
-      )
-    );
+    return createIssuesFromTsDiagnostics(tsDiagnostics);
   }
 
-  public getLints(cancellationToken: CancellationToken) {
+  public async getTsLintIssues(
+    cancellationToken: CancellationToken
+  ): Promise<Issue[]> {
     const { linter } = this;
     if (!linter) {
       throw new Error('Cannot get lints - checker has no linter.');
@@ -439,19 +434,18 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // get all lints
     const lints = this.files
       .keys()
-      .reduce(
+      .reduce<tslint.RuleFailure[]>(
         (innerLints, filePath) =>
           innerLints.concat(this.files.getData(filePath).tslints),
-        [] as RuleFailure[]
+        []
       );
 
-    // normalize and deduplicate lints
-    return NormalizedMessage.deduplicate(
-      lints.map(this.createNormalizedMessageFromRuleFailure)
-    );
+    return createIssuesFromTsLintRuleFailures(lints);
   }
 
-  public getEsLints(cancellationToken: CancellationToken) {
+  public async getEsLintIssues(
+    cancellationToken: CancellationToken
+  ): Promise<Issue[]> {
     // select files to lint
     const filesToLint = this.files
       .keys()
@@ -469,16 +463,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     );
 
     // lint given work set
-    const currentEsLintErrors = new Map<
-      string,
-      eslinttypes.CLIEngine.LintReport
-    >();
+    const currentEsLintErrors = new Map<string, eslint.CLIEngine.LintReport>();
     workSet.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
 
-      const lints = this.eslinter!.getLints(fileName);
-      if (lints !== undefined) {
-        currentEsLintErrors.set(fileName, lints);
+      const report = this.eslinter!.getReport(fileName);
+      if (report !== undefined) {
+        currentEsLintErrors.set(fileName, report);
       }
     });
 
@@ -497,15 +488,14 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       });
     });
 
-    // get all lints
-    const allEsLintReports = this.files
+    const reports = this.files
       .keys()
-      .reduce(
+      .reduce<eslint.CLIEngine.LintReport[]>(
         (innerLints, filePath) =>
           innerLints.concat(this.files.getData(filePath).eslints),
-        [] as eslinttypes.CLIEngine.LintReport[]
+        []
       );
 
-    return this.eslinter!.getFormattedLints(allEsLintReports);
+    return createIssuesFromEsLintReports(reports);
   }
 }

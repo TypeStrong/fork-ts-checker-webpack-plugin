@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issue from TsDiagnostic: {"category": 0, "code": "1221", "file": [Object], "messageText": "Cannot assign object to the string type", "start": 12} 1`] = `
+Object {
+  "character": 11,
+  "code": "1221",
+  "file": "src/index.ts",
+  "line": 6,
+  "message": "Cannot assign object to the string type",
+  "origin": "typescript",
+  "severity": "warning",
+}
+`;
+
+exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issue from TsDiagnostic: {"category": 0, "code": "1221", "messageText": "Cannot assign object to the string type", "start": 12} 1`] = `
+Object {
+  "character": undefined,
+  "code": "1221",
+  "file": undefined,
+  "line": undefined,
+  "message": "Cannot assign object to the string type",
+  "origin": "typescript",
+  "severity": "warning",
+}
+`;
+
+exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issue from TsDiagnostic: {"category": 0, "code": "1221", "messageText": [Object], "start": 12} 1`] = `
+Object {
+  "character": undefined,
+  "code": "1221",
+  "file": undefined,
+  "line": undefined,
+  "message": "Cannot assign object to the string type
+  Another ident message
+    The most ident message",
+  "origin": "typescript",
+  "severity": "warning",
+}
+`;
+
+exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issue from TsDiagnostic: {"category": 1, "code": "4221", "file": [Object], "messageText": "Cannot assign string to the number type", "start": 100} 1`] = `
+Object {
+  "character": 3,
+  "code": "4221",
+  "file": "src/test.ts",
+  "line": 3,
+  "message": "Cannot assign string to the number type",
+  "origin": "typescript",
+  "severity": "error",
+}
+`;
+
+exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issues from TsDiagnostics: [[Object], [Object], [Object], [Object]] 1`] = `
+Array [
+  Object {
+    "character": undefined,
+    "code": "1221",
+    "file": undefined,
+    "line": undefined,
+    "message": "Cannot assign object to the string type",
+    "origin": "typescript",
+    "severity": "warning",
+  },
+  Object {
+    "character": undefined,
+    "code": "1221",
+    "file": undefined,
+    "line": undefined,
+    "message": "Cannot assign object to the string type
+  Another ident message
+    The most ident message",
+    "origin": "typescript",
+    "severity": "warning",
+  },
+  Object {
+    "character": 11,
+    "code": "1221",
+    "file": "src/index.ts",
+    "line": 6,
+    "message": "Cannot assign object to the string type",
+    "origin": "typescript",
+    "severity": "warning",
+  },
+  Object {
+    "character": 3,
+    "code": "4221",
+    "file": "src/test.ts",
+    "line": 3,
+    "message": "Cannot assign string to the number type",
+    "origin": "typescript",
+    "severity": "error",
+  },
+]
+`;

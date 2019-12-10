@@ -1,6 +1,6 @@
-import { NormalizedMessage } from './NormalizedMessage';
+import { Issue } from './issue';
 
 export interface Message {
-  diagnostics: NormalizedMessage[];
-  lints: NormalizedMessage[];
+  diagnostics: Issue[];
+  lints: Issue[];
 }

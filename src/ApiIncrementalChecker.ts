@@ -1,11 +1,12 @@
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import { Linter, LintResult, RuleFailure } from 'tslint'; // Imported for types alone
+import * as tslint from 'tslint'; // Imported for types alone
 // tslint:disable-next-line:no-implicit-dependencies
-import * as eslinttypes from 'eslint'; // Imported for types alone
-import * as minimatch from 'minimatch';
+import * as eslint from 'eslint'; // Imported for types alone
 import * as path from 'path';
+import * as minimatch from 'minimatch';
+
 import {
   IncrementalCheckerInterface,
   ApiIncrementalCheckerParams
@@ -16,10 +17,14 @@ import {
   loadLinterConfig,
   makeGetLinterConfig
 } from './linterConfigHelpers';
-import { NormalizedMessage } from './NormalizedMessage';
 import { CompilerHost } from './CompilerHost';
 import { fileExistsSync } from './FsHelper';
 import { createEslinter } from './createEslinter';
+import {
+  createIssuesFromTsDiagnostics,
+  createIssuesFromTsLintRuleFailures,
+  createIssuesFromEsLintReports
+} from './issue';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   private linterConfig?: ConfigurationFile;
@@ -28,25 +33,16 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   protected readonly tsIncrementalCompiler: CompilerHost;
   private linterExclusions: minimatch.IMinimatch[] = [];
 
-  private currentLintErrors = new Map<string, LintResult>();
-  private currentEsLintErrors = new Map<
-    string,
-    eslinttypes.CLIEngine.LintReport
-  >();
+  private currentLintErrors = new Map<string, tslint.LintResult>();
+  private currentEsLintErrors = new Map<string, eslint.CLIEngine.LintReport>();
   private lastUpdatedFiles: string[] = [];
   private lastRemovedFiles: string[] = [];
 
   private readonly hasFixedConfig: boolean;
 
   private readonly context: string;
-  private readonly createNormalizedMessageFromDiagnostic: (
-    diagnostic: ts.Diagnostic
-  ) => NormalizedMessage;
   private readonly linterConfigFile: string | boolean;
   private readonly linterAutoFix: boolean;
-  private readonly createNormalizedMessageFromRuleFailure: (
-    ruleFailure: RuleFailure
-  ) => NormalizedMessage;
   private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
 
   constructor({
@@ -54,10 +50,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     context,
     programConfigFile,
     compilerOptions,
-    createNormalizedMessageFromDiagnostic,
     linterConfigFile,
     linterAutoFix,
-    createNormalizedMessageFromRuleFailure,
     eslinter,
     vue,
     checkSyntacticErrors = false,
@@ -65,10 +59,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     resolveTypeReferenceDirective
   }: ApiIncrementalCheckerParams) {
     this.context = context;
-    this.createNormalizedMessageFromDiagnostic = createNormalizedMessageFromDiagnostic;
     this.linterConfigFile = linterConfigFile;
     this.linterAutoFix = linterAutoFix;
-    this.createNormalizedMessageFromRuleFailure = createNormalizedMessageFromRuleFailure;
     this.eslinter = eslinter;
 
     this.hasFixedConfig = typeof this.linterConfigFile === 'string';
@@ -112,14 +104,14 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.context
   );
 
-  private createLinter(program: ts.Program): Linter {
+  private createLinter(program: ts.Program): tslint.Linter {
     // tslint:disable-next-line:no-implicit-dependencies
-    const tslint = require('tslint');
+    const { Linter } = require('tslint');
 
-    return new tslint.Linter({ fix: this.linterAutoFix }, program);
+    return new Linter({ fix: this.linterAutoFix }, program);
   }
 
-  public hasLinter(): boolean {
+  public hasTsLinter(): boolean {
     return !!this.linterConfigFile;
   }
 
@@ -138,17 +130,15 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     // do nothing
   }
 
-  public async getDiagnostics(_cancellationToken: CancellationToken) {
-    const diagnostics = await this.tsIncrementalCompiler.processChanges();
-    this.lastUpdatedFiles = diagnostics.updatedFiles;
-    this.lastRemovedFiles = diagnostics.removedFiles;
+  public async getTypeScriptIssues(_cancellationToken: CancellationToken) {
+    const tsDiagnostics = await this.tsIncrementalCompiler.processChanges();
+    this.lastUpdatedFiles = tsDiagnostics.updatedFiles;
+    this.lastRemovedFiles = tsDiagnostics.removedFiles;
 
-    return NormalizedMessage.deduplicate(
-      diagnostics.results.map(this.createNormalizedMessageFromDiagnostic)
-    );
+    return createIssuesFromTsDiagnostics(tsDiagnostics.results);
   }
 
-  public getLints(_cancellationToken: CancellationToken) {
+  public async getTsLintIssues(_cancellationToken: CancellationToken) {
     for (const updatedFile of this.lastUpdatedFiles) {
       if (this.isFileExcluded(updatedFile)) {
         continue;
@@ -191,12 +181,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       allLints.push(...value.failures);
     }
 
-    return NormalizedMessage.deduplicate(
-      allLints.map(this.createNormalizedMessageFromRuleFailure)
-    );
+    return createIssuesFromTsLintRuleFailures(allLints);
   }
 
-  public getEsLints(cancellationToken: CancellationToken) {
+  public async getEsLintIssues(cancellationToken: CancellationToken) {
     for (const removedFile of this.lastRemovedFiles) {
       this.currentEsLintErrors.delete(removedFile);
     }
@@ -207,14 +195,16 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
         continue;
       }
 
-      const lints = this.eslinter!.getLints(updatedFile);
-      if (lints !== undefined) {
-        this.currentEsLintErrors.set(updatedFile, lints);
+      const report = this.eslinter!.getReport(updatedFile);
+
+      if (report !== undefined) {
+        this.currentEsLintErrors.set(updatedFile, report);
       } else if (this.currentEsLintErrors.has(updatedFile)) {
         this.currentEsLintErrors.delete(updatedFile);
       }
     }
 
-    return this.eslinter!.getFormattedLints(this.currentEsLintErrors.values());
+    const reports = Array.from(this.currentEsLintErrors.values());
+    return createIssuesFromEsLintReports(reports);
   }
 }

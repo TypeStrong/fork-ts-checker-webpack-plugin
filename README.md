@@ -178,15 +178,12 @@ new ForkTsCheckerWebpackPlugin({
 });
 ```
 
-- **colors** `boolean`:
-  If `false`, disables built-in colors in logger messages. Default: `true`.
-
 - **logger** `object`:
   Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.
 
-- **formatter** `'default' | 'codeframe' | ((message: NormalizedMessage, useColors: boolean) => string)`:
+- **formatter** `'default' | 'codeframe' | (diagnostic: Diagnostic) => string)`:
   Formatter for diagnostics and lints. By default uses `default` formatter. You can also pass your own formatter as a function
-  (see `src/NormalizedMessage.js` and `src/formatter/` for api reference).
+  (see `src/diagnostic/` and `src/formatter/` for API reference).
 
 - **formatterOptions** `object`:
   Options passed to formatters (currently only `codeframe` - see [available options](https://www.npmjs.com/package/babel-code-frame#options))

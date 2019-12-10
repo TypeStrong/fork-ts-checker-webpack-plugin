@@ -1,5 +1,5 @@
-import * as chokidar from 'chokidar';
 import * as path from 'path';
+import * as chokidar from 'chokidar';
 
 export class FilesWatcher {
   private watchers: chokidar.FSWatcher[];

@@ -92,7 +92,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     needs: [build, test]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta')

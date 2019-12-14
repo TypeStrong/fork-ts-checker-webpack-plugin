@@ -5,7 +5,7 @@
 
 [![npm version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
 [![npm beta version](https://img.shields.io/npm/v/fork-ts-checker-webpack-plugin/beta.svg)](https://www.npmjs.com/package/fork-ts-checker-webpack-plugin)
-[![build status](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin.svg?branch=master)](https://travis-ci.org/TypeStrong/fork-ts-checker-webpack-plugin)
+[![build status](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/workflows/CI/CD/badge.svg?branch=master&event=push)](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/actions?query=branch%3Amaster+event%3Apush)
 [![downloads](http://img.shields.io/npm/dm/fork-ts-checker-webpack-plugin.svg)](https://npmjs.org/package/fork-ts-checker-webpack-plugin)
 [![commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)

@@ -50,8 +50,6 @@ jobs:
         packages:
           - webpack@5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4
           - webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.4
-          - webpack@^3.10.0 ts-loader@^3.4.0 vue-loader@^13.5.0
-          - webpack@^2.7.0 ts-loader@^3.4.0 vue-loader@^13.5.0
 
     steps:
     - uses: actions/checkout@v1
@@ -117,6 +115,9 @@ jobs:
       
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Install semantic-release
+        run: yarn global add semantic-release@16.0.0-beta.18
         
       - name: Download build artifact
         uses: actions/download-artifact@v1
@@ -124,4 +125,4 @@ jobs:
           name: lib
 
       - name: Release
-        run: yarn exec semantic-release
+        run: semantic-release

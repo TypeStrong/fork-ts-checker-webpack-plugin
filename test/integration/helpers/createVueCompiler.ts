@@ -2,7 +2,7 @@
 // @ts-ignore
 import { rpcMethods } from './rpc';
 import * as path from 'path';
-import { CreateCompilerOptions, createCompiler, webpackMajorVersion } from '.';
+import { CreateCompilerOptions, createCompiler } from '.';
 import { RpcProvider } from 'worker-rpc';
 
 let VueLoaderPlugin: any;

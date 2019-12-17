@@ -15,7 +15,6 @@ import {
   loadLinterConfig,
   makeGetLinterConfig
 } from './linterConfigHelpers';
-import { WorkSet } from './WorkSet';
 import { CancellationToken } from './CancellationToken';
 import {
   ResolveModuleName,
@@ -69,8 +68,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private readonly linterAutoFix: boolean;
   private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
   private readonly watchPaths: string[];
-  private readonly workNumber: number;
-  private readonly workDivision: number;
   private readonly vue: VueOptions;
   private readonly checkSyntacticErrors: boolean;
   private readonly resolveModuleName: ResolveModuleName | undefined;
@@ -87,8 +84,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     linterAutoFix,
     eslinter,
     watchPaths,
-    workNumber = 0,
-    workDivision = 1,
     vue,
     checkSyntacticErrors = false,
     resolveModuleName,
@@ -102,8 +97,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     this.linterAutoFix = linterAutoFix;
     this.eslinter = eslinter;
     this.watchPaths = watchPaths;
-    this.workNumber = workNumber;
-    this.workDivision = workDivision;
     this.vue = vue;
     this.checkSyntacticErrors = checkSyntacticErrors;
     this.resolveModuleName = resolveModuleName;
@@ -344,15 +337,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
 
-    // calculate subset of work to do
-    const workSet = new WorkSet<ts.SourceFile>(
-      filesToCheck,
-      this.workNumber,
-      this.workDivision
-    );
-
-    // check given work set
-    workSet.forEach(sourceFile => {
+    filesToCheck.forEach(sourceFile => {
       if (cancellationToken) {
         cancellationToken.throwIfCancellationRequested();
       }
@@ -389,15 +374,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
           !IncrementalChecker.isFileExcluded(filePath, this.linterExclusions)
       );
 
-    // calculate subset of work to do
-    const workSet = new WorkSet<string>(
-      filesToLint,
-      this.workNumber,
-      this.workDivision
-    );
-
-    // lint given work set
-    workSet.forEach(fileName => {
+    filesToLint.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
       const config = this.hasFixedConfig
         ? this.linterConfig
@@ -455,16 +432,8 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
           !IncrementalChecker.isFileExcluded(filePath, this.linterExclusions)
       );
 
-    // calculate subset of work to do
-    const workSet = new WorkSet<string>(
-      filesToLint,
-      this.workNumber,
-      this.workDivision
-    );
-
-    // lint given work set
     const currentEsLintErrors = new Map<string, eslint.CLIEngine.LintReport>();
-    workSet.forEach(fileName => {
+    filesToLint.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
 
       const report = this.eslinter!.getReport(fileName);

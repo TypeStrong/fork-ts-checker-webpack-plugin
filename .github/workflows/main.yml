@@ -42,7 +42,7 @@ jobs:
         os: 
           - ubuntu-latest
           - macos-latest
-        #  - windows-latest # to be uncommented when we drop multi-process mode
+          - windows-latest
         node: 
           - '8'
           - '10'

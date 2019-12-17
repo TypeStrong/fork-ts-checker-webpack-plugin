@@ -34,6 +34,4 @@ export interface ApiIncrementalCheckerParams {
 
 export interface IncrementalCheckerParams extends ApiIncrementalCheckerParams {
   watchPaths: string[];
-  workNumber: number;
-  workDivision: number;
 }

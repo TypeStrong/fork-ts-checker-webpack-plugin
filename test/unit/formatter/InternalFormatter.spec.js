@@ -1,5 +1,6 @@
 const { IssueSeverity, IssueOrigin } = require('../../../lib/issue');
 const { createInternalFormatter } = require('../../../lib/formatter');
+const os = require('os');
 
 describe('[UNIT] formatter/InternalFormatter', () => {
   it.each([
@@ -25,7 +26,7 @@ describe('[UNIT] formatter/InternalFormatter', () => {
           ``,
           `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - process out of memory`,
           `Abort trap: 6`
-        ].join('\n')
+        ].join(os.EOL)
       },
       [
         'INTERNAL ERROR: Stack overflow - out of memory',
@@ -36,7 +37,7 @@ describe('[UNIT] formatter/InternalFormatter', () => {
         ``,
         `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - process out of memory`,
         `Abort trap: 6`
-      ].join('\n')
+      ].join(os.EOL)
     ]
   ])('formats issue message "%p" to "%p"', (issue, expectedFormatted) => {
     const formatter = createInternalFormatter();

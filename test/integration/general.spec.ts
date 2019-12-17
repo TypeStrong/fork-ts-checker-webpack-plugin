@@ -55,21 +55,6 @@ describe.each([[true], [false]])(
       expect(plugin['logger']).toBe(console);
     });
 
-    it('should set watch to empty array by default', () => {
-      const plugin = new ForkTsCheckerWebpackPlugin({});
-
-      expect(plugin['watch']).toEqual([]);
-    });
-
-    it('should set watch to one element array for string', () => {
-      const plugin = new ForkTsCheckerWebpackPlugin({
-        useTypescriptIncrementalApi: false,
-        watch: '/test'
-      });
-
-      expect(plugin['watch']).toEqual(['/test']);
-    });
-
     it('should find lint warnings', callback => {
       const fileName = 'lintingError2';
       const { compiler } = helpers.testLintAutoFixTest({
@@ -547,27 +532,6 @@ describe.each([[true], [false]])(
         },
         prepareWebpackConfig({ plugins, ...config }) {
           return { ...config, plugins: cloneDeep(plugins) };
-        }
-      });
-
-      compiler.run((err, stats) => {
-        expect(stats.compilation.errors).toEqual([
-          expect.objectContaining({
-            message: expect.stringContaining('TS2322')
-          })
-        ]);
-        callback();
-      });
-    });
-
-    /**
-     * regression test for #300
-     */
-    it('should work when `path` is set with relative paths', callback => {
-      const compiler = createCompiler({
-        pluginOptions: {
-          tsconfig: 'tsconfig-semantic-error-only.json',
-          watch: ['./test1', './test2']
         }
       });
 

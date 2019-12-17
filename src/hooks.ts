@@ -38,12 +38,7 @@ function createForkTsCheckerWebpackPluginHooks(): ForkTsCheckerHookMap {
     cancel: new SyncHook(['cancellationToken']),
     serviceStartError: new SyncHook(['error']),
     waiting: new SyncHook(['hasTsLint']),
-    serviceStart: new SyncHook([
-      'tsconfigPath',
-      'tslintPath',
-      'watchPaths',
-      'memoryLimit'
-    ]),
+    serviceStart: new SyncHook(['tsconfigPath', 'tslintPath', 'memoryLimit']),
     receive: new SyncHook(['diagnostics', 'lints']),
     serviceOutOfMemory: new SyncHook([]),
     emit: new SyncHook(['diagnostics', 'lints', 'elapsed']),

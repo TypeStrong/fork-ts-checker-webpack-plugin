@@ -3,7 +3,6 @@ import * as path from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
 import { FilesRegister } from './FilesRegister';
-import { FilesWatcher } from './FilesWatcher';
 import {
   ResolveModuleName,
   ResolveTypeReferenceDirective,
@@ -125,7 +124,6 @@ export class VueProgram {
     programConfig: ts.ParsedCommandLine,
     basedir: string,
     files: FilesRegister,
-    watcher: FilesWatcher,
     oldProgram: ts.Program,
     userResolveModuleName: ResolveModuleName | undefined,
     userResolveTypeReferenceDirective:
@@ -173,16 +171,13 @@ export class VueProgram {
 
     // We need a host that can parse Vue SFCs (single file components).
     host.getSourceFile = (filePath, languageVersion, onError) => {
-      // first check if watcher is watching file - if not - check it's mtime
-      if (!watcher.isWatchingFile(filePath)) {
-        try {
-          const stats = fs.statSync(filePath);
+      try {
+        const stats = fs.statSync(filePath);
 
-          files.setMtime(filePath, stats.mtime.valueOf());
-        } catch (e) {
-          // probably file does not exists
-          files.remove(filePath);
-        }
+        files.setMtime(filePath, stats.mtime.valueOf());
+      } catch (e) {
+        // probably file does not exists
+        files.remove(filePath);
       }
 
       // get source file only if there is no source in files register

@@ -47,7 +47,6 @@ namespace ForkTsCheckerWebpackPlugin {
     eslint: boolean;
     /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
     eslintOptions: object;
-    watch: string | string[];
     async: boolean;
     ignoreDiagnostics: number[];
     ignoreLints: string[];
@@ -90,7 +89,6 @@ class ForkTsCheckerWebpackPlugin {
   private eslint: boolean = false;
   private eslintOptions: object = {};
   private tslintAutoFix: boolean = false;
-  private watch: string[];
   private ignoreDiagnostics: number[];
   private ignoreLints: string[];
   private ignoreLintWarnings: boolean;
@@ -108,7 +106,6 @@ class ForkTsCheckerWebpackPlugin {
 
   private tsconfigPath: string | undefined = undefined;
   private tslintPath: string | undefined = undefined;
-  private watchPaths: string[] = [];
 
   private compiler: any = undefined;
   private started: [number, number] | undefined = undefined;
@@ -144,8 +141,6 @@ class ForkTsCheckerWebpackPlugin {
     options = options || ({} as ForkTsCheckerWebpackPlugin.Options);
     this.options = { ...options };
 
-    this.watch =
-      typeof options.watch === 'string' ? [options.watch] : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
     this.ignoreLints = options.ignoreLints || [];
     this.ignoreLintWarnings = options.ignoreLintWarnings === true;
@@ -317,7 +312,6 @@ class ForkTsCheckerWebpackPlugin {
       typeof this.tslint === 'string'
         ? this.computeContextPath(this.tslint as string)
         : undefined;
-    this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
     const tsconfigOk = fileExistsSync(this.tsconfigPath);
@@ -628,7 +622,6 @@ class ForkTsCheckerWebpackPlugin {
       TSLINTAUTOFIX: String(this.tslintAutoFix),
       ESLINT: String(this.eslint),
       ESLINT_OPTIONS: JSON.stringify(this.eslintOptions),
-      WATCH: this.isWatching ? this.watchPaths.join('|') : '',
       MEMORY_LIMIT: String(this.memoryLimit),
       CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
       USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
@@ -670,7 +663,6 @@ class ForkTsCheckerWebpackPlugin {
       forkTsCheckerHooks.serviceStart.call(
         this.tsconfigPath,
         this.tslintPath,
-        this.watchPaths,
         this.memoryLimit
       );
     } else {
@@ -679,7 +671,6 @@ class ForkTsCheckerWebpackPlugin {
         legacyHookMap.serviceStart,
         this.tsconfigPath,
         this.tslintPath,
-        this.watchPaths,
         this.memoryLimit
       );
     }
@@ -690,14 +681,6 @@ class ForkTsCheckerWebpackPlugin {
           (this.tslint ? ' and linting' : '') +
           ' service...'
       );
-
-      if (this.watchPaths.length && this.isWatching) {
-        this.logger.info(
-          'Watching:' +
-            (this.watchPaths.length > 1 ? '\n' : ' ') +
-            this.watchPaths.map(wpath => chalk.grey(wpath)).join('\n')
-        );
-      }
     }
 
     this.service.on('exit', (code: string | number, signal: string) =>

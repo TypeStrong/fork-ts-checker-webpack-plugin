@@ -18,7 +18,7 @@ export interface IncrementalCheckerInterface {
   getEsLintIssues(cancellationToken: CancellationToken): Promise<Issue[]>;
 }
 
-export interface ApiIncrementalCheckerParams {
+export interface IncrementalCheckerParams {
   typescript: typeof ts;
   context: string;
   programConfigFile: string;
@@ -30,8 +30,4 @@ export interface ApiIncrementalCheckerParams {
   resolveModuleName: ResolveModuleName | undefined;
   resolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined;
   vue: VueOptions;
-}
-
-export interface IncrementalCheckerParams extends ApiIncrementalCheckerParams {
-  watchPaths: string[];
 }

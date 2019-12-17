@@ -9,7 +9,6 @@ import * as eslint from 'eslint';
 import * as minimatch from 'minimatch';
 
 import { FilesRegister } from './FilesRegister';
-import { FilesWatcher } from './FilesWatcher';
 import {
   ConfigurationFile,
   loadLinterConfig,
@@ -56,7 +55,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
   protected program?: ts.Program;
   protected programConfig?: ts.ParsedCommandLine;
-  private watcher?: FilesWatcher;
 
   private readonly hasFixedConfig: boolean;
 
@@ -67,7 +65,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   private readonly linterConfigFile: string | boolean;
   private readonly linterAutoFix: boolean;
   private readonly eslinter: ReturnType<typeof createEslinter> | undefined;
-  private readonly watchPaths: string[];
   private readonly vue: VueOptions;
   private readonly checkSyntacticErrors: boolean;
   private readonly resolveModuleName: ResolveModuleName | undefined;
@@ -83,7 +80,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     linterConfigFile,
     linterAutoFix,
     eslinter,
-    watchPaths,
     vue,
     checkSyntacticErrors = false,
     resolveModuleName,
@@ -96,7 +92,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     this.linterConfigFile = linterConfigFile;
     this.linterAutoFix = linterAutoFix;
     this.eslinter = eslinter;
-    this.watchPaths = watchPaths;
     this.vue = vue;
     this.checkSyntacticErrors = checkSyntacticErrors;
     this.resolveModuleName = resolveModuleName;
@@ -142,7 +137,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     typescript: typeof ts,
     programConfig: ts.ParsedCommandLine,
     files: FilesRegister,
-    watcher: FilesWatcher,
     oldProgram: ts.Program,
     userResolveModuleName: ResolveModuleName | undefined,
     userResolveTypeReferenceDirective: ResolveTypeReferenceDirective | undefined
@@ -186,16 +180,13 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     };
 
     host.getSourceFile = (filePath, languageVersion, onError) => {
-      // first check if watcher is watching file - if not - check it's mtime
-      if (!watcher.isWatchingFile(filePath)) {
-        try {
-          const stats = fs.statSync(filePath);
+      try {
+        const stats = fs.statSync(filePath);
 
-          files.setMtime(filePath, stats.mtime.valueOf());
-        } catch (e) {
-          // probably file does not exists
-          files.remove(filePath);
-        }
+        files.setMtime(filePath, stats.mtime.valueOf());
+      } catch (e) {
+        // probably file does not exists
+        files.remove(filePath);
       }
 
       // get source file only if there is no source in files register
@@ -242,23 +233,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
   }
 
   public nextIteration() {
-    if (!this.watcher) {
-      const watchExtensions = this.vue.enabled
-        ? ['.ts', '.tsx', '.vue']
-        : ['.ts', '.tsx'];
-      this.watcher = new FilesWatcher(this.watchPaths, watchExtensions);
-
-      // connect watcher with register
-      this.watcher.on('change', (filePath: string, stats: fs.Stats) => {
-        this.files.setMtime(filePath, stats.mtime.valueOf());
-      });
-      this.watcher.on('unlink', (filePath: string) => {
-        this.files.remove(filePath);
-      });
-
-      this.watcher.watch();
-    }
-
     if (!this.linterConfig && this.hasFixedConfig) {
       this.linterConfig = loadLinterConfig(this.linterConfigFile as string);
 
@@ -298,7 +272,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.programConfig,
       path.dirname(this.programConfigFile),
       this.files,
-      this.watcher!,
       this.program!,
       this.resolveModuleName,
       this.resolveTypeReferenceDirective,
@@ -319,7 +292,6 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       this.typescript,
       this.programConfig,
       this.files,
-      this.watcher!,
       this.program!,
       this.resolveModuleName,
       this.resolveTypeReferenceDirective

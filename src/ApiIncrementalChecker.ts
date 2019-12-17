@@ -9,7 +9,7 @@ import * as minimatch from 'minimatch';
 
 import {
   IncrementalCheckerInterface,
-  ApiIncrementalCheckerParams
+  IncrementalCheckerParams
 } from './IncrementalCheckerInterface';
 import { CancellationToken } from './CancellationToken';
 import {
@@ -57,7 +57,7 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     checkSyntacticErrors = false,
     resolveModuleName,
     resolveTypeReferenceDirective
-  }: ApiIncrementalCheckerParams) {
+  }: IncrementalCheckerParams) {
     this.context = context;
     this.linterConfigFile = linterConfigFile;
     this.linterAutoFix = linterAutoFix;

@@ -152,9 +152,6 @@ It helps to distinguish lints from TypeScript's diagnostics.
 - **tslintAutoFix** `boolean`:
   Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.
 
-- **watch** `string | string[]`:
-  Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls). Not applicable when `useTypescriptIncrementalApi` is `true`, in which case watching is handled automatically.
-
 - **async** `boolean`:
   True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.
   We recommend to set this to `false` in projects where type checking is faster than webpack's build - it's better for integration with other plugins. Another scenario where you might want to set this to `false` is if you use the `overlay` functionality of `webpack-dev-server`.
@@ -276,17 +273,17 @@ We hope this will be resolved in future; the issue can be tracked [here](https:/
 
 This plugin provides some custom webpack hooks (all are sync):
 
-| Event name                              | Hook Access Key      | Description                                                                    | Params                                                                     |
-| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                                                        |
-| `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                                                |
-| `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
-| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `memoryLimit` |
-| `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                                                    |
-| `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                                                          |
-| `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |
-| `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
-| `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
+| Event name                              | Hook Access Key      | Description                                                                    | Params                                      |
+| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
+| `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                         |
+| `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                 |
+| `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                           |
+| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `memoryLimit` |
+| `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                     |
+| `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                           |
+| `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                      |
+| `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`           |
+| `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`           |
 
 The **Event name** is there for backward compatibility with webpack 2/3. Regardless
 of the version of webpack (2, 3 or 4) you are using, we will always access plugin hooks with **Hook Access Keys** as

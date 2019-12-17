@@ -6,7 +6,6 @@ import { IncrementalChecker } from './IncrementalChecker';
 import { CancellationToken } from './CancellationToken';
 import {
   IncrementalCheckerInterface,
-  ApiIncrementalCheckerParams,
   IncrementalCheckerParams
 } from './IncrementalCheckerInterface';
 import { ApiIncrementalChecker } from './ApiIncrementalChecker';
@@ -56,7 +55,7 @@ const eslinter =
 function createChecker(
   useIncrementalApi: boolean
 ): IncrementalCheckerInterface {
-  const apiIncrementalCheckerParams: ApiIncrementalCheckerParams = {
+  const incrementalCheckerParams: IncrementalCheckerParams = {
     typescript,
     context: process.env.CONTEXT!,
     programConfigFile: process.env.TSCONFIG!,
@@ -71,19 +70,9 @@ function createChecker(
     vue: JSON.parse(process.env.VUE!)
   };
 
-  if (useIncrementalApi) {
-    return new ApiIncrementalChecker(apiIncrementalCheckerParams);
-  }
-
-  const incrementalCheckerParams: IncrementalCheckerParams = Object.assign(
-    {},
-    apiIncrementalCheckerParams,
-    {
-      watchPaths: process.env.WATCH === '' ? [] : process.env.WATCH!.split('|')
-    }
-  );
-
-  return new IncrementalChecker(incrementalCheckerParams);
+  return useIncrementalApi
+    ? new ApiIncrementalChecker(incrementalCheckerParams)
+    : new IncrementalChecker(incrementalCheckerParams);
 }
 
 const checker = createChecker(process.env.USE_INCREMENTAL_API === 'true');

@@ -3,7 +3,7 @@
     "target": "es6",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
     "strict": true,

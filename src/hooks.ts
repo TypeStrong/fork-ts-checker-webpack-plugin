@@ -16,21 +16,8 @@ type ForkTsCheckerHookMap = Record<
   ForkTsCheckerHooks,
   SyncHook | AsyncSeriesHook
 >;
-type ForkTsCheckerLegacyHookMap = Record<ForkTsCheckerHooks, string>;
 
 const compilerHookMap = new WeakMap<webpack.Compiler, ForkTsCheckerHookMap>();
-
-export const legacyHookMap: ForkTsCheckerLegacyHookMap = {
-  serviceBeforeStart: 'fork-ts-checker-service-before-start',
-  cancel: 'fork-ts-checker-cancel',
-  serviceStartError: 'fork-ts-checker-service-start-error',
-  waiting: 'fork-ts-checker-waiting',
-  serviceStart: 'fork-ts-checker-service-start',
-  receive: 'fork-ts-checker-receive',
-  serviceOutOfMemory: 'fork-ts-checker-service-out-of-memory',
-  emit: 'fork-ts-checker-emit',
-  done: 'fork-ts-checker-done'
-};
 
 function createForkTsCheckerWebpackPluginHooks(): ForkTsCheckerHookMap {
   return {

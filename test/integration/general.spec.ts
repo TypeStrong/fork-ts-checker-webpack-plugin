@@ -282,20 +282,13 @@ describe.each([[true], [false]])(
     it('should block emit on build mode', callback => {
       const compiler = createCompiler();
 
-      if ('hooks' in compiler) {
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          compiler
-        );
-        forkTsCheckerHooks.emit.tap('should block emit on build mode', () => {
-          expect(true).toBe(true);
-          callback();
-        });
-      } else {
-        (compiler as any).plugin('fork-ts-checker-emit', () => {
-          expect(true).toBe(true);
-          callback();
-        });
-      }
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.emit.tap('should block emit on build mode', () => {
+        expect(true).toBe(true);
+        callback();
+      });
 
       compiler.run(() => {
         /**/
@@ -308,27 +301,15 @@ describe.each([[true], [false]])(
         /**/
       });
 
-      if ('hooks' in compiler) {
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          compiler
-        );
-        forkTsCheckerHooks.done.tap(
-          'should not block emit on watch mode',
-          () => {
-            watching.close(() => {
-              expect(true).toBe(true);
-              callback();
-            });
-          }
-        );
-      } else {
-        (compiler as any).plugin('fork-ts-checker-done', () => {
-          watching.close(() => {
-            expect(true).toBe(true);
-            callback();
-          });
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.done.tap('should not block emit on watch mode', () => {
+        watching.close(() => {
+          expect(true).toBe(true);
+          callback();
         });
-      }
+      });
     });
 
     it('should block emit if async flag is false', callback => {
@@ -337,27 +318,18 @@ describe.each([[true], [false]])(
         /**/
       });
 
-      if ('hooks' in compiler) {
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          compiler
-        );
-        forkTsCheckerHooks.emit.tap(
-          'should block emit if async flag is false',
-          () => {
-            watching.close(() => {
-              expect(true).toBe(true);
-              callback();
-            });
-          }
-        );
-      } else {
-        (compiler as any).plugin('fork-ts-checker-emit', () => {
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.emit.tap(
+        'should block emit if async flag is false',
+        () => {
           watching.close(() => {
             expect(true).toBe(true);
             callback();
           });
-        });
-      }
+        }
+      );
     });
 
     it('kills the service when the watch is done', done => {
@@ -366,27 +338,18 @@ describe.each([[true], [false]])(
         /**/
       });
 
-      if ('hooks' in compiler) {
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          compiler
-        );
-        forkTsCheckerHooks.done.tap(
-          'kills the service when the watch is done',
-          () => {
-            watching.close(() => {
-              expect(killServiceWasCalled()).toBe(true);
-              done();
-            });
-          }
-        );
-      } else {
-        (compiler as any).plugin('fork-ts-checker-done', () => {
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.done.tap(
+        'kills the service when the watch is done',
+        () => {
           watching.close(() => {
             expect(killServiceWasCalled()).toBe(true);
             done();
           });
-        });
-      }
+        }
+      );
     });
 
     it('should throw error if config container wrong tsconfig.json path', () => {
@@ -419,45 +382,27 @@ describe.each([[true], [false]])(
       const compiler = createCompiler();
       let delayed = false;
 
-      if ('hooks' in compiler) {
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          compiler
-        );
-        forkTsCheckerHooks.serviceBeforeStart.tapAsync(
-          'should allow delaying service-start',
-          (cb: () => void) => {
-            setTimeout(() => {
-              delayed = true;
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        compiler
+      );
+      forkTsCheckerHooks.serviceBeforeStart.tapAsync(
+        'should allow delaying service-start',
+        (cb: () => void) => {
+          setTimeout(() => {
+            delayed = true;
 
-              cb();
-            }, 0);
-          }
-        );
+            cb();
+          }, 0);
+        }
+      );
 
-        forkTsCheckerHooks.serviceBeforeStart.tap(
-          'should allow delaying service-start',
-          () => {
-            expect(delayed).toBe(true);
-            callback();
-          }
-        );
-      } else {
-        (compiler as any).plugin(
-          'fork-ts-checker-service-before-start',
-          (cb: Function) => {
-            setTimeout(() => {
-              delayed = true;
-
-              cb();
-            }, 0);
-          }
-        );
-
-        (compiler as any).plugin('fork-ts-checker-service-start', () => {
+      forkTsCheckerHooks.serviceBeforeStart.tap(
+        'should allow delaying service-start',
+        () => {
           expect(delayed).toBe(true);
           callback();
-        });
-      }
+        }
+      );
 
       compiler.run(() => {
         /**  */

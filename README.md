@@ -15,7 +15,9 @@
 
 ## Installation
 
-This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **ESLint 6.0.0** or **TSLint 4.0**
+This plugin requires minimum **webpack 4.0**, **TypeScript 2.1** and optionally **ESLint 6.0.0** or **TSLint 4.0**
+
+If you depend on **webpack 2.0** or **webpack 3.0**, please use [older version](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
 
 ```sh
 # with npm
@@ -273,26 +275,21 @@ We hope this will be resolved in future; the issue can be tracked [here](https:/
 
 This plugin provides some custom webpack hooks (all are sync):
 
-| Event name                              | Hook Access Key      | Description                                                                    | Params                                      |
-| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
-| `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                         |
-| `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                 |
-| `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                           |
-| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `memoryLimit` |
-| `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                     |
-| `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                           |
-| `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                      |
-| `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`           |
-| `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`           |
-
-The **Event name** is there for backward compatibility with webpack 2/3. Regardless
-of the version of webpack (2, 3 or 4) you are using, we will always access plugin hooks with **Hook Access Keys** as
-described below.
+| Hook Access Key      | Description                                                                    | Params                                      |
+| -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
+| `cancel`             | Cancellation has been requested                                                | `cancellationToken`                         |
+| `waiting`            | Waiting for results                                                            | `hasTsLint`                                 |
+| `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                           |
+| `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `memoryLimit` |
+| `serviceStartError`  | Cannot start service                                                           | `error`                                     |
+| `serviceOutOfMemory` | Service is out of memory                                                       | -                                           |
+| `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                      |
+| `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`           |
+| `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`           |
 
 ### Accessing plugin hooks
 
-All plugin hooks are compatible with both [webpack](https://webpack.js.org) version
-4 and version 2. To access plugin hooks and tap into the event, we need to use
+To access plugin hooks and tap into the event, we need to use
 the `getCompilerHooks` static method. When we call this method with a [webpack compiler instance](https://webpack.js.org/api/node/),
 it returns the series of [tapable](https://github.com/webpack/tapable)
 hooks where you can pass in your callbacks.

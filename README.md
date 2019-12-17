@@ -203,6 +203,7 @@ new ForkTsCheckerWebpackPlugin({
 
 - **useTypescriptIncrementalApi** `boolean`:
   If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
+  Don't use it together with VueJs enabled - it's not supported yet.
 
 - **measureCompilationTime** `boolean`:
   If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,

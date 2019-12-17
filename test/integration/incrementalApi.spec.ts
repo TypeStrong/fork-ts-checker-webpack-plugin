@@ -31,14 +31,6 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     });
   }
 
-  it('should not allow multiple workers with incremental API', () => {
-    expect(() => {
-      createCompiler({
-        pluginOptions: { workers: 5 }
-      });
-    }).toThrowError();
-  });
-
   it('should not fix linting by default', callback => {
     const fileName = 'lintingError2';
     const { compiler } = helpers.testLintAutoFixTest({

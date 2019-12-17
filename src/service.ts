@@ -79,9 +79,7 @@ function createChecker(
     {},
     apiIncrementalCheckerParams,
     {
-      watchPaths: process.env.WATCH === '' ? [] : process.env.WATCH!.split('|'),
-      workNumber: parseInt(process.env.WORK_NUMBER!, 10) || 0,
-      workDivision: parseInt(process.env.WORK_DIVISION!, 10) || 1
+      watchPaths: process.env.WATCH === '' ? [] : process.env.WATCH!.split('|')
     }
   );
 

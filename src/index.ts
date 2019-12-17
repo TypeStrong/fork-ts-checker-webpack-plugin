@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as process from 'process';
 import * as childProcess from 'child_process';
-import * as os from 'os';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
 // tslint:disable-next-line:no-implicit-dependencies
@@ -60,7 +59,6 @@ namespace ForkTsCheckerWebpackPlugin {
     silent: boolean;
     checkSyntacticErrors: boolean;
     memoryLimit: number;
-    workers: number;
     vue: boolean | Partial<VueOptions>;
     useTypescriptIncrementalApi: boolean;
     measureCompilationTime: boolean;
@@ -78,16 +76,6 @@ namespace ForkTsCheckerWebpackPlugin {
  */
 class ForkTsCheckerWebpackPlugin {
   public static readonly DEFAULT_MEMORY_LIMIT = 2048;
-  public static readonly ONE_CPU = 1;
-  public static readonly ALL_CPUS = os.cpus && os.cpus() ? os.cpus().length : 1;
-  public static readonly ONE_CPU_FREE = Math.max(
-    1,
-    ForkTsCheckerWebpackPlugin.ALL_CPUS - 1
-  );
-  public static readonly TWO_CPUS_FREE = Math.max(
-    1,
-    ForkTsCheckerWebpackPlugin.ALL_CPUS - 2
-  );
 
   public static getCompilerHooks(
     compiler: any
@@ -111,7 +99,6 @@ class ForkTsCheckerWebpackPlugin {
   private silent: boolean;
   private async: boolean;
   private checkSyntacticErrors: boolean;
-  private workersNumber: number;
   private memoryLimit: number;
   private formatter: Formatter;
   private rawFormatter: Formatter;
@@ -170,7 +157,6 @@ class ForkTsCheckerWebpackPlugin {
     this.resolveModuleNameModule = options.resolveModuleNameModule;
     this.resolveTypeReferenceDirectiveModule =
       options.resolveTypeReferenceDirectiveModule;
-    this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit =
       options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
     this.formatter = createFormatter(
@@ -336,13 +322,6 @@ class ForkTsCheckerWebpackPlugin {
     // validate config
     const tsconfigOk = fileExistsSync(this.tsconfigPath);
     const tslintOk = !this.tslintPath || fileExistsSync(this.tslintPath);
-
-    if (this.useTypescriptIncrementalApi && this.workersNumber !== 1) {
-      throw new Error(
-        'Using typescript incremental compilation API ' +
-          'is currently only allowed with a single worker.'
-      );
-    }
 
     // validate logger
     if (this.logger) {
@@ -650,7 +629,6 @@ class ForkTsCheckerWebpackPlugin {
       ESLINT: String(this.eslint),
       ESLINT_OPTIONS: JSON.stringify(this.eslintOptions),
       WATCH: this.isWatching ? this.watchPaths.join('|') : '',
-      WORK_DIVISION: String(Math.max(1, this.workersNumber)),
       MEMORY_LIMIT: String(this.memoryLimit),
       CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
       USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
@@ -670,17 +648,13 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     this.service = childProcess.fork(
-      path.resolve(
-        __dirname,
-        this.workersNumber > 1 ? './cluster.js' : './service.js'
-      ),
+      path.resolve(__dirname, './service.js'),
       [],
       {
         env,
-        execArgv: (this.workersNumber > 1
-          ? []
-          : ['--max-old-space-size=' + this.memoryLimit]
-        ).concat(this.nodeArgs),
+        execArgv: ['--max-old-space-size=' + this.memoryLimit].concat(
+          this.nodeArgs
+        ),
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     );
@@ -697,7 +671,6 @@ class ForkTsCheckerWebpackPlugin {
         this.tsconfigPath,
         this.tslintPath,
         this.watchPaths,
-        this.workersNumber,
         this.memoryLimit
       );
     } else {
@@ -707,7 +680,6 @@ class ForkTsCheckerWebpackPlugin {
         this.tsconfigPath,
         this.tslintPath,
         this.watchPaths,
-        this.workersNumber,
         this.memoryLimit
       );
     }
@@ -717,17 +689,6 @@ class ForkTsCheckerWebpackPlugin {
         'Starting type checking' +
           (this.tslint ? ' and linting' : '') +
           ' service...'
-      );
-      this.logger.info(
-        'Using ' +
-          chalk.bold(
-            this.workersNumber === 1
-              ? '1 worker'
-              : this.workersNumber + ' workers'
-          ) +
-          ' with ' +
-          chalk.bold(this.memoryLimit + 'MB') +
-          ' memory limit'
       );
 
       if (this.watchPaths.length && this.isWatching) {

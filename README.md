@@ -56,7 +56,7 @@ add `CheckerPlugin` and delegate checker to the separate process. The problem wi
 it was a lot slower than [ts-loader](https://github.com/TypeStrong/ts-loader) on an incremental build (~20s vs ~3s).
 Secondly, we used [tslint](https://palantir.github.io/tslint) and we wanted to run this, along with type checker, in a separate process.
 This is why this plugin was created. To provide better performance, the plugin reuses Abstract Syntax Trees between compilations and shares
-these trees with TSLint. It can be scaled with a multi-process mode to utilize maximum CPU power.
+these trees with TSLint.
 
 ## Modules resolution
 
@@ -197,20 +197,12 @@ new ForkTsCheckerWebpackPlugin({
 - **memoryLimit** `number`:
   Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
 
-- **workers** `number`:
-  You can split type checking to a few workers to speed-up increment build. **Be careful** - if you don't want to increase build time, you
-  should keep free 1 core for _build_ and 1 core for a _system_ _(for example system with 4 CPUs should use max 2 workers)_. Second thing -
-  node doesn't share memory between workers - keep in mind that memory usage will increase. Be aware that in some scenarios increasing workers
-  number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
-
 - **vue** `boolean | { enabled: boolean, compiler: string }`:
   If `true` or `enabled: true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
   [Vue section](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
-  If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. In this mode you can only have 1
-  worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation
-  may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
+  If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
 
 - **measureCompilationTime** `boolean`:
   If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
@@ -263,13 +255,6 @@ new ForkTsCheckerWebpackPlugin({
 
 </details>
 
-### Pre-computed consts:
-
-- `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
-- `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
-- `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one CPU for build (probably will increase build time)
-- `ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE` - **recommended** - leave two CPUs free (one for build, one for system)
-
 ## Different behaviour in watch mode
 
 If you turn on [webpacks watch mode](https://webpack.js.org/configuration/watch/#watch) the `fork-ts-checker-notifier-webpack-plugin` will take care of logging type errors, _not_ webpack itself. That means if you set `silent: true` you won't see type errors in your console in watch mode.
@@ -295,7 +280,7 @@ This plugin provides some custom webpack hooks (all are sync):
 | `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                                                        |
 | `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                                                |
 | `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
-| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
+| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `memoryLimit` |
 | `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                                                    |
 | `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                                                          |
 | `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |

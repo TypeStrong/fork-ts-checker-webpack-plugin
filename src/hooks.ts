@@ -42,7 +42,6 @@ function createForkTsCheckerWebpackPluginHooks(): ForkTsCheckerHookMap {
       'tsconfigPath',
       'tslintPath',
       'watchPaths',
-      'workersNumber',
       'memoryLimit'
     ]),
     receive: new SyncHook(['diagnostics', 'lints']),

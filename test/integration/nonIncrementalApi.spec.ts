@@ -1,7 +1,6 @@
 // tslint:disable:no-implicit-dependencies
 import path from 'path';
 import * as helpers from './helpers';
-import webpack from 'webpack';
 
 describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', () => {
   let plugin: helpers.ForkTsCheckerWebpackPlugin;
@@ -27,37 +26,6 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: false', 
       expect(stats.compilation.errors.length).toBeGreaterThanOrEqual(1);
       callback();
     });
-  });
-
-  it('should find the same errors on multi-process mode', async () => {
-    const compilerA = createCompiler({
-      pluginOptions: {
-        workers: 1,
-        tslint: true
-      }
-    });
-    const compilerB = createCompiler({
-      pluginOptions: {
-        workers: 4,
-        tslint: true
-      }
-    });
-
-    const [a, b] = await Promise.all([
-      new Promise<webpack.compilation.Compilation>(resolve =>
-        compilerA.run((error, stats) => {
-          resolve(stats.compilation);
-        })
-      ),
-      new Promise<webpack.compilation.Compilation>(resolve =>
-        compilerB.run((error, stats) => {
-          resolve(stats.compilation);
-        })
-      )
-    ]);
-
-    expect(a.errors).toEqual(b.errors);
-    expect(a.warnings).toEqual(b.warnings);
   });
 
   it('should only show errors matching paths specified in reportFiles when provided', callback => {

@@ -1,9 +1,12 @@
-const {
-  createIssuesFromEsLintReports
-} = require('../../../../lib/issue/eslint/EsLintIssueFactory');
+import { createIssuesFromEsLintReports } from '../../../../lib/issue';
+import * as eslint from 'eslint';
 
 describe('[UNIT] issue/eslint/EsLintIssueFactory', () => {
-  const ES_LINT_MESSAGE_ERROR = {
+  type LintMessage = eslint.Linter.LintMessage;
+  type LintResult = eslint.CLIEngine.LintResult;
+  type LintReport = eslint.CLIEngine.LintReport;
+
+  const ES_LINT_MESSAGE_ERROR: LintMessage = {
     column: 0,
     line: 13,
     endColumn: 5,
@@ -11,16 +14,19 @@ describe('[UNIT] issue/eslint/EsLintIssueFactory', () => {
     ruleId: 'no-unused-vars',
     message: `'y' is assigned a value but never used.`,
     nodeType: '',
-    severity: 0
+    severity: 0,
+    source: null
   };
-  const ES_LINT_MESSAGE_WARNING = {
+  const ES_LINT_MESSAGE_WARNING: LintMessage = {
     column: 10,
     line: 15,
+    ruleId: 'no-unused-vars',
     message: `'y' is assigned a value but never used.`,
     nodeType: '',
-    severity: 1
+    severity: 1,
+    source: null
   };
-  const ES_LINT_RESULT_INDEX = {
+  const ES_LINT_RESULT_INDEX: LintResult = {
     filePath: 'src/index.ts',
     messages: [ES_LINT_MESSAGE_ERROR],
     errorCount: 1,
@@ -28,7 +34,7 @@ describe('[UNIT] issue/eslint/EsLintIssueFactory', () => {
     fixableErrorCount: 0,
     fixableWarningCount: 0
   };
-  const ES_LINT_RESULT_ANOTHER = {
+  const ES_LINT_RESULT_ANOTHER: LintResult = {
     filePath: 'src/another.ts',
     messages: [ES_LINT_MESSAGE_WARNING],
     errorCount: 0,
@@ -36,7 +42,7 @@ describe('[UNIT] issue/eslint/EsLintIssueFactory', () => {
     fixableErrorCount: 0,
     fixableWarningCount: 0
   };
-  const ES_LINT_RESULT_ADDITIONAL = {
+  const ES_LINT_RESULT_ADDITIONAL: LintResult = {
     filePath: 'src/additional.ts',
     messages: [ES_LINT_MESSAGE_ERROR],
     errorCount: 1,
@@ -44,14 +50,14 @@ describe('[UNIT] issue/eslint/EsLintIssueFactory', () => {
     fixableErrorCount: 0,
     fixableWarningCount: 0
   };
-  const ES_LINT_REPORT_A = {
+  const ES_LINT_REPORT_A: LintReport = {
     results: [ES_LINT_RESULT_INDEX, ES_LINT_RESULT_ANOTHER],
     errorCount: 1,
     warningCount: 1,
     fixableErrorCount: 0,
     fixableWarningCount: 0
   };
-  const ES_LINT_REPORT_B = {
+  const ES_LINT_REPORT_B: LintReport = {
     results: [ES_LINT_RESULT_ADDITIONAL],
     errorCount: 1,
     warningCount: 1,

@@ -1,14 +1,16 @@
-var unixify = require('unixify');
-var ts = require('typescript');
-var VueProgram = require('../../lib/VueProgram').VueProgram;
-var ForkTsCheckerWebpackPlugin = require('../../lib/index');
-var templateCompilers = [
+import unixify from 'unixify';
+import * as ts from 'typescript';
+import { VueProgram } from '../../lib/VueProgram';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const ForkTsCheckerWebpackPlugin = require('../../lib/index');
+
+const templateCompilers = [
   'vue-template-compiler',
   'nativescript-vue-template-compiler'
 ];
 
 jest.mock('typescript', () => {
-  var originalTs = jest.requireActual('typescript');
+  const originalTs = jest.requireActual('typescript');
   return {
     parseJsonConfigFileContent: jest.fn(function(tsconfig) {
       return {
@@ -42,17 +44,17 @@ describe('[UNIT] VueProgram', () => {
   });
 
   it('should properly resolve relative module names', () => {
-    var basedir = '/base/dir';
-    var containingFile = '/con/tain/ing/main.ts';
-    var options = {
+    const basedir = '/base/dir';
+    const containingFile = '/con/tain/ing/main.ts';
+    const options: ts.CompilerOptions = {
       baseUrl: '/baseurl',
       paths: {
         '@/*': ['src/*']
       }
     };
-    var moduleNames = ['./test.vue', '../test.vue', '../../test.vue'];
+    const moduleNames = ['./test.vue', '../test.vue', '../../test.vue'];
 
-    var resolvedModuleNames = moduleNames.map(function(moduleName) {
+    const resolvedModuleNames = moduleNames.map(function(moduleName) {
       return VueProgram.resolveNonTsModuleName(
         moduleName,
         containingFile,
@@ -67,12 +69,12 @@ describe('[UNIT] VueProgram', () => {
   });
 
   it('should properly resolve wildcard module names', () => {
-    var basedir = '/base/dir';
-    var containingFile = '/con/tain/ing/main.ts';
-    var options = {};
-    var moduleName = '@/test.vue';
+    const basedir = '/base/dir';
+    const containingFile = '/con/tain/ing/main.ts';
+    const options: ts.CompilerOptions = {};
+    const moduleName = '@/test.vue';
 
-    var resolvedModuleName = VueProgram.resolveNonTsModuleName(
+    let resolvedModuleName = VueProgram.resolveNonTsModuleName(
       moduleName,
       containingFile,
       basedir,
@@ -123,7 +125,8 @@ describe('[UNIT] VueProgram', () => {
   it.each(vueOptionsVariants)(
     'should init valid vue options with: %p',
     option => {
-      var result = ForkTsCheckerWebpackPlugin.prepareVueOptions(option);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = ForkTsCheckerWebpackPlugin.prepareVueOptions(option);
       expect(typeof result.enabled).toBe('boolean');
       expect(typeof result.compiler).toBe('string');
     }
@@ -132,14 +135,18 @@ describe('[UNIT] VueProgram', () => {
   it.each(templateCompilers)(
     'should extract script block with compiler=%s',
     templateCompiler => {
-      var content = [
+      const content = [
         '<script lang="ts">',
         'import Vue from "vue";',
         'export default Vue.extend({});',
         '</script>'
       ].join('\n');
 
-      var result = VueProgram.resolveScriptBlock(ts, content, templateCompiler);
+      const result = VueProgram.resolveScriptBlock(
+        ts,
+        content,
+        templateCompiler
+      );
 
       expect(result.scriptKind).toBe(ts.ScriptKind.TS);
       expect(result.content).toBe(
@@ -154,7 +161,7 @@ describe('[UNIT] VueProgram', () => {
   );
 
   it.each(templateCompilers)('should pad lines with %s', templateCompiler => {
-    var content = [
+    const content = [
       '<template>',
       '  <p>Hello</p>',
       '</template>',
@@ -165,7 +172,7 @@ describe('[UNIT] VueProgram', () => {
       '</script>'
     ].join('\n');
 
-    var result = VueProgram.resolveScriptBlock(ts, content, templateCompiler);
+    const result = VueProgram.resolveScriptBlock(ts, content, templateCompiler);
     expect(result.content).toBe(
       [
         '//',
@@ -182,7 +189,8 @@ describe('[UNIT] VueProgram', () => {
 
   describe('loadProgramConfig', () => {
     it('sets allowNonTsExtensions to true on returned options', () => {
-      var result = VueProgram.loadProgramConfig(
+      const result = VueProgram.loadProgramConfig(
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         require('typescript'),
         'tsconfig.foo.json',
         {}
@@ -192,6 +200,7 @@ describe('[UNIT] VueProgram', () => {
     });
 
     it('merges compilerOptions into config file options', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       VueProgram.loadProgramConfig(require('typescript'), 'tsconfig.foo.json', {
         bar: false
       });

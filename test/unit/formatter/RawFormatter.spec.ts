@@ -1,5 +1,5 @@
-const { IssueOrigin, IssueSeverity } = require('../../../lib/issue');
-const { createRawFormatter } = require('../../../lib/formatter');
+import { Issue, IssueOrigin, IssueSeverity } from '../../../lib/issue';
+import { createRawFormatter } from '../../../lib/formatter';
 
 describe('[UNIT] formatter/RawFormatter', () => {
   it.each([
@@ -27,7 +27,8 @@ describe('[UNIT] formatter/RawFormatter', () => {
       },
       `WARNING no-unused-vars: 'x' is assigned a value but never used.`
     ]
-  ])('formats issue message "%p" to "%p"', (issue, expectedFormatted) => {
+  ])('formats issue message "%p" to "%p"', (...args) => {
+    const [issue, expectedFormatted] = args as [Issue, string];
     const formatter = createRawFormatter();
     const formatted = formatter(issue);
 

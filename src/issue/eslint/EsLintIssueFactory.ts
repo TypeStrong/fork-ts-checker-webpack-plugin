@@ -1,5 +1,4 @@
-// tslint:disable-next-line:no-implicit-dependencies
-import * as eslint from 'eslint'; // import for types alone
+import * as eslint from 'eslint';
 import { FileAwareEsLintMessage } from './FileAwareEsLintMessage';
 import { deduplicateAndSortIssues, Issue } from '../Issue';
 import { IssueOrigin } from '../IssueOrigin';

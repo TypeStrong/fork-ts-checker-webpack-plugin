@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 
 export interface TypeScriptPatchConfig {
@@ -10,24 +9,6 @@ export interface TypeScriptPatchConfig {
    * This ensures that the compilerHost always assumes that there were no syntactic errors to be found and continues to check for semantic errors.
    */
   skipGetSyntacticDiagnostics: boolean;
-}
-
-/**
- * While it is often possible to pass a wrapped or modified copy of `typescript` or `typescript.sys` as a function argument to override/extend some typescript-internal behavior,
- * sometimes the typescript-internal code ignores these passed objects and directly references the internal `typescript` object reference.
- * In these situations, the only way of consistently overriding some behavior is to directly replace methods on the `typescript` object.
- *
- * So beware, this method directly modifies the passed `typescript` object!
- * @param typescript TypeScript instance to patch
- * @param config
- */
-export function patchTypescript(
-  typescript: typeof ts,
-  config: TypeScriptPatchConfig
-) {
-  if (config.skipGetSyntacticDiagnostics) {
-    patchSkipGetSyntacticDiagnostics(typescript);
-  }
 }
 
 /**
@@ -49,9 +30,11 @@ function patchSkipGetSyntacticDiagnostics(typescript: typeof ts) {
     typeof ts,
     'createEmitAndSemanticDiagnosticsBuilderProgram'
   > = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createEmitAndSemanticDiagnosticsBuilderProgram(...args: any[]) {
       const program = originalCreateEmitAndSemanticDiagnosticsBuilderProgram.apply(
         typescript,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         args as any
       );
       program.getSyntacticDiagnostics = () => [];
@@ -61,4 +44,22 @@ function patchSkipGetSyntacticDiagnostics(typescript: typeof ts) {
 
   // directly patch the typescript object!
   Object.assign(typescript, patchedMethods);
+}
+
+/**
+ * While it is often possible to pass a wrapped or modified copy of `typescript` or `typescript.sys` as a function argument to override/extend some typescript-internal behavior,
+ * sometimes the typescript-internal code ignores these passed objects and directly references the internal `typescript` object reference.
+ * In these situations, the only way of consistently overriding some behavior is to directly replace methods on the `typescript` object.
+ *
+ * So beware, this method directly modifies the passed `typescript` object!
+ * @param typescript TypeScript instance to patch
+ * @param config
+ */
+export function patchTypescript(
+  typescript: typeof ts,
+  config: TypeScriptPatchConfig
+) {
+  if (config.skipGetSyntacticDiagnostics) {
+    patchSkipGetSyntacticDiagnostics(typescript);
+  }
 }

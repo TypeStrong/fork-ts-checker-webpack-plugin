@@ -1,9 +1,7 @@
 import * as path from 'path';
 import * as process from 'process';
 import * as childProcess from 'child_process';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript';
 import * as semver from 'semver';
 import * as micromatch from 'micromatch';
@@ -20,10 +18,7 @@ import {
 } from './formatter';
 import { fileExistsSync } from './FsHelper';
 import { Message } from './Message';
-import {
-  ForkTsCheckerHooks,
-  getForkTsCheckerWebpackPluginHooks
-} from './hooks';
+import { getForkTsCheckerWebpackPluginHooks } from './hooks';
 import { RUN, RunPayload, RunResult } from './RpcTypes';
 import { Issue, IssueSeverity } from './issue';
 import { VueOptions } from './types/vue-options';
@@ -32,8 +27,11 @@ const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
 namespace ForkTsCheckerWebpackPlugin {
   export interface Logger {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error(message?: any): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     warn(message?: any): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     info(message?: any): void;
   }
 
@@ -41,8 +39,6 @@ namespace ForkTsCheckerWebpackPlugin {
     typescript: string;
     tsconfig: string;
     compilerOptions: object;
-    tslint: string | true | undefined;
-    tslintAutoFix: boolean;
     eslint: boolean;
     /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
     eslintOptions: object;
@@ -67,7 +63,7 @@ namespace ForkTsCheckerWebpackPlugin {
 
 /**
  * ForkTsCheckerWebpackPlugin
- * Runs typescript type checker and linter (tslint) on separate process.
+ * Runs typescript type checker and linter on separate process.
  * This speed-ups build a lot.
  *
  * Options description in README.md
@@ -75,19 +71,16 @@ namespace ForkTsCheckerWebpackPlugin {
 class ForkTsCheckerWebpackPlugin {
   public static readonly DEFAULT_MEMORY_LIMIT = 2048;
 
-  public static getCompilerHooks(
-    compiler: any
-  ): Record<ForkTsCheckerHooks, any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static getCompilerHooks(compiler: any) {
     return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
   public readonly options: Partial<ForkTsCheckerWebpackPlugin.Options>;
   private tsconfig: string;
   private compilerOptions: object;
-  private tslint: string | boolean | undefined = false;
-  private eslint: boolean = false;
+  private eslint = false;
   private eslintOptions: object = {};
-  private tslintAutoFix: boolean = false;
   private ignoreDiagnostics: number[];
   private ignoreLints: string[];
   private ignoreLintWarnings: boolean;
@@ -104,16 +97,16 @@ class ForkTsCheckerWebpackPlugin {
   private resolveTypeReferenceDirectiveModule: string | undefined;
 
   private tsconfigPath: string | undefined = undefined;
-  private tslintPath: string | undefined = undefined;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private compiler: any = undefined;
   private started: [number, number] | undefined = undefined;
   private elapsed: [number, number] | undefined = undefined;
   private cancellationToken: CancellationToken | undefined = undefined;
 
-  private isWatching: boolean = false;
-  private checkDone: boolean = false;
-  private compilationDone: boolean = false;
+  private isWatching = false;
+  private checkDone = false;
+  private compilationDone = false;
   private diagnostics: Issue[] = [];
   private lints: Issue[] = [];
 
@@ -122,7 +115,6 @@ class ForkTsCheckerWebpackPlugin {
   private typescriptPath: string;
   private typescript: typeof ts;
   private typescriptVersion: string;
-  private tslintVersion: string | undefined;
   private eslintVersion: string | undefined = undefined;
 
   private service?: childProcess.ChildProcess;
@@ -131,8 +123,9 @@ class ForkTsCheckerWebpackPlugin {
   private vue: VueOptions;
 
   private measureTime: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private performance: any;
-  private startAt: number = 0;
+  private startAt = 0;
 
   protected nodeArgs: string[] = [];
 
@@ -181,14 +174,6 @@ class ForkTsCheckerWebpackPlugin {
       this.eslint = true;
       this.eslintVersion = eslintVersion;
       this.eslintOptions = eslintOptions;
-    } else {
-      const { tslint, tslintVersion, tslintAutoFix } = this.validateTslint(
-        options
-      );
-
-      this.tslint = tslint;
-      this.tslintVersion = tslintVersion;
-      this.tslintAutoFix = tslintAutoFix;
     }
 
     this.vue = ForkTsCheckerWebpackPlugin.prepareVueOptions(options.vue);
@@ -241,35 +226,6 @@ class ForkTsCheckerWebpackPlugin {
     };
   }
 
-  private validateTslint(options: Partial<ForkTsCheckerWebpackPlugin.Options>) {
-    const tslint = options.tslint
-      ? options.tslint === true
-        ? true
-        : options.tslint
-      : undefined;
-    let tslintAutoFix, tslintVersion;
-
-    try {
-      tslintAutoFix = options.tslintAutoFix || false;
-      tslintVersion = tslint
-        ? // tslint:disable-next-line:no-implicit-dependencies
-          require('tslint').Linter.VERSION
-        : undefined;
-    } catch (_ignored) {
-      throw new Error(
-        'When you use `tslint` option, make sure to install `tslint`.'
-      );
-    }
-
-    if (tslintVersion && semver.lt(tslintVersion, '4.0.0')) {
-      throw new Error(
-        `Cannot use current tslint version of ${tslintVersion}, the minimum required version is 4.0.0`
-      );
-    }
-
-    return { tslint, tslintAutoFix, tslintVersion };
-  }
-
   private validateEslint(options: Partial<ForkTsCheckerWebpackPlugin.Options>) {
     let eslintVersion: string;
     const eslintOptions =
@@ -303,18 +259,14 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public apply(compiler: any) {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
-    this.tslintPath =
-      typeof this.tslint === 'string'
-        ? this.computeContextPath(this.tslint as string)
-        : undefined;
 
     // validate config
     const tsconfigOk = fileExistsSync(this.tsconfigPath);
-    const tslintOk = !this.tslintPath || fileExistsSync(this.tslintPath);
 
     // validate logger
     if (this.logger) {
@@ -325,40 +277,24 @@ class ForkTsCheckerWebpackPlugin {
       }
     }
 
-    if (tsconfigOk && tslintOk) {
-      this.pluginStart();
-      this.pluginStop();
-      this.pluginCompile();
-      this.pluginEmit();
-      this.pluginDone();
-    } else {
-      if (!tsconfigOk) {
-        throw new Error(
-          'Cannot find "' +
-            this.tsconfigPath +
-            '" file. Please check webpack and ForkTsCheckerWebpackPlugin configuration. \n' +
-            'Possible errors: \n' +
-            '  - wrong `context` directory in webpack configuration' +
-            ' (if `tsconfig` is not set or is a relative path in fork plugin configuration)\n' +
-            '  - wrong `tsconfig` path in fork plugin configuration' +
-            ' (should be a relative or absolute path)'
-        );
-      }
-      if (!tslintOk) {
-        throw new Error(
-          'Cannot find "' +
-            this.tslintPath +
-            '" file. Please check webpack and ForkTsCheckerWebpackPlugin configuration. \n' +
-            'Possible errors: \n' +
-            '  - wrong `context` directory in webpack configuration' +
-            ' (if `tslint` is not set or is a relative path in fork plugin configuration)\n' +
-            '  - wrong `tslint` path in fork plugin configuration' +
-            ' (should be a relative or absolute path)\n' +
-            '  - `tslint` path is not set to false in fork plugin configuration' +
-            ' (if you want to disable tslint support)'
-        );
-      }
+    if (!tsconfigOk) {
+      throw new Error(
+        'Cannot find "' +
+          this.tsconfigPath +
+          '" file. Please check webpack and ForkTsCheckerWebpackPlugin configuration. \n' +
+          'Possible errors: \n' +
+          '  - wrong `context` directory in webpack configuration' +
+          ' (if `tsconfig` is not set or is a relative path in fork plugin configuration)\n' +
+          '  - wrong `tsconfig` path in fork plugin configuration' +
+          ' (should be a relative or absolute path)'
+      );
     }
+
+    this.pluginStart();
+    this.pluginStop();
+    this.pluginCompile();
+    this.pluginEmit();
+    this.pluginDone();
   }
 
   private computeContextPath(filePath: string) {
@@ -430,6 +366,7 @@ class ForkTsCheckerWebpackPlugin {
           if (this.measureTime) {
             this.startAt = this.performance.now();
           }
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           this.serviceRpc!.rpc<RunPayload, RunResult>(
             RUN,
             this.cancellationToken.toJSON()
@@ -455,6 +392,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private pluginEmit() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const emit = (compilation: any, callback: () => void) => {
       if (this.isWatching && this.async) {
         callback();
@@ -477,7 +415,7 @@ class ForkTsCheckerWebpackPlugin {
     const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
       this.compiler
     );
-    this.compiler.hooks.done.tap(checkerPluginName, (_stats: webpack.Stats) => {
+    this.compiler.hooks.done.tap(checkerPluginName, () => {
       if (!this.isWatching || !this.async) {
         return;
       }
@@ -486,14 +424,10 @@ class ForkTsCheckerWebpackPlugin {
         this.doneCallback();
       } else {
         if (this.compiler) {
-          forkTsCheckerHooks.waiting.call(this.tslint !== undefined);
+          forkTsCheckerHooks.waiting.call();
         }
         if (!this.silent && this.logger) {
-          this.logger.info(
-            this.tslint
-              ? 'Type checking and linting in progress...'
-              : 'Type checking in progress...'
-          );
+          this.logger.info('Type checking in progress...');
         }
       }
 
@@ -507,9 +441,7 @@ class ForkTsCheckerWebpackPlugin {
       TYPESCRIPT_PATH: this.typescriptPath,
       TSCONFIG: this.tsconfigPath,
       COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
-      TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
       CONTEXT: this.compiler.options.context,
-      TSLINTAUTOFIX: String(this.tslintAutoFix),
       ESLINT: String(this.eslint),
       ESLINT_OPTIONS: JSON.stringify(this.eslintOptions),
       MEMORY_LIMIT: String(this.memoryLimit),
@@ -542,24 +474,18 @@ class ForkTsCheckerWebpackPlugin {
       }
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.serviceRpc = new RpcProvider(message => this.service!.send(message));
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.service.on('message', message => this.serviceRpc!.dispatch(message));
 
     const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
       this.compiler
     );
-    forkTsCheckerHooks.serviceStart.call(
-      this.tsconfigPath,
-      this.tslintPath,
-      this.memoryLimit
-    );
+    forkTsCheckerHooks.serviceStart.call(this.tsconfigPath, this.memoryLimit);
 
     if (!this.silent && this.logger) {
-      this.logger.info(
-        'Starting type checking' +
-          (this.tslint ? ' and linting' : '') +
-          ' service...'
-      );
+      this.logger.info('Starting type checking service...');
     }
 
     this.service.on('exit', (code: string | number, signal: string) =>
@@ -710,7 +636,8 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private createNoopEmitCallback() {
-    // tslint:disable-next-line:no-empty
+    // this function is empty intentionally
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     return function noopEmitCallback() {};
   }
 
@@ -750,16 +677,11 @@ class ForkTsCheckerWebpackPlugin {
         if (!this.diagnostics.length) {
           this.logger.info(chalk.green('No type errors found'));
         }
-        if (this.tslint && !this.lints.length) {
-          this.logger.info(chalk.green('No lint errors found'));
-        }
         this.logger.info(
           'Version: typescript ' +
             chalk.bold(this.typescriptVersion) +
             (this.eslint
               ? ', eslint ' + chalk.bold(this.eslintVersion as string)
-              : this.tslint
-              ? ', tslint ' + chalk.bold(this.tslintVersion as string)
               : '')
         );
         this.logger.info(

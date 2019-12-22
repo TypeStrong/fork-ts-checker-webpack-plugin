@@ -3,7 +3,6 @@ export { ForkTsCheckerWebpackPlugin };
 export { createCompiler, CreateCompilerOptions } from './createCompiler';
 export { createVueCompiler } from './createVueCompiler';
 export { getRpcProvider, rpcMethods } from './rpc';
-export { testLintAutoFixTest } from './testLintAutoFixTest';
 
 export const expectedErrorCodes = {
   expectedSyntacticErrorCode: 'TS1005',

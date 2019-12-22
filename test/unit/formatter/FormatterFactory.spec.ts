@@ -1,7 +1,7 @@
-const os = require('os');
-const mockFs = require('mock-fs');
-const { createFormatter } = require('../../../lib/formatter');
-const { IssueOrigin, IssueSeverity } = require('../../../lib/issue');
+import * as os from 'os';
+import mockFs from 'mock-fs';
+import { createFormatter, FormatterType } from '../../../lib/formatter';
+import { Issue, IssueOrigin, IssueSeverity } from '../../../lib/issue';
 
 describe('[UNIT] formatter/FormatterFactory', () => {
   beforeEach(() => {
@@ -23,10 +23,10 @@ describe('[UNIT] formatter/FormatterFactory', () => {
     mockFs.restore();
   });
 
-  const issue = {
+  const issue: Issue = {
     origin: IssueOrigin.TYPESCRIPT,
     severity: IssueSeverity.ERROR,
-    code: 123,
+    code: '123',
     message: 'Some issue content',
     file: 'some/file.ts',
     line: 1,
@@ -34,7 +34,7 @@ describe('[UNIT] formatter/FormatterFactory', () => {
   };
 
   it.each(['default', undefined])('creates default formatter', type => {
-    const formatter = createFormatter(type);
+    const formatter = createFormatter(type as FormatterType);
     const formattedMessage = formatter(issue);
 
     expect(formattedMessage).toEqual(
@@ -85,7 +85,8 @@ describe('[UNIT] formatter/FormatterFactory', () => {
   });
 
   it('throws an error on unknown formatter type', () => {
-    expect(() => createFormatter('unknown-type')).toThrowError(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(() => createFormatter('unknown-type' as any)).toThrowError(
       `Unknown "unknown-type" formatter. Available types are: default, codeframe.`
     );
   });

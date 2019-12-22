@@ -1,9 +1,7 @@
-const os = require('os');
-const mockFs = require('mock-fs');
-const { IssueOrigin, IssueSeverity } = require('../../../lib/issue');
-const {
-  createCodeframeFormatter
-} = require('../../../lib/formatter/CodeframeFormatter');
+import * as os from 'os';
+import mockFs from 'mock-fs';
+import { Issue, IssueOrigin, IssueSeverity } from '../../../lib/issue';
+import { createCodeframeFormatter } from '../../../lib/formatter';
 
 describe('[UNIT] formatter/CodeframeFormatter', () => {
   beforeEach(() => {
@@ -87,7 +85,8 @@ describe('[UNIT] formatter/CodeframeFormatter', () => {
       },
       'INTERNAL ERROR: Stack overflow - out of memory'
     ]
-  ])('formats issue message "%p" to "%p"', (issue, expectedFormatted) => {
+  ])('formats issue message "%p" to "%p"', (...args) => {
+    const [issue, expectedFormatted] = args as [Issue, string];
     const formatter = createCodeframeFormatter({
       linesAbove: 1,
       linesBelow: 1

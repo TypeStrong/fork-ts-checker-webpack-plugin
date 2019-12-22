@@ -1,4 +1,3 @@
-// tslint:disable:no-implicit-dependencies
 import webpack from 'webpack';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -89,7 +88,6 @@ function normalizeDiagnosticsPaths(
     rawMessage: string;
     message: string;
     file: string;
-    location: any[];
   }[],
   contextDir: string
 ) {

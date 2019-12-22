@@ -4,5 +4,4 @@ export * from './IssueSeverity';
 
 export * from './typescript';
 export * from './eslint';
-export * from './tslint';
 export * from './internal';

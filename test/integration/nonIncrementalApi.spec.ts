@@ -1,4 +1,3 @@
-// tslint:disable:no-implicit-dependencies
 import path from 'path';
 import * as helpers from './helpers';
 

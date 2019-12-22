@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
 import { deduplicateAndSortIssues, Issue } from '../Issue';
 import { IssueOrigin } from '../IssueOrigin';

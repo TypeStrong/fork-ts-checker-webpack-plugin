@@ -2,11 +2,11 @@ export class HeadNode<T> {
   public next: LinkedListNode<T> | TailNode<T>;
 
   constructor() {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     this.next = new TailNode(this);
   }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 export class TailNode<T> {
   public previous: LinkedListNode<T> | HeadNode<T>;
 
@@ -14,7 +14,6 @@ export class TailNode<T> {
     this.previous = head;
   }
 }
-// tslint:disable-next-line:max-classes-per-file
 export class LinkedListNode<T> {
   public next: LinkedListNode<T> | TailNode<T> | null = null;
   public previous: LinkedListNode<T> | HeadNode<T> | null = null;
@@ -59,7 +58,6 @@ export class LinkedListNode<T> {
     this.attachAfter(node.previous);
   }
 }
-// tslint:disable-next-line:max-classes-per-file
 export class LinkedList<T> {
   public head: HeadNode<T>;
   public tail: TailNode<T>;

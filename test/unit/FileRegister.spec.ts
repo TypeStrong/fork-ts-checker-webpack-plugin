@@ -1,13 +1,15 @@
-var FilesRegister = require('../../lib/FilesRegister').FilesRegister;
+import { FilesRegister } from '../../lib/FilesRegister';
 
 describe('[UNIT] FilesRegister', () => {
-  var register;
+  let register;
   beforeEach(() => {
-    register = new FilesRegister(function() {
-      return {
-        test: true
-      };
-    });
+    register = new FilesRegister(
+      () =>
+        ({
+          test: true
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+    );
   });
 
   it('should add and remove files', () => {
@@ -62,14 +64,14 @@ describe('[UNIT] FilesRegister', () => {
     register.ensure('/test');
     expect(register.has('/test')).toBe(true);
 
-    var reference = register.get('/test');
+    const reference = register.get('/test');
     register.ensure('/test');
     expect(reference).toBe(register.get('/test'));
   });
 
   it('should mutate existing data', () => {
     register.add('/test');
-    var dataReference = register.getData('/test');
+    const dataReference = register.getData('/test');
     expect(dataReference.test).toBe(true);
     register.mutateData('/test', function(data) {
       data.test = false;

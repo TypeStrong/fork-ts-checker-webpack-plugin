@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
 import { AsyncSeriesHook, SyncHook } from 'tapable';
 
@@ -24,8 +23,8 @@ function createForkTsCheckerWebpackPluginHooks(): ForkTsCheckerHookMap {
     serviceBeforeStart: new AsyncSeriesHook([]),
     cancel: new SyncHook(['cancellationToken']),
     serviceStartError: new SyncHook(['error']),
-    waiting: new SyncHook(['hasTsLint']),
-    serviceStart: new SyncHook(['tsconfigPath', 'tslintPath', 'memoryLimit']),
+    waiting: new SyncHook([]),
+    serviceStart: new SyncHook(['tsconfigPath', 'memoryLimit']),
     receive: new SyncHook(['diagnostics', 'lints']),
     serviceOutOfMemory: new SyncHook([]),
     emit: new SyncHook(['diagnostics', 'lints', 'elapsed']),

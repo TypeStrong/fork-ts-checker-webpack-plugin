@@ -12,6 +12,8 @@
     "moduleResolution": "node",
     "declaration": true,
     "outDir": "../lib",
-    "sourceMap": true
+    "sourceMap": true,
+    "rootDir": "./",
+    "sourceRoot": "./"
   }
 }

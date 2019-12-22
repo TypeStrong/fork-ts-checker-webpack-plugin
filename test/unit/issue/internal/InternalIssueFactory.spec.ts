@@ -1,6 +1,4 @@
-const {
-  createIssueFromInternalError
-} = require('../../../../lib/issue/internal/InternalIssueFactory');
+import { createIssueFromInternalError } from '../../../../lib/issue';
 
 describe('[UNIT] issue/internal/InternalIssueFactory', () => {
   const ERROR_WITH_MESSAGE_AND_STACK = {

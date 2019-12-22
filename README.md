@@ -15,9 +15,9 @@
 
 ## Installation
 
-This plugin requires minimum **webpack 4.0**, **TypeScript 2.1** and optionally **ESLint 6.0.0** or **TSLint 4.0**
+This plugin requires minimum **webpack 4.0**, **TypeScript 2.1** and optionally **ESLint 6.0.0**
 
-If you depend on **webpack 2.0** or **webpack 3.0**, please use [older version](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
+If you depend on **webpack 2.0**, **webpack 3.0**, or **tslint 4.0**, please use [older version](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
 
 ```sh
 # with npm
@@ -100,17 +100,6 @@ module.exports = {
 
 There's a good explanation on setting up TypeScript ESLint support by Robert Cooper [here](https://dev.to/robertcoopercode/using-eslint-and-prettier-in-a-typescript-project-53jb).
 
-## TSLint
-
-*[TSLint is being replaced by ESLint](https://medium.com/palantir/tslint-in-2019-1a144c2317a9).
-https://eslint.org/blog/2019/01/future-typescript-eslint. As a consequence, support for TSLint in fork-ts-checker-webpack-plugin will be deprecated and removed in future versions of the plugin.*
-
-If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
-`tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file.
-It helps to distinguish lints from TypeScript's diagnostics.
-
-
-
 ## Options
 
 - **tsconfig** `string`:
@@ -126,34 +115,7 @@ It helps to distinguish lints from TypeScript's diagnostics.
 - **eslintOptions** `object`:
 
   - Options that can be used to initialise ESLint. See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-
-- **tslint** `string | true | undefined`:
-
-  - If `string`, path to _tslint.json_ file to check source files against.
-  - If `true`, path to `tslint.json` file will be computed with respect to currently checked file, just like TSLint
-    CLI would do. Suppose you have a project:
-
-    ```
-    ./
-      tslint.json
-
-      src/
-        file.ts
-        anotherFile.ts
-
-        lib/
-          tslint.json
-          someHelperFile.ts
-    ```
-
-    In such a case `src/file.ts` and `src/anotherFile.ts` would be checked against root `tslint.json`, and
-    `src/lib/someHelperFile.ts` would be checked against `src/lib/tslint.json`.
-
-  Default: `undefined`.
-
-- **tslintAutoFix** `boolean`:
-  Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.
-
+  
 - **async** `boolean`:
   True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.
   We recommend to set this to `false` in projects where type checking is faster than webpack's build - it's better for integration with other plugins. Another scenario where you might want to set this to `false` is if you use the `overlay` functionality of `webpack-dev-server`.
@@ -162,7 +124,7 @@ It helps to distinguish lints from TypeScript's diagnostics.
   List of TypeScript diagnostic codes to ignore.
 
 - **ignoreLints** `string[]`:
-  List of tslint rule names to ignore.
+  List of eslint rule names to ignore.
 
 - **ignoreLintWarnings** `boolean`:
   If true, will ignore all lint warnings.
@@ -275,17 +237,17 @@ We hope this will be resolved in future; the issue can be tracked [here](https:/
 
 This plugin provides some custom webpack hooks (all are sync):
 
-| Hook Access Key      | Description                                                                    | Params                                      |
-| -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------- |
-| `cancel`             | Cancellation has been requested                                                | `cancellationToken`                         |
-| `waiting`            | Waiting for results                                                            | `hasTsLint`                                 |
-| `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                           |
-| `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `memoryLimit` |
-| `serviceStartError`  | Cannot start service                                                           | `error`                                     |
-| `serviceOutOfMemory` | Service is out of memory                                                       | -                                           |
-| `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                      |
-| `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`           |
-| `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`           |
+| Hook Access Key      | Description                                                                    | Params                            |
+| -------------------- | ------------------------------------------------------------------------------ | --------------------------------- |
+| `cancel`             | Cancellation has been requested                                                | `cancellationToken`               |
+| `waiting`            | Waiting for results                                                            | -                                 |
+| `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                 |
+| `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `memoryLimit`     |
+| `serviceStartError`  | Cannot start service                                                           | `error`                           |
+| `serviceOutOfMemory` | Service is out of memory                                                       | -                                 |
+| `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`            |
+| `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed` |
+| `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed` |
 
 ### Accessing plugin hooks
 
@@ -381,14 +343,12 @@ if ('compilers' in compiler) {
 
 ```js
 new ForkTsCheckerWebpackPlugin({
-  tslint: true,
   vue: true
 });
 ```
 Optionally change default [vue-template-compiler](https://github.com/vuejs/vue/tree/dev/packages/vue-template-compiler) to [nativescript-vue-template-compiler](https://github.com/nativescript-vue/nativescript-vue/tree/master/packages/nativescript-vue-template-compiler) if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue)
 ```
 new ForkTsCheckerWebpackPlugin({
-  tslint: true,
   vue: { enabled: true, compiler: 'nativescript-vue-template-compiler' }
 });
 ```
@@ -423,16 +383,7 @@ new ForkTsCheckerWebpackPlugin({
 },
 ```
 
-4. Add rules to your `tslint.json` and they will be applied to Vue files. For example, you could apply the Standard JS rules [tslint-config-standard](https://github.com/blakeembrey/tslint-config-standard) like this:
-
-```json
-{
-  "defaultSeverity": "error",
-  "extends": ["tslint-config-standard"]
-}
-```
-
-5. Ensure your `tsconfig.json` includes .vue files:
+4. Ensure your `tsconfig.json` includes .vue files:
 
 ```js
 // tsconfig.json
@@ -447,7 +398,7 @@ new ForkTsCheckerWebpackPlugin({
 }
 ```
 
-6. It accepts any wildcard in your TypeScript configuration:
+5. It accepts any wildcard in your TypeScript configuration:
 
 ```js
 // tsconfig.json
@@ -472,7 +423,7 @@ new ForkTsCheckerWebpackPlugin({
 import Hello from '@/components/hello.vue'
 ```
 
-7. If you are working in **VSCode**, you can get extensions [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) and [TSLint Vue](https://marketplace.visualstudio.com/items?itemName=prograhammer.tslint-vue) to complete the developer workflow.
+6. If you are working in **VSCode**, you can get the [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) extension to complete the developer workflow.
 
 ## Credits
 

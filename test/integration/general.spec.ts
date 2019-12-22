@@ -3,6 +3,7 @@ import ForkTsCheckerWebpackPlugin from '../../lib/index';
 import * as helpers from './helpers';
 import { cloneDeep } from 'lodash';
 import unixify from 'unixify';
+import * as semver from 'semver';
 
 describe.each([[true], [false]])(
   '[INTEGRATION] common tests - useTypescriptIncrementalApi: %s',
@@ -22,7 +23,9 @@ describe.each([[true], [false]])(
       return compiler.compiler;
     }
 
-    const skipIfIncremental = useTypescriptIncrementalApi ? it.skip : it;
+    const ifNotIncrementalIt = useTypescriptIncrementalApi ? it.skip : it;
+    const ifNodeGte8It = semver.lt(process.version, '8.10.0') ? it.skip : it;
+    const ifNodeLt8It = semver.lt(process.version, '8.10.0') ? it : it.skip;
 
     /**
      * Implicitly check whether killService was called by checking that
@@ -87,7 +90,7 @@ describe.each([[true], [false]])(
       });
     });
 
-    skipIfIncremental(
+    ifNotIncrementalIt(
       'should support custom resolution w/ "paths"',
       callback => {
         const compiler = createCompiler({
@@ -113,7 +116,7 @@ describe.each([[true], [false]])(
       }
     );
 
-    it('should detect eslints', callback => {
+    ifNodeGte8It('should detect eslints', callback => {
       const compiler = createCompiler({
         context: './project_eslint',
         entryPoint: './src/index.ts',
@@ -172,6 +175,22 @@ describe.each([[true], [false]])(
         callback();
       });
     });
+
+    ifNodeLt8It(
+      'throws an error about Node.js version required for `eslint` option',
+      () => {
+        expect(() => {
+          createCompiler({
+            context: './project_eslint',
+            entryPoint: './src/index.ts',
+            pluginOptions: { eslint: true }
+          });
+        }).toThrowError(
+          `To use 'eslint' option, please update to Node.js >= v8.10.0 ` +
+            `(current version is ${process.version})`
+        );
+      }
+    );
 
     it('should block emit on build mode', callback => {
       const compiler = createCompiler();

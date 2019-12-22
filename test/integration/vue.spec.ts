@@ -236,7 +236,7 @@ describe.each(mixLists(useTypescriptIncrementalApiOptions, vueTplCompilers))(
     }
 
     describe('should be able to compile *.vue with each lang', () => {
-      let errors: { [key: string]: Error[] };
+      let errors: { [key: string]: Error[] } = {};
       beforeAll(callback => {
         createCompiler({
           pluginOptions: {
@@ -271,7 +271,7 @@ describe.each(mixLists(useTypescriptIncrementalApiOptions, vueTplCompilers))(
     });
 
     describe('should be able to detect errors in *.vue', () => {
-      let errors: { [key: string]: Error[] };
+      let errors: { [key: string]: Error[] } = {};
       beforeAll(callback => {
         // tsconfig-langs-strict.json === tsconfig-langs.json + noUnusedLocals
         createCompiler({
@@ -310,7 +310,7 @@ describe.each(mixLists(useTypescriptIncrementalApiOptions, vueTplCompilers))(
     });
 
     describe('should resolve *.vue in the same way as TypeScript', () => {
-      let errors: Error[];
+      let errors: Error[] = [];
       beforeAll(callback => {
         createCompiler({
           pluginOptions: {

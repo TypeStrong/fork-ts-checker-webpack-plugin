@@ -43,14 +43,17 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        node: 
+        node:
+          - '6'
           - '8'
           - '10'
           - '12'
         packages:
           - webpack@5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4
           - webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.4
-
+        exclude:
+          - node: '6'
+            packages: 'webpack@5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4'
     steps:
     - uses: actions/checkout@v1
       
@@ -71,10 +74,10 @@ jobs:
           ${{ runner.os }}-node-${{ matrix.node }}-yarn-
       
     - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      run: yarn install --frozen-lockfile --ignore-engines
       
     - name: Replace dependencies
-      run: yarn add ${{ matrix.packages }} -D
+      run: yarn add ${{ matrix.packages }} -D --ignore-engines
 
     - name: Download build artifact
       uses: actions/download-artifact@v1

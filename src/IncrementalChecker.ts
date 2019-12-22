@@ -273,12 +273,12 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     });
 
     // set lints in files register
-    for (const [filePath, lint] of currentEsLintErrors) {
+    currentEsLintErrors.forEach((lint, filePath) => {
       this.files.mutateData(filePath, data => {
         data.linted = true;
         data.eslints.push(lint);
       });
-    }
+    });
 
     // set all files as linted
     this.files.keys().forEach(filePath => {

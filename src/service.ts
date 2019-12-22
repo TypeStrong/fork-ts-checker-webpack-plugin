@@ -1,4 +1,3 @@
-import * as process from 'process';
 import * as ts from 'typescript'; // import for types alone
 
 import { IncrementalChecker } from './IncrementalChecker';

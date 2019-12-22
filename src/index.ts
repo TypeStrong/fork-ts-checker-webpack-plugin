@@ -1,10 +1,9 @@
 import * as path from 'path';
-import * as process from 'process';
 import * as childProcess from 'child_process';
 import * as webpack from 'webpack';
 import * as ts from 'typescript';
 import * as semver from 'semver';
-import * as micromatch from 'micromatch';
+import micromatch from 'micromatch';
 import chalk from 'chalk';
 import { RpcProvider } from 'worker-rpc';
 
@@ -185,7 +184,14 @@ class ForkTsCheckerWebpackPlugin {
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
+      if (semver.lt(process.version, '8.5.0')) {
+        throw new Error(
+          `To use 'measureCompilationTime' option, please update to Node.js >= v8.5.0 ` +
+            `(current version is ${process.version})`
+        );
+      }
       // Node 8+ only
+      // eslint-disable-next-line node/no-unsupported-features/node-builtins
       this.performance = require('perf_hooks').performance;
     }
   }
@@ -231,11 +237,18 @@ class ForkTsCheckerWebpackPlugin {
     const eslintOptions =
       typeof options.eslintOptions === 'object' ? options.eslintOptions : {};
 
+    if (semver.lt(process.version, '8.10.0')) {
+      throw new Error(
+        `To use 'eslint' option, please update to Node.js >= v8.10.0 ` +
+          `(current version is ${process.version})`
+      );
+    }
+
     try {
       eslintVersion = require('eslint').Linter.version;
-    } catch (_ignored) {
+    } catch (error) {
       throw new Error(
-        'When you use `eslint` option, make sure to install `eslint`.'
+        `When you use 'eslint' option, make sure to install 'eslint'.`
       );
     }
 

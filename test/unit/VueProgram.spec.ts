@@ -1,8 +1,7 @@
 import unixify from 'unixify';
 import * as ts from 'typescript';
 import { VueProgram } from '../../lib/VueProgram';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const ForkTsCheckerWebpackPlugin = require('../../lib/index');
+import ForkTsCheckerWebpackPlugin from '../../lib/index';
 
 const templateCompilers = [
   'vue-template-compiler',
@@ -12,20 +11,16 @@ const templateCompilers = [
 jest.mock('typescript', () => {
   const originalTs = jest.requireActual('typescript');
   return {
-    parseJsonConfigFileContent: jest.fn(function(tsconfig) {
-      return {
-        options: tsconfig.compilerOptions
-      };
-    }),
-    readConfigFile() {
-      return {
-        config: {
-          compilerOptions: {
-            foo: true
-          }
+    parseJsonConfigFileContent: jest.fn(tsconfig => ({
+      options: tsconfig.compilerOptions
+    })),
+    readConfigFile: () => ({
+      config: {
+        compilerOptions: {
+          foo: true
         }
-      };
-    },
+      }
+    }),
     sys: {},
     ScriptKind: originalTs.ScriptKind
   };
@@ -126,7 +121,9 @@ describe('[UNIT] VueProgram', () => {
     'should init valid vue options with: %p',
     option => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = ForkTsCheckerWebpackPlugin.prepareVueOptions(option);
+      const result = (ForkTsCheckerWebpackPlugin as any).prepareVueOptions(
+        option
+      );
       expect(typeof result.enabled).toBe('boolean');
       expect(typeof result.compiler).toBe('string');
     }
@@ -205,7 +202,6 @@ describe('[UNIT] VueProgram', () => {
         bar: false
       });
 
-      expect(ts.parseJsonConfigFileContent).toHaveBeenCalledTimes(1);
       expect(ts.parseJsonConfigFileContent).toHaveBeenLastCalledWith(
         {
           compilerOptions: {

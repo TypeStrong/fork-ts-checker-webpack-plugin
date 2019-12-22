@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import * as semver from 'semver';
+
 describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -34,6 +36,9 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
   });
 
   describe('eslint', () => {
+    const ifNodeGte8It = semver.lt(process.version, '8.10.0') ? it.skip : it;
+    const ifNodeLt8It = semver.lt(process.version, '8.10.0') ? it : it.skip;
+
     it('should throw if eslint not present', () => {
       jest.setMock('typescript', { version: '2.1.0' });
       jest.setMock('eslint', undefined);
@@ -44,15 +49,31 @@ describe('[UNIT] ForkTsCheckerWebpackPlugin', () => {
       }).toThrowError(Error);
     });
 
-    it('should not throw if eslint is present', () => {
-      jest.setMock('typescript', { version: '2.1.0' });
-      jest.setMock('eslint', { Linter: { VERSION: '5.7.0' } });
-      const ForkTsCheckerWebpackPlugin = require('../../lib/index');
+    ifNodeGte8It(
+      'should not throw if eslint is present and Node.js version >= 8.10.0',
+      () => {
+        jest.setMock('typescript', { version: '2.1.0' });
+        jest.setMock('eslint', { Linter: { VERSION: '5.7.0' } });
+        const ForkTsCheckerWebpackPlugin = require('../../lib/index');
 
-      expect(function() {
-        new ForkTsCheckerWebpackPlugin({ eslint: true });
-      }).not.toThrowError();
-    });
+        expect(function() {
+          new ForkTsCheckerWebpackPlugin({ eslint: true });
+        }).not.toThrowError();
+      }
+    );
+
+    ifNodeLt8It(
+      'should throw if eslint is present and Node.js version < 8.10.0',
+      () => {
+        jest.setMock('typescript', { version: '2.1.0' });
+        jest.setMock('eslint', { Linter: { VERSION: '5.7.0' } });
+        const ForkTsCheckerWebpackPlugin = require('../../lib/index');
+
+        expect(function() {
+          new ForkTsCheckerWebpackPlugin({ eslint: true });
+        }).toThrowError();
+      }
+    );
   });
 
   describe('useTypescriptIncrementalApi', () => {

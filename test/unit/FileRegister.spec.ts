@@ -1,7 +1,8 @@
 import { FilesRegister } from '../../lib/FilesRegister';
 
 describe('[UNIT] FilesRegister', () => {
-  let register;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let register: any;
   beforeEach(() => {
     register = new FilesRegister(
       () =>
@@ -73,7 +74,8 @@ describe('[UNIT] FilesRegister', () => {
     register.add('/test');
     const dataReference = register.getData('/test');
     expect(dataReference.test).toBe(true);
-    register.mutateData('/test', function(data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    register.mutateData('/test', function(data: any) {
       data.test = false;
     });
     expect(dataReference).toBe(register.getData('/test'));
@@ -82,7 +84,8 @@ describe('[UNIT] FilesRegister', () => {
 
   it('should set mtime and reset data if mtime changes', () => {
     register.add('/test');
-    register.mutateData('/test', function(data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    register.mutateData('/test', function(data: any) {
       data.test = false;
     });
     expect(register.getData('/test').test).toBe(false);
@@ -91,7 +94,8 @@ describe('[UNIT] FilesRegister', () => {
     register.setMtime('/test', 1000);
     expect(register.getMtime('/test')).toBe(1000);
     expect(register.getData('/test').test).toBe(true);
-    register.mutateData('/test', function(data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    register.mutateData('/test', function(data: any) {
       data.test = false;
     });
     expect(register.getData('/test').test).toBe(false);

@@ -6,8 +6,7 @@ import { fileExistsSync } from '../FsHelper';
 import { IssueSeverity, IssueOrigin } from '../issue';
 import { Formatter } from './Formatter';
 import { createInternalFormatter } from './InternalFormatter';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const codeFrame = require('babel-code-frame');
+import codeFrame from 'babel-code-frame';
 
 interface CodeFrameFormatterOptions {
   /** Syntax highlight the code as JavaScript for terminals. default: false */

@@ -1,8 +1,6 @@
-const os = require('os');
-const { IssueOrigin, IssueSeverity } = require('../../../lib/issue');
-const {
-  createDefaultFormatter
-} = require('../../../lib/formatter/DefaultFormatter');
+import * as os from 'os';
+import { Issue, IssueOrigin, IssueSeverity } from '../../../lib/issue';
+import { createDefaultFormatter } from '../../../lib/formatter';
 
 describe('[UNIT] formatter/DefaultFormatter', () => {
   it.each([
@@ -45,7 +43,8 @@ describe('[UNIT] formatter/DefaultFormatter', () => {
       },
       'INTERNAL ERROR: Stack overflow - out of memory'
     ]
-  ])('formats issue message "%p" to "%p"', (issue, expectedFormatted) => {
+  ])('formats issue message "%p" to "%p"', (...args) => {
+    const [issue, expectedFormatted] = args as [Issue, string];
     const formatter = createDefaultFormatter();
     const formatted = formatter(issue);
 

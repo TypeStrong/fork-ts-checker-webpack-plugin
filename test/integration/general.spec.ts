@@ -1,5 +1,3 @@
-// tslint:disable: no-implicit-dependencies - tests might also use devDependencies
-import fs from 'fs';
 import path from 'path';
 import ForkTsCheckerWebpackPlugin from '../../lib/index';
 import * as helpers from './helpers';
@@ -37,83 +35,20 @@ describe.each([[true], [false]])(
 
     it('should allow to pass no options', () => {
       expect(() => {
-        // tslint:disable-next-line: no-unused-expression
         new ForkTsCheckerWebpackPlugin();
       }).not.toThrowError();
     });
 
     it('should detect paths', () => {
-      const plugin = new ForkTsCheckerWebpackPlugin({ tslint: true });
+      const plugin = new ForkTsCheckerWebpackPlugin({});
 
       expect(plugin['tsconfig']).toBe('./tsconfig.json');
-      expect(plugin['tslint']).toBe(true);
     });
 
     it('should set logger to console by default', () => {
       const plugin = new ForkTsCheckerWebpackPlugin({});
 
       expect(plugin['logger']).toBe(console);
-    });
-
-    it('should find lint warnings', callback => {
-      const fileName = 'lintingError2';
-      const { compiler } = helpers.testLintAutoFixTest({
-        pluginOptions: {
-          tslint: './tslint.json',
-          ignoreLintWarnings: false,
-          ...overrideOptions
-        },
-        fileName
-      });
-
-      compiler.run((err, stats) => {
-        expect(
-          stats.compilation.warnings.filter(warning =>
-            warning.message.includes('missing whitespace')
-          ).length
-        ).toBeGreaterThan(0);
-        callback();
-      });
-    });
-
-    it('should not print warnings when ignoreLintWarnings passed as option', callback => {
-      const fileName = 'lintingError2';
-      const { compiler } = helpers.testLintAutoFixTest({
-        fileName,
-        pluginOptions: {
-          tslint: './tslint.json',
-          ignoreLintWarnings: true,
-          ...overrideOptions
-        }
-      });
-      compiler.run((err, stats) => {
-        expect(
-          stats.compilation.warnings.filter(warning =>
-            warning.message.includes('missing whitespace')
-          ).length
-        ).toBe(0);
-        callback();
-      });
-    });
-
-    it('should not mark warnings as errors when ignoreLintWarnings passed as option', callback => {
-      const fileName = 'lintingError2';
-      const { compiler } = helpers.testLintAutoFixTest({
-        fileName,
-        pluginOptions: {
-          tslint: './tslint.json',
-          ignoreLintWarnings: true,
-          ...overrideOptions
-        }
-      });
-      compiler.run((err, stats) => {
-        expect(
-          stats.compilation.errors.filter(error =>
-            error.message.includes('missing whitespace')
-          ).length
-        ).toBe(0);
-        callback();
-      });
     });
 
     it('should find semantic errors', callback => {
@@ -177,47 +112,6 @@ describe.each([[true], [false]])(
         });
       }
     );
-
-    it('should fix linting errors with tslintAutofix flag set to true', callback => {
-      const fileName = 'lintingError1';
-      const {
-        compiler,
-        formattedFileContents,
-        targetFileName
-      } = helpers.testLintAutoFixTest({
-        fileName,
-        pluginOptions: {
-          tslintAutoFix: true,
-          tslint: './tslint.autofix.json',
-          tsconfig: undefined,
-          ...overrideOptions
-        }
-      });
-      compiler.run((err, stats) => {
-        expect(stats.compilation.warnings.length).toBe(0);
-
-        const fileContents = fs.readFileSync(targetFileName, {
-          encoding: 'utf-8'
-        });
-        expect(fileContents).toBe(formattedFileContents);
-        callback();
-      });
-    });
-
-    it('should not fix linting by default', callback => {
-      const fileName = 'lintingError2';
-      const { compiler } = helpers.testLintAutoFixTest({
-        fileName,
-        pluginOptions: {
-          tslint: true,
-          ...overrideOptions
-        }
-      });
-      compiler.run((err, stats) => {
-        expect(stats.compilation.warnings.length).toBe(7);
-        callback();
-      });
-    });
 
     it('should detect eslints', callback => {
       const compiler = createCompiler({
@@ -362,22 +256,6 @@ describe.each([[true], [false]])(
       }).toThrowError();
     });
 
-    it('should throw error if config container wrong tslint.json path', () => {
-      expect(() => {
-        createCompiler({
-          pluginOptions: {
-            tslint: '/some/path/that/not/exists/tslint.json'
-          }
-        });
-      }).toThrowError();
-    });
-
-    it('should detect tslint path for true option', () => {
-      expect(() => {
-        createCompiler({ pluginOptions: { tslint: true } });
-      }).not.toThrowError();
-    });
-
     it('should allow delaying service-start', callback => {
       const compiler = createCompiler();
       let delayed = false;
@@ -406,28 +284,6 @@ describe.each([[true], [false]])(
 
       compiler.run(() => {
         /**  */
-      });
-    });
-
-    it('should respect "tslint.json"s hierarchy when config-file not specified', callback => {
-      const { compiler } = helpers.createCompiler({
-        pluginOptions: {
-          tslint: true,
-          ...overrideOptions
-        },
-        entryPoint: './index.ts',
-        context: './project_hierarchical_tslint'
-      });
-      compiler.run((err, stats) => {
-        /*
-         * there are three identical arrow functions
-         * in index.ts, lib/func.ts and lib/utils/func.ts
-         * and plugin should warn three times on typedef-rule
-         * twice on "arrow-call-signature" and once on "arrow-parameter"
-         * because this rule is overriden inside lib/tslint.json
-         * */
-        expect(stats.compilation.warnings.length).toBe(3);
-        callback();
       });
     });
 

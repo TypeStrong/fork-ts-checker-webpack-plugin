@@ -1,8 +1,8 @@
-const {
+import {
   IssueSeverity,
   isIssueSeverity,
   compareIssueSeverities
-} = require('../../../lib/issue/IssueSeverity');
+} from '../../../lib/issue';
 
 describe('[UNIT] issue/IssueSeverity', () => {
   it('defines issue severity enum', () => {
@@ -33,7 +33,7 @@ describe('[UNIT] issue/IssueSeverity', () => {
     [IssueSeverity.WARNING, IssueSeverity.WARNING, 0]
   ])(
     "compares issue severity '%p' with '%p' and returns '%p'",
-    (severityA, severityB, result) => {
+    (severityA: IssueSeverity, severityB: IssueSeverity, result: number) => {
       expect(compareIssueSeverities(severityA, severityB)).toEqual(result);
     }
   );

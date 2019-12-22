@@ -2,7 +2,6 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 
 import { fileExistsSync } from './FsHelper';

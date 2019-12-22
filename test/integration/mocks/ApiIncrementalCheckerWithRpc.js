@@ -1,7 +1,6 @@
-const mock = require('mock-require');
-
-const origImport = require('../../../lib/ApiIncrementalChecker');
-const { rpcMethods, getRpcProvider } = require('../helpers/rpc');
+import * as mock from 'mock-require';
+import * as origImport from '../../../lib/ApiIncrementalChecker';
+import { rpcMethods, getRpcProvider } from '../helpers/rpc';
 
 mock('../../../lib/ApiIncrementalChecker', {
   ApiIncrementalChecker: class extends origImport.ApiIncrementalChecker {
@@ -18,40 +17,34 @@ mock('../../../lib/ApiIncrementalChecker', {
         }
       };
 
-      rpc.registerRpcHandler(rpcMethods.checker_nextIteration, () => {
+      rpc.registerRpcHandler(rpcMethods.nextIteration, () => {
         return this.nextIteration();
       });
 
-      rpc.registerRpcHandler(rpcMethods.checker_getKnownFileNames, async () => {
+      rpc.registerRpcHandler(rpcMethods.getKnownFileNames, async () => {
         await awaitInit();
         return Array.from(this.tsIncrementalCompiler.getAllKnownFiles());
       });
 
-      rpc.registerRpcHandler(
-        rpcMethods.checker_getSourceFile,
-        async fileName => {
-          await awaitInit();
-          const result = this.tsIncrementalCompiler
-            .getProgram()
-            .getSourceFile(fileName);
-          return !result ? undefined : { text: result.text };
-        }
-      );
+      rpc.registerRpcHandler(rpcMethods.getSourceFile, async fileName => {
+        await awaitInit();
+        const result = this.tsIncrementalCompiler
+          .getProgram()
+          .getSourceFile(fileName);
+        return !result ? undefined : { text: result.text };
+      });
 
-      rpc.registerRpcHandler(
-        rpcMethods.checker_getSyntacticDiagnostics,
-        async () => {
-          await awaitInit();
-          const result = this.tsIncrementalCompiler
-            .getProgram()
-            .getSyntacticDiagnostics();
-          return result.map(({ start, length, file }) => ({
-            start,
-            length,
-            file: { text: file.text }
-          }));
-        }
-      );
+      rpc.registerRpcHandler(rpcMethods.getSyntacticDiagnostics, async () => {
+        await awaitInit();
+        const result = this.tsIncrementalCompiler
+          .getProgram()
+          .getSyntacticDiagnostics();
+        return result.map(({ start, length, file }) => ({
+          start,
+          length,
+          file: { text: file.text }
+        }));
+      });
     }
   }
 });

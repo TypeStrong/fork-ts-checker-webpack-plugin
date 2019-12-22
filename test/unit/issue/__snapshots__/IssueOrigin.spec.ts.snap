@@ -4,7 +4,6 @@ exports[`[UNIT] issue/IssueOrigin defines issue origin enum 1`] = `
 Object {
   "ESLINT": "eslint",
   "INTERNAL": "internal",
-  "TSLINT": "tslint",
   "TYPESCRIPT": "typescript",
 }
 `;

@@ -13,7 +13,7 @@ Array [
   },
   Object {
     "character": 10,
-    "code": "[unknown]",
+    "code": "no-unused-vars",
     "file": "src/another.ts",
     "line": 15,
     "message": "'y' is assigned a value but never used.",

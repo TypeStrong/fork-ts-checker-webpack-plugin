@@ -6,6 +6,7 @@ import { fileExistsSync } from '../FsHelper';
 import { IssueSeverity, IssueOrigin } from '../issue';
 import { Formatter } from './Formatter';
 import { createInternalFormatter } from './InternalFormatter';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const codeFrame = require('babel-code-frame');
 
 interface CodeFrameFormatterOptions {
@@ -47,7 +48,9 @@ function createCodeframeFormatter(
     if (source) {
       frame = codeFrame(
         source,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         issue.line!, // Assertion: `codeFrame` allows passing undefined, typings are incorrect
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         issue.character!,
         {
           highlightCode: true,

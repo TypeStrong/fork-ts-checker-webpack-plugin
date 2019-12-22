@@ -1,5 +1,4 @@
 import * as process from 'process';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
 
 import { IncrementalChecker } from './IncrementalChecker';
@@ -17,11 +16,13 @@ import { createIssueFromInternalError, Issue } from './issue';
 
 const rpc = new RpcProvider(message => {
   try {
-    process.send!(message, undefined, undefined, error => {
-      if (error) {
-        process.exit();
-      }
-    });
+    if (process.send) {
+      process.send(message, undefined, undefined, error => {
+        if (error) {
+          process.exit();
+        }
+      });
+    }
   } catch (e) {
     // channel closed...
     process.exit();
@@ -29,7 +30,8 @@ const rpc = new RpcProvider(message => {
 });
 process.on('message', message => rpc.dispatch(message));
 
-const typescript: typeof ts = require(process.env.TYPESCRIPT_PATH!);
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const typescript: typeof ts = require(String(process.env.TYPESCRIPT_PATH));
 const patchConfig: TypeScriptPatchConfig = {
   skipGetSyntacticDiagnostics:
     process.env.USE_INCREMENTAL_API === 'true' &&
@@ -39,17 +41,17 @@ const patchConfig: TypeScriptPatchConfig = {
 patchTypescript(typescript, patchConfig);
 
 const resolveModuleName = process.env.RESOLVE_MODULE_NAME
-  ? require(process.env.RESOLVE_MODULE_NAME!).resolveModuleName
+  ? require(process.env.RESOLVE_MODULE_NAME).resolveModuleName
   : undefined;
 const resolveTypeReferenceDirective = process.env
   .RESOLVE_TYPE_REFERENCE_DIRECTIVE
-  ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE!)
+  ? require(process.env.RESOLVE_TYPE_REFERENCE_DIRECTIVE)
       .resolveTypeReferenceDirective
   : undefined;
 
 const eslinter =
   process.env.ESLINT === 'true'
-    ? createEslinter(JSON.parse(process.env.ESLINT_OPTIONS!))
+    ? createEslinter(JSON.parse(String(process.env.ESLINT_OPTIONS)))
     : undefined;
 
 function createChecker(
@@ -57,17 +59,14 @@ function createChecker(
 ): IncrementalCheckerInterface {
   const incrementalCheckerParams: IncrementalCheckerParams = {
     typescript,
-    context: process.env.CONTEXT!,
-    programConfigFile: process.env.TSCONFIG!,
-    compilerOptions: JSON.parse(process.env.COMPILER_OPTIONS!),
-    linterConfigFile:
-      process.env.TSLINT === 'true' ? true : process.env.TSLINT! || false,
-    linterAutoFix: process.env.TSLINTAUTOFIX === 'true',
+    context: String(process.env.CONTEXT),
+    programConfigFile: String(process.env.TSCONFIG),
+    compilerOptions: JSON.parse(String(process.env.COMPILER_OPTIONS)),
     eslinter,
     checkSyntacticErrors: process.env.CHECK_SYNTACTIC_ERRORS === 'true',
     resolveModuleName,
     resolveTypeReferenceDirective,
-    vue: JSON.parse(process.env.VUE!)
+    vue: JSON.parse(String(process.env.VUE))
   };
 
   return useIncrementalApi
@@ -87,8 +86,6 @@ async function run(cancellationToken: CancellationToken) {
     diagnostics.push(...(await checker.getTypeScriptIssues(cancellationToken)));
     if (checker.hasEsLinter()) {
       lints.push(...(await checker.getEsLintIssues(cancellationToken)));
-    } else if (checker.hasTsLinter()) {
-      lints.push(...(await checker.getTsLintIssues(cancellationToken)));
     }
   } catch (error) {
     if (error instanceof typescript.OperationCanceledException) {
@@ -110,7 +107,7 @@ async function run(cancellationToken: CancellationToken) {
 
 rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
   typeof message !== 'undefined'
-    ? run(CancellationToken.createFromJSON(typescript, message!))
+    ? run(CancellationToken.createFromJSON(typescript, message))
     : undefined
 );
 

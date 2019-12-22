@@ -1,4 +1,4 @@
-const mock = require('mock-require');
+import * as mock from 'mock-require';
 
 mock('../../../lib/IncrementalChecker', {
   IncrementalChecker: class {

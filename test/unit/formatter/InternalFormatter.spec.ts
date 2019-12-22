@@ -1,6 +1,6 @@
-const { IssueSeverity, IssueOrigin } = require('../../../lib/issue');
-const { createInternalFormatter } = require('../../../lib/formatter');
-const os = require('os');
+import * as os from 'os';
+import { Issue, IssueSeverity, IssueOrigin } from '../../../lib/issue';
+import { createInternalFormatter } from '../../../lib/formatter';
 
 describe('[UNIT] formatter/InternalFormatter', () => {
   it.each([
@@ -41,7 +41,7 @@ describe('[UNIT] formatter/InternalFormatter', () => {
     ]
   ])('formats issue message "%p" to "%p"', (issue, expectedFormatted) => {
     const formatter = createInternalFormatter();
-    const formatted = formatter(issue);
+    const formatted = formatter(issue as Issue);
 
     expect(formatted).toEqual(expectedFormatted);
   });

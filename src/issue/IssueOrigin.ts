@@ -1,6 +1,5 @@
 const IssueOrigin = {
   TYPESCRIPT: 'typescript',
-  TSLINT: 'tslint',
   ESLINT: 'eslint',
   INTERNAL: 'internal'
 } as const;
@@ -9,7 +8,6 @@ type IssueOrigin = typeof IssueOrigin[keyof typeof IssueOrigin];
 function isIssueOrigin(value: unknown): value is IssueOrigin {
   return [
     IssueOrigin.TYPESCRIPT,
-    IssueOrigin.TSLINT,
     IssueOrigin.ESLINT,
     IssueOrigin.INTERNAL
   ].includes(value as IssueOrigin);
@@ -18,10 +16,9 @@ function isIssueOrigin(value: unknown): value is IssueOrigin {
 function compareIssueOrigins(originA: IssueOrigin, originB: IssueOrigin) {
   const [priorityA, priorityB] = [originA, originB].map(origin =>
     [
-      IssueOrigin.TSLINT /* 0 */,
-      IssueOrigin.ESLINT /* 1 */,
-      IssueOrigin.TYPESCRIPT /* 2 */,
-      IssueOrigin.INTERNAL /* 3 */
+      IssueOrigin.ESLINT /* 0 */,
+      IssueOrigin.TYPESCRIPT /* 1 */,
+      IssueOrigin.INTERNAL /* 2 */
     ].indexOf(origin)
   );
 

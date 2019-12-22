@@ -1,9 +1,9 @@
-const { IssueSeverity } = require('../../../lib/issue/IssueSeverity');
-const { IssueOrigin } = require('../../../lib/issue/IssueOrigin');
-const {
+import {
+  IssueSeverity,
+  IssueOrigin,
   isIssue,
   deduplicateAndSortIssues
-} = require('../../../lib/issue/Issue');
+} from '../../../lib/issue';
 
 function omit(object, keys) {
   const omittedObject = Object.assign({}, object);
@@ -31,21 +31,13 @@ describe('[UNIT] issue/Issue', () => {
     code: 'white-space',
     message: 'Missing space between function brackets'
   };
-  const BASIC_TSLINT_ISSUE = {
-    origin: IssueOrigin.TSLINT,
-    severity: IssueSeverity.WARNING,
-    code: 'white-space',
-    message: 'Missing space between function brackets'
-  };
 
-  it.each([
-    BASIC_INTERNAL_ISSUE,
-    BASIC_TYPESCRIPT_ISSUE,
-    BASIC_ESLINT_ISSUE,
-    BASIC_TSLINT_ISSUE
-  ])("checks if '%p' is a Issue", issue => {
-    expect(isIssue(issue)).toEqual(true);
-  });
+  it.each([BASIC_INTERNAL_ISSUE, BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE])(
+    "checks if '%p' is a Issue",
+    issue => {
+      expect(isIssue(issue)).toEqual(true);
+    }
+  );
 
   it.each([
     null,
@@ -60,7 +52,6 @@ describe('[UNIT] issue/Issue', () => {
     omit(BASIC_INTERNAL_ISSUE, ['origin']),
     omit(BASIC_TYPESCRIPT_ISSUE, ['severity']),
     omit(BASIC_ESLINT_ISSUE, ['code']),
-    omit(BASIC_TSLINT_ISSUE, ['message']),
     omit(BASIC_TYPESCRIPT_ISSUE, ['origin', 'message'])
   ])("checks if '%p' isn't a Issue", issue => {
     expect(isIssue(issue)).toEqual(false);
@@ -74,16 +65,10 @@ describe('[UNIT] issue/Issue', () => {
         BASIC_TYPESCRIPT_ISSUE,
         BASIC_ESLINT_ISSUE,
         BASIC_INTERNAL_ISSUE,
-        BASIC_TSLINT_ISSUE,
         BASIC_INTERNAL_ISSUE,
         BASIC_ESLINT_ISSUE
       ],
-      [
-        BASIC_INTERNAL_ISSUE,
-        BASIC_TYPESCRIPT_ISSUE,
-        BASIC_ESLINT_ISSUE,
-        BASIC_TSLINT_ISSUE
-      ]
+      [BASIC_INTERNAL_ISSUE, BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE]
     ],
     [
       // compare file

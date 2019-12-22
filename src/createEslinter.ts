@@ -1,15 +1,14 @@
-// tslint:disable-next-line:no-implicit-dependencies
-import * as eslinttypes from 'eslint'; // import for types alone
+import * as eslint from 'eslint'; // import for types alone
 import * as path from 'path';
 
 import { throwIfIsInvalidSourceFileError } from './FsHelper';
 
 export function createEslinter(eslintOptions: object) {
-  // tslint:disable-next-line:no-implicit-dependencies
-  const eslint: typeof eslinttypes = require('eslint');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { CLIEngine }: typeof eslint = require('eslint');
 
   // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-  const eslinter = new eslint.CLIEngine(eslintOptions);
+  const eslinter = new CLIEngine(eslintOptions);
 
   function getReport(filepath: string) {
     try {

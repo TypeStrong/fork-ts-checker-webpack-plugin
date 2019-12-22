@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // import for types alone
 import { FilesRegister } from './FilesRegister';
 import {
@@ -8,7 +7,6 @@ import {
   ResolveTypeReferenceDirective,
   makeResolutionFunctions
 } from './resolution';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as vueCompiler from 'vue-template-compiler';
 import { VueOptions } from './types/vue-options';
 
@@ -106,7 +104,8 @@ export class VueProgram {
         ? options.paths[`${correctWildcard}/*`]
         : undefined;
       const substitution = pattern
-        ? options.paths![`${correctWildcard}/*`][0].replace('*', '')
+        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          options.paths![`${correctWildcard}/*`][0].replace('*', '')
         : 'src';
       moduleName = path.resolve(baseUrl, substitution, moduleName.substr(2));
     } else if (isRelative) {
@@ -124,7 +123,7 @@ export class VueProgram {
     programConfig: ts.ParsedCommandLine,
     basedir: string,
     files: FilesRegister,
-    oldProgram: ts.Program,
+    oldProgram: ts.Program | undefined,
     userResolveModuleName: ResolveModuleName | undefined,
     userResolveTypeReferenceDirective:
       | ResolveTypeReferenceDirective
@@ -312,7 +311,6 @@ export class VueProgram {
     // we should let the users install template compiler for vue by themselves.
     let parser: typeof vueCompiler;
     try {
-      // tslint:disable-next-line
       parser = require(compiler);
     } catch (err) {
       throw new Error(
@@ -328,7 +326,7 @@ export class VueProgram {
     if (!script) {
       return {
         scriptKind: typescript.ScriptKind.JS,
-        content: '/* tslint:disable */\nexport default {};\n'
+        content: 'export default {};\n'
       };
     }
 
@@ -345,7 +343,6 @@ export class VueProgram {
         // since it will produce incorrect code location.
         // It's not a large problem since it's handled on webpack side.
         content:
-          '/* tslint:disable */\n' +
           '// @ts-ignore\n' +
           `export { default } from '${src}';\n` +
           '// @ts-ignore\n' +

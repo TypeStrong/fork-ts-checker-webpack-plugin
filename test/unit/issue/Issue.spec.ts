@@ -2,10 +2,14 @@ import {
   IssueSeverity,
   IssueOrigin,
   isIssue,
-  deduplicateAndSortIssues
+  deduplicateAndSortIssues,
+  Issue
 } from '../../../lib/issue';
 
-function omit(object, keys) {
+function omit<TObject extends object>(
+  object: TObject,
+  keys: (keyof TObject)[]
+) {
   const omittedObject = Object.assign({}, object);
   keys.forEach(key => delete omittedObject[key]);
 
@@ -342,7 +346,8 @@ describe('[UNIT] issue/Issue', () => {
       [BASIC_ESLINT_ISSUE]
     ],
     [[omit(BASIC_ESLINT_ISSUE, ['message'])], []]
-  ])('deduplicates issues %p to %p', (issues, deduplicatedIssues) => {
+  ])('deduplicates issues %p to %p', (...args) => {
+    const [issues, deduplicatedIssues] = args as [Issue[], Issue[]];
     expect(deduplicateAndSortIssues(issues)).toEqual(deduplicatedIssues);
   });
 });

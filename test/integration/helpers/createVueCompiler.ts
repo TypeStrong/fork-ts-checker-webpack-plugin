@@ -2,6 +2,8 @@ import * as VueLoader from 'vue-loader'; // import for types alone
 import * as path from 'path';
 import { RpcProvider } from 'worker-rpc';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// @ts-ignore
 import { rpcMethods } from './rpc';
 import { CreateCompilerOptions, createCompiler } from '.';
 

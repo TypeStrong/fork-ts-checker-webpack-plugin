@@ -98,9 +98,6 @@
     "worker-rpc": "^0.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/preset-env": "^7.7.7",
-    "@babel/preset-typescript": "^7.7.7",
     "@commitlint/config-conventional": "^7.5.0",
     "@types/babel-code-frame": "^6.20.1",
     "@types/eslint": "^4.16.6",
@@ -108,6 +105,7 @@
     "@types/lodash": "^4.14.134",
     "@types/micromatch": "^3.1.0",
     "@types/minimatch": "^3.0.1",
+    "@types/mock-fs": "^4.10.0",
     "@types/mock-require": "^2.0.0",
     "@types/node": "^11.0.0",
     "@types/rimraf": "^2.0.2",
@@ -124,7 +122,6 @@
     "eslint-plugin-prettier": "^3.1.2",
     "git-cz": "^3.0.1",
     "husky": "^1.1.4",
-    "istanbul": "^0.4.5",
     "jest": "^24.7.1",
     "lint-staged": "^8.0.5",
     "lodash": "^4.17.11",
@@ -133,6 +130,7 @@
     "nativescript-vue-template-compiler": "^2.4.0",
     "prettier": "^1.14.3",
     "rimraf": "^3.0.0",
+    "ts-jest": "^24.2.0",
     "ts-loader": "^5.0.0",
     "typescript": "^3.0.1",
     "unixify": "^1.0.0",

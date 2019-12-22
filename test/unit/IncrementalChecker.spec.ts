@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import * as typescript from 'typescript';
 import { IncrementalChecker } from '../../lib/IncrementalChecker';
 
 jest.mock('typescript', () => ({
@@ -32,8 +32,8 @@ describe('[UNIT] IncrementalChecker', () => {
         }
       );
 
-      expect(ts.parseJsonConfigFileContent).toHaveBeenCalledTimes(1);
-      expect(ts.parseJsonConfigFileContent).toHaveBeenLastCalledWith(
+      expect(typescript.parseJsonConfigFileContent).toHaveBeenCalledTimes(1);
+      expect(typescript.parseJsonConfigFileContent).toHaveBeenLastCalledWith(
         {
           compilerOptions: {
             foo: true,

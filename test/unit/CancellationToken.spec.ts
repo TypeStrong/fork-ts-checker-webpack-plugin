@@ -6,10 +6,9 @@ import { fileExistsSync } from '../../lib/FsHelper';
 
 describe('[UNIT] CancellationToken', () => {
   beforeEach(() => {
-    const fsTree = {};
-    fsTree[os.tmpdir()] = mockFs.directory();
-
-    mockFs(fsTree);
+    mockFs({
+      [os.tmpdir()]: mockFs.directory()
+    });
   });
 
   afterEach(() => {
@@ -131,7 +130,6 @@ describe('[UNIT] CancellationToken', () => {
       require('typescript'),
       tokenA.toJSON()
     );
-    const start = Date.now();
 
     expect(tokenA.isCancellationRequested()).toBe(false);
     expect(tokenB.isCancellationRequested()).toBe(false);
@@ -139,15 +137,9 @@ describe('[UNIT] CancellationToken', () => {
     tokenA.requestCancellation();
     expect(tokenA.isCancellationRequested()).toBe(true);
 
-    const duration = Math.abs(Date.now() - start);
-    if (duration < 10) {
-      // we should throttle check
-      expect(tokenB.isCancellationRequested()).toBe(false);
-    }
-
     setTimeout(function() {
       expect(tokenB.isCancellationRequested()).toBe(true);
       done();
-    }, 11);
+    }, 20);
   });
 });

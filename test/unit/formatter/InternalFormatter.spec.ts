@@ -39,9 +39,10 @@ describe('[UNIT] formatter/InternalFormatter', () => {
         `Abort trap: 6`
       ].join(os.EOL)
     ]
-  ])('formats issue message "%p" to "%p"', (issue, expectedFormatted) => {
+  ])('formats issue message "%p" to "%p"', (...args) => {
+    const [issue, expectedFormatted] = args as [Issue, string];
     const formatter = createInternalFormatter();
-    const formatted = formatter(issue as Issue);
+    const formatted = formatter(issue);
 
     expect(formatted).toEqual(expectedFormatted);
   });

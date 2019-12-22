@@ -15,9 +15,9 @@
 
 ## Installation
 
-This plugin requires minimum **webpack 4.0**, **TypeScript 2.1** and optionally **ESLint 6.0.0**
+This plugin requires minimum **Node.js 6.11.5**, **webpack 4**, **TypeScript 2.1** and optionally **ESLint 6** (which itself requires minimum **Node.js 8.10.0**)
 
-If you depend on **webpack 2.0**, **webpack 3.0**, or **tslint 4.0**, please use [older version](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
+If you depend on **webpack 2**, **webpack 3**, or **tslint 4**, please use [older version](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
 
 ```sh
 # with npm
@@ -168,7 +168,7 @@ new ForkTsCheckerWebpackPlugin({
 
 - **measureCompilationTime** `boolean`:
   If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
-  especially if there are other loaders/plugins involved in the compilation. **requires node 8+**
+  especially if there are other loaders/plugins involved in the compilation. **requires Node.js >= 8.5.0**
 
 - **typescript** `string`:
   If supplied this is a custom path where `typescript` can be found. Defaults to `require.resolve('typescript')`.

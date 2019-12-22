@@ -31,10 +31,12 @@ describe('[UNIT] issue/IssueSeverity', () => {
     // WARNING
     [IssueSeverity.WARNING, IssueSeverity.ERROR, 1],
     [IssueSeverity.WARNING, IssueSeverity.WARNING, 0]
-  ])(
-    "compares issue severity '%p' with '%p' and returns '%p'",
-    (severityA: IssueSeverity, severityB: IssueSeverity, result: number) => {
-      expect(compareIssueSeverities(severityA, severityB)).toEqual(result);
-    }
-  );
+  ])("compares issue severity '%p' with '%p' and returns '%p'", (...args) => {
+    const [severityA, severityB, result] = args as [
+      IssueSeverity,
+      IssueSeverity,
+      number
+    ];
+    expect(compareIssueSeverities(severityA, severityB)).toEqual(result);
+  });
 });

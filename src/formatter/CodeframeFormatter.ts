@@ -2,7 +2,6 @@ import * as os from 'os';
 import * as fs from 'fs';
 import chalk from 'chalk';
 
-import { fileExistsSync } from '../FsHelper';
 import { IssueSeverity, IssueOrigin } from '../issue';
 import { Formatter } from './Formatter';
 import { createInternalFormatter } from './InternalFormatter';
@@ -41,7 +40,7 @@ function createCodeframeFormatter(
 
     const file = issue.file;
     const source =
-      file && fileExistsSync(file) && fs.readFileSync(file, 'utf-8');
+      file && fs.existsSync(file) && fs.readFileSync(file, 'utf-8');
     let frame = '';
 
     if (source) {

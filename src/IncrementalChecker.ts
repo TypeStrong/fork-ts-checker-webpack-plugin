@@ -3,7 +3,11 @@ import * as path from 'path';
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
 
 import { FilesRegister } from './FilesRegister';
-import { CancellationToken } from './CancellationToken';
+import {
+  CancellationToken,
+  CancelledError,
+  TypeScriptCancellationToken
+} from './cancellation';
 import {
   ResolveModuleName,
   ResolveTypeReferenceDirective,
@@ -228,22 +232,33 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
     const tsDiagnostics: ts.Diagnostic[] = [];
     // select files to check (it's semantic check - we have to include all files :/)
     const filesToCheck = program.getSourceFiles();
+    const tsCancellationToken = cancellationToken
+      ? new TypeScriptCancellationToken(this.typescript, cancellationToken)
+      : undefined;
 
     filesToCheck.forEach(sourceFile => {
-      if (cancellationToken) {
-        cancellationToken.throwIfCancellationRequested();
+      if (cancellationToken.isCancellationRequested()) {
+        throw new CancelledError();
       }
 
-      const tsDiagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
-        .checkSyntacticErrors
-        ? program
-            .getSemanticDiagnostics(sourceFile, cancellationToken)
-            .concat(
-              program.getSyntacticDiagnostics(sourceFile, cancellationToken)
-            )
-        : program.getSemanticDiagnostics(sourceFile, cancellationToken);
+      try {
+        const tsDiagnosticsToRegister: ReadonlyArray<ts.Diagnostic> = this
+          .checkSyntacticErrors
+          ? program
+              .getSemanticDiagnostics(sourceFile, tsCancellationToken)
+              .concat(
+                program.getSyntacticDiagnostics(sourceFile, tsCancellationToken)
+              )
+          : program.getSemanticDiagnostics(sourceFile, tsCancellationToken);
 
-      tsDiagnostics.push(...tsDiagnosticsToRegister);
+        tsDiagnostics.push(...tsDiagnosticsToRegister);
+      } catch (error) {
+        if (error instanceof this.typescript.OperationCanceledException) {
+          throw new CancelledError();
+        }
+
+        throw error;
+      }
     });
 
     return createIssuesFromTsDiagnostics(tsDiagnostics, this.typescript);
@@ -263,7 +278,9 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
     const currentEsLintErrors = new Map<string, LintReport>();
     filesToLint.forEach(fileName => {
-      cancellationToken.throwIfCancellationRequested();
+      if (cancellationToken.isCancellationRequested()) {
+        throw new CancelledError();
+      }
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const report = this.eslinter!.getReport(fileName);

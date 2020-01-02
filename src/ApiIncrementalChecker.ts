@@ -3,7 +3,7 @@ import {
   IncrementalCheckerInterface,
   IncrementalCheckerParams
 } from './IncrementalCheckerInterface';
-import { CancellationToken } from './CancellationToken';
+import { CancellationToken, CancelledError } from './cancellation';
 import { CompilerHost } from './CompilerHost';
 import { createEslinter } from './createEslinter';
 import {
@@ -80,7 +80,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     }
 
     for (const updatedFile of this.lastUpdatedFiles) {
-      cancellationToken.throwIfCancellationRequested();
+      if (cancellationToken.isCancellationRequested()) {
+        throw new CancelledError();
+      }
+
       if (this.isFileExcluded(updatedFile)) {
         continue;
       }

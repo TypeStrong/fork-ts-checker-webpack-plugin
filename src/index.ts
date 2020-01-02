@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as childProcess from 'child_process';
+import * as fs from 'fs';
 import * as webpack from 'webpack';
 import * as ts from 'typescript';
 import * as semver from 'semver';
@@ -7,7 +8,7 @@ import micromatch from 'micromatch';
 import chalk from 'chalk';
 import { RpcProvider } from 'worker-rpc';
 
-import { CancellationToken } from './CancellationToken';
+import { FileBasedCancellationToken } from './cancellation';
 import {
   Formatter,
   createFormatter,
@@ -15,7 +16,6 @@ import {
   FormatterType,
   FormatterOptions
 } from './formatter';
-import { fileExistsSync } from './FsHelper';
 import { Message } from './Message';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks';
 import { RUN, RunPayload, RunResult } from './RpcTypes';
@@ -102,7 +102,7 @@ class ForkTsCheckerWebpackPlugin {
   private compiler: any = undefined;
   private started: [number, number] | undefined = undefined;
   private elapsed: [number, number] | undefined = undefined;
-  private cancellationToken: CancellationToken | undefined = undefined;
+  private cancellationToken: FileBasedCancellationToken | undefined = undefined;
 
   private isWatching = false;
   private checkDone = false;
@@ -280,7 +280,7 @@ class ForkTsCheckerWebpackPlugin {
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
 
     // validate config
-    const tsconfigOk = fileExistsSync(this.tsconfigPath);
+    const tsconfigOk = fs.existsSync(this.tsconfigPath);
 
     // validate logger
     if (this.logger) {
@@ -371,7 +371,7 @@ class ForkTsCheckerWebpackPlugin {
         this.started = process.hrtime();
 
         // create new token for current job
-        this.cancellationToken = new CancellationToken(this.typescript);
+        this.cancellationToken = new FileBasedCancellationToken();
         if (!this.service || !this.service.connected) {
           this.spawnService();
         }

@@ -1,7 +1,11 @@
 import * as ts from 'typescript'; // import for types alone
 
 import { IncrementalChecker } from './IncrementalChecker';
-import { CancellationToken } from './CancellationToken';
+import {
+  CancellationToken,
+  CancelledError,
+  FileBasedCancellationToken
+} from './cancellation';
 import {
   IncrementalCheckerInterface,
   IncrementalCheckerParams
@@ -87,7 +91,7 @@ async function run(cancellationToken: CancellationToken) {
       lints.push(...(await checker.getEsLintIssues(cancellationToken)));
     }
   } catch (error) {
-    if (error instanceof typescript.OperationCanceledException) {
+    if (error instanceof CancelledError) {
       return undefined;
     }
 
@@ -106,7 +110,7 @@ async function run(cancellationToken: CancellationToken) {
 
 rpc.registerRpcHandler<RunPayload, RunResult>(RUN, message =>
   typeof message !== 'undefined'
-    ? run(CancellationToken.createFromJSON(typescript, message))
+    ? run(FileBasedCancellationToken.createFromJSON(message))
     : undefined
 );
 

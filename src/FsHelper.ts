@@ -1,22 +1,9 @@
 import * as fs from 'fs';
 
-export function fileExistsSync(filePath: fs.PathLike) {
-  try {
-    fs.statSync(filePath);
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      return false;
-    } else {
-      throw err;
-    }
-  }
-  return true;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function throwIfIsInvalidSourceFileError(filepath: string, error: any) {
   if (
-    fileExistsSync(filepath) &&
+    fs.existsSync(filepath) &&
     // check the error type due to file system lag
     !(error instanceof Error) &&
     !(error.constructor.name === 'FatalError') &&

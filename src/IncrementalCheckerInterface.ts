@@ -1,6 +1,6 @@
 import * as ts from 'typescript'; // imported for types alone
 
-import { CancellationToken } from './CancellationToken';
+import { CancellationToken } from './cancellation';
 import { ResolveTypeReferenceDirective, ResolveModuleName } from './resolution';
 import { createEslinter } from './createEslinter';
 import { Issue } from './issue';

@@ -1,8 +1,8 @@
-import { CancellationTokenData } from './CancellationToken';
+import { FileBasedCancellationTokenJSON } from './cancellation';
 import { Message } from './Message';
 
 export const RUN = 'run';
-export type RunPayload = CancellationTokenData;
+export type RunPayload = FileBasedCancellationTokenJSON;
 export type RunResult =
   | Message
   // when run was cancelled via CancellationToken, undefined is returned

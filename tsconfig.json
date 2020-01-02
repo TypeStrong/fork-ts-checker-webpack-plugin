@@ -5,6 +5,7 @@
     "skipLibCheck": true,
     "strict": true,
     "lib": ["es2015"],
+    "importHelpers": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true

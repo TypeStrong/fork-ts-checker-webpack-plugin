@@ -5,10 +5,12 @@ const RpcProvider = require('worker-rpc').RpcProvider;
  */
 
 exports.rpcMethods = {
+  /* eslint-disable @typescript-eslint/camelcase */
   checker_nextIteration: 'checker_nextIteration',
   checker_getKnownFileNames: 'checker_getKnownFileNames',
   checker_getSourceFile: 'checker_getSourceFile',
   checker_getSyntacticDiagnostics: 'checker_getSyntacticDiagnostics'
+  /* eslint-enable @typescript-eslint/camelcase*/
 };
 
 /** @type {RpcProvider} */

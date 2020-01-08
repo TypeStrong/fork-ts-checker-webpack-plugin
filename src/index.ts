@@ -241,7 +241,8 @@ class ForkTsCheckerWebpackPlugin {
         ? options.compilerOptions
         : {};
 
-    let typescript, typescriptVersion;
+    let typescript;
+    let typescriptVersion;
 
     try {
       typescript = require(typescriptPath);
@@ -273,7 +274,9 @@ class ForkTsCheckerWebpackPlugin {
         ? true
         : options.tslint
       : undefined;
-    let tslintAutoFix, tslintVersion;
+
+    let tslintAutoFix;
+    let tslintVersion;
 
     try {
       tslintAutoFix = options.tslintAutoFix || false;
@@ -302,6 +305,7 @@ class ForkTsCheckerWebpackPlugin {
       typeof options.eslintOptions === 'object' ? options.eslintOptions : {};
 
     try {
+      // tslint:disable-next-line:no-implicit-dependencies
       eslintVersion = require('eslint').Linter.version;
     } catch (_ignored) {
       throw new Error(

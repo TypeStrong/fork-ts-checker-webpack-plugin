@@ -96,7 +96,7 @@
     "babel-code-frame": "^6.22.0",
     "chalk": "^2.4.1",
     "chokidar": "^3.3.0",
-    "micromatch": "^3.1.10",
+    "micromatch": "^4.0.2",
     "minimatch": "^3.0.4",
     "semver": "^5.6.0",
     "tapable": "^1.0.0",
@@ -112,7 +112,7 @@
     "@types/eslint": "^4.16.6",
     "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.134",
-    "@types/micromatch": "^3.1.0",
+    "@types/micromatch": "^4.0.0",
     "@types/minimatch": "^3.0.1",
     "@types/mock-require": "^2.0.0",
     "@types/node": "^11.0.0",
@@ -149,7 +149,7 @@
     "webpack": "^5.0.0-alpha.5"
   },
   "engines": {
-    "node": ">=6.11.5",
+    "node": ">=8.6",
     "yarn": ">=1.0.0"
   }
 }

@@ -73,21 +73,6 @@
       "path": "cz-conventional-changelog"
     }
   },
-  "release": {
-    "branches": [
-      "master",
-      {
-        "name": "beta",
-        "prerelease": true
-      }
-    ],
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      "@semantic-release/npm",
-      "@semantic-release/github"
-    ]
-  },
   "dependencies": {
     "babel-code-frame": "^6.22.0",
     "chalk": "^2.4.1",

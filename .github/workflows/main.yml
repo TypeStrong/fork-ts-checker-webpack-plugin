@@ -75,7 +75,7 @@ jobs:
       
     - name: Install dependencies
       run: yarn install --frozen-lockfile --ignore-engines
-      
+
     - name: Replace dependencies
       run: yarn add ${{ matrix.packages }} -D --ignore-engines
 

@@ -15,7 +15,9 @@
 
 ## Installation
 
-This plugin requires minimum **webpack 2.3**, **TypeScript 2.1** and optionally **ESLint 6.0.0** or **TSLint 4.0**
+This plugin requires minimum **Node.js 6.11.5**, **webpack 4**, **TypeScript 2.1** and optionally **ESLint 6** (which itself requires minimum **Node.js 8.10.0**)
+
+If you depend on **webpack 2**, **webpack 3**, or **tslint 4**, please use [older version](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
 
 ```sh
 # with npm
@@ -56,7 +58,7 @@ add `CheckerPlugin` and delegate checker to the separate process. The problem wi
 it was a lot slower than [ts-loader](https://github.com/TypeStrong/ts-loader) on an incremental build (~20s vs ~3s).
 Secondly, we used [tslint](https://palantir.github.io/tslint) and we wanted to run this, along with type checker, in a separate process.
 This is why this plugin was created. To provide better performance, the plugin reuses Abstract Syntax Trees between compilations and shares
-these trees with TSLint. It can be scaled with a multi-process mode to utilize maximum CPU power.
+these trees with TSLint.
 
 ## Modules resolution
 
@@ -98,17 +100,6 @@ module.exports = {
 
 There's a good explanation on setting up TypeScript ESLint support by Robert Cooper [here](https://dev.to/robertcoopercode/using-eslint-and-prettier-in-a-typescript-project-53jb).
 
-## TSLint
-
-*[TSLint is being replaced by ESLint](https://medium.com/palantir/tslint-in-2019-1a144c2317a9).
-https://eslint.org/blog/2019/01/future-typescript-eslint. As a consequence, support for TSLint in fork-ts-checker-webpack-plugin will be deprecated and removed in future versions of the plugin.*
-
-If you have installed [tslint](https://palantir.github.io/tslint), you can enable it by setting `tslint: true` or
-`tslint: './path/to/tslint.json'`. We recommend changing `defaultSeverity` to a `"warning"` in `tslint.json` file.
-It helps to distinguish lints from TypeScript's diagnostics.
-
-
-
 ## Options
 
 - **tsconfig** `string`:
@@ -124,37 +115,7 @@ It helps to distinguish lints from TypeScript's diagnostics.
 - **eslintOptions** `object`:
 
   - Options that can be used to initialise ESLint. See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
-
-- **tslint** `string | true | undefined`:
-
-  - If `string`, path to _tslint.json_ file to check source files against.
-  - If `true`, path to `tslint.json` file will be computed with respect to currently checked file, just like TSLint
-    CLI would do. Suppose you have a project:
-
-    ```
-    ./
-      tslint.json
-
-      src/
-        file.ts
-        anotherFile.ts
-
-        lib/
-          tslint.json
-          someHelperFile.ts
-    ```
-
-    In such a case `src/file.ts` and `src/anotherFile.ts` would be checked against root `tslint.json`, and
-    `src/lib/someHelperFile.ts` would be checked against `src/lib/tslint.json`.
-
-  Default: `undefined`.
-
-- **tslintAutoFix** `boolean`:
-  Passes on `--fix` flag while running `tslint` to auto fix linting errors. Default: false.
-
-- **watch** `string | string[]`:
-  Directories or files to watch by service. Not necessary but improves performance (reduces number of `fs.stat` calls). Not applicable when `useTypescriptIncrementalApi` is `true`, in which case watching is handled automatically.
-
+  
 - **async** `boolean`:
   True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.
   We recommend to set this to `false` in projects where type checking is faster than webpack's build - it's better for integration with other plugins. Another scenario where you might want to set this to `false` is if you use the `overlay` functionality of `webpack-dev-server`.
@@ -163,7 +124,7 @@ It helps to distinguish lints from TypeScript's diagnostics.
   List of TypeScript diagnostic codes to ignore.
 
 - **ignoreLints** `string[]`:
-  List of tslint rule names to ignore.
+  List of eslint rule names to ignore.
 
 - **ignoreLintWarnings** `boolean`:
   If true, will ignore all lint warnings.
@@ -178,15 +139,12 @@ new ForkTsCheckerWebpackPlugin({
 });
 ```
 
-- **colors** `boolean`:
-  If `false`, disables built-in colors in logger messages. Default: `true`.
-
 - **logger** `object`:
   Logger instance. It should be object that implements method: `error`, `warn`, `info`. Default: `console`.
 
-- **formatter** `'default' | 'codeframe' | ((message: NormalizedMessage, useColors: boolean) => string)`:
-  Formatter for diagnostics and lints. By default uses `default` formatter. You can also pass your own formatter as a function
-  (see `src/NormalizedMessage.js` and `src/formatter/` for api reference).
+- **formatter** `'default' | 'codeframe' | (issue: Issue) => string)`:
+  Formatter for issues and lints. By default uses `default` formatter. You can also pass your own formatter as a function
+  (see `src/issue/` and `src/formatter/` for API reference).
 
 - **formatterOptions** `object`:
   Options passed to formatters (currently only `codeframe` - see [available options](https://www.npmjs.com/package/babel-code-frame#options))
@@ -200,24 +158,17 @@ new ForkTsCheckerWebpackPlugin({
 - **memoryLimit** `number`:
   Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
 
-- **workers** `number`:
-  You can split type checking to a few workers to speed-up increment build. **Be careful** - if you don't want to increase build time, you
-  should keep free 1 core for _build_ and 1 core for a _system_ _(for example system with 4 CPUs should use max 2 workers)_. Second thing -
-  node doesn't share memory between workers - keep in mind that memory usage will increase. Be aware that in some scenarios increasing workers
-  number **can increase checking time**. Default: `ForkTsCheckerWebpackPlugin.ONE_CPU`.
-
 - **vue** `boolean | { enabled: boolean, compiler: string }`:
   If `true` or `enabled: true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
   [Vue section](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 
 - **useTypescriptIncrementalApi** `boolean`:
-  If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. In this mode you can only have 1
-  worker, but if the changes in your code are small (like you normally have when you work in 'watch' mode), the compilation
-  may be much faster, even compared to multi-threaded compilation. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
+  If true, the plugin will use incremental compilation API introduced in TypeScript 2.7. Defaults to `true` when working with TypeScript 3+ and `false` when below 3. The default can be overridden by directly specifying a value.
+  Don't use it together with VueJs enabled - it's not supported yet.
 
 - **measureCompilationTime** `boolean`:
   If true, the plugin will measure the time spent inside the compilation code. This may be useful to compare modes,
-  especially if there are other loaders/plugins involved in the compilation. **requires node 8+**
+  especially if there are other loaders/plugins involved in the compilation. **requires Node.js >= 8.5.0**
 
 - **typescript** `string`:
   If supplied this is a custom path where `typescript` can be found. Defaults to `require.resolve('typescript')`.
@@ -266,13 +217,6 @@ new ForkTsCheckerWebpackPlugin({
 
 </details>
 
-### Pre-computed consts:
-
-- `ForkTsCheckerWebpackPlugin.ONE_CPU` - always use one CPU
-- `ForkTsCheckerWebpackPlugin.ALL_CPUS` - always use all CPUs (will increase build time)
-- `ForkTsCheckerWebpackPlugin.ONE_CPU_FREE` - leave only one CPU for build (probably will increase build time)
-- `ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE` - **recommended** - leave two CPUs free (one for build, one for system)
-
 ## Different behaviour in watch mode
 
 If you turn on [webpacks watch mode](https://webpack.js.org/configuration/watch/#watch) the `fork-ts-checker-notifier-webpack-plugin` will take care of logging type errors, _not_ webpack itself. That means if you set `silent: true` you won't see type errors in your console in watch mode.
@@ -293,26 +237,21 @@ We hope this will be resolved in future; the issue can be tracked [here](https:/
 
 This plugin provides some custom webpack hooks (all are sync):
 
-| Event name                              | Hook Access Key      | Description                                                                    | Params                                                                     |
-| --------------------------------------- | -------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `fork-ts-checker-cancel`                | `cancel`             | Cancellation has been requested                                                | `cancellationToken`                                                        |
-| `fork-ts-checker-waiting`               | `waiting`            | Waiting for results                                                            | `hasTsLint`                                                                |
-| `fork-ts-checker-service-before-start`  | `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                                                          |
-| `fork-ts-checker-service-start`         | `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `tslintPath`, `watchPaths`, `workersNumber`, `memoryLimit` |
-| `fork-ts-checker-service-start-error`   | `serviceStartError`  | Cannot start service                                                           | `error`                                                                    |
-| `fork-ts-checker-service-out-of-memory` | `serviceOutOfMemory` | Service is out of memory                                                       | -                                                                          |
-| `fork-ts-checker-receive`               | `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`                                                     |
-| `fork-ts-checker-emit`                  | `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed`                                          |
-| `fork-ts-checker-done`                  | `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed`                                          |
-
-The **Event name** is there for backward compatibility with webpack 2/3. Regardless
-of the version of webpack (2, 3 or 4) you are using, we will always access plugin hooks with **Hook Access Keys** as
-described below.
+| Hook Access Key      | Description                                                                    | Params                            |
+| -------------------- | ------------------------------------------------------------------------------ | --------------------------------- |
+| `cancel`             | Cancellation has been requested                                                | `cancellationToken`               |
+| `waiting`            | Waiting for results                                                            | -                                 |
+| `serviceBeforeStart` | Async plugin that can be used for delaying `fork-ts-checker-service-start`     | -                                 |
+| `serviceStart`       | Service will be started                                                        | `tsconfigPath`, `memoryLimit`     |
+| `serviceStartError`  | Cannot start service                                                           | `error`                           |
+| `serviceOutOfMemory` | Service is out of memory                                                       | -                                 |
+| `receive`            | Plugin receives diagnostics and lints from service                             | `diagnostics`, `lints`            |
+| `emit`               | Service will add errors and warnings to webpack compilation ('build' mode)     | `diagnostics`, `lints`, `elapsed` |
+| `done`               | Service finished type checking and webpack finished compilation ('watch' mode) | `diagnostics`, `lints`, `elapsed` |
 
 ### Accessing plugin hooks
 
-All plugin hooks are compatible with both [webpack](https://webpack.js.org) version
-4 and version 2. To access plugin hooks and tap into the event, we need to use
+To access plugin hooks and tap into the event, we need to use
 the `getCompilerHooks` static method. When we call this method with a [webpack compiler instance](https://webpack.js.org/api/node/),
 it returns the series of [tapable](https://github.com/webpack/tapable)
 hooks where you can pass in your callbacks.
@@ -404,14 +343,12 @@ if ('compilers' in compiler) {
 
 ```js
 new ForkTsCheckerWebpackPlugin({
-  tslint: true,
   vue: true
 });
 ```
 Optionally change default [vue-template-compiler](https://github.com/vuejs/vue/tree/dev/packages/vue-template-compiler) to [nativescript-vue-template-compiler](https://github.com/nativescript-vue/nativescript-vue/tree/master/packages/nativescript-vue-template-compiler) if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue)
 ```
 new ForkTsCheckerWebpackPlugin({
-  tslint: true,
   vue: { enabled: true, compiler: 'nativescript-vue-template-compiler' }
 });
 ```
@@ -446,16 +383,7 @@ new ForkTsCheckerWebpackPlugin({
 },
 ```
 
-4. Add rules to your `tslint.json` and they will be applied to Vue files. For example, you could apply the Standard JS rules [tslint-config-standard](https://github.com/blakeembrey/tslint-config-standard) like this:
-
-```json
-{
-  "defaultSeverity": "error",
-  "extends": ["tslint-config-standard"]
-}
-```
-
-5. Ensure your `tsconfig.json` includes .vue files:
+4. Ensure your `tsconfig.json` includes .vue files:
 
 ```js
 // tsconfig.json
@@ -470,7 +398,7 @@ new ForkTsCheckerWebpackPlugin({
 }
 ```
 
-6. It accepts any wildcard in your TypeScript configuration:
+5. It accepts any wildcard in your TypeScript configuration:
 
 ```js
 // tsconfig.json
@@ -495,7 +423,7 @@ new ForkTsCheckerWebpackPlugin({
 import Hello from '@/components/hello.vue'
 ```
 
-7. If you are working in **VSCode**, you can get extensions [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) and [TSLint Vue](https://marketplace.visualstudio.com/items?itemName=prograhammer.tslint-vue) to complete the developer workflow.
+6. If you are working in **VSCode**, you can get the [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) extension to complete the developer workflow.
 
 ## Credits
 

@@ -1,4 +1,3 @@
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
 
 export type ResolveModuleName = (
@@ -24,11 +23,9 @@ export function makeResolutionFunctions(
   resolveModuleName =
     resolveModuleName ||
     ((
-      // tslint:disable-next-line:no-shadowed-variable
       typescript,
       moduleName,
       containingFile,
-      // tslint:disable-next-line:no-shadowed-variable
       compilerOptions,
       moduleResolutionHost
     ) => {
@@ -43,11 +40,9 @@ export function makeResolutionFunctions(
   resolveTypeReferenceDirective =
     resolveTypeReferenceDirective ||
     ((
-      // tslint:disable-next-line:no-shadowed-variable
       typescript,
       typeDirectiveName,
       containingFile,
-      // tslint:disable-next-line:no-shadowed-variable
       compilerOptions,
       moduleResolutionHost
     ) => {

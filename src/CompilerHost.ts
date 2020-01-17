@@ -1,5 +1,5 @@
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript'; // Imported for types alone
+
 import { LinkedList } from './LinkedList';
 import { VueProgram } from './VueProgram';
 import { ResolveModuleName, ResolveTypeReferenceDirective } from './resolution';
@@ -25,7 +25,11 @@ export class CompilerHost
   >;
 
   public getProgram(): ts.Program {
-    return this.program!.getProgram().getProgram();
+    if (!this.program) {
+      throw new Error('Program is not created yet.');
+    }
+
+    return this.program.getProgram().getProgram();
   }
 
   public getAllKnownFiles() {
@@ -226,10 +230,12 @@ export class CompilerHost
   }
 
   public setTimeout(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callback: (...args: any[]) => void,
-    _ms: number,
+    ms: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any[]
-  ): any {
+  ) {
     // There are 2 things we are hacking here:
     // 1. This method only called from watch program to wait until all files
     // are written to filesystem (for example, when doing 'save all')
@@ -250,18 +256,16 @@ export class CompilerHost
     // dramatic compilation time increase), so we have to stick with these
     // hacks for now.
     this.compilationStarted = true;
-    return this.typescript.sys.setTimeout!(callback, 1, args);
+
+    return (this.typescript.sys.setTimeout || setTimeout)(callback, 1, args);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public clearTimeout(timeoutId: any): void {
-    this.typescript.sys.clearTimeout!(timeoutId);
+    (this.typescript.sys.clearTimeout || clearTimeout)(timeoutId);
   }
 
-  public onWatchStatusChange(
-    _diagnostic: ts.Diagnostic,
-    _newLine: string,
-    _options: ts.CompilerOptions
-  ): void {
+  public onWatchStatusChange(): void {
     // do nothing
   }
 
@@ -289,7 +293,7 @@ export class CompilerHost
   public watchFile(
     path: string,
     callback: ts.FileWatcherCallback,
-    _pollingInterval?: number
+    pollingInterval?: number
   ): ts.FileWatcher {
     const slot: FileWatchDelaySlot = { callback, events: [] };
     const node = this.fileWatchers.add(slot);
@@ -304,7 +308,7 @@ export class CompilerHost
         }
         slot.events.push({ fileName, eventKind });
       },
-      _pollingInterval
+      pollingInterval
     );
     return {
       close: () => {
@@ -385,7 +389,13 @@ export class CompilerHost
   }
 
   public realpath(path: string): string {
-    return this.tsHost.realpath!(path);
+    if (!this.tsHost.realpath) {
+      throw new Error(
+        'The realpath function is not supported by the CompilerHost.'
+      );
+    }
+
+    return this.tsHost.realpath(path);
   }
 
   public trace(s: string): void {
@@ -398,7 +408,7 @@ export class CompilerHost
     return this.tsHost.useCaseSensitiveFileNames();
   }
 
-  public onUnRecoverableConfigFileDiagnostic(_diag: ts.Diagnostic) {
+  public onUnRecoverableConfigFileDiagnostic() {
     // do nothing
   }
 
@@ -406,7 +416,10 @@ export class CompilerHost
     program: ts.EmitAndSemanticDiagnosticsBuilderProgram
   ): void {
     // all actual diagnostics happens here
-    this.tsHost.afterProgramCreate!(program);
+    if (this.tsHost.afterProgramCreate) {
+      this.tsHost.afterProgramCreate(program);
+    }
+
     this.afterCompile();
   }
 
@@ -415,19 +428,15 @@ export class CompilerHost
   // - much slower for some reason,
   // - writes files anyway (o_O)
   // - has different way of providing diagnostics. (with this version we can at least reliably get it from afterProgramCreate)
-  public createDirectory(_path: string): void {
+  public createDirectory(): void {
     // pretend everything was ok
   }
 
-  public writeFile(
-    _path: string,
-    _data: string,
-    _writeByteOrderMark?: boolean
-  ): void {
+  public writeFile(): void {
     // pretend everything was ok
   }
 
-  public onCachedDirectoryStructureHostCreate?(_host: any): void {
+  public onCachedDirectoryStructureHostCreate?(): void {
     // pretend everything was ok
   }
 }

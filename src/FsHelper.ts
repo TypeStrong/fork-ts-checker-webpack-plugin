@@ -13,6 +13,7 @@ export function fileExistsSync(filePath: fs.PathLike) {
   return true;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function throwIfIsInvalidSourceFileError(filepath: string, error: any) {
   if (
     fileExistsSync(filepath) &&

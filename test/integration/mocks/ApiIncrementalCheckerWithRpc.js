@@ -1,5 +1,4 @@
 const mock = require('mock-require');
-
 const origImport = require('../../../lib/ApiIncrementalChecker');
 const { rpcMethods, getRpcProvider } = require('../helpers/rpc');
 
@@ -10,38 +9,35 @@ mock('../../../lib/ApiIncrementalChecker', {
 
       const rpc = getRpcProvider();
 
-      const awaitInit = async () => {
-        if (!this.tsIncrementalCompiler.lastProcessing) {
-          await this.tsIncrementalCompiler.processChanges();
-        } else {
-          await this.tsIncrementalCompiler.lastProcessing;
-        }
+      const init = () => {
+        return (
+          this.tsIncrementalCompiler.lastProcessing ||
+          this.tsIncrementalCompiler.processChanges()
+        );
       };
 
-      rpc.registerRpcHandler(rpcMethods.checker_nextIteration, () => {
+      rpc.registerRpcHandler(rpcMethods.nextIteration, () => {
         return this.nextIteration();
       });
 
-      rpc.registerRpcHandler(rpcMethods.checker_getKnownFileNames, async () => {
-        await awaitInit();
-        return Array.from(this.tsIncrementalCompiler.getAllKnownFiles());
+      rpc.registerRpcHandler(rpcMethods.getKnownFileNames, () => {
+        return init().then(() =>
+          Array.from(this.tsIncrementalCompiler.getAllKnownFiles())
+        );
       });
 
-      rpc.registerRpcHandler(
-        rpcMethods.checker_getSourceFile,
-        async fileName => {
-          await awaitInit();
+      rpc.registerRpcHandler(rpcMethods.getSourceFile, fileName => {
+        return init().then(() => {
           const result = this.tsIncrementalCompiler
             .getProgram()
             .getSourceFile(fileName);
-          return !result ? undefined : { text: result.text };
-        }
-      );
 
-      rpc.registerRpcHandler(
-        rpcMethods.checker_getSyntacticDiagnostics,
-        async () => {
-          await awaitInit();
+          return !result ? undefined : { text: result.text };
+        });
+      });
+
+      rpc.registerRpcHandler(rpcMethods.getSyntacticDiagnostics, () => {
+        return init().then(() => {
           const result = this.tsIncrementalCompiler
             .getProgram()
             .getSyntacticDiagnostics();
@@ -50,8 +46,8 @@ mock('../../../lib/ApiIncrementalChecker', {
             length,
             file: { text: file.text }
           }));
-        }
-      );
+        });
+      });
     }
   }
 });

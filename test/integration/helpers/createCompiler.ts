@@ -1,10 +1,9 @@
-// tslint:disable:no-implicit-dependencies
 import webpack from 'webpack';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as copyDir from 'copy-dir';
 import * as rimraf from 'rimraf';
-import { ForkTsCheckerWebpackPlugin, webpackMajorVersion } from './';
+import { ForkTsCheckerWebpackPlugin } from './';
 
 if (!beforeAll || !afterAll) {
   throw new Error('file should not be included outside of jest!');
@@ -89,7 +88,6 @@ function normalizeDiagnosticsPaths(
     rawMessage: string;
     message: string;
     file: string;
-    location: any[];
   }[],
   contextDir: string
 ) {
@@ -132,7 +130,7 @@ export function createCompiler({
     : { transpileOnly: true, silent: true };
 
   const compilerConfig = prepareWebpackConfig({
-    ...(webpackMajorVersion >= 4 ? { mode: 'development' } : {}),
+    mode: 'development',
     context: contextDir,
     entry: entryPoint,
     output: {

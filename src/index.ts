@@ -1,41 +1,36 @@
 import * as path from 'path';
-import * as process from 'process';
 import * as childProcess from 'child_process';
-import { RpcProvider } from 'worker-rpc';
-import * as semver from 'semver';
-import chalk, { Chalk } from 'chalk';
-import * as micromatch from 'micromatch';
-import * as os from 'os';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as webpack from 'webpack';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as ts from 'typescript';
+import * as semver from 'semver';
+import micromatch from 'micromatch';
+import chalk from 'chalk';
+import { RpcProvider } from 'worker-rpc';
+
 import { CancellationToken } from './CancellationToken';
-import { NormalizedMessage } from './NormalizedMessage';
-import { createDefaultFormatter } from './formatter/defaultFormatter';
-import { createCodeframeFormatter } from './formatter/codeframeFormatter';
+import {
+  Formatter,
+  createFormatter,
+  createRawFormatter,
+  FormatterType,
+  FormatterOptions
+} from './formatter';
 import { fileExistsSync } from './FsHelper';
 import { Message } from './Message';
-
-import {
-  getForkTsCheckerWebpackPluginHooks,
-  legacyHookMap,
-  ForkTsCheckerHooks
-} from './hooks';
-import { RunPayload, RunResult, RUN } from './RpcTypes';
+import { getForkTsCheckerWebpackPluginHooks } from './hooks';
+import { RUN, RunPayload, RunResult } from './RpcTypes';
+import { Issue, IssueSeverity } from './issue';
 import { VueOptions } from './types/vue-options';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
 namespace ForkTsCheckerWebpackPlugin {
-  export type Formatter = (
-    message: NormalizedMessage,
-    useColors: boolean
-  ) => string;
-
   export interface Logger {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error(message?: any): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     warn(message?: any): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     info(message?: any): void;
   }
 
@@ -43,25 +38,20 @@ namespace ForkTsCheckerWebpackPlugin {
     typescript: string;
     tsconfig: string;
     compilerOptions: object;
-    tslint: string | true | undefined;
-    tslintAutoFix: boolean;
     eslint: boolean;
     /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
     eslintOptions: object;
-    watch: string | string[];
     async: boolean;
     ignoreDiagnostics: number[];
     ignoreLints: string[];
     ignoreLintWarnings: boolean;
     reportFiles: string[];
-    colors: boolean;
     logger: Logger;
-    formatter: 'default' | 'codeframe' | Formatter;
-    formatterOptions: any;
+    formatter: FormatterType;
+    formatterOptions: FormatterOptions;
     silent: boolean;
     checkSyntacticErrors: boolean;
     memoryLimit: number;
-    workers: number;
     vue: boolean | Partial<VueOptions>;
     useTypescriptIncrementalApi: boolean;
     measureCompilationTime: boolean;
@@ -72,38 +62,24 @@ namespace ForkTsCheckerWebpackPlugin {
 
 /**
  * ForkTsCheckerWebpackPlugin
- * Runs typescript type checker and linter (tslint) on separate process.
+ * Runs typescript type checker and linter on separate process.
  * This speed-ups build a lot.
  *
  * Options description in README.md
  */
 class ForkTsCheckerWebpackPlugin {
   public static readonly DEFAULT_MEMORY_LIMIT = 2048;
-  public static readonly ONE_CPU = 1;
-  public static readonly ALL_CPUS = os.cpus && os.cpus() ? os.cpus().length : 1;
-  public static readonly ONE_CPU_FREE = Math.max(
-    1,
-    ForkTsCheckerWebpackPlugin.ALL_CPUS - 1
-  );
-  public static readonly TWO_CPUS_FREE = Math.max(
-    1,
-    ForkTsCheckerWebpackPlugin.ALL_CPUS - 2
-  );
 
-  public static getCompilerHooks(
-    compiler: any
-  ): Record<ForkTsCheckerHooks, any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static getCompilerHooks(compiler: any) {
     return getForkTsCheckerWebpackPluginHooks(compiler);
   }
 
   public readonly options: Partial<ForkTsCheckerWebpackPlugin.Options>;
   private tsconfig: string;
   private compilerOptions: object;
-  private tslint: string | boolean | undefined = false;
-  private eslint: boolean = false;
+  private eslint = false;
   private eslintOptions: object = {};
-  private tslintAutoFix: boolean = false;
-  private watch: string[];
   private ignoreDiagnostics: number[];
   private ignoreLints: string[];
   private ignoreLintWarnings: boolean;
@@ -112,36 +88,32 @@ class ForkTsCheckerWebpackPlugin {
   private silent: boolean;
   private async: boolean;
   private checkSyntacticErrors: boolean;
-  private workersNumber: number;
   private memoryLimit: number;
-  private useColors: boolean;
-  private colors: Chalk;
-  private formatter: ForkTsCheckerWebpackPlugin.Formatter;
+  private formatter: Formatter;
+  private rawFormatter: Formatter;
   private useTypescriptIncrementalApi: boolean;
   private resolveModuleNameModule: string | undefined;
   private resolveTypeReferenceDirectiveModule: string | undefined;
 
   private tsconfigPath: string | undefined = undefined;
-  private tslintPath: string | undefined = undefined;
-  private watchPaths: string[] = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private compiler: any = undefined;
   private started: [number, number] | undefined = undefined;
   private elapsed: [number, number] | undefined = undefined;
   private cancellationToken: CancellationToken | undefined = undefined;
 
-  private isWatching: boolean = false;
-  private checkDone: boolean = false;
-  private compilationDone: boolean = false;
-  private diagnostics: NormalizedMessage[] = [];
-  private lints: NormalizedMessage[] = [];
+  private isWatching = false;
+  private checkDone = false;
+  private compilationDone = false;
+  private diagnostics: Issue[] = [];
+  private lints: Issue[] = [];
 
   private emitCallback: () => void;
   private doneCallback: () => void;
   private typescriptPath: string;
   private typescript: typeof ts;
   private typescriptVersion: string;
-  private tslintVersion: string | undefined;
   private eslintVersion: string | undefined = undefined;
 
   private service?: childProcess.ChildProcess;
@@ -150,8 +122,9 @@ class ForkTsCheckerWebpackPlugin {
   private vue: VueOptions;
 
   private measureTime: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private performance: any;
-  private startAt: number = 0;
+  private startAt = 0;
 
   protected nodeArgs: string[] = [];
 
@@ -159,8 +132,6 @@ class ForkTsCheckerWebpackPlugin {
     options = options || ({} as ForkTsCheckerWebpackPlugin.Options);
     this.options = { ...options };
 
-    this.watch =
-      typeof options.watch === 'string' ? [options.watch] : options.watch || [];
     this.ignoreDiagnostics = options.ignoreDiagnostics || [];
     this.ignoreLints = options.ignoreLints || [];
     this.ignoreLintWarnings = options.ignoreLintWarnings === true;
@@ -172,18 +143,13 @@ class ForkTsCheckerWebpackPlugin {
     this.resolveModuleNameModule = options.resolveModuleNameModule;
     this.resolveTypeReferenceDirectiveModule =
       options.resolveTypeReferenceDirectiveModule;
-    this.workersNumber = options.workers || ForkTsCheckerWebpackPlugin.ONE_CPU;
     this.memoryLimit =
       options.memoryLimit || ForkTsCheckerWebpackPlugin.DEFAULT_MEMORY_LIMIT;
-    this.useColors = options.colors !== false; // default true
-    this.colors = new chalk.constructor({ enabled: this.useColors });
-    this.formatter =
-      options.formatter && typeof options.formatter === 'function'
-        ? options.formatter
-        : ForkTsCheckerWebpackPlugin.createFormatter(
-            (options.formatter as 'default' | 'codeframe') || 'default',
-            options.formatterOptions || {}
-          );
+    this.formatter = createFormatter(
+      options.formatter,
+      options.formatterOptions
+    );
+    this.rawFormatter = createRawFormatter();
 
     this.emitCallback = this.createNoopEmitCallback();
     this.doneCallback = this.createDoneCallback();
@@ -207,14 +173,6 @@ class ForkTsCheckerWebpackPlugin {
       this.eslint = true;
       this.eslintVersion = eslintVersion;
       this.eslintOptions = eslintOptions;
-    } else {
-      const { tslint, tslintVersion, tslintAutoFix } = this.validateTslint(
-        options
-      );
-
-      this.tslint = tslint;
-      this.tslintVersion = tslintVersion;
-      this.tslintAutoFix = tslintAutoFix;
     }
 
     this.vue = ForkTsCheckerWebpackPlugin.prepareVueOptions(options.vue);
@@ -226,7 +184,14 @@ class ForkTsCheckerWebpackPlugin {
 
     this.measureTime = options.measureCompilationTime === true;
     if (this.measureTime) {
+      if (semver.lt(process.version, '8.5.0')) {
+        throw new Error(
+          `To use 'measureCompilationTime' option, please update to Node.js >= v8.5.0 ` +
+            `(current version is ${process.version})`
+        );
+      }
       // Node 8+ only
+      // eslint-disable-next-line node/no-unsupported-features/node-builtins
       this.performance = require('perf_hooks').performance;
     }
   }
@@ -267,45 +232,23 @@ class ForkTsCheckerWebpackPlugin {
     };
   }
 
-  private validateTslint(options: Partial<ForkTsCheckerWebpackPlugin.Options>) {
-    const tslint = options.tslint
-      ? options.tslint === true
-        ? true
-        : options.tslint
-      : undefined;
-    let tslintAutoFix, tslintVersion;
-
-    try {
-      tslintAutoFix = options.tslintAutoFix || false;
-      tslintVersion = tslint
-        ? // tslint:disable-next-line:no-implicit-dependencies
-          require('tslint').Linter.VERSION
-        : undefined;
-    } catch (_ignored) {
-      throw new Error(
-        'When you use `tslint` option, make sure to install `tslint`.'
-      );
-    }
-
-    if (tslintVersion && semver.lt(tslintVersion, '4.0.0')) {
-      throw new Error(
-        `Cannot use current tslint version of ${tslintVersion}, the minimum required version is 4.0.0`
-      );
-    }
-
-    return { tslint, tslintAutoFix, tslintVersion };
-  }
-
   private validateEslint(options: Partial<ForkTsCheckerWebpackPlugin.Options>) {
     let eslintVersion: string;
     const eslintOptions =
       typeof options.eslintOptions === 'object' ? options.eslintOptions : {};
 
+    if (semver.lt(process.version, '8.10.0')) {
+      throw new Error(
+        `To use 'eslint' option, please update to Node.js >= v8.10.0 ` +
+          `(current version is ${process.version})`
+      );
+    }
+
     try {
       eslintVersion = require('eslint').Linter.version;
-    } catch (_ignored) {
+    } catch (error) {
       throw new Error(
-        'When you use `eslint` option, make sure to install `eslint`.'
+        `When you use 'eslint' option, make sure to install 'eslint'.`
       );
     }
 
@@ -329,39 +272,14 @@ class ForkTsCheckerWebpackPlugin {
     }
   }
 
-  private static createFormatter(type: 'default' | 'codeframe', options: any) {
-    switch (type) {
-      case 'default':
-        return createDefaultFormatter();
-      case 'codeframe':
-        return createCodeframeFormatter(options);
-      default:
-        throw new Error(
-          'Unknown "' + type + '" formatter. Available are: default, codeframe.'
-        );
-    }
-  }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public apply(compiler: any) {
     this.compiler = compiler;
 
     this.tsconfigPath = this.computeContextPath(this.tsconfig);
-    this.tslintPath =
-      typeof this.tslint === 'string'
-        ? this.computeContextPath(this.tslint as string)
-        : undefined;
-    this.watchPaths = this.watch.map(this.computeContextPath.bind(this));
 
     // validate config
     const tsconfigOk = fileExistsSync(this.tsconfigPath);
-    const tslintOk = !this.tslintPath || fileExistsSync(this.tslintPath);
-
-    if (this.useTypescriptIncrementalApi && this.workersNumber !== 1) {
-      throw new Error(
-        'Using typescript incremental compilation API ' +
-          'is currently only allowed with a single worker.'
-      );
-    }
 
     // validate logger
     if (this.logger) {
@@ -372,40 +290,24 @@ class ForkTsCheckerWebpackPlugin {
       }
     }
 
-    if (tsconfigOk && tslintOk) {
-      this.pluginStart();
-      this.pluginStop();
-      this.pluginCompile();
-      this.pluginEmit();
-      this.pluginDone();
-    } else {
-      if (!tsconfigOk) {
-        throw new Error(
-          'Cannot find "' +
-            this.tsconfigPath +
-            '" file. Please check webpack and ForkTsCheckerWebpackPlugin configuration. \n' +
-            'Possible errors: \n' +
-            '  - wrong `context` directory in webpack configuration' +
-            ' (if `tsconfig` is not set or is a relative path in fork plugin configuration)\n' +
-            '  - wrong `tsconfig` path in fork plugin configuration' +
-            ' (should be a relative or absolute path)'
-        );
-      }
-      if (!tslintOk) {
-        throw new Error(
-          'Cannot find "' +
-            this.tslintPath +
-            '" file. Please check webpack and ForkTsCheckerWebpackPlugin configuration. \n' +
-            'Possible errors: \n' +
-            '  - wrong `context` directory in webpack configuration' +
-            ' (if `tslint` is not set or is a relative path in fork plugin configuration)\n' +
-            '  - wrong `tslint` path in fork plugin configuration' +
-            ' (should be a relative or absolute path)\n' +
-            '  - `tslint` path is not set to false in fork plugin configuration' +
-            ' (if you want to disable tslint support)'
-        );
-      }
+    if (!tsconfigOk) {
+      throw new Error(
+        'Cannot find "' +
+          this.tsconfigPath +
+          '" file. Please check webpack and ForkTsCheckerWebpackPlugin configuration. \n' +
+          'Possible errors: \n' +
+          '  - wrong `context` directory in webpack configuration' +
+          ' (if `tsconfig` is not set or is a relative path in fork plugin configuration)\n' +
+          '  - wrong `tsconfig` path in fork plugin configuration' +
+          ' (should be a relative or absolute path)'
+      );
     }
+
+    this.pluginStart();
+    this.pluginStop();
+    this.pluginCompile();
+    this.pluginEmit();
+    this.pluginDone();
   }
 
   private computeContextPath(filePath: string) {
@@ -415,25 +317,21 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private pluginStart() {
-    const run = (_compiler: webpack.Compiler, callback: () => void) => {
+    const run = (
+      compilation: webpack.compilation.Compilation,
+      callback: () => void
+    ) => {
       this.isWatching = false;
       callback();
     };
 
-    const watchRun = (_compiler: webpack.Compiler, callback: () => void) => {
+    const watchRun = (compiler: webpack.Compiler, callback: () => void) => {
       this.isWatching = true;
       callback();
     };
 
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      this.compiler.hooks.run.tapAsync(checkerPluginName, run);
-      this.compiler.hooks.watchRun.tapAsync(checkerPluginName, watchRun);
-    } else {
-      // webpack 2 / 3
-      this.compiler.plugin('run', run);
-      this.compiler.plugin('watch-run', watchRun);
-    }
+    this.compiler.hooks.run.tapAsync(checkerPluginName, run);
+    this.compiler.hooks.watchRun.tapAsync(checkerPluginName, watchRun);
   }
 
   private pluginStop() {
@@ -441,21 +339,14 @@ class ForkTsCheckerWebpackPlugin {
       this.killService();
     };
 
-    const done = (_stats: webpack.Stats) => {
+    const done = () => {
       if (!this.isWatching) {
         this.killService();
       }
     };
 
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      this.compiler.hooks.watchClose.tap(checkerPluginName, watchClose);
-      this.compiler.hooks.done.tap(checkerPluginName, done);
-    } else {
-      // webpack 2 / 3
-      this.compiler.plugin('watch-close', watchClose);
-      this.compiler.plugin('done', done);
-    }
+    this.compiler.hooks.watchClose.tap(checkerPluginName, watchClose);
+    this.compiler.hooks.done.tap(checkerPluginName, done);
 
     process.on('exit', () => {
       this.killService();
@@ -463,115 +354,58 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private pluginCompile() {
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        this.compiler
-      );
-      this.compiler.hooks.compile.tap(checkerPluginName, () => {
-        this.compilationDone = false;
-        forkTsCheckerHooks.serviceBeforeStart.callAsync(() => {
-          if (this.cancellationToken) {
-            // request cancellation if there is not finished job
-            this.cancellationToken.requestCancellation();
-            forkTsCheckerHooks.cancel.call(this.cancellationToken);
+    const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+      this.compiler
+    );
+    this.compiler.hooks.compile.tap(checkerPluginName, () => {
+      this.compilationDone = false;
+      forkTsCheckerHooks.serviceBeforeStart.callAsync(() => {
+        if (this.cancellationToken) {
+          // request cancellation if there is not finished job
+          this.cancellationToken.requestCancellation();
+          forkTsCheckerHooks.cancel.call(this.cancellationToken);
+        }
+        this.checkDone = false;
+
+        this.started = process.hrtime();
+
+        // create new token for current job
+        this.cancellationToken = new CancellationToken(this.typescript);
+        if (!this.service || !this.service.connected) {
+          this.spawnService();
+        }
+
+        try {
+          if (this.measureTime) {
+            this.startAt = this.performance.now();
           }
-          this.checkDone = false;
-
-          this.started = process.hrtime();
-
-          // create new token for current job
-          this.cancellationToken = new CancellationToken(this.typescript);
-          if (!this.service || !this.service.connected) {
-            this.spawnService();
-          }
-
-          try {
-            if (this.measureTime) {
-              this.startAt = this.performance.now();
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          this.serviceRpc!.rpc<RunPayload, RunResult>(
+            RUN,
+            this.cancellationToken.toJSON()
+          ).then(result => {
+            if (result) {
+              this.handleServiceMessage(result);
             }
-            this.serviceRpc!.rpc<RunPayload, RunResult>(
-              RUN,
-              this.cancellationToken.toJSON()
-            ).then(result => {
-              if (result) {
-                this.handleServiceMessage(result);
-              }
-            });
-          } catch (error) {
-            if (!this.silent && this.logger) {
-              this.logger.error(
-                this.colors.red(
-                  'Cannot start checker service: ' +
-                    (error ? error.toString() : 'Unknown error')
-                )
-              );
-            }
-
-            forkTsCheckerHooks.serviceStartError.call(error);
-          }
-        });
-      });
-    } else {
-      // webpack 2 / 3
-      this.compiler.plugin('compile', () => {
-        this.compilationDone = false;
-        this.compiler.applyPluginsAsync(
-          legacyHookMap.serviceBeforeStart,
-          () => {
-            if (this.cancellationToken) {
-              // request cancellation if there is not finished job
-              this.cancellationToken.requestCancellation();
-              this.compiler.applyPlugins(
-                legacyHookMap.cancel,
-                this.cancellationToken
-              );
-            }
-            this.checkDone = false;
-
-            this.started = process.hrtime();
-
-            // create new token for current job
-            this.cancellationToken = new CancellationToken(
-              this.typescript,
-              undefined,
-              undefined
+          });
+        } catch (error) {
+          if (!this.silent && this.logger) {
+            this.logger.error(
+              chalk.red(
+                'Cannot start checker service: ' +
+                  (error ? error.toString() : 'Unknown error')
+              )
             );
-            if (!this.service || !this.service.connected) {
-              this.spawnService();
-            }
-
-            try {
-              this.serviceRpc!.rpc<RunPayload, RunResult>(
-                RUN,
-                this.cancellationToken.toJSON()
-              ).then(result => {
-                if (result) {
-                  this.handleServiceMessage(result);
-                }
-              });
-            } catch (error) {
-              if (!this.silent && this.logger) {
-                this.logger.error(
-                  this.colors.red(
-                    'Cannot start checker service: ' +
-                      (error ? error.toString() : 'Unknown error')
-                  )
-                );
-              }
-
-              this.compiler.applyPlugins(
-                legacyHookMap.serviceStartError,
-                error
-              );
-            }
           }
-        );
+
+          forkTsCheckerHooks.serviceStartError.call(error);
+        }
       });
-    }
+    });
   }
 
   private pluginEmit() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const emit = (compilation: any, callback: () => void) => {
       if (this.isWatching && this.async) {
         callback();
@@ -587,74 +421,31 @@ class ForkTsCheckerWebpackPlugin {
       this.compilationDone = true;
     };
 
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      this.compiler.hooks.emit.tapAsync(checkerPluginName, emit);
-    } else {
-      // webpack 2 / 3
-      this.compiler.plugin('emit', emit);
-    }
+    this.compiler.hooks.emit.tapAsync(checkerPluginName, emit);
   }
 
   private pluginDone() {
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        this.compiler
-      );
-      this.compiler.hooks.done.tap(
-        checkerPluginName,
-        (_stats: webpack.Stats) => {
-          if (!this.isWatching || !this.async) {
-            return;
-          }
+    const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+      this.compiler
+    );
+    this.compiler.hooks.done.tap(checkerPluginName, () => {
+      if (!this.isWatching || !this.async) {
+        return;
+      }
 
-          if (this.checkDone) {
-            this.doneCallback();
-          } else {
-            if (this.compiler) {
-              forkTsCheckerHooks.waiting.call(this.tslint !== undefined);
-            }
-            if (!this.silent && this.logger) {
-              this.logger.info(
-                this.tslint
-                  ? 'Type checking and linting in progress...'
-                  : 'Type checking in progress...'
-              );
-            }
-          }
-
-          this.compilationDone = true;
+      if (this.checkDone) {
+        this.doneCallback();
+      } else {
+        if (this.compiler) {
+          forkTsCheckerHooks.waiting.call();
         }
-      );
-    } else {
-      // webpack 2 / 3
-      this.compiler.plugin('done', () => {
-        if (!this.isWatching || !this.async) {
-          return;
+        if (!this.silent && this.logger) {
+          this.logger.info('Type checking in progress...');
         }
+      }
 
-        if (this.checkDone) {
-          this.doneCallback();
-        } else {
-          if (this.compiler) {
-            this.compiler.applyPlugins(
-              legacyHookMap.waiting,
-              this.tslint !== undefined
-            );
-          }
-          if (!this.silent && this.logger) {
-            this.logger.info(
-              this.tslint
-                ? 'Type checking and linting in progress...'
-                : 'Type checking in progress...'
-            );
-          }
-        }
-
-        this.compilationDone = true;
-      });
-    }
+      this.compilationDone = true;
+    });
   }
 
   private spawnService() {
@@ -663,13 +454,9 @@ class ForkTsCheckerWebpackPlugin {
       TYPESCRIPT_PATH: this.typescriptPath,
       TSCONFIG: this.tsconfigPath,
       COMPILER_OPTIONS: JSON.stringify(this.compilerOptions),
-      TSLINT: this.tslintPath || (this.tslint ? 'true' : ''),
       CONTEXT: this.compiler.options.context,
-      TSLINTAUTOFIX: String(this.tslintAutoFix),
       ESLINT: String(this.eslint),
       ESLINT_OPTIONS: JSON.stringify(this.eslintOptions),
-      WATCH: this.isWatching ? this.watchPaths.join('|') : '',
-      WORK_DIVISION: String(Math.max(1, this.workersNumber)),
       MEMORY_LIMIT: String(this.memoryLimit),
       CHECK_SYNTACTIC_ERRORS: String(this.checkSyntacticErrors),
       USE_INCREMENTAL_API: String(this.useTypescriptIncrementalApi === true),
@@ -689,73 +476,29 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     this.service = childProcess.fork(
-      path.resolve(
-        __dirname,
-        this.workersNumber > 1 ? './cluster.js' : './service.js'
-      ),
+      path.resolve(__dirname, './service.js'),
       [],
       {
         env,
-        execArgv: (this.workersNumber > 1
-          ? []
-          : ['--max-old-space-size=' + this.memoryLimit]
-        ).concat(this.nodeArgs),
+        execArgv: ['--max-old-space-size=' + this.memoryLimit].concat(
+          this.nodeArgs
+        ),
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
       }
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.serviceRpc = new RpcProvider(message => this.service!.send(message));
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.service.on('message', message => this.serviceRpc!.dispatch(message));
 
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        this.compiler
-      );
-      forkTsCheckerHooks.serviceStart.call(
-        this.tsconfigPath,
-        this.tslintPath,
-        this.watchPaths,
-        this.workersNumber,
-        this.memoryLimit
-      );
-    } else {
-      // webpack 2 / 3
-      this.compiler.applyPlugins(
-        legacyHookMap.serviceStart,
-        this.tsconfigPath,
-        this.tslintPath,
-        this.watchPaths,
-        this.workersNumber,
-        this.memoryLimit
-      );
-    }
+    const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+      this.compiler
+    );
+    forkTsCheckerHooks.serviceStart.call(this.tsconfigPath, this.memoryLimit);
 
     if (!this.silent && this.logger) {
-      this.logger.info(
-        'Starting type checking' +
-          (this.tslint ? ' and linting' : '') +
-          ' service...'
-      );
-      this.logger.info(
-        'Using ' +
-          this.colors.bold(
-            this.workersNumber === 1
-              ? '1 worker'
-              : this.workersNumber + ' workers'
-          ) +
-          ' with ' +
-          this.colors.bold(this.memoryLimit + 'MB') +
-          ' memory limit'
-      );
-
-      if (this.watchPaths.length && this.isWatching) {
-        this.logger.info(
-          'Watching:' +
-            (this.watchPaths.length > 1 ? '\n' : ' ') +
-            this.watchPaths.map(wpath => this.colors.grey(wpath)).join('\n')
-        );
-      }
+      this.logger.info('Starting type checking service...');
     }
 
     this.service.on('exit', (code: string | number, signal: string) =>
@@ -796,10 +539,8 @@ class ForkTsCheckerWebpackPlugin {
 
     this.checkDone = true;
     this.elapsed = process.hrtime(this.started);
-    this.diagnostics = message.diagnostics.map(
-      NormalizedMessage.createFromJSON
-    );
-    this.lints = message.lints.map(NormalizedMessage.createFromJSON);
+    this.diagnostics = message.diagnostics;
+    this.lints = message.lints;
 
     if (this.ignoreDiagnostics.length) {
       this.diagnostics = this.diagnostics.filter(
@@ -817,11 +558,11 @@ class ForkTsCheckerWebpackPlugin {
     }
 
     if (this.reportFiles.length) {
-      const reportFilesPredicate = (diagnostic: NormalizedMessage): boolean => {
-        if (diagnostic.file) {
+      const reportFilesPredicate = (issue: Issue): boolean => {
+        if (issue.file) {
           const relativeFileName = path.relative(
             this.compiler.options.context,
-            diagnostic.file
+            issue.file
           );
           const matchResult = micromatch([relativeFileName], this.reportFiles);
 
@@ -836,20 +577,10 @@ class ForkTsCheckerWebpackPlugin {
       this.lints = this.lints.filter(reportFilesPredicate);
     }
 
-    if ('hooks' in this.compiler) {
-      // webpack 4+
-      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-        this.compiler
-      );
-      forkTsCheckerHooks.receive.call(this.diagnostics, this.lints);
-    } else {
-      // webpack 2 / 3
-      this.compiler.applyPlugins(
-        legacyHookMap.receive,
-        this.diagnostics,
-        this.lints
-      );
-    }
+    const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+      this.compiler
+    );
+    forkTsCheckerHooks.receive.call(this.diagnostics, this.lints);
 
     if (this.compilationDone) {
       this.isWatching && this.async ? this.doneCallback() : this.emitCallback();
@@ -862,20 +593,14 @@ class ForkTsCheckerWebpackPlugin {
     }
     // probably out of memory :/
     if (this.compiler) {
-      if ('hooks' in this.compiler) {
-        // webpack 4+
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          this.compiler
-        );
-        forkTsCheckerHooks.serviceOutOfMemory.call();
-      } else {
-        // webpack 2 / 3
-        this.compiler.applyPlugins(legacyHookMap.serviceOutOfMemory);
-      }
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        this.compiler
+      );
+      forkTsCheckerHooks.serviceOutOfMemory.call();
     }
     if (!this.silent && this.logger) {
       this.logger.error(
-        this.colors.red(
+        chalk.red(
           'Type checking and linting aborted - probably out of memory. ' +
             'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
         )
@@ -893,40 +618,24 @@ class ForkTsCheckerWebpackPlugin {
       }
       const elapsed = Math.round(this.elapsed[0] * 1e9 + this.elapsed[1]);
 
-      if ('hooks' in this.compiler) {
-        // webpack 4+
-        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-          this.compiler
-        );
-        forkTsCheckerHooks.emit.call(this.diagnostics, this.lints, elapsed);
-      } else {
-        // webpack 2 / 3
-        this.compiler.applyPlugins(
-          legacyHookMap.emit,
-          this.diagnostics,
-          this.lints,
-          elapsed
-        );
-      }
+      const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+        this.compiler
+      );
+      forkTsCheckerHooks.emit.call(this.diagnostics, this.lints, elapsed);
 
-      this.diagnostics.concat(this.lints).forEach(message => {
+      this.diagnostics.concat(this.lints).forEach(issue => {
         // webpack message format
         const formatted = {
-          rawMessage:
-            message.severity.toUpperCase() +
-            ' ' +
-            message.getFormattedCode() +
-            ': ' +
-            message.content,
-          message: this.formatter(message, this.useColors),
+          rawMessage: this.rawFormatter(issue),
+          message: this.formatter(issue),
           location: {
-            line: message.line,
-            character: message.character
+            line: issue.line,
+            character: issue.character
           },
-          file: message.file
+          file: issue.file
         };
 
-        if (message.isWarningSeverity()) {
+        if (issue.severity === IssueSeverity.WARNING) {
           if (!this.ignoreLintWarnings) {
             compilation.warnings.push(formatted);
           }
@@ -940,21 +649,19 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private createNoopEmitCallback() {
-    // tslint:disable-next-line:no-empty
+    // this function is empty intentionally
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     return function noopEmitCallback() {};
   }
 
-  private printLoggerMessage(
-    message: NormalizedMessage,
-    formattedMessage: string
-  ): void {
-    if (message.isWarningSeverity()) {
+  private printLoggerMessage(issue: Issue, formattedIssue: string): void {
+    if (issue.severity === IssueSeverity.WARNING) {
       if (this.ignoreLintWarnings) {
         return;
       }
-      this.logger.warn(formattedMessage);
+      this.logger.warn(formattedIssue);
     } else {
-      this.logger.error(formattedMessage);
+      this.logger.error(formattedIssue);
     }
   }
 
@@ -966,50 +673,32 @@ class ForkTsCheckerWebpackPlugin {
       const elapsed = Math.round(this.elapsed[0] * 1e9 + this.elapsed[1]);
 
       if (this.compiler) {
-        if ('hooks' in this.compiler) {
-          // webpack 4+
-          const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
-            this.compiler
-          );
-          forkTsCheckerHooks.done.call(this.diagnostics, this.lints, elapsed);
-        } else {
-          // webpack 2 / 3
-          this.compiler.applyPlugins(
-            legacyHookMap.done,
-            this.diagnostics,
-            this.lints,
-            elapsed
-          );
-        }
+        const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
+          this.compiler
+        );
+        forkTsCheckerHooks.done.call(this.diagnostics, this.lints, elapsed);
       }
 
       if (!this.silent && this.logger) {
         if (this.diagnostics.length || this.lints.length) {
-          (this.lints || []).concat(this.diagnostics).forEach(message => {
-            const formattedMessage = this.formatter(message, this.useColors);
+          (this.lints || []).concat(this.diagnostics).forEach(diagnostic => {
+            const formattedDiagnostic = this.formatter(diagnostic);
 
-            this.printLoggerMessage(message, formattedMessage);
+            this.printLoggerMessage(diagnostic, formattedDiagnostic);
           });
         }
         if (!this.diagnostics.length) {
-          this.logger.info(this.colors.green('No type errors found'));
-        }
-        if (this.tslint && !this.lints.length) {
-          this.logger.info(this.colors.green('No lint errors found'));
+          this.logger.info(chalk.green('No type errors found'));
         }
         this.logger.info(
           'Version: typescript ' +
-            this.colors.bold(this.typescriptVersion) +
+            chalk.bold(this.typescriptVersion) +
             (this.eslint
-              ? ', eslint ' + this.colors.bold(this.eslintVersion as string)
-              : this.tslint
-              ? ', tslint ' + this.colors.bold(this.tslintVersion as string)
+              ? ', eslint ' + chalk.bold(this.eslintVersion as string)
               : '')
         );
         this.logger.info(
-          'Time: ' +
-            this.colors.bold(Math.round(elapsed / 1e6).toString()) +
-            'ms'
+          'Time: ' + chalk.bold(Math.round(elapsed / 1e6).toString()) + 'ms'
         );
       }
     };

@@ -31,29 +31,6 @@ describe('[INTEGRATION] specific tests for useTypescriptIncrementalApi: true', (
     });
   }
 
-  it('should not allow multiple workers with incremental API', () => {
-    expect(() => {
-      createCompiler({
-        pluginOptions: { workers: 5 }
-      });
-    }).toThrowError();
-  });
-
-  it('should not fix linting by default', callback => {
-    const fileName = 'lintingError2';
-    const { compiler } = helpers.testLintAutoFixTest({
-      fileName,
-      pluginOptions: {
-        useTypescriptIncrementalApi: true,
-        tslint: true
-      }
-    });
-    compiler.run((err, stats) => {
-      expect(stats.compilation.warnings.length).toBe(7);
-      callback();
-    });
-  });
-
   it('should get syntactic diagnostics from Vue program', callback => {
     createVueCompiler({ pluginOptions: { checkSyntacticErrors: true } }).then(
       ({ compiler }) =>

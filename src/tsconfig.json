@@ -1,17 +1,9 @@
 {
+  "extends": "../tsconfig",
   "compilerOptions": {
-    "target": "es6",
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "skipLibCheck": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "strict": true,
-    "lib": ["es2015", "es2016.array.include"],
-    "module": "commonjs",
-    "moduleResolution": "node",
     "declaration": true,
     "outDir": "../lib",
-    "sourceMap": true
+    "rootDir": "./",
+    "sourceRoot": "./"
   }
 }

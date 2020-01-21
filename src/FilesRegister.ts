@@ -1,10 +1,10 @@
 import * as ts from 'typescript'; // import for types alone
-import * as eslint from 'eslint'; // import for types alone
+import { LintReport } from './types/eslint';
 
 export interface DataShape {
   source?: ts.SourceFile;
   linted: boolean;
-  eslints: eslint.CLIEngine.LintReport[];
+  eslints: LintReport[];
 }
 
 export class FilesRegister {

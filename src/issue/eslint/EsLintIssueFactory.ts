@@ -1,8 +1,8 @@
-import * as eslint from 'eslint';
 import { FileAwareEsLintMessage } from './FileAwareEsLintMessage';
 import { deduplicateAndSortIssues, Issue } from '../Issue';
 import { IssueOrigin } from '../IssueOrigin';
 import { IssueSeverity } from '../IssueSeverity';
+import { LintReport, LintResult } from '../../types/eslint';
 
 function createIssueFromEsLintMessage(message: FileAwareEsLintMessage): Issue {
   return {
@@ -18,7 +18,7 @@ function createIssueFromEsLintMessage(message: FileAwareEsLintMessage): Issue {
 }
 
 function createFileAwareEsLintMessagesFromEsLintResult(
-  result: eslint.CLIEngine.LintResult
+  result: LintResult
 ): FileAwareEsLintMessage[] {
   return result.messages.map(message => ({
     ...message,
@@ -27,7 +27,7 @@ function createFileAwareEsLintMessagesFromEsLintResult(
 }
 
 function createFileAwareEsLintMessagesFromEsLintReport(
-  report: eslint.CLIEngine.LintReport
+  report: LintReport
 ): FileAwareEsLintMessage[] {
   return report.results.reduce<FileAwareEsLintMessage[]>(
     (messages, result) => [
@@ -39,7 +39,7 @@ function createFileAwareEsLintMessagesFromEsLintReport(
 }
 
 function createFileAwareEsLintMessagesFromEsLintReports(
-  reports: eslint.CLIEngine.LintReport[]
+  reports: LintReport[]
 ): FileAwareEsLintMessage[] {
   return reports.reduce<FileAwareEsLintMessage[]>(
     (messages, report) => [
@@ -56,9 +56,7 @@ function createIssuesFromEsLintMessages(
   return deduplicateAndSortIssues(messages.map(createIssueFromEsLintMessage));
 }
 
-function createIssuesFromEsLintReports(
-  reports: eslint.CLIEngine.LintReport[]
-): Issue[] {
+function createIssuesFromEsLintReports(reports: LintReport[]): Issue[] {
   return createIssuesFromEsLintMessages(
     createFileAwareEsLintMessagesFromEsLintReports(reports)
   );

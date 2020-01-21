@@ -1,16 +1,16 @@
-import * as eslint from 'eslint'; // import for types alone
 import * as path from 'path';
 
+import { LintReport } from './types/eslint';
 import { throwIfIsInvalidSourceFileError } from './FsHelper';
 
 export function createEslinter(eslintOptions: object) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { CLIEngine }: typeof eslint = require('eslint');
+  const { CLIEngine } = require('eslint');
 
   // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
   const eslinter = new CLIEngine(eslintOptions);
 
-  function getReport(filepath: string) {
+  function getReport(filepath: string): LintReport | undefined {
     try {
       if (
         eslinter.isPathIgnored(filepath) ||

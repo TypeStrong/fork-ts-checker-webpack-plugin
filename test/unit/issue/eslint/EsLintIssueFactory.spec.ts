@@ -1,11 +1,11 @@
 import { createIssuesFromEsLintReports } from '../../../../lib/issue';
-import * as eslint from 'eslint';
+import {
+  LintMessage,
+  LintReport,
+  LintResult
+} from '../../../../lib/types/eslint';
 
 describe('[UNIT] issue/eslint/EsLintIssueFactory', () => {
-  type LintMessage = eslint.Linter.LintMessage;
-  type LintResult = eslint.CLIEngine.LintResult;
-  type LintReport = eslint.CLIEngine.LintReport;
-
   const ES_LINT_MESSAGE_ERROR: LintMessage = {
     column: 0,
     line: 13,

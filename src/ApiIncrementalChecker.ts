@@ -1,5 +1,3 @@
-import * as eslint from 'eslint'; // Imported for types alone
-
 import {
   IncrementalCheckerInterface,
   IncrementalCheckerParams
@@ -11,11 +9,12 @@ import {
   createIssuesFromTsDiagnostics,
   createIssuesFromEsLintReports
 } from './issue';
+import { LintReport } from './types/eslint';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   protected readonly tsIncrementalCompiler: CompilerHost;
 
-  private currentEsLintErrors = new Map<string, eslint.CLIEngine.LintReport>();
+  private currentEsLintErrors = new Map<string, LintReport>();
   private lastUpdatedFiles: string[] = [];
   private lastRemovedFiles: string[] = [];
 

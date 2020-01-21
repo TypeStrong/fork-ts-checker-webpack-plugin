@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript'; // Imported for types alone; actual requires take place in methods below
-import * as eslint from 'eslint';
 
 import { FilesRegister } from './FilesRegister';
 import { CancellationToken } from './CancellationToken';
@@ -22,6 +21,7 @@ import {
   createIssuesFromEsLintReports,
   createIssuesFromTsDiagnostics
 } from './issue';
+import { LintReport } from './types/eslint';
 
 export class IncrementalChecker implements IncrementalCheckerInterface {
   private files = new FilesRegister(() => ({
@@ -261,7 +261,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
           !IncrementalChecker.isFileExcluded(filePath)
       );
 
-    const currentEsLintErrors = new Map<string, eslint.CLIEngine.LintReport>();
+    const currentEsLintErrors = new Map<string, LintReport>();
     filesToLint.forEach(fileName => {
       cancellationToken.throwIfCancellationRequested();
 
@@ -289,7 +289,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
 
     const reports = this.files
       .keys()
-      .reduce<eslint.CLIEngine.LintReport[]>(
+      .reduce<LintReport[]>(
         (innerLints, filePath) =>
           innerLints.concat(this.files.getData(filePath).eslints),
         []

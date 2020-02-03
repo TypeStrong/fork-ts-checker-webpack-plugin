@@ -1,13 +1,18 @@
 {
   "compilerOptions": {
     "target": "es5",
+    "module": "commonjs",
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "strict": true,
+    "declaration": true,
+    "resolveJsonModule": true,
     "lib": ["es2015"],
-    "importHelpers": true,
-    "module": "commonjs",
     "moduleResolution": "node",
-    "sourceMap": true
-  }
+    "sourceMap": true,
+    "baseUrl": "./src",
+    "outDir": "./lib"
+  },
+  "include": ["./src"]
 }

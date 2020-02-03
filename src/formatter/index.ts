@@ -1,6 +1,4 @@
 export * from './Formatter';
-export * from './DefaultFormatter';
+export * from './BasicFormatter';
 export * from './CodeframeFormatter';
 export * from './FormatterFactory';
-export * from './InternalFormatter';
-export * from './RawFormatter';

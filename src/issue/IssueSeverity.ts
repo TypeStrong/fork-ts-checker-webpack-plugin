@@ -1,23 +1,12 @@
-const IssueSeverity = {
-  ERROR: 'error',
-  WARNING: 'warning'
-} as const;
-type IssueSeverity = typeof IssueSeverity[keyof typeof IssueSeverity];
+type IssueSeverity = 'error' | 'warning';
 
 function isIssueSeverity(value: unknown): value is IssueSeverity {
-  return [IssueSeverity.ERROR, IssueSeverity.WARNING].includes(
-    value as IssueSeverity
-  );
+  return ['error', 'warning'].includes(value as IssueSeverity);
 }
 
-function compareIssueSeverities(
-  severityA: IssueSeverity,
-  severityB: IssueSeverity
-) {
-  const [priorityA, priorityB] = [severityA, severityB].map(severity =>
-    [IssueSeverity.WARNING /* 0 */, IssueSeverity.ERROR /* 1 */].indexOf(
-      severity
-    )
+function compareIssueSeverities(severityA: IssueSeverity, severityB: IssueSeverity) {
+  const [priorityA, priorityB] = [severityA, severityB].map((severity) =>
+    ['warning' /* 0 */, 'error' /* 1 */].indexOf(severity)
   );
 
   return Math.sign(priorityB - priorityA);

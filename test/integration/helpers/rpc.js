@@ -22,7 +22,7 @@ exports.getRpcProvider = () => {
         return process.send(message);
       }
     });
-    process.on('message', message => rpc.dispatch(message));
+    process.on('message', message => rpc.dispatchCall(message));
   }
 
   return rpc;

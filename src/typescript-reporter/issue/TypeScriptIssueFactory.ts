@@ -1,0 +1,50 @@
+import * as ts from 'typescript';
+import * as os from 'os';
+import { deduplicateAndSortIssues, Issue, IssueLocation } from '../../issue';
+
+function createIssueFromTsDiagnostic(diagnostic: ts.Diagnostic): Issue {
+  let file: string | undefined;
+  let location: IssueLocation | undefined;
+
+  if (diagnostic.file) {
+    file = diagnostic.file.fileName;
+
+    if (diagnostic.start && diagnostic.length) {
+      const {
+        line: startLine,
+        character: startCharacter,
+      } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+      const {
+        line: endLine,
+        character: endCharacter,
+      } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start + diagnostic.length);
+
+      location = {
+        start: {
+          line: startLine + 1,
+          column: startCharacter + 1,
+        },
+        end: {
+          line: endLine + 1,
+          column: endCharacter + 1,
+        },
+      };
+    }
+  }
+
+  return {
+    origin: 'typescript',
+    code: 'TS' + String(diagnostic.code),
+    // we don't handle Suggestion and Message diagnostics
+    severity: diagnostic.category === 0 ? 'warning' : 'error',
+    message: ts.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL),
+    file,
+    location,
+  };
+}
+
+function createIssuesFromTsDiagnostics(diagnostic: ts.Diagnostic[]): Issue[] {
+  return deduplicateAndSortIssues(diagnostic.map(createIssueFromTsDiagnostic));
+}
+
+export { createIssuesFromTsDiagnostics };

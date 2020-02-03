@@ -1,36 +1,55 @@
 import { Formatter } from './Formatter';
-import {
-  CodeFrameFormatterOptions,
-  createCodeframeFormatter
-} from './CodeframeFormatter';
-import { createDefaultFormatter } from './DefaultFormatter';
+import { BabelCodeFrameOptions, createCodeframeFormatter } from './CodeframeFormatter';
+import { createBasicFormatter } from './BasicFormatter';
 
-type FormatterType = undefined | 'default' | 'codeframe' | Formatter;
-type FormatterOptions = CodeFrameFormatterOptions;
+type NotConfigurableFormatterType = undefined | 'basic' | Formatter;
+type ConfigurableFormatterOptionTypes = {
+  codeframe: BabelCodeFrameOptions;
+};
+type ConfigurableFormatterType = keyof ConfigurableFormatterOptionTypes;
+type ConfigurableFormatterOptions<
+  T extends ConfigurableFormatterType
+> = ConfigurableFormatterOptionTypes[T];
 
-function createFormatter(
-  type?: FormatterType,
-  options?: FormatterOptions
-): Formatter {
+type FormatterType = NotConfigurableFormatterType | ConfigurableFormatterType;
+type ComplexFormatterOptions<T extends FormatterType> = T extends ConfigurableFormatterType
+  ? ConfigurableFormatterOptions<T>
+  : never;
+
+// for not-configurable formatter type, provide single declaration
+function createFormatter<T extends NotConfigurableFormatterType>(type?: T): Formatter;
+// for each configurable formatter type, provide declaration with related configuration type
+function createFormatter<T extends ConfigurableFormatterType>(
+  type: T,
+  options?: ConfigurableFormatterOptions<T>
+): Formatter;
+
+// for general use-case provide single declaration
+function createFormatter<T extends FormatterType>(type: T, options?: object): Formatter;
+// declare function implementation
+function createFormatter(type?: FormatterType, options?: object): Formatter {
   if (typeof type === 'function') {
     return type;
   }
 
   switch (type) {
+    case 'basic':
+    case undefined:
+      return createBasicFormatter();
+
     case 'codeframe':
       return createCodeframeFormatter(options);
 
-    case 'default':
-    case undefined:
-      return createDefaultFormatter();
-
     default:
-      throw new Error(
-        'Unknown "' +
-          type +
-          '" formatter. Available types are: default, codeframe.'
-      );
+      throw new Error('Unknown "' + type + '" formatter. Available types are: basic, codeframe.');
   }
 }
 
-export { createFormatter, FormatterType, FormatterOptions };
+export {
+  createFormatter,
+  FormatterType,
+  ComplexFormatterOptions,
+  NotConfigurableFormatterType,
+  ConfigurableFormatterType,
+  ConfigurableFormatterOptions,
+};

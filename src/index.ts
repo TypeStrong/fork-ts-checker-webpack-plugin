@@ -489,8 +489,12 @@ class ForkTsCheckerWebpackPlugin {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.serviceRpc = new RpcProvider(message => this.service!.send(message));
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.service.on('message', message => this.serviceRpc!.dispatch(message));
+    this.service.on('message', message => {
+      if (this.serviceRpc) {
+        // ensure that serviceRpc is defined to avoid race-conditions
+        this.serviceRpc.dispatch(message);
+      }
+    });
 
     const forkTsCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(
       this.compiler
@@ -515,6 +519,8 @@ class ForkTsCheckerWebpackPlugin {
         this.cancellationToken.cleanupCancellation();
       }
 
+      // clean-up listeners
+      this.service.removeAllListeners();
       this.service.kill();
       this.service = undefined;
       this.serviceRpc = undefined;

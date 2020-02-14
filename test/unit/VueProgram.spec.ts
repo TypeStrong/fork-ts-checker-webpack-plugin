@@ -125,7 +125,9 @@ describe('[UNIT] VueProgram', () => {
         option
       );
       expect(typeof result.enabled).toBe('boolean');
-      expect(typeof result.compiler).toBe('string');
+      expect(
+        result.compiler === undefined || typeof result.compiler === 'string'
+      ).toBe(true);
     }
   );
 

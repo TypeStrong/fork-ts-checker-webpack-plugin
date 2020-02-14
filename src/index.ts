@@ -259,7 +259,6 @@ class ForkTsCheckerWebpackPlugin {
     vueOptions?: boolean | Partial<VueOptions>
   ): VueOptions {
     const defaultVueOptions: VueOptions = {
-      compiler: 'vue-template-compiler',
       enabled: false
     };
 

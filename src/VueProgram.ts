@@ -7,7 +7,8 @@ import {
   ResolveTypeReferenceDirective,
   makeResolutionFunctions
 } from './resolution';
-import * as vueCompiler from 'vue-template-compiler';
+import * as vueCompiler2 from 'vue-template-compiler';
+import * as vueCompiler3 from '@vue/compiler-sfc';
 import { VueOptions } from './types/vue-options';
 
 interface ResolvedScript {
@@ -303,24 +304,42 @@ export class VueProgram {
   public static resolveScriptBlock(
     typescript: typeof ts,
     content: string,
-    compiler: string
+    compiler: string | undefined
   ): ResolvedScript {
     // We need to import template compiler for vue lazily because it cannot be included it
     // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
     // Since its version must not mismatch with user-installed Vue.js,
     // we should let the users install template compiler for vue by themselves.
-    let parser: typeof vueCompiler;
-    try {
-      parser = require(compiler);
-    } catch (err) {
+    const tryGetParser = (
+      moduleName: string
+    ): typeof vueCompiler2 | typeof vueCompiler3 | undefined => {
+      try {
+        return require(moduleName);
+      } catch (err) {
+        return undefined;
+      }
+    };
+
+    // If compiler is undefined (not specified by user), by default we try both
+    // v3 `@vue/compiler-sfc` and v2 `vue-template-compiler` packages.
+    let parser = tryGetParser(compiler || '@vue/compiler-sfc');
+    if (!parser && !compiler) {
+      parser = tryGetParser('vue-template-compiler');
+    }
+    if (!parser) {
       throw new Error(
-        'When you use `vue` option, make sure to install `' + compiler + '`.'
+        compiler
+          ? 'When you use `vue` option, make sure to install `' +
+            compiler +
+            '`.'
+          : 'When you use `vue` option, make sure to install either `@vue/compiler-sfc` or `vue-template-compiler`, or specify a different `compiler` option.'
       );
     }
 
-    const { script } = parser.parseComponent(content, {
-      pad: 'space'
-    });
+    const script =
+      'parseComponent' in parser
+        ? parser.parseComponent(content, { pad: 'space' }).script // v2 api (vueCompiler2)
+        : parser.parse(content, { pad: 'space' }).descriptor.script; // v3 api (vueCompiler3)
 
     // No <script> block
     if (!script) {
@@ -334,8 +353,9 @@ export class VueProgram {
 
     // There is src attribute
     if (script.attrs.src) {
-      // import path cannot be end with '.ts[x]'
-      const src = script.attrs.src.replace(/\.tsx?$/i, '');
+      // Import path cannot end with '.ts[x]'
+      // In v3, `attrs` can be `true` (attribute without a value), but `src` should be a string
+      const src = (<string>script.attrs.src).replace(/\.tsx?$/i, '');
       return {
         scriptKind,
 
@@ -353,9 +373,13 @@ export class VueProgram {
     // Pad blank lines to retain diagnostics location
     // We need to prepend `//` for each line to avoid
     // false positive of no-consecutive-blank-lines TSLint rule
-    const offset = content.slice(0, script.start).split(/\r?\n/g).length;
+    const start =
+        'loc' in script
+          ? script.loc.start.offset /* v3 */
+          : script.start /* v2 */;
+    const offset = content.slice(0, start).split(/\r?\n/g).length;
     const paddedContent =
-      Array(offset).join('//\n') + script.content.slice(script.start);
+      Array(offset).join('//\n') + script.content.slice(start);
 
     return {
       scriptKind,

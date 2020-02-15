@@ -53,16 +53,32 @@ describe('[UNIT] issue/typescript/TypeScriptIssueFactory', () => {
       messageText: 'Cannot assign object to the string type',
       category: 0,
       code: 1221,
-      next: {
-        messageText: 'Another ident message',
-        category: 0,
-        code: 1221,
-        next: {
-          messageText: 'The most ident message',
+      next: [
+        {
+          messageText: 'Another ident message',
           category: 0,
-          code: 1221
+          code: 1221,
+          next: [
+            {
+              messageText: 'The most ident message',
+              category: 0,
+              code: 1221
+            }
+          ]
+        },
+        {
+          messageText: 'Sibling message',
+          category: 0,
+          code: 1221,
+          next: [
+            {
+              messageText: 'Indented sibling message',
+              category: 0,
+              code: 1221
+            }
+          ]
         }
-      }
+      ]
     }
   };
 

@@ -32,7 +32,9 @@ Object {
   "line": undefined,
   "message": "Cannot assign object to the string type
   Another ident message
-    The most ident message",
+    The most ident message
+  Sibling message
+    Indented sibling message",
   "origin": "typescript",
   "severity": "warning",
 }
@@ -68,7 +70,9 @@ Array [
     "line": undefined,
     "message": "Cannot assign object to the string type
   Another ident message
-    The most ident message",
+    The most ident message
+  Sibling message
+    Indented sibling message",
     "origin": "typescript",
     "severity": "warning",
   },

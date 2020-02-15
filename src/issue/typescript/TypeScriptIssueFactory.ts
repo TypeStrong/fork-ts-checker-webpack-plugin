@@ -8,26 +8,24 @@ import { IssueSeverity } from '../IssueSeverity';
  * package as there is an option to pass a custom TypeScript instance.
  */
 function flattenDiagnosticMessageText(
-  messageText: string | ts.DiagnosticMessageChain
+  messageText: string | ts.DiagnosticMessageChain,
+  indent = 0
 ) {
   if (typeof messageText === 'string') {
     return messageText;
   } else {
-    let diagnosticChain: ts.DiagnosticMessageChain | undefined = messageText;
+    const diagnosticChain: ts.DiagnosticMessageChain | undefined = messageText;
     let flattenMessageText = '';
-    let indent = 0;
+    if (typeof diagnosticChain === 'undefined') {
+      return flattenMessageText;
+    }
+    flattenMessageText = '  '.repeat(indent) + diagnosticChain.messageText;
 
-    while (diagnosticChain) {
-      if (indent) {
-        flattenMessageText += '\n';
-        for (let i = 0; i < indent; i++) {
-          flattenMessageText += '  ';
-        }
-      }
-
-      flattenMessageText += diagnosticChain.messageText;
-      indent++;
-      diagnosticChain = diagnosticChain.next;
+    if (typeof diagnosticChain.next !== 'undefined') {
+      diagnosticChain.next.forEach((chain: ts.DiagnosticMessageChain): void => {
+        flattenMessageText +=
+          '\n' + flattenDiagnosticMessageText(chain, indent + 1);
+      });
     }
 
     return flattenMessageText;

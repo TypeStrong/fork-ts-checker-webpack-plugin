@@ -158,7 +158,7 @@ new ForkTsCheckerWebpackPlugin({
 - **memoryLimit** `number`:
   Memory limit for service process in MB. If service exits with allocation failed error, increase this number. Default: `2048`.
 
-- **vue** `boolean | { enabled: boolean, compiler: string }`:
+- **vue** `boolean | { enabled: boolean, compiler: string | undefined }`:
   If `true` or `enabled: true`, the linter and compiler will process VueJs single-file-component (.vue) files. See the
   [Vue section](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#vue) further down for information on how to correctly setup your project.
 

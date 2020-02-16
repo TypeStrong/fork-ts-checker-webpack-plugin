@@ -354,8 +354,8 @@ export class VueProgram {
     // There is src attribute
     if (script.attrs.src) {
       // Import path cannot end with '.ts[x]'
-      // In v3, `attrs` can be `true` (attribute without a value), but `src` should be a string
-      const src = (<string>script.attrs.src).replace(/\.tsx?$/i, '');
+      // In v3, `attrs` can be `true` (attribute without a value), but `src` should be a string (see below what happens to a non-existent file)
+      const src = (script.attrs.src + '').replace(/\.tsx?$/i, '');
       return {
         scriptKind,
 

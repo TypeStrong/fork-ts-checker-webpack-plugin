@@ -22,9 +22,10 @@ function flattenDiagnosticMessageText(
     flattenMessageText = '  '.repeat(indent) + diagnosticChain.messageText;
 
     if (typeof diagnosticChain.next !== 'undefined') {
-      if (typeof diagnosticChain.next.length === 'number') {
+      const next = diagnosticChain.next as unknown;
+      if (typeof (next as ts.DiagnosticMessageChain[]).length === 'number') {
         // TS 3.7+
-        diagnosticChain.next.forEach(
+        (next as ts.DiagnosticMessageChain[]).forEach(
           (chain: ts.DiagnosticMessageChain): void => {
             flattenMessageText +=
               '\n' + flattenDiagnosticMessageText(chain, indent + 1);
@@ -35,7 +36,7 @@ function flattenDiagnosticMessageText(
         flattenMessageText +=
           '\n' +
           flattenDiagnosticMessageText(
-            (diagnosticChain.next as unknown) as ts.DiagnosticMessageChain,
+            next as ts.DiagnosticMessageChain,
             indent + 1
           );
       }

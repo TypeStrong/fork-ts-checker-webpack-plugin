@@ -43,7 +43,8 @@ describe('[UNIT] issue/typescript/TypeScriptIssueFactory', () => {
     messageText: 'Cannot assign object to the string type',
     file: undefined
   };
-  const TS_DIAGNOSTIC_MESSAGE_CHAIN: Diagnostic = {
+  // Newer versions of TS have a DiagnosticMessageChain[] for the `next` field
+  const TS_DIAGNOSTIC_MESSAGE_CHAIN_ARRAY_NEXT: Diagnostic = {
     start: 12,
     code: 1221,
     category: 0,
@@ -79,14 +80,38 @@ describe('[UNIT] issue/typescript/TypeScriptIssueFactory', () => {
           ]
         }
       ]
-    }
+    } as any // Cast required else this will fail on older versions of TS
+  };
+  // Older versions of TS have a DiagnosticMessageChain for the `next` field
+  const TS_DIAGNOSTIC_MESSAGE_CHAIN_NON_ARRAY_NEXT: Diagnostic = {
+    start: 12,
+    code: 1221,
+    category: 0,
+    length: 3,
+    file: undefined,
+    messageText: {
+      messageText: 'Cannot assign object to the string type',
+      category: 0,
+      code: 1221,
+      next: {
+        messageText: 'Another ident message',
+        category: 0,
+        code: 1221,
+        next: {
+          messageText: 'The most ident message',
+          category: 0,
+          code: 1221
+        }
+      }
+    } as any // Cast required else this will fail on newer versions of TS
   };
 
   it.each([
     [TS_DIAGNOSTIC_WARNING],
     [TS_DIAGNOSTIC_ERROR],
     [TS_DIAGNOSTIC_WITHOUT_FILE],
-    [TS_DIAGNOSTIC_MESSAGE_CHAIN]
+    [TS_DIAGNOSTIC_MESSAGE_CHAIN_NON_ARRAY_NEXT],
+    [TS_DIAGNOSTIC_MESSAGE_CHAIN_ARRAY_NEXT]
   ])('creates Issue from TsDiagnostic: %p', tsDiagnostic => {
     const issue = createIssueFromTsDiagnostic(tsDiagnostic);
 
@@ -99,7 +124,8 @@ describe('[UNIT] issue/typescript/TypeScriptIssueFactory', () => {
         TS_DIAGNOSTIC_WARNING,
         TS_DIAGNOSTIC_ERROR,
         TS_DIAGNOSTIC_WITHOUT_FILE,
-        TS_DIAGNOSTIC_MESSAGE_CHAIN
+        TS_DIAGNOSTIC_MESSAGE_CHAIN_NON_ARRAY_NEXT,
+        TS_DIAGNOSTIC_MESSAGE_CHAIN_ARRAY_NEXT
       ]
     ]
   ])('creates Issues from TsDiagnostics: %p', tsDiagnostics => {

@@ -22,10 +22,23 @@ function flattenDiagnosticMessageText(
     flattenMessageText = '  '.repeat(indent) + diagnosticChain.messageText;
 
     if (typeof diagnosticChain.next !== 'undefined') {
-      diagnosticChain.next.forEach((chain: ts.DiagnosticMessageChain): void => {
+      if (typeof diagnosticChain.next.length === 'number') {
+        // TS 3.7+
+        diagnosticChain.next.forEach(
+          (chain: ts.DiagnosticMessageChain): void => {
+            flattenMessageText +=
+              '\n' + flattenDiagnosticMessageText(chain, indent + 1);
+          }
+        );
+      } else {
+        // Older versions of typescript
         flattenMessageText +=
-          '\n' + flattenDiagnosticMessageText(chain, indent + 1);
-      });
+          '\n' +
+          flattenDiagnosticMessageText(
+            (diagnosticChain.next as unknown) as ts.DiagnosticMessageChain,
+            indent + 1
+          );
+      }
     }
 
     return flattenMessageText;

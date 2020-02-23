@@ -246,7 +246,7 @@ export class IncrementalChecker implements IncrementalCheckerInterface {
       tsDiagnostics.push(...tsDiagnosticsToRegister);
     });
 
-    return createIssuesFromTsDiagnostics(tsDiagnostics);
+    return createIssuesFromTsDiagnostics(tsDiagnostics, this.typescript);
   }
 
   public async getEsLintIssues(

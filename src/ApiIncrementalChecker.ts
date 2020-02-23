@@ -1,3 +1,4 @@
+import * as ts from 'typescript'; // used for types only
 import {
   IncrementalCheckerInterface,
   IncrementalCheckerParams
@@ -13,6 +14,7 @@ import { LintReport } from './types/eslint';
 
 export class ApiIncrementalChecker implements IncrementalCheckerInterface {
   protected readonly tsIncrementalCompiler: CompilerHost;
+  protected readonly typescript: typeof ts;
 
   private currentEsLintErrors = new Map<string, LintReport>();
   private lastUpdatedFiles: string[] = [];
@@ -41,6 +43,8 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
       resolveModuleName,
       resolveTypeReferenceDirective
     );
+
+    this.typescript = typescript;
   }
 
   public hasEsLinter(): boolean {
@@ -60,7 +64,10 @@ export class ApiIncrementalChecker implements IncrementalCheckerInterface {
     this.lastUpdatedFiles = tsDiagnostics.updatedFiles;
     this.lastRemovedFiles = tsDiagnostics.removedFiles;
 
-    return createIssuesFromTsDiagnostics(tsDiagnostics.results);
+    return createIssuesFromTsDiagnostics(
+      tsDiagnostics.results,
+      this.typescript
+    );
   }
 
   public async getEsLintIssues(cancellationToken: CancellationToken) {

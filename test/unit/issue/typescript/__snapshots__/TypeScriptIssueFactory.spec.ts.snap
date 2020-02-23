@@ -38,22 +38,6 @@ Object {
 }
 `;
 
-exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issue from TsDiagnostic: {"category": 0, "code": 1221, "file": undefined, "length": 3, "messageText": [Object], "start": 12} 2`] = `
-Object {
-  "character": undefined,
-  "code": "1221",
-  "file": undefined,
-  "line": undefined,
-  "message": "Cannot assign object to the string type
-  Another ident message
-    The most ident message
-  Sibling message
-    Indented sibling message",
-  "origin": "typescript",
-  "severity": "warning",
-}
-`;
-
 exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issue from TsDiagnostic: {"category": 1, "code": 4221, "file": [Object], "length": 1, "messageText": "Cannot assign string to the number type", "start": 100} 1`] = `
 Object {
   "character": 3,
@@ -66,7 +50,7 @@ Object {
 }
 `;
 
-exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issues from TsDiagnostics: [[Object], [Object], [Object], [Object], [Object]] 1`] = `
+exports[`[UNIT] issue/typescript/TypeScriptIssueFactory creates Issues from TsDiagnostics: [[Object], [Object], [Object], [Object]] 1`] = `
 Array [
   Object {
     "character": undefined,
@@ -85,19 +69,6 @@ Array [
     "message": "Cannot assign object to the string type
   Another ident message
     The most ident message",
-    "origin": "typescript",
-    "severity": "warning",
-  },
-  Object {
-    "character": undefined,
-    "code": "1221",
-    "file": undefined,
-    "line": undefined,
-    "message": "Cannot assign object to the string type
-  Another ident message
-    The most ident message
-  Sibling message
-    Indented sibling message",
     "origin": "typescript",
     "severity": "warning",
   },

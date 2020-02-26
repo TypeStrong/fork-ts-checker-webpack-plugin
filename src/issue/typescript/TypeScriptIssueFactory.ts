@@ -3,38 +3,10 @@ import { deduplicateAndSortIssues, Issue } from '../Issue';
 import { IssueOrigin } from '../IssueOrigin';
 import { IssueSeverity } from '../IssueSeverity';
 
-/**
- * Based on the TypeScript source - not used directly from the `typescript`
- * package as there is an option to pass a custom TypeScript instance.
- */
-function flattenDiagnosticMessageText(
-  messageText: string | ts.DiagnosticMessageChain
-) {
-  if (typeof messageText === 'string') {
-    return messageText;
-  } else {
-    let diagnosticChain: ts.DiagnosticMessageChain | undefined = messageText;
-    let flattenMessageText = '';
-    let indent = 0;
-
-    while (diagnosticChain) {
-      if (indent) {
-        flattenMessageText += '\n';
-        for (let i = 0; i < indent; i++) {
-          flattenMessageText += '  ';
-        }
-      }
-
-      flattenMessageText += diagnosticChain.messageText;
-      indent++;
-      diagnosticChain = diagnosticChain.next;
-    }
-
-    return flattenMessageText;
-  }
-}
-
-function createIssueFromTsDiagnostic(diagnostic: ts.Diagnostic): Issue {
+function createIssueFromTsDiagnostic(
+  diagnostic: ts.Diagnostic,
+  typescript: typeof ts
+): Issue {
   let file: string | undefined;
   let line: number | undefined;
   let character: number | undefined;
@@ -57,15 +29,26 @@ function createIssueFromTsDiagnostic(diagnostic: ts.Diagnostic): Issue {
     // we don't handle Suggestion and Message diagnostics
     severity:
       diagnostic.category === 0 ? IssueSeverity.WARNING : IssueSeverity.ERROR,
-    message: flattenDiagnosticMessageText(diagnostic.messageText),
+    message: typescript.flattenDiagnosticMessageText(
+      diagnostic.messageText,
+      '\n'
+    ),
     file,
     line,
     character
   };
 }
 
-function createIssuesFromTsDiagnostics(diagnostic: ts.Diagnostic[]): Issue[] {
-  return deduplicateAndSortIssues(diagnostic.map(createIssueFromTsDiagnostic));
+function createIssuesFromTsDiagnostics(
+  diagnostics: ts.Diagnostic[],
+  typescript: typeof ts
+): Issue[] {
+  function createIssueFromTsDiagnosticWithFormatter(diagnostic: ts.Diagnostic) {
+    return createIssueFromTsDiagnostic(diagnostic, typescript);
+  }
+  return deduplicateAndSortIssues(
+    diagnostics.map(createIssueFromTsDiagnosticWithFormatter)
+  );
 }
 
 export { createIssueFromTsDiagnostic, createIssuesFromTsDiagnostics };

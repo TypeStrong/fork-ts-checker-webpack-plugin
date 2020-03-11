@@ -36,63 +36,11 @@ export interface LintReport {
 }
 
 export interface Options {
-  allowInlineConfig?: boolean;
-  baseConfig?: false | { [name: string]: any };
-  cache?: boolean;
-  cacheFile?: string;
-  cacheLocation?: string;
-  configFile?: string;
-  cwd?: string;
-  envs?: string[];
-  errorOnUnmatchedPattern?: boolean;
-  extensions?: string[];
   fix?: boolean;
-  globals?: string[];
-  ignore?: boolean;
-  ignorePath?: string;
-  ignorePattern?: string | string[];
-  useEslintrc?: boolean;
-  parser?: string;
-  parserOptions?: ParserOptions;
-  plugins?: string[];
-  resolvePluginsRelativeTo?: string;
-  rules?: {
-    [name: string]: RuleLevel | RuleLevelAndOptions;
-  };
-  rulePaths?: string[];
-  reportUnusedDisableDirectives?: boolean;
-}
 
-interface ParserOptions {
-  ecmaVersion?:
-    | 3
-    | 5
-    | 6
-    | 7
-    | 8
-    | 9
-    | 10
-    | 11
-    | 2015
-    | 2016
-    | 2017
-    | 2018
-    | 2019
-    | 2020;
-  sourceType?: 'script' | 'module';
-  ecmaFeatures?: {
-    globalReturn?: boolean;
-    impliedStrict?: boolean;
-    jsx?: boolean;
-    experimentalObjectRestSpread?: boolean;
-    [key: string]: any;
-  };
+  // The rest of the properties are not specified here because they are not
+  // directly used by this package and are instead just passed to eslint.
+  // We do this in order to avoid a dependency on @types/eslint (since the use
+  // of eslint is optional) and to avoid copying types from @types/eslint.
   [key: string]: any;
-}
-
-type RuleLevel = Severity | 'off' | 'warn' | 'error';
-type Severity = 0 | 1 | 2;
-
-interface RuleLevelAndOptions extends Array<any> {
-  0: RuleLevel;
 }

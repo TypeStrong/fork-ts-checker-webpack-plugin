@@ -1,13 +1,13 @@
 import * as path from 'path';
 
-import { LintReport } from './types/eslint';
+import { LintReport, Options as EslintOptions } from './types/eslint';
 import { throwIfIsInvalidSourceFileError } from './FsHelper';
 
-export function createEslinter(eslintOptions: object) {
+export function createEslinter(eslintOptions: EslintOptions) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { CLIEngine } = require('eslint');
 
-  // See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+  // See https://eslint.org/docs/developer-guide/nodejs-api#cliengine
   const eslinter = new CLIEngine(eslintOptions);
 
   function getReport(filepath: string): LintReport | undefined {
@@ -21,7 +21,13 @@ export function createEslinter(eslintOptions: object) {
         return undefined;
       }
 
-      return eslinter.executeOnFiles([filepath]);
+      const lintReport = eslinter.executeOnFiles([filepath]);
+
+      if (eslintOptions && eslintOptions.fix) {
+        eslinter.outputFixes(lintReport);
+      }
+
+      return lintReport;
     } catch (e) {
       throwIfIsInvalidSourceFileError(filepath, e);
     }

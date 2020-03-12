@@ -21,6 +21,7 @@ import { getForkTsCheckerWebpackPluginHooks } from './hooks';
 import { RUN, RunPayload, RunResult } from './RpcTypes';
 import { Issue, IssueSeverity } from './issue';
 import { VueOptions } from './types/vue-options';
+import { Options as EslintOptions } from './types/eslint';
 
 const checkerPluginName = 'fork-ts-checker-webpack-plugin';
 
@@ -39,8 +40,8 @@ namespace ForkTsCheckerWebpackPlugin {
     tsconfig: string;
     compilerOptions: object;
     eslint: boolean;
-    /** Options to supply to eslint https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine */
-    eslintOptions: object;
+    /** Options to supply to eslint https://eslint.org/docs/developer-guide/nodejs-api#cliengine */
+    eslintOptions: EslintOptions;
     async: boolean;
     ignoreDiagnostics: number[];
     ignoreLints: string[];
@@ -79,7 +80,7 @@ class ForkTsCheckerWebpackPlugin {
   private tsconfig: string;
   private compilerOptions: object;
   private eslint = false;
-  private eslintOptions: object = {};
+  private eslintOptions: EslintOptions = {};
   private ignoreDiagnostics: number[];
   private ignoreLints: string[];
   private ignoreLintWarnings: boolean;

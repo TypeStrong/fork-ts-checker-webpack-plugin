@@ -114,7 +114,7 @@ There's a good explanation on setting up TypeScript ESLint support by Robert Coo
 
 - **eslintOptions** `object`:
 
-  - Options that can be used to initialise ESLint. See https://eslint.org/docs/1.0.0/developer-guide/nodejs-api#cliengine
+  - Options that can be used to initialise ESLint. See https://eslint.org/docs/developer-guide/nodejs-api#cliengine
   
 - **async** `boolean`:
   True by default - `async: false` can block webpack's emit to wait for type checker/linter and to add errors to the webpack's compilation.

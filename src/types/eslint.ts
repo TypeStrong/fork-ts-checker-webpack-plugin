@@ -34,3 +34,13 @@ export interface LintReport {
   fixableErrorCount: number;
   fixableWarningCount: number;
 }
+
+export interface Options {
+  fix?: boolean;
+
+  // The rest of the properties are not specified here because they are not
+  // directly used by this package and are instead just passed to eslint.
+  // We do this in order to avoid a dependency on @types/eslint (since the use
+  // of eslint is optional) and to avoid copying types from @types/eslint.
+  [key: string]: any;
+}

@@ -595,7 +595,7 @@ class ForkTsCheckerWebpackPlugin {
   }
 
   private handleServiceExit(_code: string | number, signal: string) {
-    if (signal !== 'SIGABRT') {
+    if (signal !== 'SIGABRT' && signal !== 'SIGINT') {
       return;
     }
     // probably out of memory :/
@@ -606,12 +606,23 @@ class ForkTsCheckerWebpackPlugin {
       forkTsCheckerHooks.serviceOutOfMemory.call();
     }
     if (!this.silent && this.logger) {
-      this.logger.error(
-        chalk.red(
-          'Type checking and linting aborted - probably out of memory. ' +
-            'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
-        )
-      );
+      if (signal === 'SIGINT') {
+        this.logger.error(
+          chalk.red(
+            'Type checking and linting interrupted - If running in a docker container, this may be caused ' +
+              'by the container running out of memory. If so, try increasing the container\'s memory limit ' +
+              'or lowering the memoryLimit value in the ForkTsCheckerWebpackPlugin configuration.'
+          )
+        );
+
+      } else {
+        this.logger.error(
+          chalk.red(
+            'Type checking and linting aborted - probably out of memory. ' +
+              'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
+          )
+        );
+      }
     }
   }
 

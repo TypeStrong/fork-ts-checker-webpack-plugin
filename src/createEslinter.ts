@@ -24,7 +24,7 @@ export function createEslinter(eslintOptions: EslintOptions) {
       const lintReport = eslinter.executeOnFiles([filepath]);
 
       if (eslintOptions && eslintOptions.fix) {
-        eslinter.outputFixes(lintReport);
+        CLIEngine.outputFixes(lintReport);
       }
 
       return lintReport;

@@ -123,7 +123,7 @@ describe('[UNIT] CancellationToken', () => {
     }).not.toThrowError();
   });
 
-  it('should throttle check for 10ms', done => {
+  it('should throttle check for 10 ms', done => {
     const tokenA = new CancellationToken(require('typescript'));
     const tokenB = CancellationToken.createFromJSON(
       // eslint-disable-next-line @typescript-eslint/no-var-requires

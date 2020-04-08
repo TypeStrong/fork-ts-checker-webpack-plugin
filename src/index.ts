@@ -716,7 +716,7 @@ class ForkTsCheckerWebpackPlugin {
               : '')
         );
         this.logger.info(
-          'Time: ' + chalk.bold(Math.round(elapsed / 1e6).toString()) + 'ms'
+          `Time: ${chalk.bold(Math.round(elapsed / 1e6).toString())} ms`
         );
       }
     };

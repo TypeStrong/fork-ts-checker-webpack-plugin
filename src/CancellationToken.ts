@@ -57,7 +57,7 @@ export class CancellationToken {
     const duration = Math.abs(time - this.lastCancellationCheckTime);
 
     if (duration > 10) {
-      // check no more than once every 10ms
+      // check no more than once every 10 ms
       this.lastCancellationCheckTime = time;
       this.isCancelled = fileExistsSync(this.getCancellationFilePath());
     }

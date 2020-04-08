@@ -242,7 +242,7 @@ export class CompilerHost
     // We are intercepting all change notifications, and letting
     // them through only when webpack starts processing changes.
     // Therefore, at this point normally files are already all saved,
-    // so we do not need to waste another 250ms (hardcoded in TypeScript).
+    // so we do not need to waste another 250 ms (hardcoded in TypeScript).
     // On the other hand there may be occasional glitch, when our incremental
     // compiler will receive the notification too late, and process it when
     // next compilation would start.

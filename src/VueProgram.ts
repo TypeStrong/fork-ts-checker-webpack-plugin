@@ -317,8 +317,8 @@ export class VueProgram {
         'When you use `vue` option, make sure to install `' + compiler + '`.'
       );
     }
-
-    const { script } = parser.parseComponent(content, {
+    const parseComponent = typeof parser.parseComponent === 'undefined' ? parser.parse : parser.parseComponent
+    const { script } = parseComponent(content, {
       pad: 'space'
     });
 

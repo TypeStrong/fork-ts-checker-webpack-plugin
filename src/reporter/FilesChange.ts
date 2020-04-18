@@ -1,7 +1,7 @@
 import subtract from '../utils/array/substract';
 import unique from '../utils/array/unique';
 import intersect from '../utils/array/intersect';
-import { aggregateFilesState } from './FilesState';
+import { getFilesInitialState } from './FilesInitialState';
 
 interface FilesChange {
   createdFiles?: string[];
@@ -9,31 +9,43 @@ interface FilesChange {
   deletedFiles?: string[];
 }
 
+/**
+ * Computes aggregated files change based on the subsequent files changes.
+ *
+ * @param changes List of subsequent files changes
+ * @returns Files change that represents all subsequent changes as a one event
+ */
 function aggregateFilesChanges(changes: FilesChange[]): FilesChange {
-  const { nonExistedFiles, existedFiles } = aggregateFilesState(changes);
+  const { filesThatDidntExist, filesThatDidExist } = getFilesInitialState(changes);
 
-  return changes.reduce<FilesChange>(
-    (aggregated, change) => ({
-      createdFiles: unique([
-        ...subtract(aggregated.createdFiles, change.deletedFiles),
-        ...intersect(change.createdFiles, nonExistedFiles),
-      ]),
-      changedFiles: unique([
-        ...subtract(aggregated.changedFiles, change.deletedFiles),
-        ...intersect(change.changedFiles, existedFiles),
-        ...intersect(change.createdFiles, existedFiles),
-      ]),
-      deletedFiles: unique([
-        ...subtract(aggregated.deletedFiles, change.createdFiles),
-        ...intersect(change.deletedFiles, existedFiles),
-      ]),
-    }),
-    {
-      createdFiles: [],
-      changedFiles: [],
-      deletedFiles: [],
-    }
-  );
+  let createdFiles: string[] = [];
+  let changedFiles: string[] = [];
+  let deletedFiles: string[] = [];
+
+  for (const change of changes) {
+    // subtract deleted files from created files
+    createdFiles = subtract(createdFiles, change.deletedFiles);
+    // add new created files if didn't exist before
+    createdFiles.push(...intersect(change.createdFiles, filesThatDidntExist));
+
+    // subtract deleted files from changed files
+    changedFiles = subtract(changedFiles, change.deletedFiles);
+    // add new created files if did exist before
+    changedFiles.push(...intersect(change.createdFiles, filesThatDidExist));
+    // add new changed files if did exist before
+    changedFiles.push(...intersect(change.changedFiles, filesThatDidExist));
+
+    // subtract created files from deleted files
+    deletedFiles = subtract(deletedFiles, change.createdFiles);
+    // add new deleted files if did exist before
+    deletedFiles.push(...intersect(change.deletedFiles, filesThatDidExist));
+  }
+
+  return {
+    createdFiles: unique(createdFiles),
+    changedFiles: unique(changedFiles),
+    deletedFiles: unique(deletedFiles),
+  };
 }
 
 export { FilesChange, aggregateFilesChanges };

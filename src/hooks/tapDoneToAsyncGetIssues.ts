@@ -1,8 +1,8 @@
-import webpack, { compilation } from 'webpack';
+import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { OperationCancelledError } from '../reporter';
+import { OperationCancelledError } from '../error/OperationCancelledError';
 import { createWebpackFormatter } from '../formatter/WebpackFormatter';
 import { Issue } from '../issue';
 import isPending from '../utils/async/isPending';
@@ -31,10 +31,10 @@ function tapDoneToAsyncGetIssues(
 
       issues = await report;
     } catch (error) {
-      if (!(error instanceof OperationCancelledError)) {
-        hooks.error.call(error, stats.compilation);
-      } else {
+      if (error instanceof OperationCancelledError) {
         hooks.cancelled.call(stats.compilation);
+      } else {
+        hooks.error.call(error, stats.compilation);
       }
       return;
     }

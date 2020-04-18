@@ -24,7 +24,7 @@ module.exports = {
       ],
       rules: {
         '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-namespace': 'off' // maybe we should consider enabling it in the future
+        '@typescript-eslint/no-use-before-define': 'off'
       }
     }
   ]

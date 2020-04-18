@@ -2,7 +2,7 @@ import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { OperationCancelledError } from '../reporter';
+import { OperationCancelledError } from '../error/OperationCancelledError';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
 import { Tap } from 'tapable';
 import { getReportProgress } from './getReportProgress';
@@ -31,10 +31,10 @@ function tapAfterCompileToGetIssues(
 
         issues = await state.report;
       } catch (error) {
-        if (!(error instanceof OperationCancelledError)) {
-          hooks.error.call(error, compilation);
-        } else {
+        if (error instanceof OperationCancelledError) {
           hooks.cancelled.call(compilation);
+        } else {
+          hooks.error.call(error, compilation);
         }
         return;
       } finally {

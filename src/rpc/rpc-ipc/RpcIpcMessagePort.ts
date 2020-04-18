@@ -8,7 +8,6 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
 
   let closedError: Error | undefined;
   const handleExit = async (code: string | number | null, signal: string | null) => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     await port.close();
 
     closedError = new RpcIpcMessagePortClosedError(
@@ -18,7 +17,6 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
     );
   };
   const handleDisconnect = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     await port.close();
 
     closedError = new RpcIpcMessagePortClosedError(

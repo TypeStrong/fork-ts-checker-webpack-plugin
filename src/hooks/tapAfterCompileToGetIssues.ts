@@ -8,14 +8,14 @@ import { Tap } from 'tapable';
 import { getReportProgress } from './getReportProgress';
 import { Issue } from '../issue';
 
-function tapEmitToGetIssues(
+function tapAfterCompileToGetIssues(
   compiler: webpack.Compiler,
   configuration: ForkTsCheckerWebpackPluginConfiguration,
   state: ForkTsCheckerWebpackPluginState
 ) {
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
 
-  compiler.hooks.emit.tapPromise(
+  compiler.hooks.afterCompile.tapPromise(
     {
       name: 'ForkTsCheckerWebpackPlugin',
       context: true,
@@ -66,4 +66,4 @@ function tapEmitToGetIssues(
   );
 }
 
-export { tapEmitToGetIssues };
+export { tapAfterCompileToGetIssues };

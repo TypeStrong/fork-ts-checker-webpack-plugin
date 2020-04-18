@@ -6,17 +6,14 @@ import { createForkTsCheckerWebpackPluginConfiguration } from './ForkTsCheckerWe
 import { createForkTsCheckerWebpackPluginState } from './ForkTsCheckerWebpackPluginState';
 import { composeReporterRpcClients, createAggregatedReporter, ReporterRpcClient } from './reporter';
 import { assertTypeScriptSupport } from './typescript-reporter/assertTypeScriptSupport';
-import {
-  createTypeScriptReporterRpcClient,
-  createTypeScriptReporterSameProcessRpcClient,
-} from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
+import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
 import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
 import { tapDoneToAsyncGetIssues } from './hooks/tapDoneToAsyncGetIssues';
 import { tapInvalidToUpdateState } from './hooks/tapInvalidToUpdateState';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { tapEmitToGetIssues } from './hooks/tapEmitToGetIssues';
+import { tapAfterCompileToGetIssues } from './hooks/tapAfterCompileToGetIssues';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
@@ -52,7 +49,7 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
       if (configuration.async) {
         tapDoneToAsyncGetIssues(compiler, configuration, state);
       } else {
-        tapEmitToGetIssues(compiler, configuration, state);
+        tapAfterCompileToGetIssues(compiler, configuration, state);
       }
     } else {
       configuration.logger.infrastructure.error(

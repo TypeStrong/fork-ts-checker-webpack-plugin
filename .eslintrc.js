@@ -10,11 +10,6 @@ module.exports = {
       tryExtensions: ['.js', '.json', '.ts', '.d.ts']
     }
   },
-  rules: {
-    'no-process-exit': 'off', // to investigate if we should throw an error instead of process.exit()
-    'node/no-unsupported-features/es-builtins': 'off',
-    'node/no-unsupported-features/es-syntax': 'off'
-  },
   overrides: [
     {
       files: ['*.ts'],
@@ -24,7 +19,8 @@ module.exports = {
       ],
       rules: {
         '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-use-before-define': 'off'
+        '@typescript-eslint/no-use-before-define': 'off',
+        'node/no-unsupported-features/es-syntax': 'off'
       }
     }
   ]

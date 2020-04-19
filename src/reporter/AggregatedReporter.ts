@@ -16,10 +16,13 @@ function createAggregatedReporter<TReporter extends Reporter>(reporter: TReporte
       if (!pendingReportPromise) {
         const reportPromise = reporter.getReport(change);
         pendingReportPromise = reportPromise
+          .then(() => {
+            // remove current pending - .finally() is supported starting from Node 10
+            pendingReportPromise = undefined;
+          })
           // ignore previous errors
-          .catch(() => undefined)
-          // remove current pending
-          .finally(() => {
+          .catch(() => {
+            // remove current pending - .finally() is supported starting from Node 10
             pendingReportPromise = undefined;
           });
 

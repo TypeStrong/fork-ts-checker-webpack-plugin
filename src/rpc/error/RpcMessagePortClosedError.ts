@@ -1,9 +1,3 @@
-class RpcMessagePortClosedError extends Error {
-  constructor(message: string) {
-    super(message);
-
-    Object.setPrototypeOf(this, RpcMessagePortClosedError.prototype);
-  }
-}
+class RpcMessagePortClosedError extends Error {}
 
 export { RpcMessagePortClosedError };

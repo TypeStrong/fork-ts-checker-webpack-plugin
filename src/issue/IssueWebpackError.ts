@@ -44,8 +44,6 @@ class IssueWebpackError extends Error {
       this.file = parts.join(' ');
     }
 
-    Object.setPrototypeOf(this, IssueWebpackError.prototype);
-
     Error.captureStackTrace(this, this.constructor);
   }
 }

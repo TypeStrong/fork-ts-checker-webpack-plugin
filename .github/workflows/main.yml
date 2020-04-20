@@ -43,7 +43,7 @@ jobs:
           # test different typescript versions
           - os: ubuntu-latest
             node: 12
-            packages: typescript@2.7.0 webpack@^4.0.0 ts-loader@5.0.0 vue-loader@15.2.0
+            packages: typescript@2.7.1 webpack@^4.0.0 ts-loader@5.0.0 vue-loader@15.2.0
 
           - os: ubuntu-latest
             node: 12

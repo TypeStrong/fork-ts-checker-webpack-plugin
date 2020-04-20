@@ -47,11 +47,11 @@ jobs:
 
           - os: ubuntu-latest
             node: 12
-            packages: typescript@^3.0.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.0.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: ubuntu-latest
             node: 12
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: ubuntu-latest
             node: 12
@@ -66,37 +66,37 @@ jobs:
           # macos
           - os: macos-latest
             node: 8
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: macos-latest
             node: 10
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: macos-latest
             node: 12
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           # windows
           - os: windows-latest
             node: 8
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: windows-latest
             node: 10
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: windows-latest
             node: 12
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           # ubuntu
           - os: ubuntu-latest
             node: 8
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
 
           - os: ubuntu-latest
             node: 10
-            packages: typescript@^3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
+            packages: typescript@~3.6.0 webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.0
     steps:
     - uses: actions/checkout@v1
       

@@ -1,10 +1,7 @@
 import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
 import { createIssueConfiguration, IssueConfiguration } from './issue/IssueConfiguration';
-import {
-  createFormatterConfiguration,
-  FormatterConfiguration,
-} from './formatter/FormatterConfiguration';
+import { createFormatterConfiguration, FormatterConfiguration } from './formatter';
 import {
   createTypeScriptReporterConfiguration,
   TypeScriptReporterConfiguration,

@@ -52,7 +52,7 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
         tapAfterCompileToGetIssues(compiler, configuration, state);
       }
     } else {
-      configuration.logger.infrastructure.error(
+      throw new Error(
         `ForkTsCheckerWebpackPlugin is configured to not use any issue reporter. It's probably a configuration issue.`
       );
     }

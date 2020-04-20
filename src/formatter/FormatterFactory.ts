@@ -3,17 +3,14 @@ import { BabelCodeFrameOptions, createCodeframeFormatter } from './CodeframeForm
 import { createBasicFormatter } from './BasicFormatter';
 
 type NotConfigurableFormatterType = undefined | 'basic' | Formatter;
-type ConfigurableFormatterOptionTypes = {
+type ConfigurableFormatterType = 'codeframe';
+type FormatterType = NotConfigurableFormatterType | ConfigurableFormatterType;
+
+type ConfigurableFormatterOptions = {
   codeframe: BabelCodeFrameOptions;
 };
-type ConfigurableFormatterType = keyof ConfigurableFormatterOptionTypes;
-type ConfigurableFormatterOptions<
-  T extends ConfigurableFormatterType
-> = ConfigurableFormatterOptionTypes[T];
-
-type FormatterType = NotConfigurableFormatterType | ConfigurableFormatterType;
 type ComplexFormatterOptions<T extends FormatterType> = T extends ConfigurableFormatterType
-  ? ConfigurableFormatterOptions<T>
+  ? ConfigurableFormatterOptions[T]
   : never;
 
 // for not-configurable formatter type, provide single declaration
@@ -21,7 +18,7 @@ function createFormatter<T extends NotConfigurableFormatterType>(type?: T): Form
 // for each configurable formatter type, provide declaration with related configuration type
 function createFormatter<T extends ConfigurableFormatterType>(
   type: T,
-  options?: ConfigurableFormatterOptions<T>
+  options?: ConfigurableFormatterOptions[T]
 ): Formatter;
 
 // for general use-case provide single declaration
@@ -41,7 +38,9 @@ function createFormatter(type?: FormatterType, options?: object): Formatter {
       return createCodeframeFormatter(options);
 
     default:
-      throw new Error('Unknown "' + type + '" formatter. Available types are: basic, codeframe.');
+      throw new Error(
+        `Unknown "${type}" formatter. Available types are: basic, codeframe, Function.`
+      );
   }
 }
 

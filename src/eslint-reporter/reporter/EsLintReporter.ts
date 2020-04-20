@@ -1,6 +1,6 @@
 import { LintReport } from '../types/eslint';
 import { createEsLintReporterState, EsLintReporterState } from './EsLintReporterState';
-import { createIssuesFromEsLintResults } from '../issue/EsLintIssue';
+import { createIssuesFromEsLintResults } from '../issue/EsLintIssueFactory';
 import { EsLintReporterConfiguration } from '../EsLintReporterConfiguration';
 import { Reporter } from '../../reporter';
 

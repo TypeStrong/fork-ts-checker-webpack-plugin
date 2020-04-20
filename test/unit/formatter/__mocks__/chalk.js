@@ -12,7 +12,7 @@ const modifiers = [
   'inverse',
   'hidden',
   'strikethrough',
-  'visible'
+  'visible',
 ];
 const colors = [
   'black',
@@ -32,7 +32,7 @@ const colors = [
   'blueBright',
   'magentaBright',
   'cyanBright',
-  'whiteBright'
+  'whiteBright',
 ];
 const bgColors = [
   'bgBlack',
@@ -52,28 +52,19 @@ const bgColors = [
   'bgBlueBright',
   'bgMagentaBright',
   'bgCyanBright',
-  'bgWhiteBright'
+  'bgWhiteBright',
 ];
-const models = [
-  'rgb',
-  'hex',
-  'keyword',
-  'hsl',
-  'hsv',
-  'hwb',
-  'ansi',
-  'ansi256'
-];
+const models = ['rgb', 'hex', 'keyword', 'hsl', 'hsv', 'hwb', 'ansi', 'ansi256'];
 
 const styleMethods = [...modifiers, ...colors, ...bgColors];
 const modelMethods = models;
 
 // register all style methods as a chain methods
-styleMethods.forEach(method => {
+styleMethods.forEach((method) => {
   style[method] = style;
 });
 // register all model methods as a chain methods
-modelMethods.forEach(method => {
+modelMethods.forEach((method) => {
   style[method] = () => style;
 });
 
@@ -84,15 +75,15 @@ function Chalk() {
     level: 0,
     hasBasic: false,
     has256: false,
-    has16m: false
+    has16m: false,
   };
 
   // register all style methods as a chalk API
-  styleMethods.forEach(method => {
+  styleMethods.forEach((method) => {
     this[method] = style;
   });
   // register all model methods as a chalk API
-  modelMethods.forEach(method => {
+  modelMethods.forEach((method) => {
     this[method] = () => style;
   });
 }

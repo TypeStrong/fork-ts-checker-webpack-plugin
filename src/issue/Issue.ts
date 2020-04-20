@@ -8,7 +8,6 @@ interface Issue {
   message: string;
   file?: string;
   location?: IssueLocation;
-  stack?: string;
 }
 
 function isIssue(value: unknown): value is Issue {
@@ -45,7 +44,6 @@ function compareIssues(issueA: Issue, issueB: Issue) {
     compareIssueLocations(issueA.location, issueB.location) ||
     compareStrings(issueA.code, issueB.code) ||
     compareStrings(issueA.message, issueB.message) ||
-    compareStrings(issueA.stack, issueB.stack) ||
     0 /* EqualTo */
   );
 }

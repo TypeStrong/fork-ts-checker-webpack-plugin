@@ -4,6 +4,10 @@ interface IssuePosition {
 }
 
 function compareIssuePositions(positionA?: IssuePosition, positionB?: IssuePosition) {
+  if (positionA === positionB) {
+    return 0;
+  }
+
   if (!positionA) {
     return -1;
   }

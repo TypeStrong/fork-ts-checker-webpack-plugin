@@ -1,30 +1,6 @@
 import { relative } from 'path';
 import { Issue } from './Issue';
-import { IssueLocation } from './IssueLocation';
-
-interface IssueWebpackErrorLoc {
-  start: {
-    line: number;
-    column: number;
-  };
-  end: {
-    line: number;
-    column: number;
-  };
-}
-
-function formatFile(file: string, context: string) {
-  return relative(context, file);
-}
-
-function formatLocation(location: IssueLocation) {
-  return [
-    `${location.start.line}:${location.start.column}`,
-    location.start.line !== location.end.line
-      ? `${location.end.line}:${location.end.column}`
-      : `${location.end.column}`,
-  ].join('-');
-}
+import { formatIssueLocation } from './IssueLocation';
 
 class IssueWebpackError extends Error {
   readonly hideStack = true;
@@ -37,9 +13,9 @@ class IssueWebpackError extends Error {
     // should be a NormalModule instance.
     // to avoid such a dependency, we do a workaround - error.file will contain formatted location instead
     if (issue.file) {
-      const parts = [formatFile(issue.file, context)];
+      const parts = [relative(context, issue.file)];
       if (issue.location) {
-        parts.push(formatLocation(issue.location));
+        parts.push(formatIssueLocation(issue.location));
       }
       this.file = parts.join(' ');
     }

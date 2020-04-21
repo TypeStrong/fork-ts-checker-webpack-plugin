@@ -22,6 +22,12 @@ module.exports = {
         '@typescript-eslint/no-use-before-define': 'off',
         'node/no-unsupported-features/es-syntax': 'off'
       }
+    },
+    {
+      files: ['*.spec.ts'],
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off'
+      }
     }
   ]
 };

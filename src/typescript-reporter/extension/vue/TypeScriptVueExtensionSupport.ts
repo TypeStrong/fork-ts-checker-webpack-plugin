@@ -1,6 +1,6 @@
 import { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
 
-function assertVueSupport(configuration: TypeScriptVueExtensionConfiguration) {
+function assertTypeScriptVueExtensionSupport(configuration: TypeScriptVueExtensionConfiguration) {
   // We need to import template compiler for vue lazily because it cannot be included it
   // as direct dependency because it is an optional dependency of fork-ts-checker-webpack-plugin.
   // Since its version must not mismatch with user-installed Vue.js,
@@ -14,4 +14,4 @@ function assertVueSupport(configuration: TypeScriptVueExtensionConfiguration) {
   }
 }
 
-export { assertVueSupport };
+export { assertTypeScriptVueExtensionSupport };

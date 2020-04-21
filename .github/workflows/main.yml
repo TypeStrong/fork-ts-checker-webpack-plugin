@@ -133,6 +133,44 @@ jobs:
     # TODO: uncomment, when integration tests will work again
     # - name: Run integration tests
     #  run: yarn test:integration
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ matrix.node }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: lib
+
+      - name: Test & publish code coverage
+        uses: paambaati/codeclimate-action@v2.5.7
+        env:
+          CC_TEST_REPORTER_ID: 49901d62e1528b4c2379a4618254376692e87b2e9a749b94bcc4c17daab1ca4f
+        with:
+          coverageCommand: yarn test:unit --coverage
+          debug: true
       
   release:
     runs-on: ubuntu-latest

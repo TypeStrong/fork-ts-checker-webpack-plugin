@@ -1,4 +1,4 @@
-function assertPnpSupport() {
+function assertTypeScriptPnpExtensionSupport() {
   try {
     // eslint-disable-next-line node/no-missing-require
     require('ts-pnp');
@@ -9,4 +9,4 @@ function assertPnpSupport() {
   }
 }
 
-export { assertPnpSupport };
+export { assertTypeScriptPnpExtensionSupport };

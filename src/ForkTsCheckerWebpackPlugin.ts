@@ -5,7 +5,7 @@ import { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginO
 import { createForkTsCheckerWebpackPluginConfiguration } from './ForkTsCheckerWebpackPluginConfiguration';
 import { createForkTsCheckerWebpackPluginState } from './ForkTsCheckerWebpackPluginState';
 import { composeReporterRpcClients, createAggregatedReporter, ReporterRpcClient } from './reporter';
-import { assertTypeScriptSupport } from './typescript-reporter/assertTypeScriptSupport';
+import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport';
 import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
 import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';

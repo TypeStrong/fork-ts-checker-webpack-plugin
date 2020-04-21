@@ -2,15 +2,17 @@ import * as semver from 'semver';
 import * as fs from 'graceful-fs';
 import * as os from 'os';
 import { TypeScriptReporterConfiguration } from './TypeScriptReporterConfiguration';
-import { assertPnpSupport } from './extension/pnp/assertPnpSupport';
-import { assertVueSupport } from './extension/vue/assertVueSupport';
+import { assertTypeScriptPnpExtensionSupport } from './extension/pnp/TypeScriptPnpExtensionSupport';
+import { assertTypeScriptVueExtensionSupport } from './extension/vue/TypeScriptVueExtensionSupport';
 
 function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration) {
-  let typescriptVersion: string;
+  let typescriptVersion: string | undefined;
 
   try {
     typescriptVersion = require('typescript').version;
-  } catch (error) {
+  } catch (error) {}
+
+  if (!typescriptVersion) {
     throw new Error(
       'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.'
     );
@@ -48,11 +50,11 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
   }
 
   if (configuration.extensions.vue.enabled) {
-    assertVueSupport(configuration.extensions.vue);
+    assertTypeScriptVueExtensionSupport(configuration.extensions.vue);
   }
 
   if (configuration.extensions.pnp.enabled) {
-    assertPnpSupport();
+    assertTypeScriptPnpExtensionSupport();
   }
 }
 

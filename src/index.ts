@@ -475,6 +475,10 @@ class ForkTsCheckerWebpackPlugin {
     } else {
       delete env.RESOLVE_TYPE_REFERENCE_DIRECTIVE;
     }
+    
+    if (env.NODE_OPTIONS) {
+      env.NODE_OPTIONS = env.NODE_OPTIONS.replace(/--inspect(?:-brk)?(?:=[^\s]*)?/g, '');
+    }
 
     this.service = childProcess.fork(
       path.resolve(__dirname, './service.js'),

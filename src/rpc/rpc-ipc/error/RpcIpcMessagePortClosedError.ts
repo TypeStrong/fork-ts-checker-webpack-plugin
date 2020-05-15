@@ -7,8 +7,7 @@ class RpcIpcMessagePortClosedError extends RpcMessagePortClosedError {
     readonly signal: string | null
   ) {
     super(message);
-
-    Object.setPrototypeOf(this, RpcIpcMessagePortClosedError.prototype);
+    this.name = 'RpcIpcMessagePortClosedError';
   }
 }
 

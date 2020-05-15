@@ -1,4 +1,4 @@
-import { ForkTsCheckerWebpackPlugin } from '../../lib/ForkTsCheckerWebpackPlugin';
+import { ForkTsCheckerWebpackPlugin } from 'lib/ForkTsCheckerWebpackPlugin';
 
 describe('ForkTsCheckerWebpackPlugin', () => {
   it.each([{ invalid: true }, false, null, 'unknown string', { typescript: 'invalid option' }])(

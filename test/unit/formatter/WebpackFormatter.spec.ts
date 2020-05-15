@@ -1,6 +1,7 @@
 import os from 'os';
-import { Issue } from '../../../lib/issue';
-import { createBasicFormatter, createWebpackFormatter, Formatter } from '../../../lib/formatter';
+import { join } from 'path';
+import { Issue } from 'lib/issue';
+import { createBasicFormatter, createWebpackFormatter, Formatter } from 'lib/formatter';
 
 describe('formatter/WebpackFormatter', () => {
   const issue: Issue = {
@@ -8,7 +9,7 @@ describe('formatter/WebpackFormatter', () => {
     severity: 'error',
     code: 'TS123',
     message: 'Some issue content',
-    file: 'some/file.ts',
+    file: join(__dirname, 'some/file.ts'),
     location: {
       start: {
         line: 1,
@@ -24,7 +25,7 @@ describe('formatter/WebpackFormatter', () => {
   let formatter: Formatter;
 
   beforeEach(() => {
-    formatter = createWebpackFormatter(createBasicFormatter());
+    formatter = createWebpackFormatter(createBasicFormatter(), __dirname);
   });
 
   it('decorates existing formatter', () => {

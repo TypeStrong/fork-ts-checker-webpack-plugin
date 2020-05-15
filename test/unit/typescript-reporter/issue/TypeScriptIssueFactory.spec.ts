@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { createIssuesFromTsDiagnostics } from '../../../../lib/typescript-reporter/issue/TypeScriptIssueFactory';
+import { createIssuesFromTsDiagnostics } from 'lib/typescript-reporter/issue/TypeScriptIssueFactory';
 
 describe('typescript-reporter/issue/TypeScriptIssueFactory', () => {
   const TS_DIAGNOSTIC_WARNING = {

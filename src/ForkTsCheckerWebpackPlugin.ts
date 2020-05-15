@@ -10,11 +10,11 @@ import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporte
 import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
 import { tapDoneToAsyncGetIssues } from './hooks/tapDoneToAsyncGetIssues';
-import { tapInvalidToUpdateState } from './hooks/tapInvalidToUpdateState';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
 import { tapAfterCompileToGetIssues } from './hooks/tapAfterCompileToGetIssues';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
+import { tapDoneToCollectChangedAndRemoved } from './hooks/tapDoneToCollectChangedAndRemoved';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
   constructor(private readonly options: ForkTsCheckerWebpackPluginOptions = {}) {
@@ -43,8 +43,8 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
     if (reporters.length) {
       const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
 
-      tapInvalidToUpdateState(compiler, configuration, state);
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
+      tapDoneToCollectChangedAndRemoved(compiler, configuration, state);
       tapStopToDisconnectReporter(compiler, reporter, configuration, state);
       if (configuration.async) {
         tapDoneToAsyncGetIssues(compiler, configuration, state);

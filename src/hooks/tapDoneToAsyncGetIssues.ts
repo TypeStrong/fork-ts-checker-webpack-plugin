@@ -50,12 +50,12 @@ function tapDoneToAsyncGetIssues(
     // modify list of issues in the plugin hooks
     issues = hooks.issues.call(issues);
 
-    const formatter = createWebpackFormatter(configuration.formatter);
-    issues.forEach((issue) => {
-      configuration.logger.issues.log(formatter(issue));
-    });
+    const formatter = createWebpackFormatter(configuration.formatter, compiler.context);
 
-    if (!issues.length) {
+    if (issues.length) {
+      // follow webpack's approach - one process.write to stderr with all errors and warnings
+      configuration.logger.issues.error(issues.map((issue) => formatter(issue)).join('\n'));
+    } else {
       configuration.logger.issues.log(chalk.green('No issues found.'));
     }
 

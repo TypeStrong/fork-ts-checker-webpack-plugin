@@ -1,6 +1,6 @@
 import * as semver from 'semver';
-import * as fs from 'graceful-fs';
-import * as os from 'os';
+import fs from 'fs-extra';
+import os from 'os';
 import { TypeScriptReporterConfiguration } from './TypeScriptReporterConfiguration';
 import { assertTypeScriptPnpExtensionSupport } from './extension/pnp/TypeScriptPnpExtensionSupport';
 import { assertTypeScriptVueExtensionSupport } from './extension/vue/TypeScriptVueExtensionSupport';

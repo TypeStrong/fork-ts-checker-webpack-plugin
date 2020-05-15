@@ -1,7 +1,7 @@
 import * as os from 'os';
 import mockFs from 'mock-fs';
-import { createFormatter, FormatterType } from '../../../lib/formatter';
-import { Issue } from '../../../lib/issue';
+import { Issue } from 'lib/issue';
+import { createFormatter, FormatterType } from 'lib/formatter';
 
 describe('formatter/FormatterFactory', () => {
   beforeEach(() => {

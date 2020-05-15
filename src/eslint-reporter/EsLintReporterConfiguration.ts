@@ -8,6 +8,16 @@ interface EsLintReporterConfiguration {
   files: string[];
 }
 
+function castToArray<T>(value: T | T[] | undefined): T[] {
+  if (!value) {
+    return [];
+  } else if (!Array.isArray(value)) {
+    return [value];
+  } else {
+    return value;
+  }
+}
+
 function createEsLintReporterConfiguration(
   compiler: webpack.Compiler,
   options: EsLintReporterOptions | undefined
@@ -15,8 +25,8 @@ function createEsLintReporterConfiguration(
   return {
     enabled: !!(options && options.enabled === true),
     memoryLimit: 2048,
-    files: [],
     ...(typeof options === 'object' ? options : {}),
+    files: typeof options === 'object' ? castToArray(options.files) : [],
     options: {
       cwd: compiler.options.context || process.cwd(),
       extensions: ['.js', '.ts', '.tsx'],

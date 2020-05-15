@@ -1,6 +1,6 @@
 import { RpcProcedure } from './RpcProcedure';
 import { RpcMessagePort } from './RpcMessagePort';
-import { createRpcReturn, createRpcThrow, isRpcMessage } from './RpcMessage';
+import { createRpcReturn, createRpcThrow, isRpcCallMessage } from './RpcMessage';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RpcCallHandler<TPayload = any, TResult = any> = (payload: TPayload) => Promise<TResult>;
@@ -23,7 +23,7 @@ function createRpcService(port: RpcMessagePort): RpcService {
   let isListenerRegistered = false;
 
   const callListener = async (message: unknown) => {
-    if (isRpcMessage(message) && message.type === 'call') {
+    if (isRpcCallMessage(message)) {
       const handler = handlers.get(message.procedure);
 
       try {
@@ -36,7 +36,10 @@ function createRpcService(port: RpcMessagePort): RpcService {
         await port.dispatchMessage(createRpcReturn(message.procedure, message.id, result));
       } catch (error) {
         await port.dispatchMessage(
-          createRpcThrow(message.procedure, message.id, { ...error, message: error.toString() })
+          createRpcThrow(message.procedure, message.id, {
+            message: error.toString(),
+            stack: error.stack,
+          })
         );
       }
     }

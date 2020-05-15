@@ -1,5 +1,5 @@
-import * as os from 'os';
-import * as fs from 'graceful-fs';
+import os from 'os';
+import fs from 'fs-extra';
 import { codeFrameColumns, BabelCodeFrameOptions } from '@babel/code-frame';
 import { Formatter } from './Formatter';
 import { createBasicFormatter } from './BasicFormatter';

@@ -10,9 +10,9 @@
     "skipDefaultLibCheck": true,
     "strict": true,
     "declaration": true,
-    "sourceMap": true,
     "baseUrl": "./src",
     "outDir": "./lib"
   },
-  "include": ["./src"]
+  "include": ["./src"],
+  "exclude": ["node_modules", "test", "lib"]
 }

@@ -188,13 +188,20 @@
       "type": "object",
       "properties": {
         "files": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "uniqueItems": true,
-          "description": "List of glob patterns of files to be linted."
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "List of glob patterns or files to be linted."
         },
         "enabled": {
           "type": "boolean",

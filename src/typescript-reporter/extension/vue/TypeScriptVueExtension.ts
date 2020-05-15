@@ -3,7 +3,7 @@ import {
   TypeScriptEmbeddedSource,
 } from '../TypeScriptEmbeddedExtension';
 import * as vueCompiler from 'vue-template-compiler';
-import { readFileSync, existsSync } from 'fs';
+import fs from 'fs-extra';
 import { TypeScriptExtension } from '../TypeScriptExtension';
 import { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
 
@@ -67,12 +67,12 @@ function createTypeScriptVueExtension(
   }
 
   function getVueEmbeddedSource(fileName: string): TypeScriptEmbeddedSource | undefined {
-    if (!existsSync(fileName)) {
+    if (!fs.existsSync(fileName)) {
       return undefined;
     }
 
     const compiler = loadVueCompiler();
-    const vueSourceText = readFileSync(fileName, { encoding: 'utf-8' });
+    const vueSourceText = fs.readFileSync(fileName, { encoding: 'utf-8' });
 
     const { script } = compiler.parseComponent(vueSourceText, {
       pad: 'space',

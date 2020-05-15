@@ -1,12 +1,13 @@
-import { Formatter } from './Formatter';
 import os from 'os';
 import chalk from 'chalk';
+import { relative } from 'path';
+import { Formatter } from './Formatter';
 import { formatIssueLocation } from '../issue';
 
-function createWebpackFormatter(formatter: Formatter): Formatter {
+function createWebpackFormatter(formatter: Formatter, context: string): Formatter {
   return function webpackFormatter(issue) {
     const severity = issue.severity.toUpperCase();
-    const file = issue.file;
+    const file = issue.file ? relative(context, issue.file) : undefined;
     const location = issue.location ? formatIssueLocation(issue.location) : undefined;
     const color = issue.severity === 'warning' ? chalk.yellow : chalk.red;
     const header = [severity, 'in', file].concat(location ? [location] : []).join(' ');

@@ -4,6 +4,7 @@ import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginSt
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 import { getDeletedFiles } from './getDeletedFiles';
 import { FilesChange, ReporterRpcClient } from '../reporter';
+import { getChangedFiles } from './getChangedFiles';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
@@ -27,20 +28,15 @@ function tapStartToConnectAndRunReporter(
     state.isWatching = true;
 
     let change: FilesChange = {
-      createdFiles: state.createdFiles,
-      changedFiles: state.changedFiles,
-      deletedFiles: getDeletedFiles(compiler),
+      changedFiles: getChangedFiles(compiler, state),
+      deletedFiles: getDeletedFiles(compiler, state),
     };
-
-    state.createdFiles = [];
-    state.changedFiles = [];
 
     change = hooks.runWatch.call(change, compiler);
 
     configuration.logger.infrastructure.info(
       [
         'Calling reporter service for incremental check.',
-        `  Created files: ${JSON.stringify(change.createdFiles)}`,
         `  Changed files: ${JSON.stringify(change.changedFiles)}`,
         `  Deleted files: ${JSON.stringify(change.deletedFiles)}`,
       ].join('\n')

@@ -1,17 +1,12 @@
 import * as ts from 'typescript';
-import fs from 'graceful-fs';
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
-import { ControlledWatchHost } from './ControlledWatchHost';
 import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
-
-interface ControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderProgram>
-  extends ts.SolutionBuilderWithWatchHost<TProgram>,
-    ControlledWatchHost {}
+import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderProgram>(
   configFileName: string,
   optionsToExtend: ts.CompilerOptions | undefined,
-  system: ts.System,
+  system: ControlledTypeScriptSystem,
   createProgram?: ts.CreateProgram<TProgram>,
   reportDiagnostic?: ts.DiagnosticReporter,
   reportWatchStatus?: ts.WatchStatusReporter,
@@ -19,7 +14,7 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
   afterProgramCreate?: (program: TProgram) => void,
   afterProgramEmitAndDiagnostics?: (program: TProgram) => void,
   hostExtensions: TypeScriptHostExtension[] = []
-): ControlledWatchSolutionBuilderHost<TProgram> {
+): ts.SolutionBuilderWithWatchHost<TProgram> {
   const controlledWatchCompilerHost = createControlledWatchCompilerHost(
     configFileName,
     optionsToExtend,
@@ -31,35 +26,8 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
     hostExtensions
   );
 
-  let controlledWatchSolutionBuilderHost: ControlledWatchSolutionBuilderHost<TProgram> = {
+  let controlledWatchSolutionBuilderHost: ts.SolutionBuilderWithWatchHost<TProgram> = {
     ...controlledWatchCompilerHost,
-    writeFile(path: string, data: string, writeByteOrderMark?: boolean): void {
-      // return ts.sys.writeFile(fileName, data, writeByteOrderMark);
-    },
-    deleteFile(path: string): void {
-      // if (ts.sys.deleteFile) {
-      //   ts.sys.deleteFile(fileName);
-      // } else {
-      //   fs.unlinkSync(fileName);
-      // }
-    },
-    createDirectory(path: string): void {
-      // do nothing
-    },
-    getModifiedTime(fileName: string): Date | undefined {
-      if (ts.sys.getModifiedTime) {
-        return ts.sys.getModifiedTime(fileName);
-      } else {
-        return fs.statSync(fileName).mtime;
-      }
-    },
-    setModifiedTime(path: string, date: Date): void {
-      // if (ts.sys.setModifiedTime) {
-      //   ts.sys.setModifiedTime(fileName, date);
-      // } else {
-      //   fs.utimesSync(fileName, date, date);
-      // }
-    },
     reportDiagnostic(diagnostic: ts.Diagnostic): void {
       if (reportDiagnostic) {
         reportDiagnostic(diagnostic);
@@ -75,6 +43,21 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
         afterProgramEmitAndDiagnostics(program);
       }
     },
+    createDirectory(path: string): void {
+      system.createDirectory(path);
+    },
+    writeFile(path: string, data: string): void {
+      system.writeFile(path, data);
+    },
+    getModifiedTime(fileName: string): Date | undefined {
+      return system.getModifiedTime(fileName);
+    },
+    setModifiedTime(fileName: string, date: Date): void {
+      system.setModifiedTime(fileName, date);
+    },
+    deleteFile(fileName: string): void {
+      system.deleteFile(fileName);
+    },
   };
 
   const parsedCommendLine = ts.getParsedCommandLineOfConfigFile(
@@ -87,7 +70,7 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
       useCaseSensitiveFileNames: controlledWatchCompilerHost.useCaseSensitiveFileNames(),
       getCurrentDirectory: controlledWatchCompilerHost.getCurrentDirectory,
       trace: controlledWatchCompilerHost.trace,
-      // it's already registered in the watchCompilerHost
+      // it's already registered in the controlledWatchCompilerHost
       onUnRecoverableConfigFileDiagnostic: () => null,
     }
   );
@@ -96,7 +79,7 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
     if (hostExtension.extendWatchSolutionBuilderHost) {
       controlledWatchSolutionBuilderHost = hostExtension.extendWatchSolutionBuilderHost<
         TProgram,
-        ControlledWatchSolutionBuilderHost<TProgram>
+        ts.SolutionBuilderWithWatchHost<TProgram>
       >(controlledWatchSolutionBuilderHost, parsedCommendLine);
     }
   });
@@ -104,4 +87,4 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
   return controlledWatchSolutionBuilderHost;
 }
 
-export { ControlledWatchSolutionBuilderHost, createControlledWatchSolutionBuilderHost };
+export { createControlledWatchSolutionBuilderHost };

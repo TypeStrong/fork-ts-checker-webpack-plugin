@@ -1,4 +1,4 @@
-import { isIssue, deduplicateAndSortIssues, Issue } from '../../../lib/issue';
+import { isIssue, deduplicateAndSortIssues, Issue } from 'lib/issue';
 
 function omit<TObject extends object>(object: TObject, keys: (keyof TObject)[]) {
   const omittedObject = Object.assign({}, object);

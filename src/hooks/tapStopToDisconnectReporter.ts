@@ -4,6 +4,7 @@ import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginSt
 import { ReporterRpcClient } from '../reporter';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 import { RpcIpcMessagePortClosedError } from '../rpc/rpc-ipc/error/RpcIpcMessagePortClosedError';
+import chalk from 'chalk';
 
 function tapStopToDisconnectReporter(
   compiler: webpack.Compiler,
@@ -29,14 +30,19 @@ function tapStopToDisconnectReporter(
     if (error instanceof RpcIpcMessagePortClosedError) {
       if (error.signal === 'SIGINT') {
         configuration.logger.issues.error(
-          'Type checking and linting interrupted - If running in a docker container, this may be caused ' +
-            "by the container running out of memory. If so, try increasing the container's memory limit " +
-            'or lowering the memoryLimit value in the ForkTsCheckerWebpackPlugin configuration.'
+          chalk.red(
+            'Issues checking service interrupted - If running in a docker container, this may be caused ' +
+              "by the container running out of memory. If so, try increasing the container's memory limit " +
+              'or lowering the `memoryLimit` value in the ForkTsCheckerWebpackPlugin configuration.'
+          )
         );
       } else if (error.signal === 'SIGABRT') {
         configuration.logger.issues.error(
-          'Type checking and linting aborted - probably out of memory. ' +
-            'Check `memoryLimit` option in ForkTsCheckerWebpackPlugin configuration.'
+          chalk.red(
+            'Issues checking service aborted - probably out of memory. ' +
+              'Check the `memoryLimit` option in the ForkTsCheckerWebpackPlugin configuration.\n' +
+              "If increasing the memory doesn't solve the issue, it's most probably a bug in the TypeScript or EsLint."
+          )
         );
       }
     }

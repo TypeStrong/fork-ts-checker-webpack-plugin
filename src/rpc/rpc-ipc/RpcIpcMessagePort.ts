@@ -1,32 +1,36 @@
 import { ProcessLike } from './ProcessLike';
-import { RpcMessageDispatch, RpcMessagePort } from '../index';
+import { RpcMessagePort, RpcMessageListener, RpcErrorListener } from '../index';
 import { ChildProcess, fork } from 'child_process';
 import { RpcIpcMessagePortClosedError } from './error/RpcIpcMessagePortClosedError';
 
 function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
-  const listeners = new Set<RpcMessageDispatch>();
-
+  const messageListeners = new Set<RpcMessageListener>();
+  const errorListeners = new Set<RpcErrorListener>();
   let closedError: Error | undefined;
-  const handleExit = async (code: string | number | null, signal: string | null) => {
-    await port.close();
 
+  const handleExit = async (code: string | number | null, signal: string | null) => {
     closedError = new RpcIpcMessagePortClosedError(
-      `Process ${process.pid} exited with code ${code}.`,
+      code
+        ? `Process ${process.pid} exited with code "${code}" [${signal}]`
+        : `Process ${process.pid} exited [${signal}].`,
       code,
       signal
     );
-  };
-  const handleDisconnect = async () => {
-    await port.close();
+    errorListeners.forEach((listener) => {
+      if (closedError) {
+        listener(closedError);
+      }
+    });
 
-    closedError = new RpcIpcMessagePortClosedError(
-      `Process ${process.pid} has been disconnected.`,
-      null,
-      null
-    );
+    await port.close();
   };
+  const handleMessage = (message: unknown) => {
+    messageListeners.forEach((listener) => {
+      listener(message);
+    });
+  };
+  process.on('message', handleMessage);
   process.on('exit', handleExit);
-  process.on('disconnect', handleDisconnect);
 
   const port: RpcMessagePort = {
     dispatchMessage: async (message) =>
@@ -48,12 +52,16 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
         }
       }),
     addMessageListener: (listener) => {
-      listeners.add(listener);
-      process.on('message', listener);
+      messageListeners.add(listener);
     },
     removeMessageListener: (listener) => {
-      listeners.delete(listener);
-      process.off('message', listener);
+      messageListeners.delete(listener);
+    },
+    addErrorListener: (listener) => {
+      errorListeners.add(listener);
+    },
+    removeErrorListener: (listener) => {
+      errorListeners.delete(listener);
     },
     isOpen: () => !!process.connected,
     open: async () => {
@@ -64,13 +72,11 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
       }
     },
     close: async () => {
-      listeners.forEach((listener) => {
-        process.off('message', listener);
-        listeners.delete(listener);
-      });
-
+      process.off('message', handleMessage);
       process.off('exit', handleExit);
-      process.off('disconnect', handleDisconnect);
+
+      messageListeners.clear();
+      errorListeners.clear();
 
       if (process.disconnect && process.connected) {
         process.disconnect();
@@ -83,18 +89,61 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
 
 function createRpcIpcForkedProcessMessagePort(
   filePath: string,
-  memoryLimit = 2048
+  memoryLimit = 2048,
+  autoRecreate = true
 ): RpcMessagePort {
-  let childProcess: ChildProcess | undefined = fork(filePath, [], {
-    execArgv: [`--max-old-space-size=${memoryLimit}`],
-    stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
-  });
-  const port = createRpcIpcMessagePort(childProcess);
+  function createChildProcess(): ChildProcess {
+    return fork(filePath, [], {
+      execArgv: [`--max-old-space-size=${memoryLimit}`],
+      stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+    });
+  }
+  const messageListeners = new Set<RpcMessageListener>();
+  const errorListeners = new Set<RpcErrorListener>();
+
+  let childProcess: ChildProcess | undefined = createChildProcess();
+  let port = createRpcIpcMessagePort(childProcess);
 
   return {
-    ...port,
+    dispatchMessage: (message) => port.dispatchMessage(message),
+    addMessageListener: (listener) => {
+      messageListeners.add(listener);
+      return port.addMessageListener(listener);
+    },
+    removeMessageListener: (listener) => {
+      messageListeners.delete(listener);
+      return port.removeMessageListener(listener);
+    },
+    addErrorListener: (listener) => {
+      errorListeners.add(listener);
+      return port.addErrorListener(listener);
+    },
+    removeErrorListener: (listener) => {
+      errorListeners.delete(listener);
+      return port.removeErrorListener(listener);
+    },
+    isOpen: () => port.isOpen(),
+    open: async () => {
+      if (!port.isOpen() && autoRecreate) {
+        // recreate the process and add existing message listeners
+        childProcess = createChildProcess();
+        port = createRpcIpcMessagePort(childProcess);
+
+        messageListeners.forEach((listener) => {
+          port.addMessageListener(listener);
+        });
+        errorListeners.forEach((listener) => {
+          port.addErrorListener(listener);
+        });
+      } else {
+        return port.open();
+      }
+    },
     close: async () => {
       await port.close();
+
+      messageListeners.clear();
+      errorListeners.clear();
 
       if (childProcess) {
         childProcess.kill('SIGTERM');

@@ -2,17 +2,17 @@ import { Issue } from './issue';
 
 interface ForkTsCheckerWebpackPluginState {
   report: Promise<Issue[]>;
-  isWatching: boolean;
-  createdFiles: string[];
   changedFiles: string[];
+  removedFiles: string[];
+  isWatching: boolean;
 }
 
 function createForkTsCheckerWebpackPluginState(): ForkTsCheckerWebpackPluginState {
   return {
     report: Promise.resolve([]),
-    isWatching: false,
-    createdFiles: [],
     changedFiles: [],
+    removedFiles: [],
+    isWatching: false,
   };
 }
 

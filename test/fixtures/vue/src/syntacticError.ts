@@ -1,2 +1,0 @@
-// Syntactic error
-const array = [{} {}];

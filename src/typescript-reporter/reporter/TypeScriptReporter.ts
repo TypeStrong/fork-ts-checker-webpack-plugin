@@ -4,15 +4,28 @@ import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
 import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
 import { TypeScriptExtension } from '../extension/TypeScriptExtension';
-import { createTypeScriptReporterState, TypeScriptReporterState } from './TypeScriptReporterState';
 import { createTypeScriptVueExtension } from '../extension/vue/TypeScriptVueExtension';
 import { createTypeScriptPnpExtension } from '../extension/pnp/TypeScriptPnpExtension';
 import { createControlledWatchSolutionBuilderHost } from './ControlledWatchSolutionBuilderHost';
-import { ControlledWatchHost } from './ControlledWatchHost';
+import {
+  ControlledTypeScriptSystem,
+  createControlledTypeScriptSystem,
+} from './ControlledTypeScriptSystem';
 
 function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration): Reporter {
   const extensions: TypeScriptExtension[] = [];
-  const state: TypeScriptReporterState = createTypeScriptReporterState();
+
+  let system: ControlledTypeScriptSystem | undefined;
+  let watchCompilerHost:
+    | ts.WatchCompilerHostOfConfigFile<ts.SemanticDiagnosticsBuilderProgram>
+    | undefined;
+  let watchSolutionBuilderHost:
+    | ts.SolutionBuilderWithWatchHost<ts.SemanticDiagnosticsBuilderProgram>
+    | undefined;
+  let watchProgram: ts.WatchOfConfigFile<ts.SemanticDiagnosticsBuilderProgram> | undefined;
+  let solutionBuilder: ts.SolutionBuilder<ts.SemanticDiagnosticsBuilderProgram> | undefined;
+
+  const diagnosticsPerProject = new Map<string, ts.Diagnostic[]>();
 
   if (configuration.extensions.vue.enabled) {
     extensions.push(createTypeScriptVueExtension(configuration.extensions.vue));
@@ -22,14 +35,19 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
   }
 
   function getProjectNameOfBuilderProgram(builderProgram: ts.BuilderProgram): string {
-    // TODO: it's not a public API - ensure support on different TypeScript versions
     return (builderProgram.getProgram().getCompilerOptions().configFilePath as unknown) as string;
   }
 
   function getDiagnosticsOfBuilderProgram(builderProgram: ts.BuilderProgram) {
     const diagnostics: ts.Diagnostic[] = [];
 
-    diagnostics.push(...builderProgram.getConfigFileParsingDiagnostics());
+    if (typeof builderProgram.getConfigFileParsingDiagnostics === 'function') {
+      diagnostics.push(...builderProgram.getConfigFileParsingDiagnostics());
+    }
+    if (typeof builderProgram.getOptionsDiagnostics === 'function') {
+      diagnostics.push(...builderProgram.getOptionsDiagnostics());
+    }
+
     if (configuration.diagnosticOptions.syntactic) {
       diagnostics.push(...builderProgram.getSyntacticDiagnostics());
     }
@@ -46,34 +64,23 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     return diagnostics;
   }
 
-  async function invokeFilesChangeOnControlledHost(
-    controlledHost: ControlledWatchHost,
-    { createdFiles = [], changedFiles = [], deletedFiles = [] }: FilesChange
-  ) {
-    createdFiles.forEach((createdFile) => {
-      controlledHost.invokeFileCreated(createdFile);
-    });
-    changedFiles.forEach((changedFile) => {
-      controlledHost.invokeFileChanged(changedFile);
-    });
-    deletedFiles.forEach((removedFile) => {
-      controlledHost.invokeFileDeleted(removedFile);
-    });
-
-    // wait for watch events to be propagated
-    await new Promise((resolve) => setImmediate(resolve));
-  }
-
   return {
-    getReport: async (filesChange) => {
+    getReport: async ({ changedFiles = [], deletedFiles = [] }: FilesChange) => {
+      if (!system) {
+        system = createControlledTypeScriptSystem();
+      }
+
+      // clear cache to be ready for next iteration and to free memory
+      system.clearCache();
+
       if (configuration.build) {
         // solution builder case
         // ensure watch solution builder host exists
-        if (!state.watchSolutionBuilderHost) {
-          state.watchSolutionBuilderHost = createControlledWatchSolutionBuilderHost(
+        if (!watchSolutionBuilderHost) {
+          watchSolutionBuilderHost = createControlledWatchSolutionBuilderHost(
             configuration.tsconfig,
             configuration.compilerOptions as ts.CompilerOptions, // assume that these are valid ts.CompilerOptions
-            ts.sys,
+            system,
             ts.createSemanticDiagnosticsBuilderProgram,
             undefined,
             undefined,
@@ -84,38 +91,32 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
               const diagnostics = getDiagnosticsOfBuilderProgram(builderProgram);
 
               // update diagnostics
-              state.diagnosticsPreProject[projectName] = diagnostics;
+              diagnosticsPerProject.set(projectName, diagnostics);
             },
             extensions
           );
-          state.solutionBuilder = undefined;
+          solutionBuilder = undefined;
         }
 
         // ensure solution builder exists
-        if (!state.solutionBuilder) {
-          state.solutionBuilder = ts.createSolutionBuilderWithWatch(
-            state.watchSolutionBuilderHost,
+        if (!solutionBuilder) {
+          solutionBuilder = ts.createSolutionBuilderWithWatch(
+            watchSolutionBuilderHost,
             [configuration.tsconfig],
             {
               incremental: true,
-              verbose: true,
             }
           );
-          state.solutionBuilder.build();
+          solutionBuilder.build();
         }
-
-        // invoke files changes on the host
-        await invokeFilesChangeOnControlledHost(state.watchSolutionBuilderHost, filesChange);
-
-        // await new Promise((resolve) => setTimeout(resolve, 200));
       } else {
         // watch compiler case
         // ensure watch compiler host exists
-        if (!state.watchCompilerHost) {
-          state.watchCompilerHost = createControlledWatchCompilerHost(
+        if (!watchCompilerHost) {
+          watchCompilerHost = createControlledWatchCompilerHost(
             configuration.tsconfig,
             configuration.compilerOptions as ts.CompilerOptions, // assume that these are valid ts.CompilerOptions
-            ts.sys,
+            system,
             ts.createSemanticDiagnosticsBuilderProgram,
             undefined,
             undefined,
@@ -124,27 +125,38 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
               const diagnostics = getDiagnosticsOfBuilderProgram(builderProgram);
 
               // update diagnostics
-              state.diagnosticsPreProject[projectName] = diagnostics;
+              diagnosticsPerProject.set(projectName, diagnostics);
             },
             extensions
           );
-          state.watchProgram = undefined;
+          watchProgram = undefined;
         }
 
         // ensure watch program exists
-        if (!state.watchProgram) {
-          state.watchProgram = ts.createWatchProgram(state.watchCompilerHost);
+        if (!watchProgram) {
+          watchProgram = ts.createWatchProgram(watchCompilerHost);
         }
-
-        // invoke files changes on the host
-        await invokeFilesChangeOnControlledHost(state.watchCompilerHost, filesChange);
       }
 
+      changedFiles.forEach((changedFile) => {
+        if (system) {
+          system.invokeFileChanged(changedFile);
+        }
+      });
+      deletedFiles.forEach((removedFile) => {
+        if (system) {
+          system.invokeFileDeleted(removedFile);
+        }
+      });
+
+      // wait for all queued events to be processed
+      await system.waitForQueued();
+
       // aggregate all diagnostics and map them to issues
-      const diagnostics = Object.keys(state.diagnosticsPreProject).reduce<ts.Diagnostic[]>(
-        (allDiagnostics, project) => [...allDiagnostics, ...state.diagnosticsPreProject[project]],
-        []
-      );
+      const diagnostics: ts.Diagnostic[] = [];
+      diagnosticsPerProject.forEach((projectDiagnostics) => {
+        diagnostics.push(...projectDiagnostics);
+      });
       let issues = createIssuesFromTsDiagnostics(diagnostics);
 
       extensions.forEach((extension) => {

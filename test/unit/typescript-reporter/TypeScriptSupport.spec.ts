@@ -1,4 +1,4 @@
-import { TypeScriptReporterConfiguration } from '../../../lib/typescript-reporter/TypeScriptReporterConfiguration';
+import { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
 import os from 'os';
 
 describe('typescript-reporter/TypeScriptSupport', () => {
@@ -31,24 +31,20 @@ describe('typescript-reporter/TypeScriptSupport', () => {
     };
   });
 
-  it('throws error if typescript is not installed', () => {
+  it('throws error if typescript is not installed', async () => {
     jest.setMock('typescript', undefined);
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport(configuration)).toThrowError(
       'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.'
     );
   });
 
-  it('throws error if typescript version is lower then 2.7.0', () => {
+  it('throws error if typescript version is lower then 2.7.0', async () => {
     jest.setMock('typescript', { version: '2.6.9' });
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport(configuration)).toThrowError(
       [
@@ -58,23 +54,19 @@ describe('typescript-reporter/TypeScriptSupport', () => {
     );
   });
 
-  it("doesn't throw error if typescript version is greater or equal 2.7.0", () => {
+  it("doesn't throw error if typescript version is greater or equal 2.7.0", async () => {
     jest.setMock('typescript', { version: '2.7.0' });
-    jest.setMock('graceful-fs', { existsSync: () => true });
+    jest.setMock('fs-extra', { existsSync: () => true });
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport(configuration)).not.toThrowError();
   });
 
-  it('throws error if typescript version is lower then 3.6.0 and configuration has enabled build option', () => {
+  it('throws error if typescript version is lower then 3.6.0 and configuration has enabled build option', async () => {
     jest.setMock('typescript', { version: '3.5.9' });
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport({ ...configuration, build: true })).toThrowError(
       [
@@ -85,23 +77,20 @@ describe('typescript-reporter/TypeScriptSupport', () => {
     );
   });
 
-  it("doesn't throw error if typescript version is greater or equal 3.6.0 and configuration has enabled build option", () => {
+  it("doesn't throw error if typescript version is greater or equal 3.6.0 and configuration has enabled build option", async () => {
     jest.setMock('typescript', { version: '3.6.0' });
-    jest.setMock('graceful-fs', { existsSync: () => true });
+    jest.setMock('fs-extra', { existsSync: () => true });
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport(configuration)).not.toThrowError();
   });
 
-  it('throws error if there is no tsconfig.json file', () => {
+  it('throws error if there is no tsconfig.json file', async () => {
     jest.setMock('typescript', { version: '3.8.0' });
-    jest.setMock('graceful-fs', { existsSync: () => false });
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    jest.setMock('fs-extra', { existsSync: () => false });
+
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport(configuration)).toThrowError(
       [
@@ -114,36 +103,32 @@ describe('typescript-reporter/TypeScriptSupport', () => {
     );
   });
 
-  it('checks for pnp support if pnp extension is enabled', () => {
+  it('checks for pnp support if pnp extension is enabled', async () => {
     jest.setMock('typescript', { version: '3.8.0' });
-    jest.setMock('graceful-fs', { existsSync: () => true });
-    jest.setMock('../../../lib/typescript-reporter/extension/pnp/TypeScriptPnpExtensionSupport', {
+    jest.setMock('fs-extra', { existsSync: () => true });
+    jest.setMock('lib/typescript-reporter/extension/pnp/TypeScriptPnpExtensionSupport', {
       assertTypeScriptPnpExtensionSupport: () => {
         throw new Error('Error from PnP Extension.');
       },
     });
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     configuration.extensions.pnp.enabled = true;
 
     expect(() => assertTypeScriptSupport(configuration)).toThrowError('Error from PnP Extension.');
   });
 
-  it('checks for pnp support if vue extension is enabled', () => {
+  it('checks for pnp support if vue extension is enabled', async () => {
     jest.setMock('typescript', { version: '3.8.0' });
-    jest.setMock('graceful-fs', { existsSync: () => true });
-    jest.setMock('../../../lib/typescript-reporter/extension/vue/TypeScriptVueExtensionSupport', {
+    jest.setMock('fs-extra', { existsSync: () => true });
+    jest.setMock('lib/typescript-reporter/extension/vue/TypeScriptVueExtensionSupport', {
       assertTypeScriptVueExtensionSupport: () => {
         throw new Error('Error from Vue Extension.');
       },
     });
 
-    const {
-      assertTypeScriptSupport,
-    } = require('../../../lib/typescript-reporter/TypeScriptSupport');
+    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     configuration.extensions.vue.enabled = true;
 

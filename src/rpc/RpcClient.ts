@@ -1,6 +1,12 @@
 import { RpcProcedure, RpcProcedurePayload, RpcProcedureResult } from './RpcProcedure';
 import { RpcMessagePort } from './RpcMessagePort';
-import { createRpcCall, getRpcMessageKey, isRpcMessage } from './RpcMessage';
+import {
+  createRpcCall,
+  getRpcMessageKey,
+  isRpcReturnMessage,
+  isRpcThrowMessage,
+} from './RpcMessage';
+import { RpcRemoteError } from './error/RpcRemoteError';
 
 interface RpcClient {
   readonly isConnected: () => boolean;
@@ -25,15 +31,31 @@ function createRpcClient(port: RpcMessagePort): RpcClient {
   let isListenerRegistered = false;
 
   const returnOrThrowListener = async (message: unknown) => {
-    if (isRpcMessage(message) && (message.type === 'return' || message.type === 'throw')) {
+    if (isRpcReturnMessage(message)) {
       const key = getRpcMessageKey(message);
       const callback = callbacks.get(key);
 
       if (callback) {
-        callback[message.type](message.payload);
+        callback.return(message.payload);
         callbacks.delete(key);
       }
     }
+    if (isRpcThrowMessage(message)) {
+      const key = getRpcMessageKey(message);
+      const callback = callbacks.get(key);
+
+      if (callback) {
+        callback.throw(new RpcRemoteError(message.payload.message, message.payload.stack));
+        callbacks.delete(key);
+      }
+    }
+  };
+
+  const errorListener = async (error: Error) => {
+    callbacks.forEach((callback, key) => {
+      callback.throw(error);
+      callbacks.delete(key);
+    });
   };
 
   return {
@@ -45,12 +67,14 @@ function createRpcClient(port: RpcMessagePort): RpcClient {
 
       if (!isListenerRegistered) {
         port.addMessageListener(returnOrThrowListener);
+        port.addErrorListener(errorListener);
         isListenerRegistered = true;
       }
     },
     disconnect: async () => {
       if (isListenerRegistered) {
         port.removeMessageListener(returnOrThrowListener);
+        port.removeErrorListener(errorListener);
         isListenerRegistered = false;
       }
 

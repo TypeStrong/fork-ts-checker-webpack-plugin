@@ -2,17 +2,17 @@
 import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 
-function getDeletedFiles(
+function getChangedFiles(
   compiler: webpack.Compiler,
   state: ForkTsCheckerWebpackPluginState
 ): string[] {
-  if ((compiler as any).removedFiles) {
+  if ((compiler as any).modifiedFiles) {
     // webpack 5+
-    return Array.from((compiler as any).removedFiles || []);
+    return Array.from((compiler as any).modifiedFiles);
   } else {
     // webpack 4
-    return state.removedFiles;
+    return state.changedFiles;
   }
 }
 
-export { getDeletedFiles };
+export { getChangedFiles };

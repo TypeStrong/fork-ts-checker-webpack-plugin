@@ -26,7 +26,8 @@ module.exports = {
     {
       files: ['*.spec.ts'],
       rules: {
-        '@typescript-eslint/no-var-requires': 'off'
+        '@typescript-eslint/no-var-requires': 'off',
+        'node/no-missing-import': 'off'
       }
     }
   ]

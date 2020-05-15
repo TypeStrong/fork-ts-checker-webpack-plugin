@@ -12,6 +12,10 @@ interface RpcMessage<
   payload: TPayload;
   source?: string;
 }
+interface RpcRemoteError {
+  message: string;
+  stack?: string;
+}
 type RpcCall<TProcedure extends RpcProcedure> = RpcMessage<
   'call',
   TProcedure,
@@ -22,11 +26,7 @@ type RpcReturn<TProcedure extends RpcProcedure> = RpcMessage<
   TProcedure,
   RpcProcedureResult<TProcedure>
 >;
-type RpcThrow<TProcedure extends RpcProcedure, TError = Error> = RpcMessage<
-  'throw',
-  TProcedure,
-  TError
->;
+type RpcThrow<TProcedure extends RpcProcedure> = RpcMessage<'throw', TProcedure, RpcRemoteError>;
 
 function createRpcMessage<
   TType extends string = string,
@@ -68,8 +68,8 @@ function createRpcReturn<TProcedure extends RpcProcedure>(
 function createRpcThrow<TProcedure extends RpcProcedure, TError = Error>(
   procedure: TProcedure,
   index: number,
-  payload: TError
-): RpcThrow<TProcedure, TError> {
+  payload: RpcRemoteError
+): RpcThrow<TProcedure> {
   return createRpcMessage(procedure, index, 'throw', payload);
 }
 
@@ -78,6 +78,27 @@ function isRpcMessage<
   TProcedure extends RpcProcedure = RpcProcedure
 >(candidate: unknown): candidate is RpcMessage<TType, TProcedure> {
   return !!(typeof candidate === 'object' && candidate && (candidate as { rpc: boolean }).rpc);
+}
+
+function isRpcCallMessage<
+  TType extends string = string,
+  TProcedure extends RpcProcedure = RpcProcedure
+>(candidate: unknown): candidate is RpcCall<TProcedure> {
+  return isRpcMessage(candidate) && candidate.type === 'call';
+}
+
+function isRpcReturnMessage<
+  TType extends string = string,
+  TProcedure extends RpcProcedure = RpcProcedure
+>(candidate: unknown): candidate is RpcReturn<TProcedure> {
+  return isRpcMessage(candidate) && candidate.type === 'return';
+}
+
+function isRpcThrowMessage<
+  TType extends string = string,
+  TProcedure extends RpcProcedure = RpcProcedure
+>(candidate: unknown): candidate is RpcThrow<TProcedure> {
+  return isRpcMessage(candidate) && candidate.type === 'throw';
 }
 
 function getRpcMessageKey(message: RpcMessage) {
@@ -94,5 +115,8 @@ export {
   createRpcReturn,
   createRpcThrow,
   isRpcMessage,
+  isRpcCallMessage,
+  isRpcReturnMessage,
+  isRpcThrowMessage,
   getRpcMessageKey,
 };

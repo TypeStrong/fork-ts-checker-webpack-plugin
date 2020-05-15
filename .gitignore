@@ -5,6 +5,7 @@ npm-debug.log*
 
 lib
 !test/**/lib
+fork-ts-checker-webpack-plugin.tgz
 
 # Coverage directory used by tools like istanbul
 coverage

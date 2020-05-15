@@ -39,7 +39,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        node: [8, 10, 12]
+        node: [10, 12, 14]
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v1
@@ -61,7 +61,7 @@ jobs:
           ${{ runner.os }}-node-${{ matrix.node }}-yarn-
       
     - name: Install dependencies
-      run: yarn install --frozen-lockfile --ignore-engines
+      run: yarn install --frozen-lockfile
 
     - name: Download build artifact
       uses: actions/download-artifact@v1

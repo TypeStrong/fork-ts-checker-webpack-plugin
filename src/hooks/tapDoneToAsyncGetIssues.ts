@@ -2,7 +2,6 @@ import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { OperationCancelledError } from '../error/OperationCancelledError';
 import { createWebpackFormatter } from '../formatter/WebpackFormatter';
 import { Issue } from '../issue';
 import isPending from '../utils/async/isPending';
@@ -18,7 +17,7 @@ function tapDoneToAsyncGetIssues(
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', async (stats) => {
     const report = state.report;
-    let issues: Issue[];
+    let issues: Issue[] | undefined;
 
     try {
       if (await isPending(report)) {
@@ -31,11 +30,12 @@ function tapDoneToAsyncGetIssues(
 
       issues = await report;
     } catch (error) {
-      if (error instanceof OperationCancelledError) {
-        hooks.cancelled.call(stats.compilation);
-      } else {
-        hooks.error.call(error, stats.compilation);
-      }
+      hooks.error.call(error, stats.compilation.compiler);
+      return;
+    }
+
+    if (!issues) {
+      // some error has been thrown or it was cancelled
       return;
     }
 

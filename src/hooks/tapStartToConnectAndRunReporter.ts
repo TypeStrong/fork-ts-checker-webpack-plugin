@@ -5,6 +5,7 @@ import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 import { getDeletedFiles } from './getDeletedFiles';
 import { FilesChange, ReporterRpcClient } from '../reporter';
 import { getChangedFiles } from './getChangedFiles';
+import { OperationCancelledError } from '../error/OperationCancelledError';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
@@ -21,7 +22,13 @@ function tapStartToConnectAndRunReporter(
 
     hooks.run.call(compiler);
 
-    state.report = reporter.connect().then(() => reporter.getReport({}));
+    state.report = reporter
+      .connect()
+      .then(() => reporter.getReport({}))
+      .catch((error) => {
+        hooks.error.call(error, compiler);
+        return undefined;
+      });
   });
 
   compiler.hooks.watchRun.tap('ForkTsCheckerWebpackPlugin', async (compiler) => {
@@ -42,7 +49,18 @@ function tapStartToConnectAndRunReporter(
       ].join('\n')
     );
 
-    state.report = reporter.connect().then(() => reporter.getReport(change));
+    state.report = reporter
+      .connect()
+      .then(() => reporter.getReport(change))
+      .catch((error) => {
+        if (error instanceof OperationCancelledError) {
+          hooks.cancelled.call(compiler);
+        } else {
+          hooks.error.call(error, compiler);
+        }
+
+        return undefined;
+      });
   });
 }
 

@@ -1,4 +1,5 @@
 import webpack from 'webpack';
+import unixify from 'unixify';
 import { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
 import { TypeScriptReporterOptions } from 'lib/typescript-reporter/TypeScriptReporterOptions';
 
@@ -87,7 +88,9 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
       options as TypeScriptReporterOptions
     );
 
-    expect(configuration).toEqual(expectedConfiguration);
+    expect({ ...configuration, tsconfig: unixify(configuration.tsconfig) }).toEqual(
+      expectedConfiguration
+    );
   });
 
   it('passes vue options to the vue extension', async () => {

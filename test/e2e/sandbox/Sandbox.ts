@@ -2,7 +2,8 @@ import { join, resolve, dirname } from 'path';
 import fs from 'fs-extra';
 import os from 'os';
 import chalk from 'chalk';
-import { exec, spawn, ChildProcess } from 'child_process';
+import { exec, ChildProcess } from 'child_process';
+import spawn from 'cross-spawn';
 import { Fixture } from './Fixture';
 import stripAnsi from 'strip-ansi';
 
@@ -21,6 +22,10 @@ interface Sandbox {
   spawn: (command: string, env?: Record<string, string>) => ChildProcess;
 }
 
+function wait(timeout = 250) {
+  return new Promise((resolve) => setTimeout(resolve, timeout));
+}
+
 async function createSandbox(): Promise<Sandbox> {
   const context = await fs.mkdtemp(join(os.tmpdir(), 'fork-ts-checker-sandbox-'));
   let written: string[] = [];
@@ -37,7 +42,9 @@ async function createSandbox(): Promise<Sandbox> {
       process.stdout.write(chalk.blue('Installing dependencies...\n'));
       // use custom directory to not use cached version of the plugin
       const YARN_CACHE_FOLDER = join(sandbox.context, '.yarn');
-      await sandbox.exec('yarn install', {
+      // use --ignore-optional to speedup the installation and to omit `fsevents` as
+      // webpack 4 uses old version which sometimes behave non-deterministic
+      await sandbox.exec('yarn install --ignore-optional', {
         YARN_CACHE_FOLDER,
       });
       process.stdout.write(chalk.green('The sandbox initialized successfully.\n'));
@@ -50,13 +57,18 @@ async function createSandbox(): Promise<Sandbox> {
       for (const child of sandbox.children) {
         if (!child.killed) {
           process.stdout.write(`Killing child process ${child.pid}\n`);
-          child.kill();
+          child.kill('SIGKILL');
         }
       }
+
+      // wait for processes to be killed
+      await wait();
 
       process.stdout.write(`Resetting sandbox directory: ${context}\n`);
       await Promise.all(written.map((path) => sandbox.remove(path)));
       written = [];
+
+      process.stdout.write(`Sandbox resetted\n\n`);
     },
     cleanup: async () => {
       process.stdout.write('Cleaning up the sandbox\n');
@@ -64,14 +76,17 @@ async function createSandbox(): Promise<Sandbox> {
       for (const child of sandbox.children) {
         if (!child.killed) {
           process.stdout.write(`Killing child process ${child.pid}\n`);
-          child.kill();
+          child.kill('SIGKILL');
         }
       }
+
+      // wait for processes to be killed
+      await wait();
 
       process.stdout.write(`Removing sandbox directory: ${context}\n`);
       await fs.remove(context);
 
-      process.stdout.write('Sandbox cleaned up.\n');
+      process.stdout.write('Sandbox cleaned up.\n\n');
     },
     write: async (path: string, content: string) => {
       process.stdout.write(`Writing file ${path}...\n`);
@@ -106,14 +121,14 @@ async function createSandbox(): Promise<Sandbox> {
       process.stdout.write(`Removing file ${path}...\n`);
       const realPath = join(context, path);
 
-      // wait to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // wait for fs events to be propagated
+      await wait();
 
       return fs.remove(realPath);
     },
     patch: async (path: string, search: string, replacement: string) => {
       process.stdout.write(
-        `Patching file ${path} - replacing ${search} with "${replacement}"...\n`
+        `Patching file ${path} - replacing "${search}" with "${replacement}"...\n`
       );
       const realPath = join(context, path);
       const content = await fs.readFile(realPath, 'utf-8');
@@ -122,8 +137,8 @@ async function createSandbox(): Promise<Sandbox> {
         throw new Error(`Cannot find "${search}" in the ${path}. The file content:\n${content}.`);
       }
 
-      // wait to avoid race conditions
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // wait for fs events to be propagated
+      await wait();
 
       return fs.writeFile(realPath, content.replace(search, replacement));
     },

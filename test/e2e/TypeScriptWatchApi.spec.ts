@@ -33,13 +33,15 @@ describe('TypeScript Watch API', () => {
       async ({ async, webpack }) => {
         await sandbox.load(
           await readFixture(join(__dirname, 'fixtures/typescript-basic.fixture'), {
-            FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION,
-            TS_LOADER_VERSION: '^5.0.0',
-            TYPESCRIPT_VERSION: '~3.8.0',
-            WEBPACK_VERSION: webpack,
-            WEBPACK_CLI_VERSION,
-            WEBPACK_DEV_SERVER_VERSION,
-            ASYNC: async ? 'true' : 'false',
+            FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+              FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+            ),
+            TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+            TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
+            WEBPACK_VERSION: JSON.stringify(webpack),
+            WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+            WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+            ASYNC: JSON.stringify(async),
           })
         );
 
@@ -52,7 +54,7 @@ describe('TypeScript Watch API', () => {
         );
 
         const driver = createWebpackDevServerDriver(
-          sandbox.spawn('yarn exec webpack-dev-server'),
+          sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
           async
         );
         let errors: string[];
@@ -155,18 +157,20 @@ describe('TypeScript Watch API', () => {
     ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
       await sandbox.load(
         await readFixture(join(__dirname, 'fixtures/typescript-basic.fixture'), {
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION,
-          TS_LOADER_VERSION: tsloader,
-          TYPESCRIPT_VERSION: typescript,
-          WEBPACK_VERSION: webpack,
-          WEBPACK_CLI_VERSION,
-          WEBPACK_DEV_SERVER_VERSION,
-          ASYNC: async ? 'true' : 'false',
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+            FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+          ),
+          TS_LOADER_VERSION: JSON.stringify(tsloader),
+          TYPESCRIPT_VERSION: JSON.stringify(typescript),
+          WEBPACK_VERSION: JSON.stringify(webpack),
+          WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+          WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+          ASYNC: JSON.stringify(async),
         })
       );
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn exec webpack-dev-server'),
+        sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
         async
       );
       let errors: string[];

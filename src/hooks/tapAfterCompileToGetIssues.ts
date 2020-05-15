@@ -2,10 +2,7 @@ import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { OperationCancelledError } from '../error/OperationCancelledError';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
-import { Tap } from 'tapable';
-import { getReportProgress } from './getReportProgress';
 import { Issue } from '../issue';
 
 function tapAfterCompileToGetIssues(
@@ -15,55 +12,41 @@ function tapAfterCompileToGetIssues(
 ) {
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
 
-  compiler.hooks.afterCompile.tapPromise(
-    {
-      name: 'ForkTsCheckerWebpackPlugin',
-      context: true,
-    } as Tap,
-    async (context, compilation) => {
-      const reportProgress = getReportProgress(context);
-      let issues: Issue[] = [];
+  compiler.hooks.afterCompile.tapPromise('ForkTsCheckerWebpackPlugin', async (compilation) => {
+    let issues: Issue[] | undefined = [];
 
-      try {
-        if (reportProgress) {
-          reportProgress(0.95, 'Issues checking in progress');
-        }
-
-        issues = await state.report;
-      } catch (error) {
-        if (error instanceof OperationCancelledError) {
-          hooks.cancelled.call(compilation);
-        } else {
-          hooks.error.call(error, compilation);
-        }
-        return;
-      } finally {
-        if (reportProgress) {
-          reportProgress(0.95, 'Issues checked');
-        }
-      }
-
-      // filter list of issues by provided issue predicate
-      issues = issues.filter(configuration.issue.predicate);
-
-      // modify list of issues in the plugin hooks
-      issues = hooks.issues.call(issues, compilation);
-
-      issues.forEach((issue) => {
-        const error = new IssueWebpackError(
-          configuration.formatter(issue),
-          compiler.options.context || process.cwd(),
-          issue
-        );
-
-        if (issue.severity === 'warning') {
-          compilation.warnings.push(error);
-        } else {
-          compilation.errors.push(error);
-        }
-      });
+    try {
+      issues = await state.report;
+    } catch (error) {
+      hooks.error.call(error, compilation.compiler);
+      return;
     }
-  );
+
+    if (!issues) {
+      // some error has been thrown or it was cancelled
+      return;
+    }
+
+    // filter list of issues by provided issue predicate
+    issues = issues.filter(configuration.issue.predicate);
+
+    // modify list of issues in the plugin hooks
+    issues = hooks.issues.call(issues, compilation);
+
+    issues.forEach((issue) => {
+      const error = new IssueWebpackError(
+        configuration.formatter(issue),
+        compiler.options.context || process.cwd(),
+        issue
+      );
+
+      if (issue.severity === 'warning') {
+        compilation.warnings.push(error);
+      } else {
+        compilation.errors.push(error);
+      }
+    });
+  });
 }
 
 export { tapAfterCompileToGetIssues };

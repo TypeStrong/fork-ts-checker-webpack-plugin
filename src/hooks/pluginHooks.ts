@@ -13,8 +13,8 @@ function createForkTsCheckerWebpackPluginHooks() {
     run: new SyncHook<webpack.Compiler>(['compiler']),
     runWatch: new SyncWaterfallHook<FilesChange, webpack.Compiler>(['change', 'compiler']),
     waiting: new SyncHook<webpack.compilation.Compilation>(['compilation']),
-    cancelled: new SyncHook<webpack.compilation.Compilation>(['compilation']),
-    error: new SyncHook<Error, webpack.compilation.Compilation>(['error', 'compilation']),
+    cancelled: new SyncHook<webpack.Compiler>(['compiler']),
+    error: new SyncHook<Error, webpack.Compiler>(['error', 'compiler']),
     issues: new SyncWaterfallHook<Issue[], webpack.compilation.Compilation | undefined, void>([
       'issues',
       'compilation',

@@ -8,12 +8,12 @@
     "packages/*"
   ],
   "devDependencies": {
-    "fork-ts-checker-webpack-plugin": "${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION}",
-    "ts-loader": "${TS_LOADER_VERSION}",
-    "typescript": "${TYPESCRIPT_VERSION}",
-    "webpack": "${WEBPACK_VERSION}",
-    "webpack-cli": "${WEBPACK_CLI_VERSION}",
-    "webpack-dev-server": "${WEBPACK_DEV_SERVER_VERSION}"
+    "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
+    "ts-loader": ${TS_LOADER_VERSION},
+    "typescript": ${TYPESCRIPT_VERSION},
+    "webpack": ${WEBPACK_VERSION},
+    "webpack-cli": ${WEBPACK_CLI_VERSION},
+    "webpack-dev-server": ${WEBPACK_DEV_SERVER_VERSION}
   }
 }
 

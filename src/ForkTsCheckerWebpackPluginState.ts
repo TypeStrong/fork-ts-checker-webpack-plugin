@@ -1,7 +1,7 @@
-import { Issue } from './issue';
+import { Report } from './reporter';
 
 interface ForkTsCheckerWebpackPluginState {
-  report: Promise<Issue[]>;
+  report: Promise<Report | undefined>;
   changedFiles: string[];
   removedFiles: string[];
   isWatching: boolean;

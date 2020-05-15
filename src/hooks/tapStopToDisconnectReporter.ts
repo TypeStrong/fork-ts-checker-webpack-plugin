@@ -36,7 +36,7 @@ function tapStopToDisconnectReporter(
               'or lowering the `memoryLimit` value in the ForkTsCheckerWebpackPlugin configuration.'
           )
         );
-      } else if (error.signal === 'SIGABRT') {
+      } else {
         configuration.logger.issues.error(
           chalk.red(
             'Issues checking service aborted - probably out of memory. ' +

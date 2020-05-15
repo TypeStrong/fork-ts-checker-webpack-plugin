@@ -9,12 +9,12 @@
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "eslint": "^6.8.0",
-    "fork-ts-checker-webpack-plugin": "${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION}",
-    "ts-loader": "${TS_LOADER_VERSION}",
-    "typescript": "${TYPESCRIPT_VERSION}",
-    "webpack": "${WEBPACK_VERSION}",
-    "webpack-cli": "${WEBPACK_CLI_VERSION}",
-    "webpack-dev-server": "${WEBPACK_DEV_SERVER_VERSION}"
+    "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
+    "ts-loader": ${TS_LOADER_VERSION},
+    "typescript": ${TYPESCRIPT_VERSION},
+    "webpack": ${WEBPACK_VERSION},
+    "webpack-cli": ${WEBPACK_CLI_VERSION},
+    "webpack-dev-server": ${WEBPACK_DEV_SERVER_VERSION}
   }
 }
 /// tsconfig.json

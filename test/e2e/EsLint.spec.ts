@@ -30,18 +30,20 @@ describe('EsLint', () => {
   ])('reports lint error for %p', async ({ async, webpack }) => {
     await sandbox.load(
       await readFixture(join(__dirname, 'fixtures/eslint-basic.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION,
-        TS_LOADER_VERSION: '^5.0.0',
-        TYPESCRIPT_VERSION: '~3.8.0',
-        WEBPACK_VERSION: webpack,
-        WEBPACK_CLI_VERSION,
-        WEBPACK_DEV_SERVER_VERSION,
-        ASYNC: async ? 'true' : 'false',
+        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+        ),
+        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
+        WEBPACK_VERSION: JSON.stringify(webpack),
+        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+        ASYNC: JSON.stringify(async),
       })
     );
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn exec webpack-dev-server'),
+      sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
       async
     );
     let errors: string[];

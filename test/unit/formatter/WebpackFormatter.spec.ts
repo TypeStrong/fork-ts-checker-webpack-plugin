@@ -1,5 +1,5 @@
 import os from 'os';
-import { join } from 'path';
+import { join, sep } from 'path';
 import { Issue } from 'lib/issue';
 import { createBasicFormatter, createWebpackFormatter, Formatter } from 'lib/formatter';
 
@@ -38,7 +38,7 @@ describe('formatter/WebpackFormatter', () => {
   });
 
   it('formats issue file', () => {
-    expect(formatter(issue)).toContain('some/file.ts');
+    expect(formatter(issue)).toContain(`some${sep}file.ts`);
   });
 
   it('formats location', () => {
@@ -53,7 +53,7 @@ describe('formatter/WebpackFormatter', () => {
 
   it('formats issue header like webpack', () => {
     expect(formatter(issue)).toEqual(
-      ['ERROR in some/file.ts 1:7-16', 'TS123: Some issue content', ''].join(os.EOL)
+      [`ERROR in some${sep}file.ts 1:7-16`, 'TS123: Some issue content', ''].join(os.EOL)
     );
   });
 });

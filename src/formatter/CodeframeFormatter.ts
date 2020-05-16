@@ -6,7 +6,7 @@ import { fileExistsSync } from '../FsHelper';
 import { IssueSeverity, IssueOrigin } from '../issue';
 import { Formatter } from './Formatter';
 import { createInternalFormatter } from './InternalFormatter';
-import codeFrame from 'babel-code-frame';
+import { codeFrameColumns } from '@babel/code-frame';
 
 interface CodeFrameFormatterOptions {
   /** Syntax highlight the code as JavaScript for terminals. default: false */
@@ -45,12 +45,15 @@ function createCodeframeFormatter(
     let frame = '';
 
     if (source) {
-      frame = codeFrame(
+      frame = codeFrameColumns(
         source,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        issue.line!, // Assertion: `codeFrame` allows passing undefined, typings are incorrect
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        issue.character!,
+        {
+          start: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            line: issue.line!, // Assertion: `codeFrame` allows passing undefined, typings are incorrect
+            column: issue.character
+          }
+        },
         {
           highlightCode: true,
           ...(options || {})

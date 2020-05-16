@@ -74,7 +74,7 @@
     }
   },
   "dependencies": {
-    "babel-code-frame": "^6.22.0",
+    "@babel/code-frame": "^7.5.5",
     "chalk": "^2.4.1",
     "micromatch": "^3.1.10",
     "minimatch": "^3.0.4",
@@ -84,7 +84,7 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^7.5.0",
-    "@types/babel-code-frame": "^6.20.1",
+    "@types/babel__code-frame": "^7.0.1",
     "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.134",
     "@types/micromatch": "^3.1.0",

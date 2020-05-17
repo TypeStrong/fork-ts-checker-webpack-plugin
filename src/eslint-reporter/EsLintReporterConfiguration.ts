@@ -1,11 +1,13 @@
 import webpack from 'webpack';
 import { EsLintReporterOptions } from './EsLintReporterOptions';
+import { CLIEngineOptions } from './types/eslint';
 
 interface EsLintReporterConfiguration {
   enabled: boolean;
   memoryLimit: number;
-  options: object;
+  options: CLIEngineOptions;
   files: string[];
+  cwd: string;
 }
 
 function castToArray<T>(value: T | T[] | undefined): T[] {
@@ -27,6 +29,7 @@ function createEsLintReporterConfiguration(
     memoryLimit: 2048,
     ...(typeof options === 'object' ? options : {}),
     files: typeof options === 'object' ? castToArray(options.files) : [],
+    cwd: compiler.options.context || process.cwd(),
     options: {
       cwd: compiler.options.context || process.cwd(),
       extensions: ['.js', '.ts', '.tsx'],

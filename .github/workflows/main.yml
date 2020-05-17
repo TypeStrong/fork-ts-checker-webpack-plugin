@@ -39,8 +39,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        node: [10, 12, 14]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [10, 12] # add 14 when we drop support for webpack 4 as fsevents 1 is not compatible with node 14
+        os: [ubuntu-latest, macos-latest] # add windows-latest when e2e tests on other platforms will be stable
     steps:
     - uses: actions/checkout@v1
       

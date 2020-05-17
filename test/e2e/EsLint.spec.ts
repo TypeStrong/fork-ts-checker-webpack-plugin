@@ -76,16 +76,18 @@ describe('EsLint', () => {
     ]);
 
     // fix these issues
-    await sandbox.patch(
-      'src/authenticate.ts',
-      'async function logout(): Promise<any> {',
-      'async function logout(): Promise<unknown> {'
-    );
-    await sandbox.patch(
-      'src/index.ts',
-      "loginForm.addEventListener('submit', async event => {",
-      "loginForm.addEventListener('submit', async () => {"
-    );
+    await Promise.all([
+      sandbox.patch(
+        'src/authenticate.ts',
+        'async function logout(): Promise<any> {',
+        'async function logout(): Promise<unknown> {'
+      ),
+      sandbox.patch(
+        'src/index.ts',
+        "loginForm.addEventListener('submit', async event => {",
+        "loginForm.addEventListener('submit', async () => {"
+      ),
+    ]);
 
     // next iteration should have no errors
     await driver.waitForNoErrors();

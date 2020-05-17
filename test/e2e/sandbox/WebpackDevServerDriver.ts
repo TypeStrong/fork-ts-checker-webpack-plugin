@@ -1,7 +1,7 @@
 import { ChildProcess } from 'child_process';
 import stripAnsi from 'strip-ansi';
 import { extractWebpackErrors } from './WebpackErrorsExtractor';
-import { Listener } from './Listener';
+import { createQueuedListener, Listener, QueuedListener } from './Listener';
 
 interface WebpackDevServerDriver {
   waitForErrors: (timeout?: number) => Promise<string[]>;
@@ -9,8 +9,25 @@ interface WebpackDevServerDriver {
   close: () => Promise<boolean>;
 }
 
-interface ActivatableListener<T = void> extends Listener<T> {
+interface AsyncListener<T = void> extends Listener<T> {
   active: boolean;
+}
+interface QueuedAsyncListener<T = void> extends AsyncListener<T>, QueuedListener<T> {
+  apply(listener: AsyncListener<T>): void;
+}
+
+function createQueuedAsyncListener<T = void>(active = false): QueuedAsyncListener<T> {
+  const queuedListener = createQueuedListener<T>();
+  const asyncListener: QueuedAsyncListener<T> = {
+    ...queuedListener,
+    apply(listener) {
+      queuedListener.apply(listener);
+      asyncListener.active = listener.active;
+    },
+    active,
+  };
+
+  return asyncListener;
 }
 
 function createWebpackDevServerDriver(
@@ -18,50 +35,41 @@ function createWebpackDevServerDriver(
   async: boolean,
   defaultTimeout = 30000
 ): WebpackDevServerDriver {
-  let errorsListener: ActivatableListener<string[]> | undefined = undefined;
-  let noErrorsListener: ActivatableListener | undefined = undefined;
+  let errorsListener = createQueuedAsyncListener<string[]>();
+  let noErrorsListener = createQueuedAsyncListener<void>();
   let errors: string[] = [];
 
   function nextIteration() {
-    noErrorsListener = undefined;
-    errorsListener = undefined;
+    errorsListener = createQueuedAsyncListener<string[]>();
+    noErrorsListener = createQueuedAsyncListener<void>();
     errors = [];
   }
 
   function activateListeners() {
-    if (noErrorsListener) {
-      noErrorsListener.active = true;
-    }
-    if (errorsListener) {
-      errorsListener.active = true;
-    }
+    noErrorsListener.active = true;
+    errorsListener.active = true;
   }
 
   if (process.stdout) {
     process.stdout.on('data', (data) => {
       const content = stripAnsi(data.toString());
 
-      if (
-        async &&
-        content.includes('No issues found.') &&
-        noErrorsListener &&
-        noErrorsListener.active
-      ) {
+      if (async && content.includes('No issues found.')) {
         noErrorsListener.resolve();
       }
 
       if (content.includes('Compiled successfully.')) {
-        if (!async && noErrorsListener) {
+        if (!async) {
           noErrorsListener.resolve();
-        } else if (async) {
+        } else {
           activateListeners();
         }
       }
 
       if (content.includes('Failed to compile.') || content.includes('Compiled with warnings.')) {
-        if (!async && errorsListener) {
+        if (!async) {
           errorsListener.resolve(errors);
-        } else if (async) {
+        } else {
           activateListeners();
         }
       }
@@ -74,7 +82,7 @@ function createWebpackDevServerDriver(
       const extracted = extractWebpackErrors(content);
       errors.push(...extracted);
 
-      if (async && errors.length && errorsListener && errorsListener.active) {
+      if (async && errors.length && errorsListener.active) {
         errorsListener.resolve(errors);
       }
     });
@@ -88,7 +96,7 @@ function createWebpackDevServerDriver(
           nextIteration();
         }, timeout);
 
-        errorsListener = {
+        errorsListener.apply({
           resolve: (results) => {
             clearTimeout(timeoutId);
             nextIteration();
@@ -100,7 +108,7 @@ function createWebpackDevServerDriver(
             reject(error);
           },
           active: !async, // for async, we need to activate listener manually
-        };
+        });
       }),
     waitForNoErrors: (timeout = defaultTimeout) =>
       new Promise<void>((resolve, reject) => {
@@ -109,7 +117,7 @@ function createWebpackDevServerDriver(
           nextIteration();
         }, timeout);
 
-        noErrorsListener = {
+        noErrorsListener.apply({
           resolve: () => {
             clearTimeout(timeoutId);
             nextIteration();
@@ -121,7 +129,7 @@ function createWebpackDevServerDriver(
             reject(error);
           },
           active: !async, // for async, we need to activate listener manually
-        };
+        });
       }),
     close: async () => process.kill(),
   };

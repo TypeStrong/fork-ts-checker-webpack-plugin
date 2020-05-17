@@ -1,5 +1,5 @@
 import { ChildProcess } from 'child_process';
-import { Listener } from './Listener';
+import { createQueuedListener, Listener, QueuedListener } from './Listener';
 import stripAnsi from 'strip-ansi';
 
 interface GenericProcessDriver {
@@ -9,33 +9,59 @@ interface GenericProcessDriver {
 }
 
 interface StringListener extends Listener {
-  string: string;
+  ingest(input: string): void;
+  string?: string;
+}
+
+interface QueuedStringListener extends StringListener, QueuedListener {
+  apply(listener: Omit<StringListener, 'ingest'>): void;
+}
+
+function createQueuedStringListener(): QueuedStringListener {
+  let buffer = '';
+
+  const queuedListener = createQueuedListener();
+  const stringListener: QueuedStringListener = {
+    ...queuedListener,
+    apply(listener) {
+      queuedListener.apply(listener);
+      stringListener.string = listener.string;
+
+      if (buffer.includes(stringListener.string)) {
+        stringListener.resolve();
+      }
+    },
+    ingest(input) {
+      if (stringListener.string === undefined) {
+        buffer += input;
+      } else if (input.includes(stringListener.string)) {
+        stringListener.resolve();
+      }
+    },
+    string: undefined,
+  };
+
+  return stringListener;
 }
 
 function createGenericProcessDriver(
   process: ChildProcess,
   defaultTimeout = 30000
 ): GenericProcessDriver {
-  let stdoutListener: StringListener | undefined = undefined;
-  let stderrListener: StringListener | undefined = undefined;
+  let stdoutListener = createQueuedStringListener();
+  let stderrListener = createQueuedStringListener();
 
   if (process.stdout) {
     process.stdout.on('data', (data) => {
       const content = stripAnsi(data.toString());
-
-      if (stdoutListener && content.includes(stdoutListener.string)) {
-        stdoutListener.resolve();
-      }
+      stdoutListener.ingest(content);
     });
   }
 
   if (process.stderr) {
     process.stderr.on('data', (data) => {
       const content = stripAnsi(data.toString());
-
-      if (stderrListener && content.includes(stderrListener.string)) {
-        stderrListener.resolve();
-      }
+      stderrListener.ingest(content);
     });
   }
 
@@ -46,19 +72,19 @@ function createGenericProcessDriver(
           reject(new Error(`Exceeded time on waiting for "${string}" to appear in the stdout.`));
         }, timeout);
 
-        stdoutListener = {
+        stdoutListener.apply({
           resolve: () => {
             clearTimeout(timeoutId);
-            stdoutListener = undefined;
+            stdoutListener = createQueuedStringListener();
             resolve();
           },
           reject: (error) => {
             clearTimeout(timeoutId);
-            stdoutListener = undefined;
+            stdoutListener = createQueuedStringListener();
             reject(error);
           },
           string,
-        };
+        });
       }),
     waitForStderrIncludes: (string, timeout = defaultTimeout) =>
       new Promise<void>((resolve, reject) => {
@@ -66,19 +92,19 @@ function createGenericProcessDriver(
           reject(new Error(`Exceeded time on waiting for "${string}" to appear in the stderr.`));
         }, timeout);
 
-        stderrListener = {
+        stderrListener.apply({
           resolve: () => {
             clearTimeout(timeoutId);
-            stderrListener = undefined;
+            stderrListener = createQueuedStringListener();
             resolve();
           },
           reject: (error) => {
             clearTimeout(timeoutId);
-            stderrListener = undefined;
+            stderrListener = createQueuedStringListener();
             reject(error);
           },
           string,
-        };
+        });
       }),
     close: async () => process.kill(),
   };

@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "scripts": {
+    "postinstall": "lerna bootstrap"
+  },
   "devDependencies": {
+    "lerna": "^3.0.0",
     "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
     "ts-loader": ${TS_LOADER_VERSION},
     "typescript": ${TYPESCRIPT_VERSION},
@@ -15,6 +16,13 @@
     "webpack-cli": ${WEBPACK_CLI_VERSION},
     "webpack-dev-server": ${WEBPACK_DEV_SERVER_VERSION}
   }
+}
+
+/// lerna.json
+{
+  "version": "1.0.0",
+  "npmClient": "npm",
+  "packages": ["packages/*"]
 }
 
 /// tsconfig.json

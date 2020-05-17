@@ -36,19 +36,31 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
     dispatchMessage: async (message) =>
       new Promise((resolve, reject) => {
         if (!process.connected) {
-          reject(closedError || new Error(`Process ${process.pid} doesn't have open IPC channels`));
+          reject(
+            closedError ||
+              new RpcIpcMessagePortClosedError(
+                `Process ${process.pid} doesn't have open IPC channels`
+              )
+          );
         }
 
         if (process.send) {
           process.send({ ...message, source: process.pid }, undefined, undefined, (sendError) => {
             if (sendError) {
-              reject(closedError || sendError);
+              if (!closedError) {
+                closedError = new RpcIpcMessagePortClosedError(
+                  `Cannot send the message - the message port has been closed for the process ${process.pid}.`
+                );
+              }
+              reject(closedError);
             } else {
               resolve();
             }
           });
         } else {
-          reject(new Error(`Process ${process.pid} doesn't have IPC channels`));
+          reject(
+            new RpcIpcMessagePortClosedError(`Process ${process.pid} doesn't have IPC channels`)
+          );
         }
       }),
     addMessageListener: (listener) => {
@@ -67,7 +79,10 @@ function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
     open: async () => {
       if (!process.connected || closedError) {
         throw (
-          closedError || new Error(`Cannot open closed IPC channel for process ${process.pid}.`)
+          closedError ||
+          new RpcIpcMessagePortClosedError(
+            `Cannot open closed IPC channel for process ${process.pid}.`
+          )
         );
       }
     },

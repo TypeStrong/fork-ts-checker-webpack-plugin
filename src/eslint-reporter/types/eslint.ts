@@ -28,4 +28,12 @@ export interface CLIEngine {
   version: string;
   executeOnFiles(filesPatterns: string[]): LintReport;
   resolveFileGlobPatterns(filesPatterns: string[]): string[];
+  isPathIgnored(filePath: string): boolean;
+}
+
+export interface CLIEngineOptions {
+  cwd?: string;
+  extensions?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }

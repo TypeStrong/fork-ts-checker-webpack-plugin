@@ -35,7 +35,7 @@ function tapStartToConnectAndRunReporter(
     state.isWatching = true;
 
     let change: FilesChange = {
-      changedFiles: getChangedFiles(compiler, state),
+      changedFiles: getChangedFiles(compiler),
       deletedFiles: getDeletedFiles(compiler, state),
     };
 

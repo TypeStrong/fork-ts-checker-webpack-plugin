@@ -1,7 +1,9 @@
 import webpack from 'webpack';
 import { EventEmitter } from 'events';
 
-type Watcher = EventEmitter;
+interface Watcher extends EventEmitter {
+  mtimes: Record<string, number>;
+}
 
 function getWatcher(compiler: webpack.Compiler): Watcher | undefined {
   // webpack 4

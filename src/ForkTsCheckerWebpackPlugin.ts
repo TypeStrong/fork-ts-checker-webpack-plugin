@@ -14,7 +14,7 @@ import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRun
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
 import { tapAfterCompileToGetIssues } from './hooks/tapAfterCompileToGetIssues';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
-import { tapDoneToCollectChangedAndRemoved } from './hooks/tapDoneToCollectChangedAndRemoved';
+import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
   constructor(private readonly options: ForkTsCheckerWebpackPluginOptions = {}) {
@@ -44,7 +44,7 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
       const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
 
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
-      tapDoneToCollectChangedAndRemoved(compiler, configuration, state);
+      tapDoneToCollectRemoved(compiler, configuration, state);
       tapStopToDisconnectReporter(compiler, reporter, configuration, state);
       if (configuration.async) {
         tapDoneToAsyncGetIssues(compiler, configuration, state);

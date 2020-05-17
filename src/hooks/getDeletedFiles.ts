@@ -11,7 +11,7 @@ function getDeletedFiles(
     return Array.from((compiler as any).removedFiles || []);
   } else {
     // webpack 4
-    return state.removedFiles;
+    return [...state.removedFiles];
   }
 }
 

@@ -1,23 +1,23 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CLIEngine, LintReport, LintResult } from '../types/eslint';
 import { createIssuesFromEsLintResults } from '../issue/EsLintIssueFactory';
 import { EsLintReporterConfiguration } from '../EsLintReporterConfiguration';
 import { Reporter } from '../../reporter';
+import minimatch from 'minimatch';
+import { join } from 'path';
 
 function createEsLintReporter(configuration: EsLintReporterConfiguration): Reporter {
-  let engine: CLIEngine;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { CLIEngine } = require('eslint');
+  const engine: CLIEngine = new CLIEngine(configuration.options);
+
   let isInitialRun = true;
   const lintResults = new Map<string, LintResult>();
+  const includedFilesPatterns = engine.resolveFileGlobPatterns(configuration.files);
 
   return {
     getReport: async ({ changedFiles = [], deletedFiles = [] }) => {
-      if (!engine) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { CLIEngine } = require('eslint');
-
-        engine = new CLIEngine(configuration.options);
-        isInitialRun = true;
-      }
-
+      // cleanup old results
       changedFiles.forEach((changedFile) => {
         lintResults.delete(changedFile);
       });
@@ -27,18 +27,23 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
 
       // get reports
       const lintReports: LintReport[] = [];
+
       if (isInitialRun) {
-        lintReports.push(
-          engine.executeOnFiles(engine.resolveFileGlobPatterns(configuration.files))
-        );
+        lintReports.push(engine.executeOnFiles(includedFilesPatterns));
         isInitialRun = false;
       } else {
-        if (changedFiles.length) {
-          lintReports.push(engine.executeOnFiles(changedFiles));
+        const changedAndIncludedFiles = changedFiles.filter((changedFile) =>
+          includedFilesPatterns.some((includedFilesPattern) =>
+            minimatch(changedFile, join(configuration.cwd, includedFilesPattern))
+          )
+        );
+
+        if (changedAndIncludedFiles.length) {
+          lintReports.push(engine.executeOnFiles(changedAndIncludedFiles));
         }
       }
 
-      // store results in the state
+      // store results
       lintReports.forEach((lintReport) => {
         lintReport.results.forEach((lintResult) => {
           lintResults.set(lintResult.filePath, lintResult);

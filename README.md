@@ -147,7 +147,7 @@ new ForkTsCheckerWebpackPlugin({
   (see `src/issue/` and `src/formatter/` for API reference).
 
 - **formatterOptions** `object`:
-  Options passed to formatters (currently only `codeframe` - see [available options](https://www.npmjs.com/package/babel-code-frame#options))
+  Options passed to formatters (currently only `codeframe` - see [available options](https://babeljs.io/docs/en/next/babel-code-frame.html#options))
 
 - **silent** `boolean`:
   If `true`, logger will not be used. Default: `false`.

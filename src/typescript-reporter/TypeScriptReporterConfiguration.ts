@@ -11,6 +11,7 @@ import {
   createTypeScriptPnpExtensionConfiguration,
   TypeScriptPnpExtensionConfiguration,
 } from './extension/pnp/TypeScriptPnpExtensionConfiguration';
+import normalizeSlash from '../utils/path/normalizeSlash';
 
 interface TypeScriptReporterConfiguration {
   enabled: boolean;
@@ -53,10 +54,12 @@ function createTypeScriptReporterConfiguration(
     },
   };
 
-  // ensure that `typescript.tsconfig` is an absolute path
-  configuration.tsconfig = path.isAbsolute(configuration.tsconfig)
-    ? configuration.tsconfig
-    : path.resolve(compiler.options.context || process.cwd(), configuration.tsconfig);
+  // ensure that `typescript.tsconfig` is an absolute path with normalized slash
+  configuration.tsconfig = normalizeSlash(
+    path.isAbsolute(configuration.tsconfig)
+      ? configuration.tsconfig
+      : path.resolve(compiler.options.context || process.cwd(), configuration.tsconfig)
+  );
 
   return configuration;
 }

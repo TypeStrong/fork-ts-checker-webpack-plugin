@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
-import { posix } from 'path';
+import { dirname } from 'path';
 import { createPassiveFileSystem } from './PassiveFileSystem';
+import normalizeSlash from '../../utils/path/normalizeSlash';
 
 interface ControlledTypeScriptSystem extends ts.System {
   // control watcher
@@ -49,48 +50,56 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
     path: string,
     callback: TCallback
   ) {
-    const watchers = watchersMap.get(path) || [];
+    const normalizedPath = fileSystem.normalizePath(path);
+
+    const watchers = watchersMap.get(normalizedPath) || [];
     const nextWatchers = [...watchers, callback];
-    watchersMap.set(path, nextWatchers);
+    watchersMap.set(normalizedPath, nextWatchers);
 
     return {
       close: () => {
-        const watchers = watchersMap.get(path) || [];
+        const watchers = watchersMap.get(normalizedPath) || [];
         const nextWatchers = watchers.filter((watcher) => watcher !== callback);
 
         if (nextWatchers.length > 0) {
-          watchersMap.set(path, nextWatchers);
+          watchersMap.set(normalizedPath, nextWatchers);
         } else {
-          watchersMap.delete(path);
+          watchersMap.delete(normalizedPath);
         }
       },
     };
   }
 
   const invokeFileWatchers = (path: string, event: ts.FileWatcherEventKind) => {
-    const fileWatchers = fileWatchersMap.get(path);
+    const normalizedPath = fileSystem.normalizePath(path);
+
+    const fileWatchers = fileWatchersMap.get(normalizedPath);
     if (fileWatchers) {
-      fileWatchers.forEach((fileWatcher) => fileWatcher(path, event));
+      // typescript expects normalized paths with posix forward slash
+      fileWatchers.forEach((fileWatcher) => fileWatcher(normalizeSlash(normalizedPath), event));
     }
   };
 
   const invokeDirectoryWatchers = (path: string) => {
-    let directory = posix.dirname(path);
+    const normalizedPath = fileSystem.normalizePath(path);
+    let directory = dirname(normalizedPath);
 
     const directoryWatchers = directoryWatchersMap.get(directory);
     if (directoryWatchers) {
-      directoryWatchers.forEach((directoryWatcher) => directoryWatcher(path));
+      directoryWatchers.forEach((directoryWatcher) =>
+        directoryWatcher(normalizeSlash(normalizedPath))
+      );
     }
 
-    while (directory !== posix.dirname(directory)) {
+    while (directory !== dirname(directory)) {
       const recursiveDirectoryWatchers = recursiveDirectoryWatchersMap.get(directory);
       if (recursiveDirectoryWatchers) {
         recursiveDirectoryWatchers.forEach((recursiveDirectoryWatcher) =>
-          recursiveDirectoryWatcher(path)
+          recursiveDirectoryWatcher(normalizeSlash(normalizedPath))
         );
       }
 
-      directory = posix.dirname(directory);
+      directory = dirname(directory);
     }
   };
 
@@ -128,7 +137,7 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
     createDirectory(path: string): void {
       fileSystem.createDir(path);
 
-      invokeDirectoryWatchers(fileSystem.normalizePath(path));
+      invokeDirectoryWatchers(path);
     },
     getDirectories(path: string): string[] {
       const dirents = fileSystem.readDir(path);
@@ -145,11 +154,11 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
     setModifiedTime(path: string, date: Date): void {
       fileSystem.updateTimes(path, date, date);
 
-      invokeDirectoryWatchers(fileSystem.normalizePath(path));
-      invokeFileWatchers(fileSystem.normalizePath(path), ts.FileWatcherEventKind.Changed);
+      invokeDirectoryWatchers(path);
+      invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
     },
     watchFile(path: string, callback: ts.FileWatcherCallback): ts.FileWatcher {
-      return createWatcher(fileWatchersMap, fileSystem.normalizePath(path), callback);
+      return createWatcher(fileWatchersMap, path, callback);
     },
     watchDirectory(
       path: string,
@@ -158,7 +167,7 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
     ): ts.FileWatcher {
       return createWatcher(
         recursive ? recursiveDirectoryWatchersMap : directoryWatchersMap,
-        fileSystem.normalizePath(path),
+        path,
         callback
       );
     },
@@ -187,18 +196,18 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
       invokeDirectoryWatchers(normalizedPath);
 
       if (deletedFiles.get(normalizedPath)) {
-        invokeFileWatchers(normalizedPath, ts.FileWatcherEventKind.Created);
+        invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
         deletedFiles.set(normalizedPath, false);
       } else {
-        invokeFileWatchers(normalizedPath, ts.FileWatcherEventKind.Changed);
+        invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
       }
     },
     invokeFileDeleted(path: string) {
       const normalizedPath = fileSystem.normalizePath(path);
 
       if (!deletedFiles.get(normalizedPath)) {
-        invokeDirectoryWatchers(normalizedPath);
-        invokeFileWatchers(normalizedPath, ts.FileWatcherEventKind.Deleted);
+        invokeDirectoryWatchers(path);
+        invokeFileWatchers(path, ts.FileWatcherEventKind.Deleted);
 
         deletedFiles.set(normalizedPath, true);
       }

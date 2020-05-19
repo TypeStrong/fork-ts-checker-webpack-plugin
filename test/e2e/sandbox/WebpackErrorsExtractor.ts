@@ -3,7 +3,7 @@ function isLineRelatedToTsLoader(line: string) {
 }
 
 function extractWebpackErrors(content: string): string[] {
-  const lines = content.split('\n');
+  const lines = content.split(/\r\n?|\n/);
   const errors: string[] = [];
   let currentError: string | undefined = undefined;
 

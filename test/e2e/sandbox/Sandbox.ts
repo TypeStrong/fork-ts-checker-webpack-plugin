@@ -5,6 +5,7 @@ import { exec, ChildProcess } from 'child_process';
 import spawn from 'cross-spawn';
 import { Fixture } from './Fixture';
 import stripAnsi from 'strip-ansi';
+import kill from 'tree-kill';
 
 interface Sandbox {
   context: string;
@@ -68,13 +69,29 @@ async function createSandbox(): Promise<Sandbox> {
   async function killChildProcesses() {
     for (const childProcess of childProcesses) {
       if (!childProcess.killed) {
-        process.stdout.write(`Killing child process ${childProcess.pid}\n`);
-        childProcess.kill('SIGKILL');
+        process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
+        await retry(
+          () =>
+            new Promise((resolve, reject) =>
+              kill(childProcess.pid, 'SIGKILL', (error) => {
+                if (error) {
+                  reject(error);
+                } else {
+                  resolve();
+                }
+              })
+            )
+        );
+        process.stdout.write(`Child process ${childProcess.pid} killed.\n`);
       }
     }
     childProcesses = [];
 
     await wait();
+  }
+
+  function normalizeEol(content: string): string {
+    return content.split(/\r\n?|\n/).join('\n');
   }
 
   process.stdout.write(`Sandbox directory: ${context}\n`);
@@ -136,13 +153,13 @@ async function createSandbox(): Promise<Sandbox> {
       // wait to avoid race conditions
       await wait();
 
-      return retry(() => fs.writeFile(realPath, content));
+      return retry(() => fs.writeFile(realPath, normalizeEol(content)));
     },
     read: (path: string) => {
       process.stdout.write(`Reading file ${path}...\n`);
       const realPath = join(context, path);
 
-      return retry(() => fs.readFile(realPath, 'utf-8'));
+      return retry(() => fs.readFile(realPath, 'utf-8').then(normalizeEol));
     },
     exists: (path: string) => {
       const realPath = join(context, path);
@@ -163,7 +180,7 @@ async function createSandbox(): Promise<Sandbox> {
         `Patching file ${path} - replacing "${search}" with "${replacement}"...\n`
       );
       const realPath = join(context, path);
-      const content = await retry(() => fs.readFile(realPath, 'utf-8'));
+      const content = await retry(() => fs.readFile(realPath, 'utf-8').then(normalizeEol));
 
       if (!content.includes(search)) {
         throw new Error(`Cannot find "${search}" in the ${path}. The file content:\n${content}.`);

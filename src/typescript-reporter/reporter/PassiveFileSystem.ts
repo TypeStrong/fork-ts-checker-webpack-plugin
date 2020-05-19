@@ -1,4 +1,4 @@
-import { posix } from 'path';
+import { dirname, basename, join, normalize } from 'path';
 import fs, { Stats, Dirent } from 'fs-extra';
 import { fs as mem } from 'memfs';
 
@@ -22,8 +22,6 @@ interface PassiveFileSystem {
 }
 
 function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
-  const { dirname, basename, join, normalize } = posix;
-
   // read cache
   const fsExistsCache = new Map<string, boolean>();
   const fsReadStatsCache = new Map<string, Stats>();
@@ -37,11 +35,13 @@ function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
 
   // read methods
   function fsExists(path: string): boolean {
-    if (!fsExistsCache.has(path)) {
-      fsExistsCache.set(path, fs.existsSync(path));
+    const normalizedPath = normalizePath(path);
+
+    if (!fsExistsCache.has(normalizedPath)) {
+      fsExistsCache.set(normalizedPath, fs.existsSync(normalizedPath));
     }
 
-    return !!fsExistsCache.get(path);
+    return !!fsExistsCache.get(normalizedPath);
   }
 
   function memExists(path: string): boolean {
@@ -49,13 +49,15 @@ function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
   }
 
   function fsReadStats(path: string): Stats | undefined {
-    if (!fsReadStatsCache.has(path)) {
-      if (fsExists(path)) {
-        fsReadStatsCache.set(path, fs.statSync(path));
+    const normalizedPath = normalizePath(path);
+
+    if (!fsReadStatsCache.has(normalizedPath)) {
+      if (fsExists(normalizedPath)) {
+        fsReadStatsCache.set(normalizedPath, fs.statSync(normalizedPath));
       }
     }
 
-    return fsReadStatsCache.get(path);
+    return fsReadStatsCache.get(normalizedPath);
   }
 
   function memReadStats(path: string): Stats | undefined {
@@ -63,15 +65,20 @@ function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
   }
 
   function fsReadFile(path: string, encoding?: string): string | undefined {
-    if (!fsReadFileCache.has(path)) {
-      if (fsExists(path)) {
-        fsReadFileCache.set(path, fs.readFileSync(path, { encoding }).toString());
+    const normalizedPath = normalizePath(path);
+
+    if (!fsReadFileCache.has(normalizedPath)) {
+      if (fsExists(normalizedPath)) {
+        fsReadFileCache.set(
+          normalizedPath,
+          fs.readFileSync(normalizedPath, { encoding }).toString()
+        );
       } else {
-        fsReadFileCache.set(path, undefined);
+        fsReadFileCache.set(normalizedPath, undefined);
       }
     }
 
-    return fsReadFileCache.get(path);
+    return fsReadFileCache.get(normalizedPath);
   }
 
   function memReadFile(path: string, encoding?: string): string | undefined {
@@ -83,15 +90,17 @@ function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
   }
 
   function fsReadDir(path: string): Dirent[] {
-    if (!fsReadDirCache.has(path)) {
-      if (fsExists(path)) {
-        fsReadDirCache.set(path, fs.readdirSync(path, { withFileTypes: true }));
+    const normalizedPath = normalizePath(path);
+
+    if (!fsReadDirCache.has(normalizedPath)) {
+      if (fsExists(normalizedPath)) {
+        fsReadDirCache.set(normalizedPath, fs.readdirSync(normalizedPath, { withFileTypes: true }));
       } else {
-        fsReadDirCache.set(path, []);
+        fsReadDirCache.set(normalizedPath, []);
       }
     }
 
-    return fsReadDirCache.get(path) || [];
+    return fsReadDirCache.get(normalizedPath) || [];
   }
 
   function memReadDir(path: string): Dirent[] {
@@ -145,13 +154,15 @@ function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
   }
 
   function getRealPath(path: string) {
-    if (!fsRealPathCache.has(path)) {
-      let base = path;
+    const normalizedPath = normalizePath(path);
+
+    if (!fsRealPathCache.has(normalizedPath)) {
+      let base = normalizedPath;
       let nested = '';
 
       while (base !== dirname(base)) {
         if (fsExists(base)) {
-          fsRealPathCache.set(path, join(fs.realpathSync(base), nested));
+          fsRealPathCache.set(normalizedPath, normalizePath(join(fs.realpathSync(base), nested)));
           break;
         }
 
@@ -160,7 +171,7 @@ function createPassiveFileSystem(caseSensitive = false): PassiveFileSystem {
       }
     }
 
-    return fsRealPathCache.get(path) || path;
+    return fsRealPathCache.get(normalizedPath) || normalizedPath;
   }
 
   function createDir(path: string) {

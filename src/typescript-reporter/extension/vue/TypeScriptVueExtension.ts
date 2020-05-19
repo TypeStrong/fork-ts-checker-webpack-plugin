@@ -2,15 +2,15 @@ import {
   createTypeScriptEmbeddedExtension,
   TypeScriptEmbeddedSource,
 } from '../TypeScriptEmbeddedExtension';
-import * as vueCompiler from 'vue-template-compiler';
 import fs from 'fs-extra';
 import { TypeScriptExtension } from '../TypeScriptExtension';
 import { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
+import { VueTemplateCompiler } from './types/vue-template-compiler';
 
 function createTypeScriptVueExtension(
   configuration: TypeScriptVueExtensionConfiguration
 ): TypeScriptExtension {
-  function loadVueCompiler(): typeof vueCompiler {
+  function loadVueCompiler(): VueTemplateCompiler {
     return require(configuration.compiler);
   }
 

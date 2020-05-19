@@ -1,6 +1,7 @@
 import { relative } from 'path';
 import { Issue } from './Issue';
 import { formatIssueLocation } from './IssueLocation';
+import normalizeSlash from '../utils/path/normalizeSlash';
 
 class IssueWebpackError extends Error {
   readonly hideStack = true;
@@ -13,7 +14,7 @@ class IssueWebpackError extends Error {
     // should be a NormalModule instance.
     // to avoid such a dependency, we do a workaround - error.file will contain formatted location instead
     if (issue.file) {
-      const parts = [relative(context, issue.file)];
+      const parts = [normalizeSlash(relative(context, issue.file))];
       if (issue.location) {
         parts.push(formatIssueLocation(issue.location));
       }

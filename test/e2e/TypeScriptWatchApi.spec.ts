@@ -189,7 +189,8 @@ describe('TypeScript Watch API', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          "ERROR in src/model/User.ts 11:16-25\nTS2339: Property 'firstName' does not exist on type 'User'.",
+          'ERROR in src/model/User.ts 11:16-25',
+          "TS2339: Property 'firstName' does not exist on type 'User'.",
           '     9 | ',
           '    10 | function getUserName(user: User): string {',
           '  > 11 |   return [user.firstName, user.lastName]',

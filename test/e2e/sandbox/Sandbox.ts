@@ -9,7 +9,7 @@ import kill from 'tree-kill';
 
 interface Sandbox {
   context: string;
-  load: (fixture: Fixture) => Promise<void>;
+  load: (fixture: Fixture, installer?: (sandbox: Sandbox) => Promise<unknown>) => Promise<void>;
   reset: () => Promise<void>;
   cleanup: () => Promise<void>;
   write: (path: string, content: string) => Promise<void>;
@@ -52,6 +52,24 @@ async function retry<T>(effect: () => Promise<T>, retries = 3, delay = 250): Pro
 // create cache directory to speed-up the testing
 const CACHE_DIR = fs.mkdtempSync(join(os.tmpdir(), 'fork-ts-checker-cache-'));
 const NPM_CACHE_DIR = join(CACHE_DIR, 'npm');
+const YARN_CACHE_DIR = join(CACHE_DIR, 'yarn');
+
+async function npmInstaller(sandbox: Sandbox) {
+  await retry(() =>
+    sandbox.exec('npm install', {
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      npm_config_cache: NPM_CACHE_DIR,
+    })
+  );
+}
+
+async function yarnInstaller(sandbox: Sandbox) {
+  await retry(() =>
+    sandbox.exec('yarn install', {
+      YARN_CACHE_FOLDER: YARN_CACHE_DIR,
+    })
+  );
+}
 
 async function createSandbox(): Promise<Sandbox> {
   const context = await fs.mkdtemp(join(os.tmpdir(), 'fork-ts-checker-sandbox-'));
@@ -98,19 +116,13 @@ async function createSandbox(): Promise<Sandbox> {
 
   const sandbox: Sandbox = {
     context,
-    load: async (fixture) => {
+    load: async (fixture, installer = npmInstaller) => {
       // write files
       await Promise.all(Object.keys(fixture).map((path) => sandbox.write(path, fixture[path])));
       process.stdout.write('Fixture initialized.\n');
 
       process.stdout.write('Installing dependencies...\n');
-
-      await retry(() =>
-        sandbox.exec('npm install', {
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          npm_config_cache: NPM_CACHE_DIR,
-        })
-      );
+      await installer(sandbox);
       process.stdout.write('The sandbox initialized successfully.\n');
 
       createdFiles = [];
@@ -260,4 +272,12 @@ if (!fs.pathExistsSync(FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION)) {
   );
 }
 
-export { Sandbox, createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION };
+export {
+  Sandbox,
+  createSandbox,
+  npmInstaller,
+  yarnInstaller,
+  NPM_CACHE_DIR,
+  YARN_CACHE_DIR,
+  FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION,
+};

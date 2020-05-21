@@ -6,11 +6,7 @@ type FormatterConfiguration = Formatter;
 
 function createFormatterConfiguration(options: FormatterOptions | undefined) {
   return createFormatter(
-    options
-      ? typeof options === 'string' || typeof options === 'function'
-        ? options
-        : options.type || 'codeframe'
-      : 'codeframe',
+    options ? (typeof options === 'string' ? options : options.type || 'codeframe') : 'codeframe',
     options && typeof options === 'object' ? options.options || {} : {}
   );
 }

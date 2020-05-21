@@ -81,17 +81,10 @@ describe('formatter/FormatterFactory', () => {
     );
   });
 
-  it('forwards already created formatter', () => {
-    const formatter = createFormatter((issue) => issue.message);
-    const formattedMessage = formatter(issue);
-
-    expect(formattedMessage).toEqual('Some issue content');
-  });
-
   it('throws an error on unknown formatter type', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => createFormatter('unknown-type' as any)).toThrowError(
-      `Unknown "unknown-type" formatter. Available types are: basic, codeframe, Function.`
+      `Unknown "unknown-type" formatter. Available types are: basic, codeframe.`
     );
   });
 });

@@ -30,12 +30,12 @@ function tapDoneToAsyncGetIssues(
 
       issues = await report;
     } catch (error) {
-      hooks.error.call(error, stats.compilation.compiler);
+      hooks.error.call(error, stats.compilation);
       return;
     }
 
     if (!issues) {
-      // some error has been thrown or it was cancelled
+      // some error has been thrown or it was canceled
       return;
     }
 

@@ -1,7 +1,6 @@
 import { ComplexFormatterOptions, FormatterType } from './FormatterFactory';
 
-type ComplexFormatterType = Exclude<FormatterType, Function>;
-type ComplexFormatterPreferences<T extends ComplexFormatterType = ComplexFormatterType> = {
+type ComplexFormatterPreferences<T extends FormatterType = FormatterType> = {
   type: T;
   options?: ComplexFormatterOptions<T>;
 };

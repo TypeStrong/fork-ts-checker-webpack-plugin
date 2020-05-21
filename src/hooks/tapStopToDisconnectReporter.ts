@@ -17,7 +17,7 @@ function tapStopToDisconnectReporter(
   });
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', async () => {
-    if (!state.isWatching) {
+    if (!state.watching) {
       await reporter.disconnect();
     }
   });

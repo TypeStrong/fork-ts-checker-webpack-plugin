@@ -5,7 +5,9 @@ import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 import { getDeletedFiles } from './getDeletedFiles';
 import { FilesChange, ReporterRpcClient } from '../reporter';
 import { getChangedFiles } from './getChangedFiles';
-import { OperationCancelledError } from '../error/OperationCancelledError';
+import { OperationCanceledError } from '../error/OperationCanceledError';
+import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
+import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
@@ -16,47 +18,57 @@ function tapStartToConnectAndRunReporter(
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
 
   compiler.hooks.run.tap('ForkTsCheckerWebpackPlugin', (compiler) => {
-    state.isWatching = false;
+    if (!state.initialized) {
+      state.initialized = true;
 
-    configuration.logger.infrastructure.info('Calling reporter service for single check.');
-
-    hooks.run.call(compiler);
-
-    state.report = reporter
-      .connect()
-      .then(() => reporter.getReport({}))
-      .catch((error) => {
-        hooks.error.call(error, compiler);
-        return undefined;
-      });
+      state.watching = false;
+      tapAfterCompileToGetIssues(compiler, configuration, state);
+    }
   });
 
   compiler.hooks.watchRun.tap('ForkTsCheckerWebpackPlugin', async (compiler) => {
-    state.isWatching = true;
+    if (!state.initialized) {
+      state.initialized = true;
 
-    let change: FilesChange = {
-      changedFiles: getChangedFiles(compiler),
-      deletedFiles: getDeletedFiles(compiler, state),
-    };
+      state.watching = true;
+      if (configuration.async) {
+        tapDoneToAsyncGetIssues(compiler, configuration, state);
+      } else {
+        tapAfterCompileToGetIssues(compiler, configuration, state);
+      }
+    }
+  });
 
-    change = hooks.runWatch.call(change, compiler);
+  compiler.hooks.compilation.tap('ForkTsCheckerWebpackPlugin', async (compilation) => {
+    let change: FilesChange = {};
 
-    configuration.logger.infrastructure.info(
-      [
-        'Calling reporter service for incremental check.',
-        `  Changed files: ${JSON.stringify(change.changedFiles)}`,
-        `  Deleted files: ${JSON.stringify(change.deletedFiles)}`,
-      ].join('\n')
-    );
+    if (state.watching) {
+      change = {
+        changedFiles: getChangedFiles(compilation.compiler),
+        deletedFiles: getDeletedFiles(compilation.compiler, state),
+      };
+
+      configuration.logger.infrastructure.info(
+        [
+          'Calling reporter service for incremental check.',
+          `  Changed files: ${JSON.stringify(change.changedFiles)}`,
+          `  Deleted files: ${JSON.stringify(change.deletedFiles)}`,
+        ].join('\n')
+      );
+    } else {
+      configuration.logger.infrastructure.info('Calling reporter service for single check.');
+    }
+
+    change = hooks.start.call(change, compilation);
 
     state.report = reporter
       .connect()
       .then(() => reporter.getReport(change))
       .catch((error) => {
-        if (error instanceof OperationCancelledError) {
-          hooks.cancelled.call(compiler);
+        if (error instanceof OperationCanceledError) {
+          hooks.canceled.call(compilation);
         } else {
-          hooks.error.call(error, compiler);
+          hooks.error.call(error, compilation);
         }
 
         return undefined;

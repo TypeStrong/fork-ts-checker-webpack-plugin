@@ -18,12 +18,12 @@ function tapAfterCompileToGetIssues(
     try {
       issues = await state.report;
     } catch (error) {
-      hooks.error.call(error, compilation.compiler);
+      hooks.error.call(error, compilation);
       return;
     }
 
     if (!issues) {
-      // some error has been thrown or it was cancelled
+      // some error has been thrown or it was canceled
       return;
     }
 

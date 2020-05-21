@@ -1,7 +1,7 @@
 import os from 'os';
 import mockFs from 'mock-fs';
 import { Issue } from 'lib/issue';
-import { createFormatterConfiguration, Formatter, FormatterOptions } from 'lib/formatter';
+import { createFormatterConfiguration, FormatterOptions } from 'lib/formatter';
 
 describe('formatter/FormatterConfiguration', () => {
   beforeEach(() => {
@@ -40,7 +40,6 @@ describe('formatter/FormatterConfiguration', () => {
       },
     },
   };
-  const customFormatter: Formatter = (issue) => issue.origin.toUpperCase();
 
   const BASIC_FORMATTER_OUTPUT = `TS2322: Type '"1"' is not assignable to type 'number'.`;
   const CODEFRAME_FORMATTER_OUTPUT = [
@@ -57,13 +56,11 @@ describe('formatter/FormatterConfiguration', () => {
     '      |       ^^^',
     '    2 | const bar = 1;',
   ].join(os.EOL);
-  const CUSTOM_FORMATTER_OUTPUT = 'TYPESCRIPT';
 
   it.each([
     [undefined, CODEFRAME_FORMATTER_OUTPUT],
     ['basic', BASIC_FORMATTER_OUTPUT],
     ['codeframe', CODEFRAME_FORMATTER_OUTPUT],
-    [customFormatter, CUSTOM_FORMATTER_OUTPUT],
     [{ type: 'basic' }, BASIC_FORMATTER_OUTPUT],
     [{ type: 'codeframe' }, CODEFRAME_FORMATTER_OUTPUT],
     [{ type: 'codeframe', options: { linesBelow: 1 } }, CUSTOM_CODEFRAME_FORMATTER_OUTPUT],

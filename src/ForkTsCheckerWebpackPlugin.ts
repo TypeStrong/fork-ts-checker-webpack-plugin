@@ -9,10 +9,8 @@ import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport
 import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
 import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
-import { tapDoneToAsyncGetIssues } from './hooks/tapDoneToAsyncGetIssues';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { tapAfterCompileToGetIssues } from './hooks/tapAfterCompileToGetIssues';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
 
@@ -46,11 +44,6 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
       tapDoneToCollectRemoved(compiler, configuration, state);
       tapStopToDisconnectReporter(compiler, reporter, configuration, state);
-      if (configuration.async) {
-        tapDoneToAsyncGetIssues(compiler, configuration, state);
-      } else {
-        tapAfterCompileToGetIssues(compiler, configuration, state);
-      }
     } else {
       throw new Error(
         `ForkTsCheckerWebpackPlugin is configured to not use any issue reporter. It's probably a configuration issue.`

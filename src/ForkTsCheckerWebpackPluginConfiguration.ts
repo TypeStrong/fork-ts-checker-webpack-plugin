@@ -16,8 +16,8 @@ interface ForkTsCheckerWebpackPluginConfiguration {
   async: boolean;
   typescript: TypeScriptReporterConfiguration;
   eslint: EsLintReporterConfiguration;
-  formatter: FormatterConfiguration;
   issue: IssueConfiguration;
+  formatter: FormatterConfiguration;
   logger: LoggerConfiguration;
 }
 
@@ -26,11 +26,11 @@ function createForkTsCheckerWebpackPluginConfiguration(
   options: ForkTsCheckerWebpackPluginOptions = {}
 ): ForkTsCheckerWebpackPluginConfiguration {
   return {
-    async: options.async === true,
+    async: options.async === undefined ? compiler.options.mode === 'development' : options.async,
     typescript: createTypeScriptReporterConfiguration(compiler, options.typescript),
     eslint: createEsLintReporterConfiguration(compiler, options.eslint),
-    formatter: createFormatterConfiguration(options.formatter),
     issue: createIssueConfiguration(compiler, options.issue),
+    formatter: createFormatterConfiguration(options.formatter),
     logger: createLoggerConfiguration(compiler, options.logger),
   };
 }

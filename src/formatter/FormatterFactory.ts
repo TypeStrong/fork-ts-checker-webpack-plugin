@@ -2,7 +2,7 @@ import { Formatter } from './Formatter';
 import { BabelCodeFrameOptions, createCodeframeFormatter } from './CodeframeFormatter';
 import { createBasicFormatter } from './BasicFormatter';
 
-type NotConfigurableFormatterType = undefined | 'basic' | Formatter;
+type NotConfigurableFormatterType = undefined | 'basic';
 type ConfigurableFormatterType = 'codeframe';
 type FormatterType = NotConfigurableFormatterType | ConfigurableFormatterType;
 
@@ -25,10 +25,6 @@ function createFormatter<T extends ConfigurableFormatterType>(
 function createFormatter<T extends FormatterType>(type: T, options?: object): Formatter;
 // declare function implementation
 function createFormatter(type?: FormatterType, options?: object): Formatter {
-  if (typeof type === 'function') {
-    return type;
-  }
-
   switch (type) {
     case 'basic':
     case undefined:
@@ -38,9 +34,7 @@ function createFormatter(type?: FormatterType, options?: object): Formatter {
       return createCodeframeFormatter(options);
 
     default:
-      throw new Error(
-        `Unknown "${type}" formatter. Available types are: basic, codeframe, Function.`
-      );
+      throw new Error(`Unknown "${type}" formatter. Available types are: basic, codeframe.`);
   }
 }
 

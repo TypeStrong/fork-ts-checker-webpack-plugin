@@ -1,5 +1,5 @@
 import { Reporter } from './Reporter';
-import { OperationCancelledError } from '../error/OperationCancelledError';
+import { OperationCanceledError } from '../error/OperationCanceledError';
 import { aggregateFilesChanges, FilesChange } from './FilesChange';
 
 /**
@@ -38,7 +38,7 @@ function createAggregatedReporter<TReporter extends Reporter>(reporter: TReporte
 
             return aggregatedReporter.getReport(change);
           } else {
-            throw new OperationCancelledError('getIssues cancelled - new report requested.');
+            throw new OperationCanceledError('getIssues canceled - new report requested.');
           }
         });
       }

@@ -55,10 +55,9 @@ module.exports = {
         test: /\.tsx?$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
-        options: {
-          ...PnpWebpackPlugin.tsLoaderOptions(),
+        options: PnpWebpackPlugin.tsLoaderOptions({
           transpileOnly: true
-        }
+        })
       },
     ],
   },

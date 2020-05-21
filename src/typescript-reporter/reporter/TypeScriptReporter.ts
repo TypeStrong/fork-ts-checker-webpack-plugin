@@ -103,9 +103,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           solutionBuilder = ts.createSolutionBuilderWithWatch(
             watchSolutionBuilderHost,
             [configuration.tsconfig],
-            {
-              incremental: true,
-            }
+            {}
           );
           solutionBuilder.build();
         }

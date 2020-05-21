@@ -157,7 +157,7 @@ Options for the TypeScript checker (`typescript` option object).
 | `enabled`            | `boolean` | `true`                                                                    | If `true`, it enables TypeScript checker. |
 | `memoryLimit`        | `number`  | `2048`                                                                    | Memory limit for the checker process in MB. If the process exits with the allocation failed error, try to increase this number. |
 | `tsconfig`           | `string`  | `'tsconfig.json'`                                                         | Path to the `tsconfig.json` file (path relative to the `compiler.options.context` or absolute path) |
-| `build`              | `boolean` | `false`                                                                   | The equivalent of the `--build` flag for the `tsc` command. |
+| `build`              | `boolean` | `false`                                                                   | The equivalent of the `--build` flag for the `tsc` command. To enable `incremental` mode, set it in the `tsconfig.json` file. _Note that this plugin doesn't emit any files even in the `build` mode._ |
 | `compilerOptions`    | `object`  | `{ skipLibCheck: true, skipDefaultLibCheck: true  }`                      | These options will overwrite compiler options from the `tsconfig.json` file. |
 | `diagnosticsOptions` | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }` | Settings to select which diagnostics do we want to perform. |
 | `extensions`         | `object`  | `{}`                                                                      | See [TypeScript extensions options](#typescript-extensions-options). |

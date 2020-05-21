@@ -121,6 +121,10 @@
               "type": "boolean",
               "description": "The equivalent of the `--build` flag from the `tsc`."
             },
+            "incremental": {
+              "type": "boolean",
+              "description": "The equivalent of the `--incremental` flag from the `tsc`."
+            },
             "compilerOptions": {
               "type": "object",
               "description": "Custom compilerOptions to be passed to the TypeScript compiler.",

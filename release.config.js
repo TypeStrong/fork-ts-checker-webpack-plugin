@@ -2,9 +2,13 @@ module.exports = {
   branches: [
     'master',
     {
+      name: 'alpha',
+      prerelease: true,
+    },
+    {
       name: 'beta',
-      prerelease: true
-    }
+      prerelease: true,
+    },
   ],
   plugins: [
     [
@@ -18,12 +22,12 @@ module.exports = {
           { type: 'fix', release: 'patch' },
           { type: 'perf', release: 'patch' },
           { type: 'refactor', release: 'patch' },
-          { type: 'docs', release: 'patch' }
-        ]
-      }
+          { type: 'docs', release: 'patch' },
+        ],
+      },
     ],
     '@semantic-release/release-notes-generator',
     '@semantic-release/npm',
-    '@semantic-release/github'
-  ]
+    '@semantic-release/github',
+  ],
 };

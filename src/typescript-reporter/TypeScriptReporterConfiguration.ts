@@ -1,6 +1,6 @@
 import webpack from 'webpack';
 import path from 'path';
-import { CompilerOptions as TypeScriptCompilerOptions } from 'typescript';
+import ts from 'typescript';
 import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
 import { TypeScriptReporterOptions } from './TypeScriptReporterOptions';
 import {
@@ -18,7 +18,7 @@ interface TypeScriptReporterConfiguration {
   memoryLimit: number;
   tsconfig: string;
   build: boolean;
-  compilerOptions: Partial<TypeScriptCompilerOptions>;
+  compilerOptions: Partial<ts.CompilerOptions>;
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   extensions: {
     vue: TypeScriptVueExtensionConfiguration;
@@ -30,17 +30,37 @@ function createTypeScriptReporterConfiguration(
   compiler: webpack.Compiler,
   options: TypeScriptReporterOptions | undefined
 ): TypeScriptReporterConfiguration {
-  const configuration: TypeScriptReporterConfiguration = {
-    enabled: options !== false,
-    memoryLimit: 2048,
-    tsconfig: 'tsconfig.json',
-    build: false,
-    ...(typeof options === 'object' ? options : {}),
-    compilerOptions: {
+  let tsconfig: string =
+    typeof options === 'object' ? options.tsconfig || 'tsconfig.json' : 'tsconfig.json';
+
+  // ensure that `tsconfig` is an absolute path with normalized slash
+  tsconfig = normalizeSlash(
+    path.isAbsolute(tsconfig)
+      ? tsconfig
+      : path.resolve(compiler.options.context || process.cwd(), tsconfig)
+  );
+
+  // convert json compilerOptions to ts.CompilerOptions
+  const convertResults = ts.convertCompilerOptionsFromJson(
+    {
       skipDefaultLibCheck: true,
       skipLibCheck: true,
       ...(typeof options === 'object' ? options.compilerOptions || {} : {}),
     },
+    compiler.options.context || process.cwd(),
+    tsconfig
+  );
+  const convertedOptions = convertResults.options || {};
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { configFilePath, ...compilerOptions } = convertedOptions;
+
+  return {
+    enabled: options !== false,
+    memoryLimit: 2048,
+    build: false,
+    ...(typeof options === 'object' ? options : {}),
+    tsconfig: tsconfig,
+    compilerOptions: compilerOptions,
     extensions: {
       vue: createTypeScriptVueExtensionConfiguration(
         typeof options === 'object' && options.extensions ? options.extensions.vue : undefined
@@ -57,15 +77,6 @@ function createTypeScriptReporterConfiguration(
       ...((typeof options === 'object' && options.diagnosticOptions) || {}),
     },
   };
-
-  // ensure that `typescript.tsconfig` is an absolute path with normalized slash
-  configuration.tsconfig = normalizeSlash(
-    path.isAbsolute(configuration.tsconfig)
-      ? configuration.tsconfig
-      : path.resolve(compiler.options.context || process.cwd(), configuration.tsconfig)
-  );
-
-  return configuration;
 }
 
 export { createTypeScriptReporterConfiguration, TypeScriptReporterConfiguration };

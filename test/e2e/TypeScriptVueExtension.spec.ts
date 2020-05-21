@@ -25,8 +25,8 @@ describe('TypeScript Vue Extension', () => {
   it.each([{ async: true, webpack: '^4.0.0', typescript: '2.7.1', tsloader: '^5.0.0' }])(
     'reports semantic error for %p',
     async ({ async, webpack, typescript, tsloader }) => {
-      await sandbox.load(
-        await readFixture(join(__dirname, 'fixtures/typescript-vue.fixture'), {
+      await sandbox.load([
+        await readFixture(join(__dirname, 'fixtures/environment/typescript-vue.fixture'), {
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
             FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
           ),
@@ -36,11 +36,12 @@ describe('TypeScript Vue Extension', () => {
           WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
           WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
           ASYNC: JSON.stringify(async),
-        })
-      );
+        }),
+        await readFixture(join(__dirname, 'fixtures/implementation/typescript-vue.fixture')),
+      ]);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
+        sandbox.spawn('npm run webpack-dev-server'),
         async
       );
 

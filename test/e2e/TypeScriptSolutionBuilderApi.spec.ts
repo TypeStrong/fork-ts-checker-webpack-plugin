@@ -25,8 +25,8 @@ describe('TypeScript SolutionBuilder API', () => {
   it.each([{ async: false }, { async: true }])(
     'reports semantic error for %p',
     async ({ async }) => {
-      await sandbox.load(
-        await readFixture(join(__dirname, 'fixtures/typescript-project-references.fixture'), {
+      await sandbox.load([
+        await readFixture(join(__dirname, 'fixtures/environment/typescript-monorepo.fixture'), {
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
             FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
           ),
@@ -36,11 +36,12 @@ describe('TypeScript SolutionBuilder API', () => {
           WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
           WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
           ASYNC: JSON.stringify(async),
-        })
-      );
+        }),
+        await readFixture(join(__dirname, 'fixtures/implementation/typescript-monorepo.fixture')),
+      ]);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
+        sandbox.spawn('npm run webpack-dev-server'),
         async
       );
       let errors: string[];

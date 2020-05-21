@@ -30,8 +30,8 @@ describe('TypeScript Watch API', () => {
   ])(
     'reports semantic error for %p with importsNotUsedAsValues configuration',
     async ({ async, webpack }) => {
-      await sandbox.load(
-        await readFixture(join(__dirname, 'fixtures/typescript-basic.fixture'), {
+      await sandbox.load([
+        await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
             FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
           ),
@@ -41,8 +41,9 @@ describe('TypeScript Watch API', () => {
           WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
           WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
           ASYNC: JSON.stringify(async),
-        })
-      );
+        }),
+        await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+      ]);
 
       // add importsNotUsedAsValues which is supported from TypeScript 3.8.0+
       // this option is required for proper watching of type-only files in the `transpileOnly: true` mode
@@ -53,7 +54,7 @@ describe('TypeScript Watch API', () => {
       );
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
+        sandbox.spawn('npm run webpack-dev-server'),
         async
       );
       let errors: string[];
@@ -154,8 +155,8 @@ describe('TypeScript Watch API', () => {
     { async: true, webpack: '^4.0.0', typescript: '~3.6.0', tsloader: '^7.0.0' },
     { async: false, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
   ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
-    await sandbox.load(
-      await readFixture(join(__dirname, 'fixtures/typescript-basic.fixture'), {
+    await sandbox.load([
+      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
         ),
@@ -165,13 +166,11 @@ describe('TypeScript Watch API', () => {
         WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
         WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
         ASYNC: JSON.stringify(async),
-      })
-    );
+      }),
+      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+    ]);
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
-      async
-    );
+    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
 
     // first compilation is successful

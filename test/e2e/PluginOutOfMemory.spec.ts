@@ -24,8 +24,8 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory', () => {
     { async: false, webpack: '^5.0.0-beta.16' },
     { async: true, webpack: '^5.0.0-beta.16' },
   ])('handles out of memory for %p', async ({ async, webpack }) => {
-    await sandbox.load(
-      await readFixture(join(__dirname, 'fixtures/typescript-basic.fixture'), {
+    await sandbox.load([
+      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
         ),
@@ -35,8 +35,9 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory', () => {
         WEBPACK_CLI_VERSION: JSON.stringify('^3.3.11'),
         WEBPACK_DEV_SERVER_VERSION: JSON.stringify('^3.10.3'),
         ASYNC: JSON.stringify(async),
-      })
-    );
+      }),
+      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+    ]);
 
     await sandbox.patch(
       'webpack.config.js',
@@ -50,9 +51,7 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory', () => {
       ].join('\n')
     );
 
-    const driver = createGenericProcessDriver(
-      sandbox.spawn('./node_modules/.bin/webpack-dev-server')
-    );
+    const driver = createGenericProcessDriver(sandbox.spawn('npm run webpack-dev-server'));
 
     // we should see an error message about out of memory
     await driver.waitForStderrIncludes(

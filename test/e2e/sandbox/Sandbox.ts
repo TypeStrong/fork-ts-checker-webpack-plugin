@@ -6,10 +6,14 @@ import spawn from 'cross-spawn';
 import { Fixture } from './Fixture';
 import stripAnsi from 'strip-ansi';
 import kill from 'tree-kill';
+import flatten from '../../../src/utils/array/flatten';
 
 interface Sandbox {
   context: string;
-  load: (fixture: Fixture, installer?: (sandbox: Sandbox) => Promise<unknown>) => Promise<void>;
+  load: (
+    fixtures: Fixture | Fixture[],
+    installer?: (sandbox: Sandbox) => Promise<unknown>
+  ) => Promise<void>;
   reset: () => Promise<void>;
   cleanup: () => Promise<void>;
   write: (path: string, content: string) => Promise<void>;
@@ -86,7 +90,7 @@ async function createSandbox(): Promise<Sandbox> {
 
   async function killChildProcesses() {
     for (const childProcess of childProcesses) {
-      if (!childProcess.killed) {
+      if (!childProcess.killed && childProcess.pid) {
         process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
         await retry(
           () =>
@@ -117,9 +121,17 @@ async function createSandbox(): Promise<Sandbox> {
   const sandbox: Sandbox = {
     context,
     load: async (fixture, installer = npmInstaller) => {
+      const fixtures = Array.isArray(fixture) ? fixture : [fixture];
+
       // write files
-      await Promise.all(Object.keys(fixture).map((path) => sandbox.write(path, fixture[path])));
-      process.stdout.write('Fixture initialized.\n');
+      await Promise.all(
+        flatten(
+          fixtures.map((fixture) =>
+            Object.keys(fixture).map((path) => sandbox.write(path, fixture[path]))
+          )
+        )
+      );
+      process.stdout.write('Fixtures initialized.\n');
 
       process.stdout.write('Installing dependencies...\n');
       await installer(sandbox);
@@ -216,11 +228,11 @@ async function createSandbox(): Promise<Sandbox> {
               ...env,
             },
           },
-          (error, output) => {
+          (error, stdout, stderr) => {
             if (error) {
-              reject(error);
+              reject(stdout + stderr);
             } else {
-              resolve(output);
+              resolve(stdout + stderr);
             }
             childProcesses = childProcesses.filter(
               (aChildProcess) => aChildProcess !== childProcess

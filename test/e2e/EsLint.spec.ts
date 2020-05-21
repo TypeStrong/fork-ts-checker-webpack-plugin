@@ -28,8 +28,8 @@ describe('EsLint', () => {
     { async: false, webpack: '^5.0.0-beta.16' },
     { async: true, webpack: '^5.0.0-beta.16' },
   ])('reports lint error for %p', async ({ async, webpack }) => {
-    await sandbox.load(
-      await readFixture(join(__dirname, 'fixtures/eslint-basic.fixture'), {
+    await sandbox.load([
+      await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
         ),
@@ -39,13 +39,11 @@ describe('EsLint', () => {
         WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
         WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
         ASYNC: JSON.stringify(async),
-      })
-    );
+      }),
+      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+    ]);
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('./node_modules/.bin/webpack-dev-server'),
-      async
-    );
+    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
 
     // first compilation contains 2 warnings

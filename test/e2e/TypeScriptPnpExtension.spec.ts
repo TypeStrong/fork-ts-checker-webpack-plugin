@@ -34,17 +34,20 @@ describe('TypeScript PnP Extension', () => {
     { async: false, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
   ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
     await sandbox.load(
-      await readFixture(join(__dirname, 'fixtures/typescript-pnp.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TS_LOADER_VERSION: JSON.stringify(tsloader),
-        TYPESCRIPT_VERSION: JSON.stringify(typescript),
-        WEBPACK_VERSION: JSON.stringify(webpack),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(async),
-      }),
+      [
+        await readFixture(join(__dirname, 'fixtures/environment/typescript-pnp.fixture'), {
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+            FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+          ),
+          TS_LOADER_VERSION: JSON.stringify(tsloader),
+          TYPESCRIPT_VERSION: JSON.stringify(typescript),
+          WEBPACK_VERSION: JSON.stringify(webpack),
+          WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+          WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+          ASYNC: JSON.stringify(async),
+        }),
+        await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+      ],
       yarnInstaller
     );
 

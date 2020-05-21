@@ -1,5 +1,7 @@
 import webpack from 'webpack';
 import validateOptions from 'schema-utils';
+import { cosmiconfigSync } from 'cosmiconfig';
+import merge from 'deepmerge';
 import schema from './ForkTsCheckerWebpackPluginOptions.json';
 import { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
 import { createForkTsCheckerWebpackPluginConfiguration } from './ForkTsCheckerWebpackPluginConfiguration';
@@ -15,8 +17,19 @@ import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
-  constructor(private readonly options: ForkTsCheckerWebpackPluginOptions = {}) {
+  private readonly options: ForkTsCheckerWebpackPluginOptions;
+
+  constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {
+    const explorerSync = cosmiconfigSync('fork-ts-checker');
+    const { config: externalOptions } = explorerSync.search() || {};
+
+    // first validate options directly passed to the constructor
     validateOptions(schema, options, 'ForkTsCheckerWebpackPlugin');
+
+    this.options = merge(externalOptions || {}, options || {});
+
+    // then validate merged options
+    validateOptions(schema, this.options, 'ForkTsCheckerWebpackPlugin');
   }
 
   public static getCompilerHooks(compiler: webpack.Compiler) {

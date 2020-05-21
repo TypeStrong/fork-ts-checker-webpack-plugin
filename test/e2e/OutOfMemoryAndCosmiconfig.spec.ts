@@ -3,7 +3,7 @@ import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from '
 import { readFixture } from './sandbox/Fixture';
 import { createGenericProcessDriver } from './sandbox/GenericProcessDriver';
 
-describe('ForkTsCheckerWebpackPlugin Out Of Memory', () => {
+describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
   let sandbox: Sandbox;
 
   beforeAll(async () => {
@@ -39,16 +39,9 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory', () => {
       await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
     ]);
 
-    await sandbox.patch(
-      'webpack.config.js',
-      '    new ForkTsCheckerWebpackPlugin({',
-      [
-        '    new ForkTsCheckerWebpackPlugin({',
-        '      typescript: {',
-        '        enabled: true,',
-        '        memoryLimit: 10,',
-        '      },',
-      ].join('\n')
+    await sandbox.write(
+      'fork-ts-checker.config.js',
+      `module.exports = { typescript: { memoryLimit: 10 } };`
     );
 
     const driver = createGenericProcessDriver(sandbox.spawn('npm run webpack-dev-server'));

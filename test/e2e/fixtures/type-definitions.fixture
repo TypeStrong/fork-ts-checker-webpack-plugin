@@ -37,7 +37,10 @@ const config = {
   entry: './src/index.ts',
   plugins: [
     new ForkTsCheckerWebpackPlugin({
-      async: 'invalid_value'
+      async: 'invalid_value',
+      typescript: {
+        enabled: true
+      }
     })
   ]
 };

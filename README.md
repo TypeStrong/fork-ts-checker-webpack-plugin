@@ -131,7 +131,13 @@ There's a [good explanation on setting up TypeScript ESLint support by Robert Co
 
 ## Options
 
-The top-level plugin options.
+This plugin uses [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig). This means that besides the plugin constructor,
+you can place your configuration in the:
+ * `"fork-ts-checker"` field in the `package.json`
+ * `.fork-ts-checkerrc` file in JSON or YAML format
+ * `fork-ts-checker.config.js` file exporting a JS object
+  
+Options passed to the plugin constructor will overwrite options from the cosmiconfig (using [deepmerge](https://github.com/TehShrike/deepmerge)).
 
 | Name              | Type                  | Default value                                    | Description |
 | ----------------- | --------------------- | ------------------------------------------------ | ----------- |

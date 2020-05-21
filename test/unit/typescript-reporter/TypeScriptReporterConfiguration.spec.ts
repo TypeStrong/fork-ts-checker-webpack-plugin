@@ -13,7 +13,10 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     memoryLimit: 2048,
     tsconfig: '/webpack/context/tsconfig.json',
     build: false,
-    compilerOptions: {},
+    compilerOptions: {
+      skipDefaultLibCheck: true,
+      skipLibCheck: true,
+    },
     diagnosticOptions: {
       semantic: true,
       syntactic: false,
@@ -69,7 +72,10 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     [{ build: true }, { ...configuration, build: true }],
     [
       { compilerOptions: { strict: true } },
-      { ...configuration, compilerOptions: { strict: true } },
+      {
+        ...configuration,
+        compilerOptions: { skipDefaultLibCheck: true, skipLibCheck: true, strict: true },
+      },
     ],
     [{ diagnosticOptions: {} }, configuration],
     [

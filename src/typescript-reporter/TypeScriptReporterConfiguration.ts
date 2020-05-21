@@ -35,8 +35,12 @@ function createTypeScriptReporterConfiguration(
     memoryLimit: 2048,
     tsconfig: 'tsconfig.json',
     build: false,
-    compilerOptions: {},
     ...(typeof options === 'object' ? options : {}),
+    compilerOptions: {
+      skipDefaultLibCheck: true,
+      skipLibCheck: true,
+      ...(typeof options === 'object' ? options.compilerOptions || {} : {}),
+    },
     extensions: {
       vue: createTypeScriptVueExtensionConfiguration(
         typeof options === 'object' && options.extensions ? options.extensions.vue : undefined

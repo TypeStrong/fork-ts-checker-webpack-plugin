@@ -10,7 +10,9 @@ function getWatcher(compiler: webpack.Compiler): Watcher | undefined {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { watchFileSystem } = compiler as any;
 
-  return watchFileSystem.watcher || (watchFileSystem.wfs && watchFileSystem.wfs.watcher);
+  if (watchFileSystem) {
+    return watchFileSystem.watcher || (watchFileSystem.wfs && watchFileSystem.wfs.watcher);
+  }
 }
 
 export { getWatcher, Watcher };

@@ -8,6 +8,7 @@ import { getChangedFiles } from './getChangedFiles';
 import { OperationCanceledError } from '../error/OperationCanceledError';
 import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
 import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
+import { interceptDoneToGetWebpackDevServerTap } from './interceptDoneToGetWebpackDevServerTap';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
@@ -33,6 +34,7 @@ function tapStartToConnectAndRunReporter(
       state.watching = true;
       if (configuration.async) {
         tapDoneToAsyncGetIssues(compiler, configuration, state);
+        interceptDoneToGetWebpackDevServerTap(compiler, configuration, state);
       } else {
         tapAfterCompileToGetIssues(compiler, configuration, state);
       }

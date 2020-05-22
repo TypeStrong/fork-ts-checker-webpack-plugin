@@ -4,6 +4,7 @@ import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginSt
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 import { createWebpackFormatter } from '../formatter/WebpackFormatter';
 import { Issue } from '../issue';
+import { IssueWebpackError } from '../issue/IssueWebpackError';
 import isPending from '../utils/async/isPending';
 import wait from '../utils/async/wait';
 import chalk from 'chalk';
@@ -57,6 +58,24 @@ function tapDoneToAsyncGetIssues(
       configuration.logger.issues.error(issues.map((issue) => formatter(issue)).join('\n'));
     } else {
       configuration.logger.issues.log(chalk.green('No issues found.'));
+    }
+
+    if (state.webpackDevServerDoneTap) {
+      issues.forEach((issue) => {
+        const error = new IssueWebpackError(
+          configuration.formatter(issue),
+          compiler.options.context || process.cwd(),
+          issue
+        );
+
+        if (issue.severity === 'warning') {
+          stats.compilation.warnings.push(error);
+        } else {
+          stats.compilation.errors.push(error);
+        }
+      });
+
+      state.webpackDevServerDoneTap.fn(stats);
     }
 
     if (stats.startTime) {

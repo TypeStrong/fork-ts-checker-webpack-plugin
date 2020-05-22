@@ -1,10 +1,12 @@
 import { Report } from './reporter';
+import { Tap } from 'tapable';
 
 interface ForkTsCheckerWebpackPluginState {
   report: Promise<Report | undefined>;
   removedFiles: string[];
   watching: boolean;
   initialized: boolean;
+  webpackDevServerDoneTap: Tap | undefined;
 }
 
 function createForkTsCheckerWebpackPluginState(): ForkTsCheckerWebpackPluginState {
@@ -13,6 +15,7 @@ function createForkTsCheckerWebpackPluginState(): ForkTsCheckerWebpackPluginStat
     removedFiles: [],
     watching: false,
     initialized: false,
+    webpackDevServerDoneTap: undefined,
   };
 }
 

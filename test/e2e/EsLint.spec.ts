@@ -123,4 +123,55 @@ describe('EsLint', () => {
       ].join('\n'),
     ]);
   });
+
+  it('fixes errors with `fix: true` option', async () => {
+    await sandbox.load([
+      await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
+        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+        ),
+        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
+        WEBPACK_VERSION: JSON.stringify('^4.0.0'),
+        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+        ASYNC: JSON.stringify(false),
+      }),
+      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+    ]);
+
+    // fix initial issues
+    await sandbox.patch(
+      'src/authenticate.ts',
+      'async function logout(): Promise<any> {',
+      'async function logout(): Promise<unknown> {'
+    );
+    await sandbox.patch(
+      'src/index.ts',
+      "loginForm.addEventListener('submit', async event => {",
+      "loginForm.addEventListener('submit', async () => {"
+    );
+
+    // set fix option for the eslint
+    await sandbox.write(
+      'fork-ts-checker.config.js',
+      'module.exports = { eslint: { enabled: true, options: { fix: true } } };'
+    );
+
+    // add fixable issue
+    await sandbox.patch(
+      'src/authenticate.ts',
+      'const response = await fetch(',
+      'let response = await fetch('
+    );
+
+    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), false);
+
+    // it should be automatically fixed
+    await driver.waitForNoErrors();
+
+    // check if issue has been fixed
+    const content = await sandbox.read('src/authenticate.ts');
+    expect(content).not.toContain('let response = await fetch(');
+  });
 });

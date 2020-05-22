@@ -34,6 +34,7 @@ export interface CLIEngine {
 export interface CLIEngineOptions {
   cwd?: string;
   extensions?: string[];
+  fix?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }

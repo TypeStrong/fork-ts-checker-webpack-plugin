@@ -43,6 +43,11 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
         }
       }
 
+      // output fixes if `fix` option is provided
+      if (configuration.options.fix) {
+        await Promise.all(lintReports.map((lintReport) => CLIEngine.outputFixes(lintReport)));
+      }
+
       // store results
       lintReports.forEach((lintReport) => {
         lintReport.results.forEach((lintResult) => {

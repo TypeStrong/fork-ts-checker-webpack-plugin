@@ -122,7 +122,7 @@ function createTypeScriptEmbeddedExtension({
             return host.watchFile(
               embeddedFileName,
               (innerFileName: string, eventKind: ts.FileWatcherEventKind) => {
-                embeddedSourceCache.delete(innerFileName);
+                embeddedSourceCache.delete(embeddedFileName);
                 return callback(fileName, eventKind);
               },
               poolingInterval

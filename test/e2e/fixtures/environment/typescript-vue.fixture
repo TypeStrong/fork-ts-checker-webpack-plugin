@@ -36,7 +36,8 @@
       "@/*": ["src/*"],
       "~/*": ["src/*"]
     },
-    "sourceMap": true
+    "sourceMap": true,
+    "importsNotUsedAsValues": "preserve"
   },
   "include": [
     "src/**/*.ts",
@@ -69,8 +70,13 @@ module.exports = {
         loader: 'ts-loader',
         exclude: /node_modules/,
         options: {
-          appendTsSuffixTo: [/\.vue$/]
+          appendTsSuffixTo: [/\.vue$/],
+          transpileOnly: true
         }
+      },
+      {
+        test: /\.css$/,
+        loader: 'css-loader'
       },
     ],
   },
@@ -96,3 +102,9 @@ module.exports = {
     })
   ]
 };
+
+/// src/vue-shim.d.ts
+declare module "*.vue" {
+    import Vue from "vue";
+    export default Vue;
+}

@@ -14,10 +14,11 @@
 
 ## Features
 
- * Faster [TypeScript](https://github.com/Microsoft/TypeScript) type checking and [ESLint](https://eslint.org/) linting (each on a separate process) 🏎
- * Support for modern TypeScript features like [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) and [incremental mode](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#faster-subsequent-builds-with-the---incremental-flag) ✨
- * Support for [Yarn PnP](https://classic.yarnpkg.com/en/docs/pnp/) 🧶
- * Nice errors reporting with the [code frame](https://babeljs.io/docs/en/next/babel-code-frame.html) formatter 🌈
+ * Speeds up [TypeScript](https://github.com/Microsoft/TypeScript) type checking and [ESLint](https://eslint.org/) linting (by moving each to a separate process) 🏎
+ * Supports modern TypeScript features like [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) and [incremental mode](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#faster-subsequent-builds-with-the---incremental-flag) ✨
+ * Supports [Yarn PnP](https://classic.yarnpkg.com/en/docs/pnp/) 🧶
+ * Supports [Vue Single File Component](https://vuejs.org/v2/guide/single-file-components.html) ✅ 
+ * Displays nice error messages with the [code frame](https://babeljs.io/docs/en/next/babel-code-frame.html) formatter 🌈
 
 ## Installation
 
@@ -194,6 +195,10 @@ Options for the issues filtering (`issues` option object).
 | `exclude` | `object` or `function` or `array` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
 
 ## Yarn PnP
+To enable Yarn PnP support, follow these steps:
+
+<details>
+<summary>Expand Yarn PnP set up instruction</summary>
 
 To enable Yarn PnP, you have to install [`ts-pnp`](https://github.com/arcanis/ts-pnp) and [`pnp-webpack-plugin`](https://github.com/arcanis/pnp-webpack-plugin) package:
 
@@ -243,6 +248,120 @@ module.exports = {
   ]
 };
 ```
+</details>
+
+## Vue.js
+
+⚠️ There are additional **constraints** regarding Vue.js Single File Component support: ⚠️
+ * It requires **TypeScript >= 3.8.0** and `"importsNotUsedAsValues": "preserve"` option in the `tsconfig.json` (it's a limitation of the `transpileOnly` mode from `ts-loader`)
+ * It doesn't work with the `build` mode (project references)
+
+To enable Vue.js support, follow these steps:
+
+<details>
+<summary>Expand Vue.js set up instruction</summary>
+
+1. Ensure you have all required packages installed:
+```sh
+# with npm
+npm install --save vue vue-class-component
+npm install --save-dev vue-loader ts-loader css-loader vue-template-compiler 
+
+# with yarn
+yarn add vue vue-class-component
+yarn add --dev vue-loader ts-loader css-loader vue-template-compiler 
+```
+
+2. Add `tsconfig.json` configuration:
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "jsx": "preserve",
+    "target": "ES5",
+    "lib": ["ES6", "DOM"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "~/*": ["src/*"]
+    },
+    "sourceMap": true,
+    "importsNotUsedAsValues": "preserve"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+```
+
+3. Add `webpack.config.js` configuration:
+```js
+const path = require('path');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+
+module.exports = {
+  entry: './src/index.ts',
+  output: {
+    filename: 'index.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  module: {
+    rules: [
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      },
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/,
+        options: {
+          appendTsSuffixTo: [/\.vue$/],
+          transpileOnly: true
+        }
+      },
+      {
+        test: /\.css$/,
+        loader: 'css-loader'
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.js', '.vue', '.json'],
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '~': path.resolve(__dirname, './src'),
+    }
+  },
+  plugins: [
+    new VueLoaderPlugin(),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        extensions: {
+          vue: true
+        }
+      }
+    })
+  ]
+};
+```
+
+4. Add `src/types/vue.d.ts` file to shim `.vue` modules:
+```typescript
+declare module "*.vue" {
+  import Vue from "vue";
+  export default Vue;
+}
+```
+
+5. If you are working in VSCode, you can get the [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) extension to complete the developer workflow.
+
+</details>
 
 ## Type-Only modules watching
 

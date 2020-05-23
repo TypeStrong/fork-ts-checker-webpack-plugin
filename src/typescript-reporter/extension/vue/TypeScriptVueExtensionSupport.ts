@@ -9,8 +9,13 @@ function assertTypeScriptVueExtensionSupport(configuration: TypeScriptVueExtensi
 
   try {
     require(compilerName);
-  } catch (err) {
-    throw new Error('When you use `vue` option, make sure to install `' + compilerName + '`.');
+  } catch (error) {
+    throw new Error(
+      [
+        `Could not initialize '${compilerName}'. When you use 'typescript.extensions.vue' option, make sure to install '${compilerName}' and that the version matches that of 'vue'.`,
+        `Error details: ${error.message}`,
+      ].join('\n')
+    );
   }
 }
 

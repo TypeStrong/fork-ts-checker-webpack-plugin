@@ -1,0 +1,163 @@
+/// src/index.ts
+import Vue from 'vue'
+import App from './App.vue'
+
+new Vue({
+  render: h => h(App)
+}).$mount('#app')
+
+/// src/App.vue
+<template>
+  <logged-in v-if="user" :user="user" @logout="logout"></logged-in>
+  <login-form v-else @login="login"></login-form>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+import LoginForm from "@/component/LoginForm.vue";
+import LoggedIn from "@/component/LoggedIn.vue";
+import User from "@/model/User";
+
+@Component
+export default class App extends Vue {
+  public user: User | null = null;
+
+  login(user: User) {
+    this.user = user;
+  }
+
+  logout() {
+    this.user = null;
+  }
+}
+</script>
+
+/// src/component/LoginForm.vue
+<template>
+  <form @submit="login">
+    <h1>Login form</h1>
+
+    <input v-model="email" name="email" type="email" />
+    <input v-model="password" name="password" type="password" />
+
+    <button type="submit" v-bind:disabled="pending">Login</button>
+  </form>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+
+@Component
+export default class LoginForm extends Vue {
+  public email = '';
+  public password = '';
+  public pending = false;
+
+  async login() {
+    try {
+      this.pending = true;
+      const response = await fetch(
+        '/login',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password
+          })
+        }
+      );
+
+      this.$emit('login', response);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.pending = false;
+    }
+  }
+}
+</script>
+
+<style scoped>
+h1 {
+  font-weight: normal;
+}
+</style>
+
+/// src/component/LoggedIn.vue
+<template>
+  <p>
+    Hello {userName}!
+    <button type="button" v-bind:disabled="pending" v-on:click="logout">Logout</button>
+  </p>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import User, { getUserName } from '@/model/User';
+import Component from "vue-class-component";
+
+const LoggedInProps = Vue.extend({
+  props: {
+    user: {
+      type: Object,
+      required: true
+    }
+  }
+})
+
+@Component
+export default class LoggedIn extends LoggedInProps {
+  public pending = false;
+  public user: User;
+
+  get userName() {
+    return this.user ? getUserName(this.user) : '';
+  }
+
+  async logout() {
+    try {
+      this.pending = true;
+      await fetch('/logout');
+
+      this.$emit('logout');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.pending = false;
+    }
+  }
+}
+</script>
+
+<style scoped>
+p {
+  font-size: 14pt;
+}
+</style>
+
+/// src/model/User.ts
+import Role from './Role';
+
+type User = {
+  id: string;
+  email: string;
+  role: Role;
+  firstName?: string;
+  lastName?: string;
+}
+
+function getUserName(user: User): string {
+  return [user.firstName, user.lastName]
+    .filter(name => name !== undefined)
+    .join(' ');
+}
+
+export default User;
+export { getUserName };
+
+/// src/model/Role.ts
+type Role = "admin" | "client" | "provider";
+
+export default Role;

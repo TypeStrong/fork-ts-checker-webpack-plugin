@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`typescript-reporter/issue/TypeScriptIssueFactory creates Issues from TsDiagnostics: [[Object], [Object], [Object]] 1`] = `
+Array [
+  Object {
+    "code": "TS4221",
+    "file": "src/test.ts",
+    "location": Object {
+      "end": Object {
+        "column": 8,
+        "line": 3,
+      },
+      "start": Object {
+        "column": 3,
+        "line": 3,
+      },
+    },
+    "message": "Cannot assign string to the number type",
+    "origin": "typescript",
+    "severity": "error",
+  },
+  Object {
+    "code": "TS1221",
+    "file": undefined,
+    "location": undefined,
+    "message": "Cannot assign object to the string type",
+    "origin": "typescript",
+    "severity": "warning",
+  },
+  Object {
+    "code": "TS1221",
+    "file": "src/index.ts",
+    "location": Object {
+      "end": Object {
+        "column": 12,
+        "line": 7,
+      },
+      "start": Object {
+        "column": 11,
+        "line": 6,
+      },
+    },
+    "message": "Cannot assign object to the string type",
+    "origin": "typescript",
+    "severity": "warning",
+  },
+]
+`;

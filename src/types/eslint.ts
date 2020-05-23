@@ -42,5 +42,6 @@ export interface Options {
   // directly used by this package and are instead just passed to eslint.
   // We do this in order to avoid a dependency on @types/eslint (since the use
   // of eslint is optional) and to avoid copying types from @types/eslint.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }

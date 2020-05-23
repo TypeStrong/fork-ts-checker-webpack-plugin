@@ -1,21 +1,21 @@
 import * as os from 'os';
 import mockFs from 'mock-fs';
-import { Issue, IssueOrigin, IssueSeverity } from '../../../lib/issue';
-import { createCodeframeFormatter } from '../../../lib/formatter';
+import { Issue } from 'lib/issue';
+import { createCodeframeFormatter } from 'lib/formatter';
 
-describe('[UNIT] formatter/CodeframeFormatter', () => {
+describe('formatter/CodeframeFormatter', () => {
   beforeEach(() => {
     mockFs({
       src: {
         'index.ts': [
-          'const y: number = "1";',
-          'const x = 1;',
+          'const foo: number = "1";',
+          'const bar = 1;',
           '',
-          'function z() {',
-          '  console.log(y);',
-          '}'
-        ].join('\n')
-      }
+          'function baz() {',
+          '  console.log(baz);',
+          '}',
+        ].join('\n'),
+      },
     });
   });
 
@@ -26,70 +26,111 @@ describe('[UNIT] formatter/CodeframeFormatter', () => {
   it.each([
     [
       {
-        origin: IssueOrigin.TYPESCRIPT,
-        severity: IssueSeverity.ERROR,
-        code: '2322',
+        origin: 'typescript',
+        severity: 'error',
+        code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
         file: 'src/index.ts',
-        line: 1,
-        character: 7
+        location: {
+          start: {
+            line: 1,
+            column: 7,
+          },
+          end: {
+            line: 1,
+            column: 10,
+          },
+        },
       },
       [
-        `ERROR in src/index.ts(1,7):`,
-        `1:7 Type '"1"' is not assignable to type 'number'.`,
-        '  > 1 | const y: number = "1";',
-        '      |       ^',
-        '    2 | const x = 1;'
-      ].join(os.EOL)
+        `TS2322: Type '"1"' is not assignable to type 'number'.`,
+        '  > 1 | const foo: number = "1";',
+        '      |       ^^^',
+        '    2 | const bar = 1;',
+      ].join(os.EOL),
     ],
     [
       {
-        origin: IssueOrigin.TYPESCRIPT,
-        severity: IssueSeverity.ERROR,
-        code: '2322',
+        origin: 'typescript',
+        severity: 'error',
+        code: 'TS2322',
+        message: `Type '"1"' is not assignable to type 'number'.`,
+        file: 'src/index.ts',
+      },
+      `TS2322: Type '"1"' is not assignable to type 'number'.`,
+    ],
+    [
+      {
+        origin: 'typescript',
+        severity: 'error',
+        code: 'TS2322',
+        message: `Type '"1"' is not assignable to type 'number'.`,
+        file: 'src/index.ts',
+        location: {
+          start: {
+            line: 1,
+            column: 7,
+          },
+        },
+      },
+      [
+        `TS2322: Type '"1"' is not assignable to type 'number'.`,
+        '  > 1 | const foo: number = "1";',
+        '      |       ^',
+        '    2 | const bar = 1;',
+      ].join(os.EOL),
+    ],
+    [
+      {
+        origin: 'typescript',
+        severity: 'error',
+        code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
         file: 'src/not-existing.ts',
-        line: 1,
-        character: 7
+        location: {
+          start: {
+            line: 1,
+            column: 7,
+          },
+          end: {
+            line: 1,
+            column: 10,
+          },
+        },
       },
-      [
-        `ERROR in src/not-existing.ts(1,7):`,
-        `1:7 Type '"1"' is not assignable to type 'number'.`
-      ].join(os.EOL)
+      `TS2322: Type '"1"' is not assignable to type 'number'.`,
     ],
     [
       {
-        origin: IssueOrigin.ESLINT,
-        severity: IssueSeverity.WARNING,
+        origin: 'eslint',
+        severity: 'warning',
         code: 'no-unused-vars',
-        message: `'x' is assigned a value but never used.`,
+        message: `'bar' is assigned a value but never used.`,
         file: 'src/index.ts',
-        line: 2,
-        character: 7
+        location: {
+          start: {
+            line: 2,
+            column: 7,
+          },
+          end: {
+            line: 2,
+            column: 10,
+          },
+        },
       },
       [
-        `WARNING in src/index.ts(2,7):`,
-        `2:7 'x' is assigned a value but never used.`,
-        '    1 | const y: number = "1";',
-        '  > 2 | const x = 1;',
-        '      |       ^',
-        '    3 | '
-      ].join(os.EOL)
+        `no-unused-vars: 'bar' is assigned a value but never used.`,
+        '    1 | const foo: number = "1";',
+        '  > 2 | const bar = 1;',
+        '      |       ^^^',
+        '    3 | ',
+      ].join(os.EOL),
     ],
-    [
-      {
-        origin: IssueOrigin.INTERNAL,
-        severity: IssueSeverity.ERROR,
-        code: 'INTERNAL',
-        message: `Stack overflow - out of memory`
-      },
-      'INTERNAL ERROR: Stack overflow - out of memory'
-    ]
   ])('formats issue message "%p" to "%p"', (...args) => {
     const [issue, expectedFormatted] = args as [Issue, string];
     const formatter = createCodeframeFormatter({
       linesAbove: 1,
-      linesBelow: 1
+      linesBelow: 1,
     });
     const formatted = formatter(issue);
 

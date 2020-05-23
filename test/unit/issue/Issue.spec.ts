@@ -1,47 +1,29 @@
-import {
-  IssueSeverity,
-  IssueOrigin,
-  isIssue,
-  deduplicateAndSortIssues,
-  Issue
-} from '../../../lib/issue';
+import { isIssue, deduplicateAndSortIssues, Issue } from 'lib/issue';
 
-function omit<TObject extends object>(
-  object: TObject,
-  keys: (keyof TObject)[]
-) {
+function omit<TObject extends object>(object: TObject, keys: (keyof TObject)[]) {
   const omittedObject = Object.assign({}, object);
-  keys.forEach(key => delete omittedObject[key]);
+  keys.forEach((key) => delete omittedObject[key]);
 
   return omittedObject;
 }
 
-describe('[UNIT] issue/Issue', () => {
-  const BASIC_INTERNAL_ISSUE = {
-    origin: IssueOrigin.INTERNAL,
-    severity: IssueSeverity.ERROR,
-    code: 'INTERNAL',
-    message: 'Out of memory'
-  };
+describe('issue/Issue', () => {
   const BASIC_TYPESCRIPT_ISSUE = {
-    origin: IssueOrigin.TYPESCRIPT,
-    severity: IssueSeverity.ERROR,
-    code: '4221',
-    message: 'Cannot assign string to the number type'
+    origin: 'typescript',
+    severity: 'error',
+    code: 'TS4221',
+    message: 'Cannot assign string to the number type',
   };
   const BASIC_ESLINT_ISSUE = {
-    origin: IssueOrigin.ESLINT,
-    severity: IssueSeverity.ERROR,
+    origin: 'eslint',
+    severity: 'error',
     code: 'white-space',
-    message: 'Missing space between function brackets'
+    message: 'Missing space between function brackets',
   };
 
-  it.each([BASIC_INTERNAL_ISSUE, BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE])(
-    "checks if '%p' is a Issue",
-    issue => {
-      expect(isIssue(issue)).toEqual(true);
-    }
-  );
+  it.each([BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE])("checks if '%p' is a Issue", (issue) => {
+    expect(isIssue(issue)).toEqual(true);
+  });
 
   it.each([
     null,
@@ -53,299 +35,276 @@ describe('[UNIT] issue/Issue', () => {
     new Date(),
     true,
     false,
-    omit(BASIC_INTERNAL_ISSUE, ['origin']),
     omit(BASIC_TYPESCRIPT_ISSUE, ['severity']),
     omit(BASIC_ESLINT_ISSUE, ['code']),
-    omit(BASIC_TYPESCRIPT_ISSUE, ['origin', 'message'])
-  ])("checks if '%p' isn't a Issue", issue => {
+    omit(BASIC_TYPESCRIPT_ISSUE, ['origin', 'message']),
+  ])("checks if '%p' isn't a Issue", (issue) => {
     expect(isIssue(issue)).toEqual(false);
   });
 
   it.each([
     [
       // compare origin
-      [
-        BASIC_ESLINT_ISSUE,
-        BASIC_TYPESCRIPT_ISSUE,
-        BASIC_ESLINT_ISSUE,
-        BASIC_INTERNAL_ISSUE,
-        BASIC_INTERNAL_ISSUE,
-        BASIC_ESLINT_ISSUE
-      ],
-      [BASIC_INTERNAL_ISSUE, BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE]
+      [BASIC_ESLINT_ISSUE, BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE, BASIC_ESLINT_ISSUE],
+      [BASIC_ESLINT_ISSUE, BASIC_TYPESCRIPT_ISSUE],
     ],
     [
       // compare file
       [
         {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/index.ts'
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/index.ts',
         },
-        BASIC_INTERNAL_ISSUE,
+        BASIC_TYPESCRIPT_ISSUE,
         {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/different.ts'
-        },
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/another.ts'
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/different.ts',
         },
         {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/different.ts'
-        }
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/another.ts',
+        },
+        {
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/different.ts',
+        },
       ],
       [
-        BASIC_INTERNAL_ISSUE,
+        BASIC_TYPESCRIPT_ISSUE,
         {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/another.ts'
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/another.ts',
         },
         {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/different.ts'
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/different.ts',
         },
         {
-          ...BASIC_INTERNAL_ISSUE,
-          file: 'src/index.ts'
-        }
-      ]
+          ...BASIC_TYPESCRIPT_ISSUE,
+          file: 'src/index.ts',
+        },
+      ],
     ],
     [
       // compare severity
       [
         {
           ...BASIC_ESLINT_ISSUE,
-          severity: IssueSeverity.WARNING
+          severity: 'warning',
         },
         {
           ...BASIC_ESLINT_ISSUE,
-          severity: IssueSeverity.ERROR
+          severity: 'error',
         },
         {
           ...BASIC_ESLINT_ISSUE,
-          severity: IssueSeverity.WARNING
-        }
+          severity: 'warning',
+        },
       ],
       [
         {
           ...BASIC_ESLINT_ISSUE,
-          severity: IssueSeverity.ERROR
+          severity: 'error',
         },
         {
           ...BASIC_ESLINT_ISSUE,
-          severity: IssueSeverity.WARNING
-        }
-      ]
+          severity: 'warning',
+        },
+      ],
     ],
     [
-      // compare line
+      // compare location
       [
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 15
-        },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 5
+          location: {
+            start: {
+              line: 10,
+              column: 3,
+            },
+            end: {
+              line: 10,
+              column: 5,
+            },
+          },
         },
         BASIC_TYPESCRIPT_ISSUE,
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10
+          location: {
+            start: {
+              line: 10,
+              column: 6,
+            },
+            end: {
+              line: 10,
+              column: 9,
+            },
+          },
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10
-        }
+          location: {
+            start: {
+              line: 10,
+              column: 6,
+            },
+            end: {
+              line: 10,
+              column: 7,
+            },
+          },
+        },
+        {
+          ...BASIC_TYPESCRIPT_ISSUE,
+          location: {
+            start: {
+              line: 9,
+              column: 6,
+            },
+            end: {
+              line: 10,
+              column: 7,
+            },
+          },
+        },
       ],
       [
         BASIC_TYPESCRIPT_ISSUE,
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 5
+          location: {
+            start: {
+              line: 9,
+              column: 6,
+            },
+            end: {
+              line: 10,
+              column: 7,
+            },
+          },
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10
+          location: {
+            start: {
+              line: 10,
+              column: 3,
+            },
+            end: {
+              line: 10,
+              column: 5,
+            },
+          },
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 15
-        }
-      ]
-    ],
-    [
-      // compare character
-      [
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 3
+          location: {
+            start: {
+              line: 10,
+              column: 6,
+            },
+            end: {
+              line: 10,
+              column: 7,
+            },
+          },
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10
+          location: {
+            start: {
+              line: 10,
+              column: 6,
+            },
+            end: {
+              line: 10,
+              column: 9,
+            },
+          },
         },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 6
-        },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 1
-        },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 6
-        }
       ],
-      [
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10
-        },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 1
-        },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 3
-        },
-        {
-          ...BASIC_TYPESCRIPT_ISSUE,
-          line: 10,
-          character: 6
-        }
-      ]
     ],
     [
       // compare code
       [
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '1500'
+          code: 'TS1500',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '1000'
+          code: 'TS1000',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '2000'
+          code: 'TS2000',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '1000'
-        }
+          code: 'TS1000',
+        },
       ],
       [
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '1000'
+          code: 'TS1000',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '1500'
+          code: 'TS1500',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          code: '2000'
-        }
-      ]
+          code: 'TS2000',
+        },
+      ],
     ],
     [
       // compare message
       [
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'B'
+          message: 'B',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'C'
+          message: 'C',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'A'
+          message: 'A',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'B'
-        }
+          message: 'B',
+        },
       ],
       [
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'A'
+          message: 'A',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'B'
+          message: 'B',
         },
         {
           ...BASIC_TYPESCRIPT_ISSUE,
-          message: 'C'
-        }
-      ]
-    ],
-    [
-      // stack
-      [
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'A'
+          message: 'C',
         },
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'C'
-        },
-        BASIC_INTERNAL_ISSUE,
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'A'
-        },
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'B'
-        }
       ],
-      [
-        BASIC_INTERNAL_ISSUE,
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'A'
-        },
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'B'
-        },
-        {
-          ...BASIC_INTERNAL_ISSUE,
-          stack: 'C'
-        }
-      ]
     ],
     [
       // empty
       [],
-      []
+      [],
     ],
     [
-      [
-        BASIC_ESLINT_ISSUE,
-        omit(BASIC_ESLINT_ISSUE, ['message']),
-        BASIC_ESLINT_ISSUE
-      ],
-      [BASIC_ESLINT_ISSUE]
+      [BASIC_ESLINT_ISSUE, omit(BASIC_ESLINT_ISSUE, ['message']), BASIC_ESLINT_ISSUE],
+      [BASIC_ESLINT_ISSUE],
     ],
-    [[omit(BASIC_ESLINT_ISSUE, ['message'])], []]
+    [[omit(BASIC_ESLINT_ISSUE, ['message'])], []],
   ])('deduplicates issues %p to %p', (...args) => {
     const [issues, deduplicatedIssues] = args as [Issue[], Issue[]];
     expect(deduplicateAndSortIssues(issues)).toEqual(deduplicatedIssues);

@@ -1,33 +1,27 @@
-import {
-  IssueSeverity,
-  compareIssueSeverities,
-  isIssueSeverity
-} from './IssueSeverity';
-import { IssueOrigin, compareIssueOrigins, isIssueOrigin } from './IssueOrigin';
+import { IssueSeverity, compareIssueSeverities, isIssueSeverity } from './IssueSeverity';
+import { compareIssueLocations, IssueLocation } from './IssueLocation';
 
 interface Issue {
-  origin: IssueOrigin;
+  origin: string;
   severity: IssueSeverity;
   code: string;
   message: string;
   file?: string;
-  line?: number;
-  character?: number;
-  stack?: string;
+  location?: IssueLocation;
 }
 
 function isIssue(value: unknown): value is Issue {
   return (
     !!value &&
     typeof value === 'object' &&
-    isIssueOrigin((value as Issue).origin) &&
+    !!(value as Issue).origin &&
     isIssueSeverity((value as Issue).severity) &&
     !!(value as Issue).code &&
     !!(value as Issue).message
   );
 }
 
-function compareOptionalStrings(stringA?: string, stringB?: string) {
+function compareStrings(stringA?: string, stringB?: string) {
   if (stringA === stringB) {
     return 0;
   }
@@ -42,31 +36,14 @@ function compareOptionalStrings(stringA?: string, stringB?: string) {
   return stringA.toString().localeCompare(stringB.toString());
 }
 
-function compareNumbers(numberA?: number, numberB?: number) {
-  if (numberA === numberB) {
-    return 0;
-  }
-
-  if (numberA === undefined || numberA === null) {
-    return -1;
-  }
-  if (numberB === undefined || numberB === null) {
-    return 1;
-  }
-
-  return Math.sign(numberA - numberB);
-}
-
 function compareIssues(issueA: Issue, issueB: Issue) {
   return (
-    compareIssueOrigins(issueA.origin, issueB.origin) ||
-    compareOptionalStrings(issueA.file, issueB.file) ||
     compareIssueSeverities(issueA.severity, issueB.severity) ||
-    compareNumbers(issueA.line, issueB.line) ||
-    compareNumbers(issueA.character, issueB.character) ||
-    compareOptionalStrings(issueA.code, issueB.code) ||
-    compareOptionalStrings(issueA.message, issueB.message) ||
-    compareOptionalStrings(issueA.stack, issueB.stack) ||
+    compareStrings(issueA.origin, issueB.origin) ||
+    compareStrings(issueA.file, issueB.file) ||
+    compareIssueLocations(issueA.location, issueB.location) ||
+    compareStrings(issueA.code, issueB.code) ||
+    compareStrings(issueA.message, issueB.message) ||
     0 /* EqualTo */
   );
 }
@@ -79,8 +56,7 @@ function deduplicateAndSortIssues(issues: Issue[]) {
   const sortedIssues = issues.filter(isIssue).sort(compareIssues);
 
   return sortedIssues.filter(
-    (issue, index) =>
-      index === 0 || !equalsIssues(issue, sortedIssues[index - 1])
+    (issue, index) => index === 0 || !equalsIssues(issue, sortedIssues[index - 1])
   );
 }
 

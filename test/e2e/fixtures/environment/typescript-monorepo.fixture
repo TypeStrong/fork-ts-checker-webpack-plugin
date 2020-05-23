@@ -1,0 +1,95 @@
+/// package.json
+{
+  "name": "typescript-monorepo-fixture",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "webpack-dev-server": "webpack-dev-server"
+  },
+  "devDependencies": {
+    "lerna": "^3.0.0",
+    "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
+    "ts-loader": ${TS_LOADER_VERSION},
+    "typescript": ${TYPESCRIPT_VERSION},
+    "webpack": ${WEBPACK_VERSION},
+    "webpack-cli": ${WEBPACK_CLI_VERSION},
+    "webpack-dev-server": ${WEBPACK_DEV_SERVER_VERSION}
+  }
+}
+
+/// lerna.json
+{
+  "version": "1.0.0",
+  "npmClient": "npm",
+  "packages": ["packages/*"]
+}
+
+/// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["es5", "scripthost"],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "importHelpers": false,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strict": true,
+    "baseUrl": ".",
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "rootDir": "./packages"
+  },
+  "files": [],
+  "references": [
+    { "path": "./packages/shared" },
+    { "path": "./packages/client" }
+  ]
+}
+
+/// webpack.config.js
+const path = require('path');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+
+module.exports = {
+  entry: './packages/client/src/index.ts',
+  output: {
+    filename: 'index.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/,
+        options: {
+          transpileOnly: true,
+          projectReferences: true
+        }
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+    // as ts-loader doesn't fully support project references we put an alias to resolve package
+    // and to not pollute output with ts-loader errors
+    alias: {
+      "@project-references-fixture/shared": path.resolve(__dirname, "packages/shared/src")
+    }
+  },
+  plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      async: ${ASYNC},
+      typescript: {
+        build: true
+      }
+    })
+  ]
+};

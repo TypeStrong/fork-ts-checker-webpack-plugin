@@ -1,7 +1,0 @@
-{
-  "compilerOptions": {
-    "lib": ["es2016"],
-    "forceConsistentCasingInFileNames": true
-  },
-  "import": ["./src/**/*"]
-}

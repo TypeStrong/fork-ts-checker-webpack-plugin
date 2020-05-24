@@ -67,7 +67,8 @@ jobs:
       uses: actions/download-artifact@v1
       with:
         name: lib
-      
+        path: lib
+
     - name: Run unit tests
       run: yarn test:unit
 
@@ -93,6 +94,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: lib
+          path: lib
 
       - name: Release
         run: npx semantic-release@16.0.2

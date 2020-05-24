@@ -26,7 +26,7 @@
     "John Reilly <johnny_reilly@hotmail.com> (https://blog.johnnyreilly.com)"
   ],
   "files": [
-    "./lib"
+    "lib"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

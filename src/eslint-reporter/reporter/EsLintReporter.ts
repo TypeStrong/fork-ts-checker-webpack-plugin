@@ -4,7 +4,6 @@ import { createIssuesFromEsLintResults } from '../issue/EsLintIssueFactory';
 import { EsLintReporterConfiguration } from '../EsLintReporterConfiguration';
 import { Reporter } from '../../reporter';
 import minimatch from 'minimatch';
-import { join } from 'path';
 
 function createEsLintReporter(configuration: EsLintReporterConfiguration): Reporter {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -34,7 +33,7 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
       } else {
         const changedAndIncludedFiles = changedFiles.filter((changedFile) =>
           includedFilesPatterns.some((includedFilesPattern) =>
-            minimatch(changedFile, join(configuration.cwd, includedFilesPattern))
+            minimatch(changedFile, includedFilesPattern)
           )
         );
 

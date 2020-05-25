@@ -23,11 +23,11 @@ describe('EsLint', () => {
   });
 
   it.each([
-    { async: false, webpack: '4.0.0' },
-    { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0-beta.16' },
-    { async: true, webpack: '^5.0.0-beta.16' },
-  ])('reports lint error for %p', async ({ async, webpack }) => {
+    { async: false, webpack: '4.0.0', absolute: false },
+    { async: true, webpack: '^4.0.0', absolute: true },
+    { async: false, webpack: '^5.0.0-beta.16', absolute: true },
+    { async: true, webpack: '^5.0.0-beta.16', absolute: false },
+  ])('reports lint error for %p', async ({ async, webpack, absolute }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
@@ -42,6 +42,15 @@ describe('EsLint', () => {
       }),
       await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
     ]);
+
+    if (absolute) {
+      // test case for providing absolute path to files
+      await sandbox.patch(
+        'webpack.config.js',
+        "files: './src/**/*.ts'",
+        "files: path.resolve(__dirname, './src/**/*.ts')"
+      );
+    }
 
     const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
@@ -92,34 +101,34 @@ describe('EsLint', () => {
 
     // add a new error
     await sandbox.patch(
-      'src/index.ts',
-      "let password = '';",
-      "let password = ''\nlet temporary: any;"
+      'src/model/User.ts',
+      ['  lastName?: string;', '}'].join('\n'),
+      ['  lastName?: string;', '}', '', 'let temporary: any;', ''].join('\n')
     );
 
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'WARNING in src/index.ts 20:5-19',
+        'WARNING in src/model/User.ts 11:5-19',
         "@typescript-eslint/no-unused-vars: 'temporary' is defined but never used.",
-        "    18 | let email = '';",
-        "    19 | let password = ''",
-        '  > 20 | let temporary: any;',
+        '     9 | }',
+        '    10 | ',
+        '  > 11 | let temporary: any;',
         '       |     ^^^^^^^^^^^^^^',
-        '    21 | ',
-        "    22 | emailInput.addEventListener('change', event => {",
-        '    23 |   if (event.target instanceof HTMLInputElement) {',
+        '    12 | ',
+        '    13 | ',
+        '    14 | function getUserName(user: User): string {',
       ].join('\n'),
       [
-        'WARNING in src/index.ts 20:16-19',
+        'WARNING in src/model/User.ts 11:16-19',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
-        "    18 | let email = '';",
-        "    19 | let password = ''",
-        '  > 20 | let temporary: any;',
+        '     9 | }',
+        '    10 | ',
+        '  > 11 | let temporary: any;',
         '       |                ^^^',
-        '    21 | ',
-        "    22 | emailInput.addEventListener('change', event => {",
-        '    23 |   if (event.target instanceof HTMLInputElement) {',
+        '    12 | ',
+        '    13 | ',
+        '    14 | function getUserName(user: User): string {',
       ].join('\n'),
     ]);
   });

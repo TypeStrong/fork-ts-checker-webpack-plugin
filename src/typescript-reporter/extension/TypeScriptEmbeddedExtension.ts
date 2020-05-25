@@ -50,22 +50,10 @@ function createTypeScriptEmbeddedExtension({
   type FileExists = (fileName: string) => boolean;
   function createEmbeddedFileExists(fileExists: FileExists): FileExists {
     return function embeddedFileExists(fileName) {
-      const { embeddedExtension, embeddedFileName, extension } = parsePotentiallyEmbeddedFileName(
-        fileName
-      );
+      const { embeddedExtension, embeddedFileName } = parsePotentiallyEmbeddedFileName(fileName);
 
-      if (embeddedExtensions.includes(embeddedExtension)) {
-        const embeddedSource = getCachedEmbeddedSource(embeddedFileName);
-
-        // we return true only if file extension matches extension returned by the getEmbeddedSource method.
-        // we assume that there is a regular TypeScript resolveModuleName implementation that runs fileExists
-        // for files with all TypeScript supported extensions (.ts, .d.ts, .tsx, .js)
-        if (embeddedSource && embeddedSource.extension === extension) {
-          // already checked if file exists in the getEmbeddedSource call.
-          // we can assume that file still exists because we are relying on the watch mechanism
-          // which removes cache entry on any file change
-          return true;
-        }
+      if (embeddedExtensions.includes(embeddedExtension) && fileExists(embeddedFileName)) {
+        return true;
       }
 
       return fileExists(fileName);

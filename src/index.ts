@@ -340,14 +340,15 @@ class ForkTsCheckerWebpackPlugin {
       this.killService();
     };
 
-    const done = () => {
+    const doneOrFailed = () => {
       if (!this.isWatching) {
         this.killService();
       }
     };
 
     this.compiler.hooks.watchClose.tap(checkerPluginName, watchClose);
-    this.compiler.hooks.done.tap(checkerPluginName, done);
+    this.compiler.hooks.done.tap(checkerPluginName, doneOrFailed);
+    this.compiler.hooks.failed.tap(checkerPluginName, doneOrFailed);
 
     process.on('exit', () => {
       this.killService();
@@ -610,11 +611,10 @@ class ForkTsCheckerWebpackPlugin {
         this.logger.error(
           chalk.red(
             'Type checking and linting interrupted - If running in a docker container, this may be caused ' +
-              'by the container running out of memory. If so, try increasing the container\'s memory limit ' +
+              "by the container running out of memory. If so, try increasing the container's memory limit " +
               'or lowering the memoryLimit value in the ForkTsCheckerWebpackPlugin configuration.'
           )
         );
-
       } else {
         this.logger.error(
           chalk.red(

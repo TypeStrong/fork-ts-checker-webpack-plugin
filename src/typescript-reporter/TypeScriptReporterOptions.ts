@@ -1,6 +1,5 @@
 import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
 import { TypeScriptVueExtensionOptions } from './extension/vue/TypeScriptVueExtensionOptions';
-import { TypeScriptPnpExtensionOptions } from './extension/pnp/TypeScriptPnpExtensionOptions';
 
 type TypeScriptReporterOptions =
   | boolean
@@ -13,7 +12,6 @@ type TypeScriptReporterOptions =
       diagnosticOptions?: Partial<TypeScriptDiagnosticsOptions>;
       extensions?: {
         vue?: TypeScriptVueExtensionOptions;
-        pnp?: TypeScriptPnpExtensionOptions;
       };
     };
 

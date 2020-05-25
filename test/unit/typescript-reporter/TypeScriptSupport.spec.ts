@@ -19,9 +19,6 @@ describe('typescript-reporter/TypeScriptSupport', () => {
       },
       enabled: true,
       extensions: {
-        pnp: {
-          enabled: false,
-        },
         vue: {
           enabled: false,
           compiler: 'vue-template-compiler',
@@ -101,37 +98,5 @@ describe('typescript-reporter/TypeScriptSupport', () => {
         '  - wrong `typescript.tsconfig` path in the plugin configuration (should be a relative or absolute path)',
       ].join(os.EOL)
     );
-  });
-
-  it('checks for pnp support if pnp extension is enabled', async () => {
-    jest.setMock('typescript', { version: '3.8.0' });
-    jest.setMock('fs-extra', { existsSync: () => true });
-    jest.setMock('lib/typescript-reporter/extension/pnp/TypeScriptPnpExtensionSupport', {
-      assertTypeScriptPnpExtensionSupport: () => {
-        throw new Error('Error from PnP Extension.');
-      },
-    });
-
-    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
-
-    configuration.extensions.pnp.enabled = true;
-
-    expect(() => assertTypeScriptSupport(configuration)).toThrowError('Error from PnP Extension.');
-  });
-
-  it('checks for pnp support if vue extension is enabled', async () => {
-    jest.setMock('typescript', { version: '3.8.0' });
-    jest.setMock('fs-extra', { existsSync: () => true });
-    jest.setMock('lib/typescript-reporter/extension/vue/TypeScriptVueExtensionSupport', {
-      assertTypeScriptVueExtensionSupport: () => {
-        throw new Error('Error from Vue Extension.');
-      },
-    });
-
-    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
-
-    configuration.extensions.vue.enabled = true;
-
-    expect(() => assertTypeScriptSupport(configuration)).toThrowError('Error from Vue Extension.');
   });
 });

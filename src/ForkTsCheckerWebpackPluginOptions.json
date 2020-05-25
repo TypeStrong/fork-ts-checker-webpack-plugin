@@ -153,9 +153,6 @@
               "properties": {
                 "vue": {
                   "$ref": "#/definitions/TypeScriptVueExtensionOptions"
-                },
-                "pnp": {
-                  "$ref": "#/definitions/TypeScriptPnpExtensionOptions"
                 }
               }
             }
@@ -183,10 +180,6 @@
           }
         }
       ]
-    },
-    "TypeScriptPnpExtensionOptions": {
-      "type": "boolean",
-      "description": "Enable TypeScript PnP extension."
     },
     "EsLintReporterOptions": {
       "type": "object",

@@ -12,7 +12,7 @@ import {
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
 
-describe('TypeScript PnP Extension', () => {
+describe('TypeScript PnP Support', () => {
   let sandbox: Sandbox;
 
   beforeAll(async () => {
@@ -30,8 +30,7 @@ describe('TypeScript PnP Extension', () => {
   it.each([
     { async: true, webpack: '^4.0.0', typescript: '2.7.1', tsloader: '^5.0.0' },
     { async: false, webpack: '^4.0.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
-    { async: true, webpack: '^4.0.0', typescript: '~3.6.0', tsloader: '^7.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
+    { async: true, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^7.0.0' },
   ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
     await sandbox.load(
       [

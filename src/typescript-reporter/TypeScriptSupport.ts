@@ -2,7 +2,6 @@ import * as semver from 'semver';
 import fs from 'fs-extra';
 import os from 'os';
 import { TypeScriptReporterConfiguration } from './TypeScriptReporterConfiguration';
-import { assertTypeScriptPnpExtensionSupport } from './extension/pnp/TypeScriptPnpExtensionSupport';
 import { assertTypeScriptVueExtensionSupport } from './extension/vue/TypeScriptVueExtensionSupport';
 
 function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration) {
@@ -51,10 +50,6 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
 
   if (configuration.extensions.vue.enabled) {
     assertTypeScriptVueExtensionSupport(configuration.extensions.vue);
-  }
-
-  if (configuration.extensions.pnp.enabled) {
-    assertTypeScriptPnpExtensionSupport();
   }
 }
 

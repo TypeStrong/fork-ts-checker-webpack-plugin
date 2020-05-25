@@ -16,7 +16,6 @@
 
  * Speeds up [TypeScript](https://github.com/Microsoft/TypeScript) type checking and [ESLint](https://eslint.org/) linting (by moving each to a separate process) 🏎
  * Supports modern TypeScript features like [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) and [incremental mode](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#faster-subsequent-builds-with-the---incremental-flag) ✨
- * Supports [Yarn PnP](https://classic.yarnpkg.com/en/docs/pnp/) 🧶
  * Supports [Vue Single File Component](https://vuejs.org/v2/guide/single-file-components.html) ✅ 
  * Displays nice error messages with the [code frame](https://babeljs.io/docs/en/next/babel-code-frame.html) formatter 🌈
 
@@ -169,7 +168,6 @@ Options for the TypeScript checker extensions (`typescript.extensions` option ob
 
 | Name                 | Type                  | Default value             | Description |
 | -------------------- | --------------------- | ------------------------- | ----------- |
-| `pnp`                | `boolean`             | `false`                   | If `true`, it enables Yarn PnP support (requires [`ts-pnp`](https://github.com/arcanis/ts-pnp) package to be installed). |
 | `vue`                | `object` or `boolean` | `false`                   | If `true`, it enables Vue [Single File Component](https://vuejs.org/v2/guide/single-file-components.html) support. |
 | `vue.enabled`        | `boolean`             | `false`                   | Same as the `vue` option |
 | `vue.compiler`       | `string`              | `'vue-template-compiler'` | The package name of the compiler that will be used to parse `.vue` files. You can use `'nativescript-vue-template-compiler'` if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue) | 
@@ -193,62 +191,6 @@ Options for the issues filtering (`issues` option object).
 | --------- | --------------------------------- | ------------- | ----------- |
 | `include` | `object` or `function` or `array` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
 | `exclude` | `object` or `function` or `array` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
-
-## Yarn PnP
-To enable Yarn PnP support, follow these steps:
-
-<details>
-<summary>Expand Yarn PnP set up instruction</summary>
-
-To enable Yarn PnP, you have to install [`ts-pnp`](https://github.com/arcanis/ts-pnp) and [`pnp-webpack-plugin`](https://github.com/arcanis/pnp-webpack-plugin) package:
-
-```sh
-# with npm
-npm install --save-dev ts-pnp pnp-webpack-plugin
-
-# with yarn
-yarn add --dev ts-pnp pnp-webpack-plugin
-```
-
-Then you have to enable it in the configuration:
-```js
-// webpack.config.js
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const PnpWebpackPlugin = require(`pnp-webpack-plugin`);
-
-module.exports = {
-  context: __dirname,
-  entry: './src/index.ts',
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        loader: 'ts-loader',
-        options: PnpWebpackPlugin.tsLoaderOptions({
-          transpileOnly: true
-        })
-      }
-    ]
-  },
-  resolve: {
-    extensions: [".ts", ".tsx", ".js"],
-    plugins: [PnpWebpackPlugin]
-  },
-  resolveLoader: {
-    plugins: [PnpWebpackPlugin.moduleLoader(module)],
-  },
-  plugins: [
-    new ForkTsCheckerWebpackPlugin({
-      typescript: {
-        extensions: {
-          pnp: true
-        }
-      }
-    })
-  ]
-};
-```
-</details>
 
 ## Vue.js
 

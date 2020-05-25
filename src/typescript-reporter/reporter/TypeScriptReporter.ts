@@ -5,7 +5,6 @@ import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfigurat
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
 import { TypeScriptExtension } from '../extension/TypeScriptExtension';
 import { createTypeScriptVueExtension } from '../extension/vue/TypeScriptVueExtension';
-import { createTypeScriptPnpExtension } from '../extension/pnp/TypeScriptPnpExtension';
 import { createControlledWatchSolutionBuilderHost } from './ControlledWatchSolutionBuilderHost';
 import {
   ControlledTypeScriptSystem,
@@ -29,9 +28,6 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
   if (configuration.extensions.vue.enabled) {
     extensions.push(createTypeScriptVueExtension(configuration.extensions.vue));
-  }
-  if (configuration.extensions.pnp.enabled) {
-    extensions.push(createTypeScriptPnpExtension());
   }
 
   function getProjectNameOfBuilderProgram(builderProgram: ts.BuilderProgram): string {

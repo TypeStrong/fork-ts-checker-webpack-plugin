@@ -7,10 +7,6 @@ import {
   createTypeScriptVueExtensionConfiguration,
   TypeScriptVueExtensionConfiguration,
 } from './extension/vue/TypeScriptVueExtensionConfiguration';
-import {
-  createTypeScriptPnpExtensionConfiguration,
-  TypeScriptPnpExtensionConfiguration,
-} from './extension/pnp/TypeScriptPnpExtensionConfiguration';
 import normalizeSlash from '../utils/path/normalizeSlash';
 
 interface TypeScriptReporterConfiguration {
@@ -22,7 +18,6 @@ interface TypeScriptReporterConfiguration {
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   extensions: {
     vue: TypeScriptVueExtensionConfiguration;
-    pnp: TypeScriptPnpExtensionConfiguration;
   };
 }
 
@@ -64,9 +59,6 @@ function createTypeScriptReporterConfiguration(
     extensions: {
       vue: createTypeScriptVueExtensionConfiguration(
         typeof options === 'object' && options.extensions ? options.extensions.vue : undefined
-      ),
-      pnp: createTypeScriptPnpExtensionConfiguration(
-        typeof options === 'object' && options.extensions ? options.extensions.pnp : undefined
       ),
     },
     diagnosticOptions: {

@@ -6,7 +6,6 @@ import { TypeScriptReporterOptions } from 'lib/typescript-reporter/TypeScriptRep
 describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
   let compiler: webpack.Compiler;
   let createTypeScriptVueExtensionConfiguration: jest.Mock;
-  let createTypeScriptPnpExtensionConfiguration: jest.Mock;
 
   const configuration: TypeScriptReporterConfiguration = {
     enabled: true,
@@ -28,9 +27,6 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
         enabled: false,
         compiler: 'vue-template-compiler',
       },
-      pnp: {
-        enabled: false,
-      },
     },
   };
 
@@ -44,14 +40,8 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
       enabled: false,
       compiler: 'vue-template-compiler',
     }));
-    createTypeScriptPnpExtensionConfiguration = jest.fn(() => ({
-      enabled: false,
-    }));
     jest.setMock('lib/typescript-reporter/extension/vue/TypeScriptVueExtensionConfiguration', {
       createTypeScriptVueExtensionConfiguration,
-    });
-    jest.setMock('lib/typescript-reporter/extension/pnp/TypeScriptPnpExtensionConfiguration', {
-      createTypeScriptPnpExtensionConfiguration,
     });
   });
   afterEach(() => {
@@ -118,23 +108,5 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
 
     expect(createTypeScriptVueExtensionConfiguration).toHaveBeenCalledWith(vueOptions);
     expect(configuration.extensions.vue).toEqual('returned from vue extension');
-  });
-
-  it('passes pnp options to the pnp extension', async () => {
-    createTypeScriptPnpExtensionConfiguration.mockImplementation(
-      () => 'returned from pnp extension'
-    );
-    const { createTypeScriptReporterConfiguration } = await import(
-      'lib/typescript-reporter/TypeScriptReporterConfiguration'
-    );
-
-    const pnpOptions = true;
-
-    const configuration = createTypeScriptReporterConfiguration(compiler, {
-      extensions: { pnp: pnpOptions },
-    });
-
-    expect(createTypeScriptPnpExtensionConfiguration).toHaveBeenCalledWith(pnpOptions);
-    expect(configuration.extensions.pnp).toEqual('returned from pnp extension');
   });
 });

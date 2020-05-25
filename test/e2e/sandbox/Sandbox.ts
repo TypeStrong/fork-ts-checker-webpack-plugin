@@ -94,13 +94,14 @@ async function createSandbox(): Promise<Sandbox> {
         process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
         await retry(
           () =>
-            new Promise((resolve, reject) =>
+            new Promise((resolve) =>
               kill(childProcess.pid, 'SIGKILL', (error) => {
                 if (error) {
-                  reject(error);
-                } else {
-                  resolve();
+                  // we don't want to reject as it's probably some OS issue
+                  // or already killed process
+                  console.error(error);
                 }
+                resolve();
               })
             )
         );

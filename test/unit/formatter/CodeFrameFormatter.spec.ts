@@ -1,9 +1,9 @@
 import * as os from 'os';
 import mockFs from 'mock-fs';
 import { Issue } from 'lib/issue';
-import { createCodeframeFormatter } from 'lib/formatter';
+import { createCodeFrameFormatter } from 'lib/formatter';
 
-describe('formatter/CodeframeFormatter', () => {
+describe('formatter/CodeFrameFormatter', () => {
   beforeEach(() => {
     mockFs({
       src: {
@@ -128,7 +128,7 @@ describe('formatter/CodeframeFormatter', () => {
     ],
   ])('formats issue message "%p" to "%p"', (...args) => {
     const [issue, expectedFormatted] = args as [Issue, string];
-    const formatter = createCodeframeFormatter({
+    const formatter = createCodeFrameFormatter({
       linesAbove: 1,
       linesBelow: 1,
     });

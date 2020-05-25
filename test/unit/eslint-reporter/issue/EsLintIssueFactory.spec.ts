@@ -1,4 +1,4 @@
-import { LintMessage, LintResult } from '../../../../lib/types/eslint';
+import { LintMessage, LintResult } from '../../../../lib/eslint-reporter/types/eslint';
 import { createIssuesFromEsLintResults } from '../../../../lib/eslint-reporter/issue/EsLintIssueFactory';
 
 describe('eslint-reporter/issue/EsLintIssueFactory', () => {

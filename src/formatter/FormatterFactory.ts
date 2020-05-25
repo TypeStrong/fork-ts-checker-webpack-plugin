@@ -1,5 +1,5 @@
 import { Formatter } from './Formatter';
-import { BabelCodeFrameOptions, createCodeframeFormatter } from './CodeframeFormatter';
+import { BabelCodeFrameOptions, createCodeFrameFormatter } from './CodeFrameFormatter';
 import { createBasicFormatter } from './BasicFormatter';
 
 type NotConfigurableFormatterType = undefined | 'basic';
@@ -31,7 +31,7 @@ function createFormatter(type?: FormatterType, options?: object): Formatter {
       return createBasicFormatter();
 
     case 'codeframe':
-      return createCodeframeFormatter(options);
+      return createCodeFrameFormatter(options);
 
     default:
       throw new Error(`Unknown "${type}" formatter. Available types are: basic, codeframe.`);

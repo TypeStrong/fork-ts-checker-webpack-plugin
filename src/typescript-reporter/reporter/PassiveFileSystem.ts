@@ -1,6 +1,8 @@
 import { dirname, basename, join, normalize } from 'path';
-import fs, { Stats, Dirent } from 'fs-extra';
+import fs from 'fs-extra';
 import { fs as mem } from 'memfs';
+// eslint-disable-next-line node/no-unsupported-features/node-builtins
+import { Stats, Dirent } from 'fs';
 
 interface PassiveFileSystem {
   // read

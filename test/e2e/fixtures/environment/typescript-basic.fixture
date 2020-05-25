@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
+    "webpack": "webpack -p",
     "webpack-dev-server": "webpack-dev-server"
   },
   "devDependencies": {

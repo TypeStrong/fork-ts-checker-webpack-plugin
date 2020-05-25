@@ -1,9 +1,11 @@
+import stripAnsi from 'strip-ansi';
+
 function isLineRelatedToTsLoader(line: string) {
   return line.includes('[tsl]') || line.includes('ts-loader');
 }
 
 function extractWebpackErrors(content: string): string[] {
-  const lines = content.split(/\r\n?|\n/);
+  const lines = stripAnsi(content).split(/\r\n?|\n/);
   const errors: string[] = [];
   let currentError: string | undefined = undefined;
 

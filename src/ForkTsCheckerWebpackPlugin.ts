@@ -13,8 +13,9 @@ import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
+import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
+import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
   private readonly options: ForkTsCheckerWebpackPluginOptions;
@@ -56,7 +57,8 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
 
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
       tapDoneToCollectRemoved(compiler, configuration, state);
-      tapStopToDisconnectReporter(compiler, reporter, configuration, state);
+      tapStopToDisconnectReporter(compiler, reporter, state);
+      tapErrorToLogMessage(compiler, configuration);
     } else {
       throw new Error(
         `ForkTsCheckerWebpackPlugin is configured to not use any issue reporter. It's probably a configuration issue.`

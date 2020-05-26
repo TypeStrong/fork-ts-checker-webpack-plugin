@@ -61,20 +61,24 @@ function tapStartToConnectAndRunReporter(
       configuration.logger.infrastructure.info('Calling reporter service for single check.');
     }
 
-    change = hooks.start.call(change, compilation);
+    state.report = new Promise(async (resolve) => {
+      change = await hooks.start.promise(change, compilation);
 
-    state.report = reporter
-      .connect()
-      .then(() => reporter.getReport(change))
-      .catch((error) => {
+      try {
+        await reporter.connect();
+        const report = await reporter.getReport(change);
+
+        resolve(report);
+      } catch (error) {
         if (error instanceof OperationCanceledError) {
           hooks.canceled.call(compilation);
         } else {
           hooks.error.call(error, compilation);
         }
 
-        return undefined;
-      });
+        resolve(undefined);
+      }
+    });
   });
 }
 

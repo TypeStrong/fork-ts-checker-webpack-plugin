@@ -1,5 +1,5 @@
 import * as webpack from 'webpack';
-import { SyncHook, SyncWaterfallHook } from 'tapable';
+import { SyncHook, SyncWaterfallHook, AsyncSeriesWaterfallHook } from 'tapable';
 import { FilesChange } from '../reporter';
 import { Issue } from '../issue';
 
@@ -10,7 +10,7 @@ const compilerHookMap = new WeakMap<
 
 function createForkTsCheckerWebpackPluginHooks() {
   return {
-    start: new SyncWaterfallHook<FilesChange, webpack.compilation.Compilation>([
+    start: new AsyncSeriesWaterfallHook<FilesChange, webpack.compilation.Compilation>([
       'change',
       'compilation',
     ]),
@@ -30,7 +30,7 @@ function forwardForkTsCheckerWebpackPluginHooks(
   source: ForkTsCheckerWebpackPluginHooks,
   target: ForkTsCheckerWebpackPluginHooks
 ) {
-  source.start.tap('ForkTsCheckerWebpackPlugin', target.start.call);
+  source.start.tapPromise('ForkTsCheckerWebpackPlugin', target.start.promise);
   source.waiting.tap('ForkTsCheckerWebpackPlugin', target.waiting.call);
   source.canceled.tap('ForkTsCheckerWebpackPlugin', target.canceled.call);
   source.error.tap('ForkTsCheckerWebpackPlugin', target.error.call);

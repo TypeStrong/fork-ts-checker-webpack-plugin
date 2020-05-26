@@ -8,6 +8,7 @@
     "tsc": "tsc"
   },
   "devDependencies": {
+    "@types/webpack": "^4.0.0",
     "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
     "typescript": "~3.8.0"
   }
@@ -21,8 +22,8 @@
     "lib": ["ES6", "DOM"],
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
+    "skipLibCheck": false,
+    "skipDefaultLibCheck": false,
     "strict": true,
     "baseUrl": "./"
   },

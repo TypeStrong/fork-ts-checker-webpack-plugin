@@ -1,13 +1,14 @@
 import os from 'os';
 import fs from 'fs-extra';
-import { codeFrameColumns, BabelCodeFrameOptions } from '@babel/code-frame';
+import { codeFrameColumns } from '@babel/code-frame';
 import { Formatter } from './Formatter';
 import { createBasicFormatter } from './BasicFormatter';
+import { BabelCodeFrameOptions } from './types/babel__code-frame';
 
-function createCodeframeFormatter(options?: BabelCodeFrameOptions): Formatter {
+function createCodeFrameFormatter(options?: BabelCodeFrameOptions): Formatter {
   const basicFormatter = createBasicFormatter();
 
-  return function codeframeFormatter(issue) {
+  return function codeFrameFormatter(issue) {
     const source = issue.file && fs.existsSync(issue.file) && fs.readFileSync(issue.file, 'utf-8');
 
     let frame = '';
@@ -30,4 +31,4 @@ function createCodeframeFormatter(options?: BabelCodeFrameOptions): Formatter {
   };
 }
 
-export { createCodeframeFormatter, BabelCodeFrameOptions };
+export { createCodeFrameFormatter, BabelCodeFrameOptions };

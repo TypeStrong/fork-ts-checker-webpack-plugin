@@ -2,11 +2,11 @@
  * This declaration is copied from https://github.com/vuejs/vue/pull/7918
  * which may included vue-template-compiler v2.6.0.
  */
-interface SFCParserOptions {
+interface SFCParserOptionsV2 {
   pad?: true | 'line' | 'space';
 }
 
-export interface SFCBlock {
+export interface SFCBlockV2 {
   type: string;
   content: string;
   attrs: Record<string, string>;
@@ -18,13 +18,13 @@ export interface SFCBlock {
   module?: string | boolean;
 }
 
-export interface SFCDescriptor {
-  template: SFCBlock | undefined;
-  script: SFCBlock | undefined;
-  styles: SFCBlock[];
-  customBlocks: SFCBlock[];
+export interface SFCDescriptorV2 {
+  template: SFCBlockV2 | undefined;
+  script: SFCBlockV2 | undefined;
+  styles: SFCBlockV2[];
+  customBlocks: SFCBlockV2[];
 }
 
-export interface VueTemplateCompiler {
-  parseComponent(file: string, options?: SFCParserOptions): SFCDescriptor;
+export interface VueTemplateCompilerV2 {
+  parseComponent(file: string, options?: SFCParserOptionsV2): SFCDescriptorV2;
 }

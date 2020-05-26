@@ -1,4 +1,4 @@
-## VS Code Configuration Example
+## VS Code configuration example
 
 This example defines `.vscode/tasks.json` file which instructs **VS Code** how to extract errors from the webpack's output
 to display them in the **Problems** tab. It uses [TypeScript + Webpack Problem Matchers](https://marketplace.visualstudio.com/items?itemName=eamodio.tsl-problem-matcher) 

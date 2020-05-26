@@ -5,16 +5,44 @@ import {
 import fs from 'fs-extra';
 import { TypeScriptExtension } from '../TypeScriptExtension';
 import { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
-import { VueTemplateCompiler } from './types/vue-template-compiler';
+import { VueTemplateCompilerV2 } from './types/vue-template-compiler';
+import { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
+
+interface GenericScriptSFCBlock {
+  content: string;
+  attrs: Record<string, string | true>;
+  start?: number;
+  end?: number;
+  lang?: string;
+  src?: string;
+}
 
 function createTypeScriptVueExtension(
   configuration: TypeScriptVueExtensionConfiguration
 ): TypeScriptExtension {
-  function loadVueCompiler(): VueTemplateCompiler {
+  function loadVueTemplateCompiler(): VueTemplateCompilerV2 | VueTemplateCompilerV3 {
     return require(configuration.compiler);
   }
 
-  function getExtensionByLang(lang: string | undefined): TypeScriptEmbeddedSource['extension'] {
+  function isVueTemplateCompilerV2(
+    compiler: VueTemplateCompilerV2 | VueTemplateCompilerV3
+  ): compiler is VueTemplateCompilerV2 {
+    return typeof (compiler as VueTemplateCompilerV2).parseComponent === 'function';
+  }
+
+  function isVueTemplateCompilerV3(
+    compiler: VueTemplateCompilerV2 | VueTemplateCompilerV3
+  ): compiler is VueTemplateCompilerV3 {
+    return typeof (compiler as VueTemplateCompilerV3).parse === 'function';
+  }
+
+  function getExtensionByLang(
+    lang: string | true | undefined
+  ): TypeScriptEmbeddedSource['extension'] {
+    if (lang === true) {
+      return '.js';
+    }
+
     switch (lang) {
       case 'ts':
         return '.ts';
@@ -36,7 +64,7 @@ function createTypeScriptVueExtension(
 
   function createVueSrcScriptEmbeddedSource(
     src: string,
-    lang: string | undefined
+    lang: string | true | undefined
   ): TypeScriptEmbeddedSource {
     // Import path cannot be end with '.ts[x]'
     src = src.replace(/\.tsx?$/i, '');
@@ -58,7 +86,7 @@ function createTypeScriptVueExtension(
 
   function createVueInlineScriptEmbeddedSource(
     text: string,
-    lang: string | undefined
+    lang: string | true | undefined
   ): TypeScriptEmbeddedSource {
     return {
       sourceText: text,
@@ -71,19 +99,46 @@ function createTypeScriptVueExtension(
       return undefined;
     }
 
-    const compiler = loadVueCompiler();
+    const compiler = loadVueTemplateCompiler();
     const vueSourceText = fs.readFileSync(fileName, { encoding: 'utf-8' });
 
-    const { script } = compiler.parseComponent(vueSourceText, {
-      pad: 'space',
-    });
+    let script: GenericScriptSFCBlock | undefined;
+    if (isVueTemplateCompilerV2(compiler)) {
+      const parsed = compiler.parseComponent(vueSourceText, {
+        pad: 'space',
+      });
+
+      script = parsed.script;
+    } else if (isVueTemplateCompilerV3(compiler)) {
+      const parsed = compiler.parse(vueSourceText);
+
+      if (parsed.descriptor && parsed.descriptor.script) {
+        const scriptV3 = parsed.descriptor.script;
+
+        // map newer version of SFCScriptBlock to the generic one
+        script = {
+          content: scriptV3.content,
+          attrs: scriptV3.attrs,
+          start: scriptV3.loc.start.offset,
+          end: scriptV3.loc.end.offset,
+          lang: scriptV3.lang,
+          src: scriptV3.src,
+        };
+      }
+    } else {
+      throw new Error(
+        'Unsupported vue template compiler. Compiler should provide `parse` or `parseComponent` function.'
+      );
+    }
 
     if (!script) {
       // No <script> block
       return createVueNoScriptEmbeddedSource();
     } else if (script.attrs.src) {
       // <script src="file.ts" /> block
-      return createVueSrcScriptEmbeddedSource(script.attrs.src, script.attrs.lang);
+      if (typeof script.attrs.src === 'string') {
+        return createVueSrcScriptEmbeddedSource(script.attrs.src, script.attrs.lang);
+      }
     } else {
       // <script lang="ts"></script> block
       // pad blank lines to retain diagnostics location

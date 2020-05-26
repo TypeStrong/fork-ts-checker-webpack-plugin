@@ -22,8 +22,9 @@ function parseFixture(content: string, params: Record<string, string> = {}): Fix
     }
 
     if (currentPath) {
-      const match = INTERPOLATION_REGEXP.exec(line);
-      if (match) {
+      let match;
+
+      while ((match = INTERPOLATION_REGEXP.exec(line))) {
         const interpolation = match[0];
         const name = match[1];
 

@@ -8,16 +8,15 @@
     "webpack-dev-server": "webpack-dev-server"
   },
   "dependencies": {
-    "vue": "^2.6.11",
-    "vue-class-component": "^7.2.2"
+    "vue": ${VUE_VERSION}
   },
   "devDependencies": {
     "css-loader": "^3.4.2",
     "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
     "ts-loader": ${TS_LOADER_VERSION},
     "typescript": ${TYPESCRIPT_VERSION},
-    "vue-loader": "^15.8.3",
-    "vue-template-compiler": "^2.6.11",
+    "vue-loader": ${VUE_LOADER_VERSION},
+    ${VUE_COMPILER}: ${VUE_VERSION},
     "qrcode.vue": "^1.7.0",
     "webpack": ${WEBPACK_VERSION},
     "webpack-cli": ${WEBPACK_CLI_VERSION},
@@ -51,8 +50,16 @@
 
 /// webpack.config.js
 const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+
+let VueLoaderPlugin;
+try {
+  // vue-loader 15
+  VueLoaderPlugin = require('vue-loader/lib/plugin');
+} catch (error) {
+  // vue-loader 16
+  VueLoaderPlugin = require('vue-loader/dist/plugin').default;
+}
 
 module.exports = {
   entry: './src/index.ts',
@@ -94,7 +101,10 @@ module.exports = {
       async: ${ASYNC},
       typescript: {
         extensions: {
-          vue: true
+          vue: {
+            enabled: true,
+            compiler: ${VUE_COMPILER}
+          }
         }
       },
       logger: {
@@ -103,9 +113,3 @@ module.exports = {
     })
   ]
 };
-
-/// src/vue-shim.d.ts
-declare module "*.vue" {
-    import Vue from "vue";
-    export default Vue;
-}

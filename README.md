@@ -178,7 +178,7 @@ Options for the ESLint linter (`eslint` option object).
 
 | Name                 | Type                   | Default value             | Description |
 | -------------------- | ---------------------- | ------------------------- | ----------- |
-| `enabled`            | `boolean`              | `true`                    | If `true`, it enables ESLint linter. |
+| `enabled`            | `boolean`              | `false`                   | If `true`, it enables ESLint linter. |
 | `files`              | `string` or `string[]` | This value is required    | One or more [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)) to the files that should be linted. Works the same as the `eslint` command. |
 | `memoryLimit`        | `number`               | `2048`                    | Memory limit for the linter process in MB. If the process exits with the allocation failed error, try to increase this number. |
 | `options`            | `object`               | `{}`                      | [Options](https://eslint.org/docs/developer-guide/nodejs-api#cliengine) that can be used to initialize ESLint. |
@@ -316,13 +316,13 @@ If you use **TypeScript >=3.8.0**, you can fix it by passing `"importsNotUsedAsV
 
 This plugin provides some custom webpack hooks:
 
-| Hook key   | Type                | Params                | Description |
-| ---------- | ------------------- | --------------------- | ----------- |
-| `start`    | `SyncWaterfallHook` | `change, compilation` | Starts issues checking for a compilation. It's a waterfall hook, so you can modify the list of changed and removed files. |
-| `waiting`  | `SyncHook`          | `compilation`         | Waiting for the issues checking. |
-| `canceled` | `SyncHook`          | `compilation`         | Issues checking for the compilation has been canceled. |
-| `error`    | `SyncHook`          | `compilation`         | An error occurred during issues checking. |
-| `issues`   | `SyncWaterfallHook` | `issues, compilation` | Issues have been received and will be reported. It's a waterfall hook, so you can modify the list of received issues. |
+| Hook key   | Type                       | Params                | Description |
+| ---------- | -------------------------- | --------------------- | ----------- |
+| `start`    | `AsyncSeriesWaterfallHook` | `change, compilation` | Starts issues checking for a compilation. It's an async waterfall hook, so you can modify the list of changed and removed files or delay the start of the service. |
+| `waiting`  | `SyncHook`                 | `compilation`         | Waiting for the issues checking. |
+| `canceled` | `SyncHook`                 | `compilation`         | Issues checking for the compilation has been canceled. |
+| `error`    | `SyncHook`                 | `compilation`         | An error occurred during issues checking. |
+| `issues`   | `SyncWaterfallHook`        | `issues, compilation` | Issues have been received and will be reported. It's a waterfall hook, so you can modify the list of received issues. |
 
 To access plugin hooks and tap into the event, we need to use the `getCompilerHooks` static method.
 When we call this method with a [webpack compiler instance](https://webpack.js.org/api/node/), it returns the object with

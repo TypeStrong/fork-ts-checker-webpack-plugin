@@ -41,6 +41,8 @@ export default class App extends Vue {
     <input v-model="email" name="email" type="email" />
     <input v-model="password" name="password" type="password" />
 
+    <qrcode-vue :value="url"></qrcode-vue>
+
     <button type="submit" v-bind:disabled="pending">Login</button>
   </form>
 </template>
@@ -48,12 +50,14 @@ export default class App extends Vue {
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import QrcodeVue from "qrcode.vue";
 
 @Component
 export default class LoginForm extends Vue {
   public email = '';
   public password = '';
   public pending = false;
+  public url = 'http://my-site.com/login';
 
   async login() {
     try {

@@ -38,7 +38,8 @@
     "test:pack": "yarn pack --filename fork-ts-checker-webpack-plugin.tgz",
     "test:e2e": "yarn test:pack && cross-env jest e2e --ci --runInBand --bail --verbose",
     "precommit": "cross-env lint-staged && yarn build && yarn test:unit",
-    "commit": "cross-env git-cz"
+    "commit": "cross-env git-cz",
+    "semantic-release": "semantic-release"
   },
   "husky": {
     "hooks": {
@@ -73,6 +74,11 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^8.3.4",
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/exec": "^5.0.0",
+    "@semantic-release/github": "^7.0.7",
+    "@semantic-release/npm": "^7.0.5",
+    "@semantic-release/release-notes-generator": "^9.0.1",
     "@types/babel__code-frame": "^7.0.1",
     "@types/cross-spawn": "^6.0.2",
     "@types/eslint": "^6.8.0",
@@ -101,6 +107,7 @@
     "mock-fs": "^4.11.0",
     "prettier": "^2.0.4",
     "rimraf": "^3.0.2",
+    "semantic-release": "^17.0.0",
     "strip-ansi": "^6.0.0",
     "tree-kill": "^1.2.2",
     "ts-jest": "^25.3.1",

@@ -97,4 +97,4 @@ jobs:
           path: lib
 
       - name: Release
-        run: npx semantic-release@16.0.2
+        run: yarn semantic-release

@@ -31,10 +31,16 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
         lintReports.push(engine.executeOnFiles(includedFilesPatterns));
         isInitialRun = false;
       } else {
-        const changedAndIncludedFiles = changedFiles.filter((changedFile) =>
-          includedFilesPatterns.some((includedFilesPattern) =>
-            minimatch(changedFile, includedFilesPattern)
-          )
+        // we need to take care to not lint files that are not included by the configuration.
+        // the eslint engine will not exclude them automatically
+        const changedAndIncludedFiles = changedFiles.filter(
+          (changedFile) =>
+            includedFilesPatterns.some((includedFilesPattern) =>
+              minimatch(changedFile, includedFilesPattern)
+            ) &&
+            (configuration.options.extensions || []).some((extension) =>
+              changedFile.endsWith(extension)
+            )
         );
 
         if (changedAndIncludedFiles.length) {

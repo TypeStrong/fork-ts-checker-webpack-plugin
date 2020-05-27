@@ -36,7 +36,7 @@ function createEsLintReporterConfiguration(
     ),
     options: {
       cwd: compiler.options.context || process.cwd(),
-      extensions: ['.js', '.ts', '.tsx'],
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
       ...(typeof options === 'object' ? options.options || {} : {}),
     },
   };

@@ -1,0 +1,21 @@
+{
+  "name": "fork-ts-checker-webpack-plugin-babel-loader-example",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack-dev-server",
+    "build": "webpack -p"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "@babel/preset-typescript": "^7.6.0",
+    "babel-loader": "^8.0.0",
+    "fork-ts-checker-webpack-plugin": "^5.0.0-alpha.9",
+    "typescript": "^3.8.0",
+    "webpack": "^4.0.0",
+    "webpack-cli": "^3.0.0",
+    "webpack-dev-server": "^3.0.0"
+  }
+}

@@ -65,6 +65,10 @@ module.exports = {
 If you are using **TypeScript >= 2.8.0**, it's recommended to set `"importsNotUsedAsValues": "preserve"` [compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) 
 in the `tsconfig.json`. [Here is an explanation.](#type-only-modules-watching)
 
+> You can find examples how to configure it with [babel-loader](https://github.com/babel/babel-loader), [ts-loader](https://github.com/TypeStrong/ts-loader),
+> [eslint](https://github.com/eslint/eslint) and [Visual Studio Code](https://code.visualstudio.com/) in the 
+> [**examples**](./examples) directory.
+
 ## Modules resolution
 
 It's very important to be aware that **this plugin uses [TypeScript](https://github.com/Microsoft/TypeScript)'s, not
@@ -97,7 +101,7 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       eslint: {
-        files: './src/**/*.ts' // required - same as command `eslint ./src/**/*.ts`
+        files: './src/**/*' // required - same as command `eslint ./src/**/* --ext .ts,.tsx,.js,.jsx`
       }
     })
   ]
@@ -108,19 +112,15 @@ You should also have an ESLint configuration file in your root project directory
 Here is a sample `.eslintrc.js` configuration for a TypeScript project:
 
 ```js
-const path = require('path');
-
 module.exports = {
-  parser: '@typescript-eslint/parser', // specifies the ESLint parser
-  extends: [
-    'plugin:@typescript-eslint/recommended' // uses the recommended rules from the @typescript-eslint/eslint-plugin
-  ],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: path.resolve(__dirname, './tsconfig.json'),
-    tsconfigRootDir: __dirname,
-    ecmaVersion: 2018, // allows for the parsing of modern ECMAScript features
-    sourceType: 'module', // allows for the use of imports
+    ecmaVersion: 2018,
+    sourceType: 'module',
   },
+  extends: [
+    'plugin:@typescript-eslint/recommended'
+  ],
   rules: {
     // place to specify ESLint rules - can be used to overwrite rules specified from the extended configs
     // e.g. "@typescript-eslint/explicit-function-return-type": "off",

@@ -47,8 +47,8 @@ describe('EsLint', () => {
       // test case for providing absolute path to files
       await sandbox.patch(
         'webpack.config.js',
-        "files: './src/**/*.ts'",
-        "files: path.resolve(__dirname, './src/**/*.ts')"
+        "files: './src/**/*'",
+        "files: path.resolve(__dirname, './src/**/*')"
       );
     }
 
@@ -95,6 +95,23 @@ describe('EsLint', () => {
         "loginForm.addEventListener('submit', async () => {"
       ),
     ]);
+
+    // next iteration should have no errors
+    await driver.waitForNoErrors();
+
+    // add a file that shouldn't be linted
+    await sandbox.write('src/style.css', 'body { background: red; }');
+    await sandbox.patch(
+      'src/index.ts',
+      "import { getUserName } from './model/User';",
+      "import { getUserName } from './model/User';\nimport './style.css';"
+    );
+
+    // next iteration should have no errors
+    await driver.waitForNoErrors();
+
+    // modify the css again
+    await sandbox.patch('src/style.css', 'body { background: red; }', 'body { background: blue; }');
 
     // next iteration should have no errors
     await driver.waitForNoErrors();

@@ -15,3 +15,6 @@ node_modules
 
 # Editor directories and files
 .idea
+
+# Mac OS
+.DS_Store

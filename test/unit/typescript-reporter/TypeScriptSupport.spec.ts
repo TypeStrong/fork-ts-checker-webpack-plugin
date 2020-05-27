@@ -11,6 +11,7 @@ describe('typescript-reporter/TypeScriptSupport', () => {
       tsconfig: './tsconfig.json',
       compilerOptions: {},
       build: false,
+      mode: 'readonly',
       diagnosticOptions: {
         declaration: false,
         global: true,

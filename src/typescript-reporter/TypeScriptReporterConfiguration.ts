@@ -14,6 +14,7 @@ interface TypeScriptReporterConfiguration {
   memoryLimit: number;
   tsconfig: string;
   build: boolean;
+  mode: 'readonly' | 'write-tsbuildinfo' | 'write-references';
   compilerOptions: Partial<ts.CompilerOptions>;
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   extensions: {
@@ -53,6 +54,7 @@ function createTypeScriptReporterConfiguration(
     enabled: options !== false,
     memoryLimit: 2048,
     build: false,
+    mode: 'readonly',
     ...(typeof options === 'object' ? options : {}),
     tsconfig: tsconfig,
     compilerOptions: compilerOptions,

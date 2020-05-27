@@ -9,9 +9,12 @@
     "webpack-dev-server": "webpack-dev-server"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.0",
+    "@babel/preset-env": "^7.10.0",
+    "@babel/preset-typescript": "^7.9.0",
+    "babel-loader": "^8.1.0",
     "lerna": "^3.0.0",
     "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
-    "ts-loader": ${TS_LOADER_VERSION},
     "typescript": ${TYPESCRIPT_VERSION},
     "webpack": ${WEBPACK_VERSION},
     "webpack-cli": ${WEBPACK_CLI_VERSION},
@@ -66,20 +69,22 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        loader: 'ts-loader',
+        test: /\.ts$/,
         exclude: /node_modules/,
+        loader: "babel-loader",
         options: {
-          transpileOnly: true,
-          projectReferences: true
-        }
+          presets: [
+            "@babel/preset-env",
+            "@babel/preset-typescript",
+          ],
+        },
       },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-    // as ts-loader doesn't fully support project references we put an alias to resolve package
-    // and to not pollute output with ts-loader errors
+    extensions: ['.ts', '.js'],
+    // as babel-loader doesn't support project references we put an alias to resolve package
+    // and to not pollute output with babel-loader errors
     alias: {
       "@project-references-fixture/shared": path.resolve(__dirname, "packages/shared/src")
     }
@@ -88,7 +93,11 @@ module.exports = {
     new ForkTsCheckerWebpackPlugin({
       async: ${ASYNC},
       typescript: {
-        build: true
+        build: true,
+        mode: ${MODE}
+      },
+      logger: {
+        infrastructure: 'console'
       }
     })
   ]

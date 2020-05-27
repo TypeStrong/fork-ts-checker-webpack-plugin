@@ -18,6 +18,8 @@ import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
+  static readonly version: string = '{{VERSION}}'; // will be replaced by the @semantic-release/exec
+
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
   constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {

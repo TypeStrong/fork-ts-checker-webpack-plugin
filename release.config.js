@@ -29,5 +29,12 @@ module.exports = {
     '@semantic-release/release-notes-generator',
     '@semantic-release/npm',
     '@semantic-release/github',
+    [
+      '@semantic-release/exec',
+      {
+        prepareCmd:
+          "sed -i 's/{{VERSION}}/${nextRelease.version}/g' lib/ForkTsCheckerWebpackPlugin.js",
+      },
+    ],
   ],
 };

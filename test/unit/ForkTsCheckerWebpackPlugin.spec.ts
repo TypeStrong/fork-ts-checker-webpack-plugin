@@ -9,6 +9,10 @@ describe('ForkTsCheckerWebpackPlugin', () => {
     }
   );
 
+  it('exposes current version', () => {
+    expect(ForkTsCheckerWebpackPlugin.version).toEqual('{{VERSION}}'); // will be replaced by the @semantic-release/exec
+  });
+
   it("doesn't throw an error for empty options", () => {
     expect(() => new ForkTsCheckerWebpackPlugin()).not.toThrowError();
   });

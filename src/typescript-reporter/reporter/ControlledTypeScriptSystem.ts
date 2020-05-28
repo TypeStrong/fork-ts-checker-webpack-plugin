@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import { dirname } from 'path';
 import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
-import normalizeSlash from '../../utils/path/normalizeSlash';
+import forwardSlash from '../../utils/path/forwardSlash';
 import { createRealFileSystem } from '../file-system/RealFileSystem';
 
 interface ControlledTypeScriptSystem extends ts.System {
@@ -82,7 +82,7 @@ function createControlledTypeScriptSystem(
     const fileWatchers = fileWatchersMap.get(normalizedPath);
     if (fileWatchers) {
       // typescript expects normalized paths with posix forward slash
-      fileWatchers.forEach((fileWatcher) => fileWatcher(normalizeSlash(normalizedPath), event));
+      fileWatchers.forEach((fileWatcher) => fileWatcher(forwardSlash(normalizedPath), event));
     }
   }
 
@@ -93,7 +93,7 @@ function createControlledTypeScriptSystem(
     const directoryWatchers = directoryWatchersMap.get(directory);
     if (directoryWatchers) {
       directoryWatchers.forEach((directoryWatcher) =>
-        directoryWatcher(normalizeSlash(normalizedPath))
+        directoryWatcher(forwardSlash(normalizedPath))
       );
     }
 
@@ -101,7 +101,7 @@ function createControlledTypeScriptSystem(
       const recursiveDirectoryWatchers = recursiveDirectoryWatchersMap.get(directory);
       if (recursiveDirectoryWatchers) {
         recursiveDirectoryWatchers.forEach((recursiveDirectoryWatcher) =>
-          recursiveDirectoryWatcher(normalizeSlash(normalizedPath))
+          recursiveDirectoryWatcher(forwardSlash(normalizedPath))
         );
       }
 

@@ -1,5 +1,5 @@
 {
-  "name": "fork-ts-checker-webpack-plugin-ts-loader-example",
+  "name": "fork-ts-checker-webpack-plugin-eslint-example",
   "version": "0.0.0",
   "main": "dist/index.js",
   "license": "MIT",

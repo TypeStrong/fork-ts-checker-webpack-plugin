@@ -7,6 +7,7 @@ type TypeScriptReporterOptions =
       enabled?: boolean;
       memoryLimit?: number;
       tsconfig?: string;
+      context?: string;
       build?: boolean;
       mode?: 'readonly' | 'write-tsbuildinfo' | 'write-references';
       compilerOptions?: object;

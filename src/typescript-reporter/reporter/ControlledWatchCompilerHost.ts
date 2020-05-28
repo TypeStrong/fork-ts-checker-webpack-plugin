@@ -3,40 +3,25 @@ import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
 import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
-  configFileName: string,
-  optionsToExtend: ts.CompilerOptions | undefined,
+  parsedCommandLine: ts.ParsedCommandLine,
   system: ControlledTypeScriptSystem,
   createProgram?: ts.CreateProgram<TProgram>,
   reportDiagnostic?: ts.DiagnosticReporter,
   reportWatchStatus?: ts.WatchStatusReporter,
   afterProgramCreate?: (program: TProgram) => void,
   hostExtensions: TypeScriptHostExtension[] = []
-): ts.WatchCompilerHostOfConfigFile<TProgram> {
+): ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram> {
   const baseWatchCompilerHost = ts.createWatchCompilerHost(
-    configFileName,
-    optionsToExtend,
+    parsedCommandLine.fileNames,
+    parsedCommandLine.options,
     system,
     createProgram,
     reportDiagnostic,
-    reportWatchStatus
+    reportWatchStatus,
+    parsedCommandLine.projectReferences
   );
 
-  const parsedCommendLine = ts.getParsedCommandLineOfConfigFile(
-    configFileName,
-    optionsToExtend || {},
-    {
-      fileExists: baseWatchCompilerHost.fileExists,
-      readFile: baseWatchCompilerHost.readFile,
-      readDirectory: baseWatchCompilerHost.readDirectory,
-      useCaseSensitiveFileNames: baseWatchCompilerHost.useCaseSensitiveFileNames(),
-      getCurrentDirectory: baseWatchCompilerHost.getCurrentDirectory,
-      trace: baseWatchCompilerHost.trace,
-      // it's already registered in the watchCompilerHost
-      onUnRecoverableConfigFileDiagnostic: () => null,
-    }
-  );
-
-  let controlledWatchCompilerHost: ts.WatchCompilerHostOfConfigFile<TProgram> = {
+  let controlledWatchCompilerHost: ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram> = {
     ...baseWatchCompilerHost,
     createProgram(
       rootNames: ReadonlyArray<string> | undefined,
@@ -48,18 +33,12 @@ function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
     ): TProgram {
       // as compilerHost is optional, ensure that we have it
       if (!compilerHost) {
-        if (!options) {
-          options = parsedCommendLine ? parsedCommendLine.options : undefined;
-        }
-
-        if (options) {
-          compilerHost = ts.createCompilerHost(options);
-        }
+        compilerHost = ts.createCompilerHost(options || parsedCommandLine.options);
       }
 
       hostExtensions.forEach((hostExtension) => {
         if (compilerHost && hostExtension.extendCompilerHost) {
-          compilerHost = hostExtension.extendCompilerHost(compilerHost, parsedCommendLine);
+          compilerHost = hostExtension.extendCompilerHost(compilerHost, parsedCommandLine);
         }
       });
 
@@ -95,8 +74,8 @@ function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
     if (hostExtension.extendWatchCompilerHost) {
       controlledWatchCompilerHost = hostExtension.extendWatchCompilerHost<
         TProgram,
-        ts.WatchCompilerHostOfConfigFile<TProgram>
-      >(controlledWatchCompilerHost, parsedCommendLine);
+        ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram>
+      >(controlledWatchCompilerHost, parsedCommandLine);
     }
   });
 

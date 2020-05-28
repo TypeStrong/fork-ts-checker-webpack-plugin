@@ -43,8 +43,10 @@ function createIssueFromTsDiagnostic(diagnostic: ts.Diagnostic): Issue {
   };
 }
 
-function createIssuesFromTsDiagnostics(diagnostic: ts.Diagnostic[]): Issue[] {
-  return deduplicateAndSortIssues(diagnostic.map(createIssueFromTsDiagnostic));
+function createIssuesFromTsDiagnostics(diagnostics: ts.Diagnostic[]): Issue[] {
+  return deduplicateAndSortIssues(
+    diagnostics.map((diagnostic) => createIssueFromTsDiagnostic(diagnostic))
+  );
 }
 
 export { createIssuesFromTsDiagnostics };

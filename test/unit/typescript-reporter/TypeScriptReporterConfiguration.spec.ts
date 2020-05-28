@@ -1,16 +1,18 @@
 import webpack from 'webpack';
-import unixify from 'unixify';
+import path from 'path';
 import { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
 import { TypeScriptReporterOptions } from 'lib/typescript-reporter/TypeScriptReporterOptions';
 
 describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
   let compiler: webpack.Compiler;
   let createTypeScriptVueExtensionConfiguration: jest.Mock;
+  const context = '/webpack/context';
 
   const configuration: TypeScriptReporterConfiguration = {
     enabled: true,
     memoryLimit: 2048,
-    tsconfig: '/webpack/context/tsconfig.json',
+    tsconfig: path.normalize(path.resolve(context, 'tsconfig.json')),
+    context: path.normalize(path.dirname(path.resolve(context, 'tsconfig.json'))),
     build: false,
     mode: 'readonly',
     compilerOptions: {
@@ -34,7 +36,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
   beforeEach(() => {
     compiler = {
       options: {
-        context: '/webpack/context',
+        context,
       },
     } as webpack.Compiler;
     createTypeScriptVueExtensionConfiguration = jest.fn(() => ({
@@ -58,7 +60,10 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     [{ memoryLimit: 512 }, { ...configuration, memoryLimit: 512 }],
     [
       { tsconfig: 'tsconfig.another.json' },
-      { ...configuration, tsconfig: '/webpack/context/tsconfig.another.json' },
+      {
+        ...configuration,
+        tsconfig: path.normalize(path.resolve(context, 'tsconfig.another.json')),
+      },
     ],
     [{ build: true }, { ...configuration, build: true }],
     [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
@@ -87,9 +92,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
       options as TypeScriptReporterOptions
     );
 
-    expect({ ...configuration, tsconfig: unixify(configuration.tsconfig) }).toEqual(
-      expectedConfiguration
-    );
+    expect(configuration).toEqual(expectedConfiguration);
   });
 
   it('passes vue options to the vue extension', async () => {

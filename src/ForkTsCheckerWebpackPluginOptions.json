@@ -117,6 +117,10 @@
               "type": "string",
               "description": "Path to tsconfig.json. By default plugin uses context or process.cwd() to localize tsconfig.json file."
             },
+            "context": {
+              "type": "string",
+              "description": "The base path for finding files specified in the tsconfig.json. Same as context option from the ts-loader."
+            },
             "build": {
               "type": "boolean",
               "description": "The equivalent of the `--build` flag from the `tsc`."
@@ -125,10 +129,6 @@
               "type": "string",
               "enum": ["readonly", "write-tsbuildinfo", "write-references"],
               "description": "`readonly` keeps all emitted files in memory, `write-tsbuildinfo` which writes only .tsbuildinfo files and `write-references` which writes both .tsbuildinfo and referenced projects output"
-            },
-            "incremental": {
-              "type": "boolean",
-              "description": "The equivalent of the `--incremental` flag from the `tsc`."
             },
             "compilerOptions": {
               "type": "object",

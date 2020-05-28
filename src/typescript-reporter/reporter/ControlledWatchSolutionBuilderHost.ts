@@ -4,8 +4,7 @@ import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
 import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderProgram>(
-  configFileName: string,
-  optionsToExtend: ts.CompilerOptions | undefined,
+  parsedCommandLine: ts.ParsedCommandLine,
   system: ControlledTypeScriptSystem,
   createProgram?: ts.CreateProgram<TProgram>,
   reportDiagnostic?: ts.DiagnosticReporter,
@@ -16,8 +15,7 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
   hostExtensions: TypeScriptHostExtension[] = []
 ): ts.SolutionBuilderWithWatchHost<TProgram> {
   const controlledWatchCompilerHost = createControlledWatchCompilerHost(
-    configFileName,
-    optionsToExtend,
+    parsedCommandLine,
     system,
     createProgram,
     reportDiagnostic,
@@ -60,27 +58,12 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
     },
   };
 
-  const parsedCommendLine = ts.getParsedCommandLineOfConfigFile(
-    configFileName,
-    optionsToExtend || {},
-    {
-      fileExists: controlledWatchCompilerHost.fileExists,
-      readFile: controlledWatchCompilerHost.readFile,
-      readDirectory: controlledWatchCompilerHost.readDirectory,
-      useCaseSensitiveFileNames: controlledWatchCompilerHost.useCaseSensitiveFileNames(),
-      getCurrentDirectory: controlledWatchCompilerHost.getCurrentDirectory,
-      trace: controlledWatchCompilerHost.trace,
-      // it's already registered in the controlledWatchCompilerHost
-      onUnRecoverableConfigFileDiagnostic: () => null,
-    }
-  );
-
   hostExtensions.forEach((hostExtension) => {
     if (hostExtension.extendWatchSolutionBuilderHost) {
       controlledWatchSolutionBuilderHost = hostExtension.extendWatchSolutionBuilderHost<
         TProgram,
         ts.SolutionBuilderWithWatchHost<TProgram>
-      >(controlledWatchSolutionBuilderHost, parsedCommendLine);
+      >(controlledWatchSolutionBuilderHost, parsedCommandLine);
     }
   });
 

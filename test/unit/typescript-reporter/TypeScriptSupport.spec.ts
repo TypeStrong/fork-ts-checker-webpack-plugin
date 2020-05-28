@@ -9,6 +9,7 @@ describe('typescript-reporter/TypeScriptSupport', () => {
 
     configuration = {
       tsconfig: './tsconfig.json',
+      context: '.',
       compilerOptions: {},
       build: false,
       mode: 'readonly',

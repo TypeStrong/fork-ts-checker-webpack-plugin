@@ -2,7 +2,7 @@ import { Issue } from './index';
 import { IssuePredicate } from './IssuePredicate';
 import minimatch from 'minimatch';
 import path from 'path';
-import normalizeSlash from '../utils/path/normalizeSlash';
+import forwardSlash from '../utils/path/forwardSlash';
 
 type IssueMatch = Partial<Pick<Issue, 'origin' | 'severity' | 'code' | 'file'>>;
 
@@ -14,7 +14,7 @@ function createIssuePredicateFromIssueMatch(context: string, match: IssueMatch):
     const matchesFile =
       !issue.file ||
       (!!issue.file &&
-        (!match.file || minimatch(normalizeSlash(path.relative(context, issue.file)), match.file)));
+        (!match.file || minimatch(forwardSlash(path.relative(context, issue.file)), match.file)));
 
     return matchesOrigin && matchesSeverity && matchesCode && matchesFile;
   };

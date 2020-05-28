@@ -5,7 +5,7 @@
 lib
 
 # Package archive used by e2e tests
-fork-ts-checker-webpack-plugin.tgz
+fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz
 
 # Coverage directory used by tools like istanbul
 coverage

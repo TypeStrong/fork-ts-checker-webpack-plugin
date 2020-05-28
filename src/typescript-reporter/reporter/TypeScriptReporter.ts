@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import path from 'path';
 import { FilesChange, Reporter } from '../../reporter';
 import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
 import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
@@ -10,13 +11,15 @@ import {
   ControlledTypeScriptSystem,
   createControlledTypeScriptSystem,
 } from './ControlledTypeScriptSystem';
+import { parseTypeScriptConfiguration } from './TypeScriptConfigurationParser';
 
 function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration): Reporter {
   const extensions: TypeScriptExtension[] = [];
 
   let system: ControlledTypeScriptSystem | undefined;
+  let parsedConfiguration: ts.ParsedCommandLine | undefined;
   let watchCompilerHost:
-    | ts.WatchCompilerHostOfConfigFile<ts.SemanticDiagnosticsBuilderProgram>
+    | ts.WatchCompilerHostOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
     | undefined;
   let watchSolutionBuilderHost:
     | ts.SolutionBuilderWithWatchHost<ts.SemanticDiagnosticsBuilderProgram>
@@ -36,13 +39,6 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
   function getDiagnosticsOfBuilderProgram(builderProgram: ts.BuilderProgram) {
     const diagnostics: ts.Diagnostic[] = [];
-
-    if (typeof builderProgram.getConfigFileParsingDiagnostics === 'function') {
-      diagnostics.push(...builderProgram.getConfigFileParsingDiagnostics());
-    }
-    if (typeof builderProgram.getOptionsDiagnostics === 'function') {
-      diagnostics.push(...builderProgram.getOptionsDiagnostics());
-    }
 
     if (configuration.diagnosticOptions.syntactic) {
       diagnostics.push(...builderProgram.getSyntacticDiagnostics());
@@ -69,13 +65,66 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
       // clear cache to be ready for next iteration and to free memory
       system.clearCache();
 
+      if (
+        [...changedFiles, ...deletedFiles]
+          .map((affectedFile) => path.normalize(affectedFile))
+          .includes(path.normalize(configuration.tsconfig))
+      ) {
+        // we need to re-create programs
+        parsedConfiguration = undefined;
+        watchCompilerHost = undefined;
+        watchSolutionBuilderHost = undefined;
+        watchProgram = undefined;
+        solutionBuilder = undefined;
+
+        diagnosticsPerProject.clear();
+      }
+
+      if (!parsedConfiguration) {
+        const parseConfigurationDiagnostics: ts.Diagnostic[] = [];
+
+        parsedConfiguration = parseTypeScriptConfiguration(
+          configuration.tsconfig,
+          configuration.context,
+          configuration.compilerOptions,
+          {
+            ...system,
+            onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
+              parseConfigurationDiagnostics.push(diagnostic);
+            },
+          }
+        );
+        if (parsedConfiguration.errors) {
+          parseConfigurationDiagnostics.push(...parsedConfiguration.errors);
+        }
+
+        // report configuration diagnostics and exit
+        if (parseConfigurationDiagnostics.length) {
+          parsedConfiguration = undefined;
+          let issues = createIssuesFromTsDiagnostics(parseConfigurationDiagnostics);
+
+          issues.forEach((issue) => {
+            if (!issue.file) {
+              issue.file = configuration.tsconfig;
+            }
+          });
+
+          extensions.forEach((extension) => {
+            if (extension.extendIssues) {
+              issues = extension.extendIssues(issues);
+            }
+          });
+
+          return issues;
+        }
+      }
+
       if (configuration.build) {
         // solution builder case
         // ensure watch solution builder host exists
         if (!watchSolutionBuilderHost) {
           watchSolutionBuilderHost = createControlledWatchSolutionBuilderHost(
-            configuration.tsconfig,
-            configuration.compilerOptions as ts.CompilerOptions, // assume that these are valid ts.CompilerOptions
+            parsedConfiguration,
             system,
             ts.createSemanticDiagnosticsBuilderProgram,
             undefined,
@@ -108,8 +157,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         // ensure watch compiler host exists
         if (!watchCompilerHost) {
           watchCompilerHost = createControlledWatchCompilerHost(
-            configuration.tsconfig,
-            configuration.compilerOptions as ts.CompilerOptions, // assume that these are valid ts.CompilerOptions
+            parsedConfiguration,
             system,
             ts.createSemanticDiagnosticsBuilderProgram,
             undefined,

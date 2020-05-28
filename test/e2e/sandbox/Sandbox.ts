@@ -276,12 +276,12 @@ async function createSandbox(): Promise<Sandbox> {
 
 const FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION = join(
   resolve(__dirname, '../../..'),
-  'fork-ts-checker-webpack-plugin.tgz'
+  'fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz'
 );
 
 if (!fs.pathExistsSync(FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION)) {
   throw new Error(
-    `Cannot find ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION} file. To run e2e test, execute "yarn pack --filename fork-ts-checker-webpack-plugin.tgz" command before.`
+    `Cannot find ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION} file. To run e2e test, execute "npm pack" command before.`
   );
 }
 

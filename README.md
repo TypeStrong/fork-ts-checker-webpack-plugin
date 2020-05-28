@@ -153,15 +153,16 @@ Options passed to the plugin constructor will overwrite options from the cosmico
 
 Options for the TypeScript checker (`typescript` option object).
 
-| Name                 | Type      | Default value                                                             | Description |
-| -------------------- | --------- | ------------------------------------------------------------------------- | ----------- |
-| `enabled`            | `boolean` | `true`                                                                    | If `true`, it enables TypeScript checker. |
-| `memoryLimit`        | `number`  | `2048`                                                                    | Memory limit for the checker process in MB. If the process exits with the allocation failed error, try to increase this number. |
-| `tsconfig`           | `string`  | `'tsconfig.json'`                                                         | Path to the `tsconfig.json` file (path relative to the `compiler.options.context` or absolute path) |
-| `build`              | `boolean` | `false`                                                                   | The equivalent of the `--build` flag for the `tsc` command. To enable `incremental` mode, set it in the `tsconfig.json` file. _Note that this plugin doesn't emit any files even in the `build` mode._ |
-| `compilerOptions`    | `object`  | `{ skipLibCheck: true, skipDefaultLibCheck: true  }`                      | These options will overwrite compiler options from the `tsconfig.json` file. |
-| `diagnosticsOptions` | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }` | Settings to select which diagnostics do we want to perform. |
-| `extensions`         | `object`  | `{}`                                                                      | See [TypeScript extensions options](#typescript-extensions-options). |
+| Name                 | Type                  | Default value                                                             | Description |
+| -------------------- | --------------------- | ------------------------------------------------------------------------- | ----------- |
+| `enabled`            | `boolean`             | `true`                                                                    | If `true`, it enables TypeScript checker. |
+| `memoryLimit`        | `number`              | `2048`                                                                    | Memory limit for the checker process in MB. If the process exits with the allocation failed error, try to increase this number. |
+| `tsconfig`           | `string`              | `'tsconfig.json'`                                                         | Path to the `tsconfig.json` file (path relative to the `compiler.options.context` or absolute path) |
+| `build`              | `boolean`             | `false`                                                                   | If truthy, it's the equivalent of the `--build` flag for the `tsc` command. |
+| `mode`               | `'readonly'` or `'write-tsbuildinfo'` or `'write-references'` | `'readonly'`                      | If you use the `babel-loader`, it's recommended to use `write-references` mode to improve initial compilation time. If you use `ts-loader`, it's recommended to use `readonly` mode to not overwrite filed emitted by `ts-loader`. |
+| `compilerOptions`    | `object`              | `{ skipLibCheck: true, skipDefaultLibCheck: true  }`                      | These options will overwrite compiler options from the `tsconfig.json` file. |
+| `diagnosticsOptions` | `object`              | `{ syntactic: false, semantic: true, declaration: false, global: false }` | Settings to select which diagnostics do we want to perform. |
+| `extensions`         | `object`              | `{}`                                                                      | See [TypeScript extensions options](#typescript-extensions-options). |
 
 #### TypeScript extensions options
 

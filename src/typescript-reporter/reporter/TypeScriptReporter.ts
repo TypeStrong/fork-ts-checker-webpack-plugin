@@ -63,7 +63,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
   return {
     getReport: async ({ changedFiles = [], deletedFiles = [] }: FilesChange) => {
       if (!system) {
-        system = createControlledTypeScriptSystem();
+        system = createControlledTypeScriptSystem(configuration.mode);
       }
 
       // clear cache to be ready for next iteration and to free memory

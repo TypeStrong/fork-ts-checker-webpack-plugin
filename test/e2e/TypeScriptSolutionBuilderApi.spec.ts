@@ -23,20 +23,21 @@ describe('TypeScript SolutionBuilder API', () => {
   });
 
   it.each([
-    { async: false, typescript: '~3.6.0' },
-    { async: true, typescript: '~3.8.0' },
-  ])('reports semantic error for %p', async ({ async, typescript }) => {
+    { async: false, typescript: '~3.6.0', mode: 'readonly' },
+    { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
+    { async: false, typescript: '~3.8.0', mode: 'write-references' },
+  ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/typescript-monorepo.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
         ),
-        TS_LOADER_VERSION: JSON.stringify('^7.0.1'),
         TYPESCRIPT_VERSION: JSON.stringify(typescript),
         WEBPACK_VERSION: JSON.stringify('^4.0.0'),
         WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
         WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
         ASYNC: JSON.stringify(async),
+        MODE: JSON.stringify(mode),
       }),
       await readFixture(join(__dirname, 'fixtures/implementation/typescript-monorepo.fixture')),
     ]);
@@ -99,5 +100,44 @@ describe('TypeScript SolutionBuilder API', () => {
 
     // this compilation should be successful
     await driver.waitForNoErrors();
+
+    switch (mode) {
+      case 'readonly':
+        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(false);
+        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(false);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(false);
+        break;
+
+      case 'write-tsbuildinfo':
+        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(false);
+
+        expect(await sandbox.read('packages/shared/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/tsconfig.tsbuildinfo')).not.toEqual('');
+
+        await sandbox.remove('packages/shared/tsconfig.tsbuildinfo');
+        await sandbox.remove('packages/client/tsconfig.tsbuildinfo');
+        break;
+
+      case 'write-references':
+        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(true);
+
+        expect(await sandbox.read('packages/shared/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/tsconfig.tsbuildinfo')).not.toEqual('');
+
+        await sandbox.remove('packages/shared/tsconfig.tsbuildinfo');
+        await sandbox.remove('packages/client/tsconfig.tsbuildinfo');
+        await sandbox.remove('packages/shared/lib');
+        await sandbox.remove('packages/client/lib');
+        break;
+    }
   });
 });

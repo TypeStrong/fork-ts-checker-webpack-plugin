@@ -12,6 +12,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     memoryLimit: 2048,
     tsconfig: '/webpack/context/tsconfig.json',
     build: false,
+    mode: 'readonly',
     compilerOptions: {
       skipDefaultLibCheck: true,
       skipLibCheck: true,
@@ -60,6 +61,8 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
       { ...configuration, tsconfig: '/webpack/context/tsconfig.another.json' },
     ],
     [{ build: true }, { ...configuration, build: true }],
+    [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
+    [{ mode: 'write-references' }, { ...configuration, mode: 'write-references' }],
     [
       { compilerOptions: { strict: true } },
       {

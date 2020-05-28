@@ -1,7 +1,8 @@
 import * as ts from 'typescript';
 import { dirname } from 'path';
-import { createPassiveFileSystem } from './PassiveFileSystem';
+import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
 import normalizeSlash from '../../utils/path/normalizeSlash';
+import { createRealFileSystem } from '../file-system/RealFileSystem';
 
 interface ControlledTypeScriptSystem extends ts.System {
   // control watcher
@@ -34,7 +35,11 @@ interface ControlledTypeScriptSystem extends ts.System {
   waitForQueued(): Promise<void>;
 }
 
-function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
+type FileSystemMode = 'readonly' | 'write-tsbuildinfo' | 'write-references';
+
+function createControlledTypeScriptSystem(
+  mode: FileSystemMode = 'readonly'
+): ControlledTypeScriptSystem {
   // watchers
   const fileWatchersMap = new Map<string, ts.FileWatcherCallback[]>();
   const directoryWatchersMap = new Map<string, ts.DirectoryWatcherCallback[]>();
@@ -43,14 +48,15 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutCallbacks = new Set<any>();
   const caseSensitive = ts.sys.useCaseSensitiveFileNames;
-  const fileSystem = createPassiveFileSystem(caseSensitive);
+  const realFileSystem = createRealFileSystem(caseSensitive);
+  const passiveFileSystem = createPassiveFileSystem(caseSensitive, realFileSystem);
 
   function createWatcher<TCallback>(
     watchersMap: Map<string, TCallback[]>,
     path: string,
     callback: TCallback
   ) {
-    const normalizedPath = fileSystem.normalizePath(path);
+    const normalizedPath = realFileSystem.normalizePath(path);
 
     const watchers = watchersMap.get(normalizedPath) || [];
     const nextWatchers = [...watchers, callback];
@@ -70,18 +76,18 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
     };
   }
 
-  const invokeFileWatchers = (path: string, event: ts.FileWatcherEventKind) => {
-    const normalizedPath = fileSystem.normalizePath(path);
+  function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
+    const normalizedPath = realFileSystem.normalizePath(path);
 
     const fileWatchers = fileWatchersMap.get(normalizedPath);
     if (fileWatchers) {
       // typescript expects normalized paths with posix forward slash
       fileWatchers.forEach((fileWatcher) => fileWatcher(normalizeSlash(normalizedPath), event));
     }
-  };
+  }
 
-  const invokeDirectoryWatchers = (path: string) => {
-    const normalizedPath = fileSystem.normalizePath(path);
+  function invokeDirectoryWatchers(path: string) {
+    const normalizedPath = realFileSystem.normalizePath(path);
     let directory = dirname(normalizedPath);
 
     const directoryWatchers = directoryWatchersMap.get(directory);
@@ -101,58 +107,66 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
 
       directory = dirname(directory);
     }
-  };
+  }
+
+  function getWriteFileSystem(path: string) {
+    if (mode === 'readonly' || (mode === 'write-tsbuildinfo' && !path.endsWith('.tsbuildinfo'))) {
+      return passiveFileSystem;
+    } else {
+      return realFileSystem;
+    }
+  }
 
   const controlledSystem: ControlledTypeScriptSystem = {
     ...ts.sys,
     useCaseSensitiveFileNames: caseSensitive,
     fileExists(path: string): boolean {
-      const stats = fileSystem.readStats(path);
+      const stats = passiveFileSystem.readStats(path);
 
       return !!stats && stats.isFile();
     },
     readFile(path: string, encoding?: string): string | undefined {
-      return fileSystem.readFile(path, encoding);
+      return passiveFileSystem.readFile(path, encoding);
     },
     getFileSize(path: string): number {
-      const stats = fileSystem.readStats(path);
+      const stats = passiveFileSystem.readStats(path);
 
       return stats ? stats.size : 0;
     },
     writeFile(path: string, data: string): void {
-      fileSystem.writeFile(path, data);
+      getWriteFileSystem(path).writeFile(path, data);
 
       controlledSystem.invokeFileChanged(path);
     },
     deleteFile(path: string): void {
-      fileSystem.deleteFile(path);
+      getWriteFileSystem(path).deleteFile(path);
 
       controlledSystem.invokeFileDeleted(path);
     },
     directoryExists(path: string): boolean {
-      const stats = fileSystem.readStats(path);
+      const stats = passiveFileSystem.readStats(path);
 
       return !!stats && stats.isDirectory();
     },
     createDirectory(path: string): void {
-      fileSystem.createDir(path);
+      getWriteFileSystem(path).createDir(path);
 
       invokeDirectoryWatchers(path);
     },
     getDirectories(path: string): string[] {
-      const dirents = fileSystem.readDir(path);
+      const dirents = passiveFileSystem.readDir(path);
 
       return dirents.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
     },
     getModifiedTime(path: string): Date | undefined {
-      const stats = fileSystem.readStats(path);
+      const stats = passiveFileSystem.readStats(path);
 
       if (stats) {
         return stats.mtime;
       }
     },
     setModifiedTime(path: string, date: Date): void {
-      fileSystem.updateTimes(path, date, date);
+      getWriteFileSystem(path).updateTimes(path, date, date);
 
       invokeDirectoryWatchers(path);
       invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
@@ -191,7 +205,7 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
       }
     },
     invokeFileChanged(path: string) {
-      const normalizedPath = fileSystem.normalizePath(path);
+      const normalizedPath = realFileSystem.normalizePath(path);
 
       invokeDirectoryWatchers(normalizedPath);
 
@@ -203,7 +217,7 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
       }
     },
     invokeFileDeleted(path: string) {
-      const normalizedPath = fileSystem.normalizePath(path);
+      const normalizedPath = realFileSystem.normalizePath(path);
 
       if (!deletedFiles.get(normalizedPath)) {
         invokeDirectoryWatchers(path);
@@ -213,7 +227,8 @@ function createControlledTypeScriptSystem(): ControlledTypeScriptSystem {
       }
     },
     clearCache() {
-      fileSystem.clearCache();
+      passiveFileSystem.clearCache();
+      realFileSystem.clearCache();
     },
   };
 

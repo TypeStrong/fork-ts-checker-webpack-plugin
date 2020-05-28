@@ -17,6 +17,11 @@ function tapDoneToAsyncGetIssues(
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', async (stats) => {
+    if (stats.compilation.compiler !== compiler) {
+      // run only for the compiler that the plugin was registered for
+      return;
+    }
+
     const report = state.report;
     let issues: Issue[] | undefined;
 

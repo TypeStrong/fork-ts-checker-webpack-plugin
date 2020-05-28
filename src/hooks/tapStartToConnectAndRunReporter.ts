@@ -18,7 +18,7 @@ function tapStartToConnectAndRunReporter(
 ) {
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
 
-  compiler.hooks.run.tap('ForkTsCheckerWebpackPlugin', (compiler) => {
+  compiler.hooks.run.tap('ForkTsCheckerWebpackPlugin', () => {
     if (!state.initialized) {
       state.initialized = true;
 
@@ -27,7 +27,7 @@ function tapStartToConnectAndRunReporter(
     }
   });
 
-  compiler.hooks.watchRun.tap('ForkTsCheckerWebpackPlugin', async (compiler) => {
+  compiler.hooks.watchRun.tap('ForkTsCheckerWebpackPlugin', async () => {
     if (!state.initialized) {
       state.initialized = true;
 
@@ -42,6 +42,11 @@ function tapStartToConnectAndRunReporter(
   });
 
   compiler.hooks.compilation.tap('ForkTsCheckerWebpackPlugin', async (compilation) => {
+    if (compilation.compiler !== compiler) {
+      // run only for the compiler that the plugin was registered for
+      return;
+    }
+
     let change: FilesChange = {};
 
     if (state.watching) {

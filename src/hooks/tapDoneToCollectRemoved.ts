@@ -9,6 +9,11 @@ function tapDoneToCollectRemoved(
   state: ForkTsCheckerWebpackPluginState
 ) {
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', (stats) => {
+    if (stats.compilation.compiler !== compiler) {
+      // run only for the compiler that the plugin was registered for
+      return;
+    }
+
     state.removedFiles = [];
 
     // the new watcher is defined after done hook

@@ -13,6 +13,11 @@ function tapAfterCompileToGetIssues(
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
 
   compiler.hooks.afterCompile.tapPromise('ForkTsCheckerWebpackPlugin', async (compilation) => {
+    if (compilation.compiler !== compiler) {
+      // run only for the compiler that the plugin was registered for
+      return;
+    }
+
     let issues: Issue[] | undefined = [];
 
     try {

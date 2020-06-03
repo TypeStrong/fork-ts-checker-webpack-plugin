@@ -1,5 +1,7 @@
 import webpack from 'webpack';
 import path from 'path';
+import * as ts from 'typescript';
+import semver from 'semver';
 import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
 import { TypeScriptReporterOptions } from './TypeScriptReporterOptions';
 import {
@@ -20,6 +22,7 @@ interface TypeScriptReporterConfiguration {
   extensions: {
     vue: TypeScriptVueExtensionConfiguration;
   };
+  profile: boolean;
 }
 
 function createTypeScriptReporterConfiguration(
@@ -39,17 +42,29 @@ function createTypeScriptReporterConfiguration(
   const optionsAsObject: Exclude<TypeScriptReporterOptions, boolean> =
     typeof options === 'object' ? options : {};
 
+  const defaultCompilerOptions: Record<string, unknown> = {
+    skipLibCheck: true,
+    sourceMap: false,
+    inlineSourceMap: false,
+  };
+  if (semver.gte(ts.version, '2.9.0')) {
+    defaultCompilerOptions.declarationMap = false;
+  }
+  if (semver.gte(ts.version, '3.4.0')) {
+    defaultCompilerOptions.incremental = true;
+  }
+
   return {
     enabled: options !== false,
     memoryLimit: 2048,
     build: false,
-    mode: 'readonly',
+    mode: 'write-tsbuildinfo',
+    profile: false,
     ...optionsAsObject,
     tsconfig: tsconfig,
     context: optionsAsObject.context || path.dirname(tsconfig),
     compilerOptions: {
-      skipDefaultLibCheck: true,
-      skipLibCheck: true,
+      ...defaultCompilerOptions,
       ...(optionsAsObject.compilerOptions || {}),
     },
     extensions: {

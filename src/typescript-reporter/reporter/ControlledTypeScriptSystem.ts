@@ -51,6 +51,9 @@ function createControlledTypeScriptSystem(
   const realFileSystem = createRealFileSystem(caseSensitive);
   const passiveFileSystem = createPassiveFileSystem(caseSensitive, realFileSystem);
 
+  // based on the ts.ignorePaths
+  const ignoredPaths = ['/node_modules/.', '/.git', '/.#'];
+
   function createWatcher<TCallback>(
     watchersMap: Map<string, TCallback[]>,
     path: string,
@@ -88,7 +91,11 @@ function createControlledTypeScriptSystem(
 
   function invokeDirectoryWatchers(path: string) {
     const normalizedPath = realFileSystem.normalizePath(path);
-    let directory = dirname(normalizedPath);
+    const directory = dirname(normalizedPath);
+
+    if (ignoredPaths.some((ignoredPath) => forwardSlash(normalizedPath).includes(ignoredPath))) {
+      return;
+    }
 
     const directoryWatchers = directoryWatchersMap.get(directory);
     if (directoryWatchers) {
@@ -97,16 +104,17 @@ function createControlledTypeScriptSystem(
       );
     }
 
-    while (directory !== dirname(directory)) {
-      const recursiveDirectoryWatchers = recursiveDirectoryWatchersMap.get(directory);
-      if (recursiveDirectoryWatchers) {
+    recursiveDirectoryWatchersMap.forEach((recursiveDirectoryWatchers, watchedDirectory) => {
+      if (
+        watchedDirectory === directory ||
+        (directory.startsWith(watchedDirectory) &&
+          forwardSlash(directory)[watchedDirectory.length] === '/')
+      ) {
         recursiveDirectoryWatchers.forEach((recursiveDirectoryWatcher) =>
           recursiveDirectoryWatcher(forwardSlash(normalizedPath))
         );
       }
-
-      directory = dirname(directory);
-    }
+    });
   }
 
   function getWriteFileSystem(path: string) {
@@ -207,10 +215,10 @@ function createControlledTypeScriptSystem(
     invokeFileChanged(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
 
-      invokeDirectoryWatchers(normalizedPath);
-
-      if (deletedFiles.get(normalizedPath)) {
+      if (deletedFiles.get(normalizedPath) || !fileWatchersMap.has(path)) {
         invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
+        invokeDirectoryWatchers(normalizedPath);
+
         deletedFiles.set(normalizedPath, false);
       } else {
         invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
@@ -220,8 +228,8 @@ function createControlledTypeScriptSystem(
       const normalizedPath = realFileSystem.normalizePath(path);
 
       if (!deletedFiles.get(normalizedPath)) {
-        invokeDirectoryWatchers(path);
         invokeFileWatchers(path, ts.FileWatcherEventKind.Deleted);
+        invokeDirectoryWatchers(path);
 
         deletedFiles.set(normalizedPath, true);
       }

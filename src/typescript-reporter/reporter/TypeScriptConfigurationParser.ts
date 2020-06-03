@@ -23,7 +23,13 @@ function parseTypeScriptConfiguration(
     parsedConfigFile.errors.push(...customCompilerOptionsConvertResults.errors);
   }
 
-  return parsedConfigFile;
+  return {
+    ...parsedConfigFile,
+    options: {
+      ...parsedConfigFile.options,
+      configFilePath: configFileName,
+    },
+  };
 }
 
 export { parseTypeScriptConfiguration };

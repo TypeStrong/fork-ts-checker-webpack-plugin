@@ -70,7 +70,7 @@ describe('TypeScript Context Option', () => {
       [
         '      typescript: {',
         '        enabled: true,',
-        '        tsconfig: "build/tsconfig.json",',
+        '        configFile: "build/tsconfig.json",',
         '        context: __dirname,',
         '      },',
         '      logger: {',

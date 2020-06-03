@@ -113,7 +113,7 @@
               "type": "number",
               "description": "Memory limit for TypeScript reporter process."
             },
-            "tsconfig": {
+            "configFile": {
               "type": "string",
               "description": "Path to tsconfig.json. By default plugin uses context or process.cwd() to localize tsconfig.json file."
             },

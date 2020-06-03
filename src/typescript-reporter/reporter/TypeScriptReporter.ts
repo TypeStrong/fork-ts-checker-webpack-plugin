@@ -99,7 +99,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
       if (
         [...changedFiles, ...deletedFiles]
           .map((affectedFile) => path.normalize(affectedFile))
-          .includes(path.normalize(configuration.tsconfig))
+          .includes(path.normalize(configuration.configFile))
       ) {
         // we need to re-create programs
         parsedConfiguration = undefined;
@@ -117,7 +117,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
         performance.markStart('Parse Configuration');
         parsedConfiguration = parseTypeScriptConfiguration(
-          configuration.tsconfig,
+          configuration.configFile,
           configuration.context,
           configuration.compilerOptions,
           {
@@ -140,7 +140,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
           issues.forEach((issue) => {
             if (!issue.file) {
-              issue.file = configuration.tsconfig;
+              issue.file = configuration.configFile;
             }
           });
 
@@ -210,7 +210,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           performance.markStart('Create Solution Builder');
           solutionBuilder = ts.createSolutionBuilderWithWatch(
             watchSolutionBuilderHost,
-            [configuration.tsconfig],
+            [configuration.configFile],
             {}
           );
           performance.markEnd('Create Solution Builder');

@@ -36,14 +36,14 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
     );
   }
 
-  if (!fs.existsSync(configuration.tsconfig)) {
+  if (!fs.existsSync(configuration.configFile)) {
     throw new Error(
       [
-        `Cannot find the "${configuration.tsconfig}" file.`,
+        `Cannot find the "${configuration.configFile}" file.`,
         `Please check webpack and ForkTsCheckerWebpackPlugin configuration.`,
         `Possible errors:`,
-        '  - wrong `context` directory in webpack configuration (if `tsconfig` is not set or is a relative path in the fork plugin configuration)',
-        '  - wrong `typescript.tsconfig` path in the plugin configuration (should be a relative or absolute path)',
+        '  - wrong `context` directory in webpack configuration (if `configFile` is not set or is a relative path in the fork plugin configuration)',
+        '  - wrong `typescript.configFile` path in the plugin configuration (should be a relative or absolute path)',
       ].join(os.EOL)
     );
   }

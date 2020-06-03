@@ -20,6 +20,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
   let system: ControlledTypeScriptSystem | undefined;
   let parsedConfiguration: ts.ParsedCommandLine | undefined;
+  let configurationChanged = false;
   let watchCompilerHost:
     | ts.WatchCompilerHostOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
     | undefined;
@@ -108,6 +109,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         solutionBuilder = undefined;
 
         diagnosticsPerProject.clear();
+        configurationChanged = true;
       }
 
       if (!parsedConfiguration) {
@@ -149,6 +151,28 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           });
 
           return issues;
+        }
+
+        if (configurationChanged) {
+          configurationChanged = false;
+
+          // try to remove outdated .tsbuildinfo file for incremental mode
+          if (
+            typeof ts.getTsBuildInfoEmitOutputFilePath === 'function' &&
+            configuration.mode !== 'readonly' &&
+            parsedConfiguration.options.incremental
+          ) {
+            const tsBuildInfoPath = ts.getTsBuildInfoEmitOutputFilePath(
+              parsedConfiguration.options
+            );
+            if (tsBuildInfoPath) {
+              try {
+                system.deleteFile(tsBuildInfoPath);
+              } catch (error) {
+                // silent
+              }
+            }
+          }
         }
       }
 

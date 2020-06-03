@@ -8,7 +8,7 @@ describe('typescript-reporter/TypeScriptSupport', () => {
     jest.resetModules();
 
     configuration = {
-      tsconfig: './tsconfig.json',
+      configFile: './tsconfig.json',
       context: '.',
       compilerOptions: {},
       build: false,
@@ -97,8 +97,8 @@ describe('typescript-reporter/TypeScriptSupport', () => {
         `Cannot find the "./tsconfig.json" file.`,
         `Please check webpack and ForkTsCheckerWebpackPlugin configuration.`,
         `Possible errors:`,
-        '  - wrong `context` directory in webpack configuration (if `tsconfig` is not set or is a relative path in the fork plugin configuration)',
-        '  - wrong `typescript.tsconfig` path in the plugin configuration (should be a relative or absolute path)',
+        '  - wrong `context` directory in webpack configuration (if `configFile` is not set or is a relative path in the fork plugin configuration)',
+        '  - wrong `typescript.configFile` path in the plugin configuration (should be a relative or absolute path)',
       ].join(os.EOL)
     );
   });

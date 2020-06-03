@@ -9,7 +9,7 @@ function tapAfterCompileToAddDependencies(
   compiler.hooks.afterCompile.tap('ForkTsCheckerWebpackPlugin', (compilation) => {
     if (configuration.typescript.enabled) {
       // watch tsconfig.json file
-      compilation.fileDependencies.add(path.normalize(configuration.typescript.tsconfig));
+      compilation.fileDependencies.add(path.normalize(configuration.typescript.configFile));
     }
   });
 }

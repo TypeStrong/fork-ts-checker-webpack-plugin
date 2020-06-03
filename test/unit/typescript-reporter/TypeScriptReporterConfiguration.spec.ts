@@ -11,7 +11,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
   const configuration: TypeScriptReporterConfiguration = {
     enabled: true,
     memoryLimit: 2048,
-    tsconfig: path.normalize(path.resolve(context, 'tsconfig.json')),
+    configFile: path.normalize(path.resolve(context, 'tsconfig.json')),
     context: path.normalize(path.dirname(path.resolve(context, 'tsconfig.json'))),
     build: false,
     mode: 'write-tsbuildinfo',
@@ -63,10 +63,10 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     [{ enabled: false }, { ...configuration, enabled: false }],
     [{ memoryLimit: 512 }, { ...configuration, memoryLimit: 512 }],
     [
-      { tsconfig: 'tsconfig.another.json' },
+      { configFile: 'tsconfig.another.json' },
       {
         ...configuration,
-        tsconfig: path.normalize(path.resolve(context, 'tsconfig.another.json')),
+        configFile: path.normalize(path.resolve(context, 'tsconfig.another.json')),
       },
     ],
     [{ build: true }, { ...configuration, build: true }],

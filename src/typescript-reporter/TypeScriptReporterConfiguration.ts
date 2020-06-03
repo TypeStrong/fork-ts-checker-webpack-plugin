@@ -12,7 +12,7 @@ import {
 interface TypeScriptReporterConfiguration {
   enabled: boolean;
   memoryLimit: number;
-  tsconfig: string;
+  configFile: string;
   build: boolean;
   context: string;
   mode: 'readonly' | 'write-tsbuildinfo' | 'write-references';
@@ -29,14 +29,14 @@ function createTypeScriptReporterConfiguration(
   compiler: webpack.Compiler,
   options: TypeScriptReporterOptions | undefined
 ): TypeScriptReporterConfiguration {
-  let tsconfig =
-    typeof options === 'object' ? options.tsconfig || 'tsconfig.json' : 'tsconfig.json';
+  let configFile =
+    typeof options === 'object' ? options.configFile || 'tsconfig.json' : 'tsconfig.json';
 
-  // ensure that `tsconfig` is an absolute normalized path
-  tsconfig = path.normalize(
-    path.isAbsolute(tsconfig)
-      ? tsconfig
-      : path.resolve(compiler.options.context || process.cwd(), tsconfig)
+  // ensure that `configFile` is an absolute normalized path
+  configFile = path.normalize(
+    path.isAbsolute(configFile)
+      ? configFile
+      : path.resolve(compiler.options.context || process.cwd(), configFile)
   );
 
   const optionsAsObject: Exclude<TypeScriptReporterOptions, boolean> =
@@ -61,8 +61,8 @@ function createTypeScriptReporterConfiguration(
     mode: 'write-tsbuildinfo',
     profile: false,
     ...optionsAsObject,
-    tsconfig: tsconfig,
-    context: optionsAsObject.context || path.dirname(tsconfig),
+    configFile: configFile,
+    context: optionsAsObject.context || path.dirname(configFile),
     compilerOptions: {
       ...defaultCompilerOptions,
       ...(optionsAsObject.compilerOptions || {}),

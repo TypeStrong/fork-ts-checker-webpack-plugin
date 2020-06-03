@@ -14,10 +14,13 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     tsconfig: path.normalize(path.resolve(context, 'tsconfig.json')),
     context: path.normalize(path.dirname(path.resolve(context, 'tsconfig.json'))),
     build: false,
-    mode: 'readonly',
+    mode: 'write-tsbuildinfo',
     compilerOptions: {
-      skipDefaultLibCheck: true,
       skipLibCheck: true,
+      sourceMap: false,
+      inlineSourceMap: false,
+      declarationMap: false,
+      incremental: true,
     },
     diagnosticOptions: {
       semantic: true,
@@ -31,6 +34,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
         compiler: 'vue-template-compiler',
       },
     },
+    profile: false,
   };
 
   beforeEach(() => {
@@ -66,13 +70,21 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
       },
     ],
     [{ build: true }, { ...configuration, build: true }],
+    [{ mode: 'readonly' }, { ...configuration, mode: 'readonly' }],
     [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
     [{ mode: 'write-references' }, { ...configuration, mode: 'write-references' }],
     [
       { compilerOptions: { strict: true } },
       {
         ...configuration,
-        compilerOptions: { skipDefaultLibCheck: true, skipLibCheck: true, strict: true },
+        compilerOptions: {
+          skipLibCheck: true,
+          sourceMap: false,
+          inlineSourceMap: false,
+          declarationMap: false,
+          incremental: true,
+          strict: true,
+        },
       },
     ],
     [{ diagnosticOptions: {} }, configuration],
@@ -83,6 +95,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
         diagnosticOptions: { semantic: false, syntactic: true, declaration: false, global: false },
       },
     ],
+    [{ profile: true }, { ...configuration, profile: true }],
   ])('creates configuration from options %p', async (options, expectedConfiguration) => {
     const { createTypeScriptReporterConfiguration } = await import(
       'lib/typescript-reporter/TypeScriptReporterConfiguration'

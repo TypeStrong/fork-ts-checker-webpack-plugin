@@ -160,6 +160,10 @@
                   "$ref": "#/definitions/TypeScriptVueExtensionOptions"
                 }
               }
+            },
+            "profile": {
+              "type": "boolean",
+              "description": "Measures and prints timings related to the TypeScript performance."
             }
           }
         }

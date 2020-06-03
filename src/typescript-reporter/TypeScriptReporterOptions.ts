@@ -15,6 +15,7 @@ type TypeScriptReporterOptions =
       extensions?: {
         vue?: TypeScriptVueExtensionOptions;
       };
+      profile?: boolean;
     };
 
 export { TypeScriptReporterOptions };

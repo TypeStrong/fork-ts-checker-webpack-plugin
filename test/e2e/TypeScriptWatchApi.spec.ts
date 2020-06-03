@@ -111,7 +111,7 @@ describe('TypeScript Watch API', () => {
 
       // filter-out ts-loader related errors
       errors = (await driver.waitForErrors()).filter(
-        (error) => !error.includes('Module build failed')
+        (error) => !error.includes('Module build failed') && !error.includes('Module not found')
       );
       expect(errors).toEqual([
         [

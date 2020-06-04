@@ -17,17 +17,7 @@ function getDeletedFiles(
     deletedFiles = [...state.removedFiles];
   }
 
-  return (
-    deletedFiles
-      // normalize paths
-      .map((changedFile) => path.normalize(changedFile))
-      // check if path is inside the context to filer-out some trash from fs
-      .filter(
-        (changedFile) =>
-          !compiler.options.context ||
-          changedFile.startsWith(path.normalize(compiler.options.context))
-      )
-  );
+  return deletedFiles.map((changedFile) => path.normalize(changedFile));
 }
 
 export { getDeletedFiles };

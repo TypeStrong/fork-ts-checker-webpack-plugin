@@ -15,17 +15,7 @@ function getChangedFiles(compiler: webpack.Compiler): string[] {
     changedFiles = Object.keys((watcher && watcher.mtimes) || {});
   }
 
-  return (
-    changedFiles
-      // normalize paths
-      .map((changedFile) => path.normalize(changedFile))
-      // check if path is inside the context to filer-out some trash from fs
-      .filter(
-        (changedFile) =>
-          !compiler.options.context ||
-          changedFile.startsWith(path.normalize(compiler.options.context))
-      )
-  );
+  return changedFiles.map((changedFile) => path.normalize(changedFile));
 }
 
 export { getChangedFiles };

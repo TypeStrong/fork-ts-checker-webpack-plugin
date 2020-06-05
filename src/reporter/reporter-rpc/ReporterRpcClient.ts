@@ -27,11 +27,11 @@ function createReporterRpcClient<TConfiguration extends object>(
       }
     },
     disconnect: async () => {
-      if (channel.isOpen()) {
-        await channel.close();
-      }
       if (rpcClient.isConnected()) {
         await rpcClient.disconnect();
+      }
+      if (channel.isOpen()) {
+        await channel.close();
       }
     },
     getReport: async (change) => await rpcClient.dispatchCall(getIssues, change),

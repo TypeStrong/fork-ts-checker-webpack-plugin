@@ -1,5 +1,6 @@
 import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
 import { TypeScriptVueExtensionOptions } from './extension/vue/TypeScriptVueExtensionOptions';
+import { TypeScriptConfigurationOverwrite } from './TypeScriptConfigurationOverwrite';
 
 type TypeScriptReporterOptions =
   | boolean
@@ -7,10 +8,10 @@ type TypeScriptReporterOptions =
       enabled?: boolean;
       memoryLimit?: number;
       configFile?: string;
+      configOverwrite?: TypeScriptConfigurationOverwrite;
       context?: string;
       build?: boolean;
       mode?: 'readonly' | 'write-tsbuildinfo' | 'write-references';
-      compilerOptions?: object;
       diagnosticOptions?: Partial<TypeScriptDiagnosticsOptions>;
       extensions?: {
         vue?: TypeScriptVueExtensionOptions;

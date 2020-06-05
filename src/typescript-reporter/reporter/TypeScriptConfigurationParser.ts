@@ -1,27 +1,28 @@
 import * as ts from 'typescript';
+import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 
 function parseTypeScriptConfiguration(
   configFileName: string,
   configFileContext: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  customCompilerOptions: any,
+  configOverwriteJSON: TypeScriptConfigurationOverwrite,
   parseConfigFileHost: ts.ParseConfigFileHost
 ): ts.ParsedCommandLine {
-  // convert jsonCompilerOptions to ts.CompilerOptions
-  const customCompilerOptionsConvertResults = ts.convertCompilerOptionsFromJson(
-    customCompilerOptions,
+  const parsedConfigFileJSON = ts.readConfigFile(configFileName, parseConfigFileHost.readFile);
+
+  const overwrittenConfigFileJSON = {
+    ...(parsedConfigFileJSON.config || {}),
+    ...configOverwriteJSON,
+    compilerOptions: {
+      ...((parsedConfigFileJSON.config || {}).compilerOptions || {}),
+      ...(configOverwriteJSON.compilerOptions || {}),
+    },
+  };
+
+  const parsedConfigFile = ts.parseJsonConfigFileContent(
+    overwrittenConfigFileJSON,
+    parseConfigFileHost,
     configFileContext
   );
-
-  const parsedConfigFile = ts.parseJsonSourceFileConfigFileContent(
-    ts.readJsonConfigFile(configFileName, parseConfigFileHost.readFile),
-    parseConfigFileHost,
-    configFileContext,
-    customCompilerOptionsConvertResults.options || {}
-  );
-  if (customCompilerOptionsConvertResults.errors) {
-    parsedConfigFile.errors.push(...customCompilerOptionsConvertResults.errors);
-  }
 
   return {
     ...parsedConfigFile,
@@ -29,6 +30,7 @@ function parseTypeScriptConfiguration(
       ...parsedConfigFile.options,
       configFilePath: configFileName,
     },
+    errors: parsedConfigFileJSON.error ? [parsedConfigFileJSON.error] : parsedConfigFile.errors,
   };
 }
 

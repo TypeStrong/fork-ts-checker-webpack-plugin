@@ -9,8 +9,8 @@ describe('typescript-reporter/TypeScriptSupport', () => {
 
     configuration = {
       configFile: './tsconfig.json',
+      configOverwrite: {},
       context: '.',
-      compilerOptions: {},
       build: false,
       mode: 'readonly',
       diagnosticOptions: {

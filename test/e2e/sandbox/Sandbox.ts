@@ -5,7 +5,7 @@ import { exec, ChildProcess } from 'child_process';
 import spawn from 'cross-spawn';
 import { Fixture } from './Fixture';
 import stripAnsi from 'strip-ansi';
-import kill from 'tree-kill';
+import treeKill from 'tree-kill';
 import flatten from '../../../src/utils/array/flatten';
 
 interface Sandbox {
@@ -23,6 +23,7 @@ interface Sandbox {
   patch: (path: string, search: string, replacement: string) => Promise<void>;
   exec: (command: string, env?: Record<string, string>) => Promise<string>;
   spawn: (command: string, env?: Record<string, string>) => ChildProcess;
+  kill: (childProcess: ChildProcess) => Promise<void>;
 }
 
 function wait(timeout = 250) {
@@ -88,27 +89,10 @@ async function createSandbox(): Promise<Sandbox> {
     await wait();
   }
 
-  async function killChildProcesses() {
+  async function killSpawnedProcesses() {
     for (const childProcess of childProcesses) {
-      if (!childProcess.killed && childProcess.pid) {
-        process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
-        await retry(
-          () =>
-            new Promise((resolve) =>
-              kill(childProcess.pid, 'SIGKILL', (error) => {
-                if (error) {
-                  // we don't want to reject as it's probably some OS issue
-                  // or already killed process
-                  console.error(error);
-                }
-                resolve();
-              })
-            )
-        );
-        process.stdout.write(`Child process ${childProcess.pid} killed.\n`);
-      }
+      await sandbox.kill(childProcess);
     }
-    childProcesses = [];
 
     await wait();
   }
@@ -145,7 +129,7 @@ async function createSandbox(): Promise<Sandbox> {
     reset: async () => {
       process.stdout.write('Resetting the sandbox...\n');
 
-      await killChildProcesses();
+      await killSpawnedProcesses();
       await removeCreatedFiles();
 
       process.stdout.write(`Sandbox resetted.\n\n`);
@@ -153,7 +137,7 @@ async function createSandbox(): Promise<Sandbox> {
     cleanup: async () => {
       process.stdout.write('Cleaning up the sandbox...\n');
 
-      await killChildProcesses();
+      await killSpawnedProcesses();
 
       process.stdout.write(`Removing sandbox directory: ${context}\n`);
       await fs.remove(context);
@@ -268,6 +252,26 @@ async function createSandbox(): Promise<Sandbox> {
       childProcesses.push(childProcess);
 
       return childProcess;
+    },
+    kill: async (childProcess: ChildProcess) => {
+      if (!childProcess.killed && childProcess.pid) {
+        process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
+        await retry(
+          () =>
+            new Promise((resolve) =>
+              treeKill(childProcess.pid, 'SIGKILL', (error) => {
+                if (error) {
+                  // we don't want to reject as it's probably some OS issue
+                  // or already killed process
+                  console.error(error);
+                }
+                resolve();
+              })
+            )
+        );
+        process.stdout.write(`Child process ${childProcess.pid} killed.\n`);
+      }
+      childProcesses = childProcesses.filter((aChildProcess) => aChildProcess !== childProcess);
     },
   };
 

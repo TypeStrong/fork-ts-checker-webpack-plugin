@@ -12,16 +12,18 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     enabled: true,
     memoryLimit: 2048,
     configFile: path.normalize(path.resolve(context, 'tsconfig.json')),
+    configOverwrite: {
+      compilerOptions: {
+        skipLibCheck: true,
+        sourceMap: false,
+        inlineSourceMap: false,
+        declarationMap: false,
+        incremental: true,
+      },
+    },
     context: path.normalize(path.dirname(path.resolve(context, 'tsconfig.json'))),
     build: false,
     mode: 'write-tsbuildinfo',
-    compilerOptions: {
-      skipLibCheck: true,
-      sourceMap: false,
-      inlineSourceMap: false,
-      declarationMap: false,
-      incremental: true,
-    },
     diagnosticOptions: {
       semantic: true,
       syntactic: false,
@@ -74,16 +76,19 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
     [{ mode: 'write-references' }, { ...configuration, mode: 'write-references' }],
     [
-      { compilerOptions: { strict: true } },
+      { configOverwrite: { compilerOptions: { strict: true }, include: ['src'] } },
       {
         ...configuration,
-        compilerOptions: {
-          skipLibCheck: true,
-          sourceMap: false,
-          inlineSourceMap: false,
-          declarationMap: false,
-          incremental: true,
-          strict: true,
+        configOverwrite: {
+          compilerOptions: {
+            skipLibCheck: true,
+            sourceMap: false,
+            inlineSourceMap: false,
+            declarationMap: false,
+            incremental: true,
+            strict: true,
+          },
+          include: ['src'],
         },
       },
     ],

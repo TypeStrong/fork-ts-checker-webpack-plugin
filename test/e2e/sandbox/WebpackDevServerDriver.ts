@@ -4,9 +4,9 @@ import { extractWebpackErrors } from './WebpackErrorsExtractor';
 import { createQueuedListener, Listener, QueuedListener } from './Listener';
 
 interface WebpackDevServerDriver {
+  process: ChildProcess;
   waitForErrors: (timeout?: number) => Promise<string[]>;
   waitForNoErrors: (timeout?: number) => Promise<void>;
-  close: () => Promise<boolean>;
 }
 
 interface AsyncListener<T = void> extends Listener<T> {
@@ -89,6 +89,7 @@ function createWebpackDevServerDriver(
   }
 
   return {
+    process: process,
     waitForErrors: (timeout = defaultTimeout) =>
       new Promise<string[]>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
@@ -131,7 +132,6 @@ function createWebpackDevServerDriver(
           active: !async, // for async, we need to activate listener manually
         });
       }),
-    close: async () => process.kill(),
   };
 }
 
@@ -139,4 +139,9 @@ function createWebpackDevServerDriver(
 const WEBPACK_CLI_VERSION = '^3.3.11';
 const WEBPACK_DEV_SERVER_VERSION = '^3.10.3';
 
-export { createWebpackDevServerDriver, WEBPACK_CLI_VERSION, WEBPACK_DEV_SERVER_VERSION };
+export {
+  WebpackDevServerDriver,
+  createWebpackDevServerDriver,
+  WEBPACK_CLI_VERSION,
+  WEBPACK_DEV_SERVER_VERSION,
+};

@@ -60,7 +60,7 @@ describe('TypeScript Configuration Change', () => {
       expect(errors.length).toBeGreaterThan(0);
 
       // revert the change
-      await sandbox.patch('tsconfig.json', '"lib": ["ES6"]', '"lib": ["DOM", "ES6"],');
+      await sandbox.patch('tsconfig.json', '"lib": ["ES6"],', '"lib": ["DOM", "ES6"]');
 
       await driver.waitForNoErrors();
     }

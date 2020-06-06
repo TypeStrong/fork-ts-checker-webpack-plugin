@@ -119,7 +119,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         parsedConfiguration = parseTypeScriptConfiguration(
           configuration.configFile,
           configuration.context,
-          configuration.compilerOptions,
+          configuration.configOverwrite,
           {
             ...system,
             onUnRecoverableConfigFileDiagnostic: (diagnostic) => {

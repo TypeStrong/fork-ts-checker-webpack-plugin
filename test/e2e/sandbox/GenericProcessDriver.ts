@@ -3,9 +3,9 @@ import { createQueuedListener, Listener, QueuedListener } from './Listener';
 import stripAnsi from 'strip-ansi';
 
 interface GenericProcessDriver {
+  process: ChildProcess;
   waitForStdoutIncludes: (string: string, timeout?: number) => Promise<void>;
   waitForStderrIncludes: (string: string, timeout?: number) => Promise<void>;
-  close: () => Promise<boolean>;
 }
 
 interface StringListener extends Listener {
@@ -66,6 +66,7 @@ function createGenericProcessDriver(
   }
 
   return {
+    process,
     waitForStdoutIncludes: (string, timeout = defaultTimeout) =>
       new Promise<void>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
@@ -106,7 +107,6 @@ function createGenericProcessDriver(
           string,
         });
       }),
-    close: async () => process.kill(),
   };
 }
 

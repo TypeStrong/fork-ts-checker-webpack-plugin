@@ -8,16 +8,16 @@ import {
   createTypeScriptVueExtensionConfiguration,
   TypeScriptVueExtensionConfiguration,
 } from './extension/vue/TypeScriptVueExtensionConfiguration';
+import { TypeScriptConfigurationOverwrite } from './TypeScriptConfigurationOverwrite';
 
 interface TypeScriptReporterConfiguration {
   enabled: boolean;
   memoryLimit: number;
   configFile: string;
+  configOverwrite: TypeScriptConfigurationOverwrite;
   build: boolean;
   context: string;
   mode: 'readonly' | 'write-tsbuildinfo' | 'write-references';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  compilerOptions: any;
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   extensions: {
     vue: TypeScriptVueExtensionConfiguration;
@@ -62,11 +62,14 @@ function createTypeScriptReporterConfiguration(
     profile: false,
     ...optionsAsObject,
     configFile: configFile,
-    context: optionsAsObject.context || path.dirname(configFile),
-    compilerOptions: {
-      ...defaultCompilerOptions,
-      ...(optionsAsObject.compilerOptions || {}),
+    configOverwrite: {
+      ...(optionsAsObject.configOverwrite || {}),
+      compilerOptions: {
+        ...defaultCompilerOptions,
+        ...((optionsAsObject.configOverwrite || {}).compilerOptions || {}),
+      },
     },
+    context: optionsAsObject.context || path.dirname(configFile),
     extensions: {
       vue: createTypeScriptVueExtensionConfiguration(
         optionsAsObject.extensions ? optionsAsObject.extensions.vue : undefined

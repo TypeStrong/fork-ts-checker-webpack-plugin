@@ -1,4 +1,5 @@
 import webpack from 'webpack';
+import path from 'path';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
@@ -35,7 +36,7 @@ function tapAfterCompileToGetIssues(
     if (configuration.issue.scope === 'webpack') {
       // exclude issues that are related to files outside webpack compilation
       issues = issues.filter(
-        (issue) => !issue.file || compilation.fileDependencies.has(issue.file)
+        (issue) => !issue.file || compilation.fileDependencies.has(path.normalize(issue.file))
       );
     }
 

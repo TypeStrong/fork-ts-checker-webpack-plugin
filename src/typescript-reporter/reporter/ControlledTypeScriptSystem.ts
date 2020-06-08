@@ -215,7 +215,7 @@ function createControlledTypeScriptSystem(
     invokeFileChanged(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
 
-      if (deletedFiles.get(normalizedPath) || !fileWatchersMap.has(path)) {
+      if (deletedFiles.get(normalizedPath) || !fileWatchersMap.has(normalizedPath)) {
         invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
         invokeDirectoryWatchers(normalizedPath);
 

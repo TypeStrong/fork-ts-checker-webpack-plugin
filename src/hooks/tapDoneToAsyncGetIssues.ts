@@ -1,4 +1,6 @@
 import webpack from 'webpack';
+import chalk from 'chalk';
+import path from 'path';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
@@ -7,7 +9,6 @@ import { Issue } from '../issue';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
 import isPending from '../utils/async/isPending';
 import wait from '../utils/async/wait';
-import chalk from 'chalk';
 
 function tapDoneToAsyncGetIssues(
   compiler: webpack.Compiler,
@@ -53,7 +54,7 @@ function tapDoneToAsyncGetIssues(
     if (configuration.issue.scope === 'webpack') {
       // exclude issues that are related to files outside webpack compilation
       issues = issues.filter(
-        (issue) => !issue.file || stats.compilation.fileDependencies.has(issue.file)
+        (issue) => !issue.file || stats.compilation.fileDependencies.has(path.normalize(issue.file))
       );
     }
 

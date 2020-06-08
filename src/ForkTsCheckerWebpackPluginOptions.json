@@ -246,6 +246,11 @@
         },
         "exclude": {
           "$ref": "#/definitions/IssuePredicateOption"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["all", "webpack"],
+          "description": "Defines issues scope to be reported. If 'webpack', reports errors only related to a given webpack compilation. Reports all errors otherwise."
         }
       }
     },

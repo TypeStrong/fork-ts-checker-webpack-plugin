@@ -50,6 +50,13 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
+    if (configuration.issue.scope === 'webpack') {
+      // exclude issues that are related to files outside webpack compilation
+      issues = issues.filter(
+        (issue) => !issue.file || stats.compilation.fileDependencies.has(issue.file)
+      );
+    }
+
     // filter list of issues by provided issue predicate
     issues = issues.filter(configuration.issue.predicate);
 

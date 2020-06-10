@@ -54,7 +54,7 @@ function tapDoneToAsyncGetIssues(
     issues = issues.filter(configuration.issue.predicate);
 
     // modify list of issues in the plugin hooks
-    issues = hooks.issues.call(issues);
+    issues = hooks.issues.call(issues, stats.compilation);
 
     const formatter = createWebpackFormatter(configuration.formatter, compiler.context);
 

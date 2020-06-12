@@ -50,9 +50,6 @@ function createTypeScriptReporterConfiguration(
   if (semver.gte(ts.version, '2.9.0')) {
     defaultCompilerOptions.declarationMap = false;
   }
-  if (semver.gte(ts.version, '3.4.0')) {
-    defaultCompilerOptions.incremental = true;
-  }
 
   return {
     enabled: options !== false,

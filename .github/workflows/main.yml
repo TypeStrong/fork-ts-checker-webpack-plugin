@@ -39,21 +39,8 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: 
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        node:
-          - '6'
-          - '8'
-          - '10'
-          - '12'
-        packages:
-          - webpack@5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4
-          - webpack@^4.0.0 ts-loader@^5.0.0 vue-loader@^15.2.4
-        exclude:
-          - node: '6'
-            packages: 'webpack@5.0.0-alpha.5 ts-loader@^5.0.0 vue-loader@^15.2.4'
+        node: [10, 12] # add 14 when we drop support for webpack 4 as fsevents 1 is not compatible with node 14
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v1
       
@@ -74,21 +61,19 @@ jobs:
           ${{ runner.os }}-node-${{ matrix.node }}-yarn-
       
     - name: Install dependencies
-      run: yarn install --frozen-lockfile --ignore-engines
-
-    - name: Replace dependencies
-      run: yarn add ${{ matrix.packages }} -D --ignore-engines
+      run: yarn install --frozen-lockfile
 
     - name: Download build artifact
       uses: actions/download-artifact@v1
       with:
         name: lib
-      
+        path: lib
+
     - name: Run unit tests
       run: yarn test:unit
-      
-    - name: Run integration tests
-      run: yarn test:integration
+
+    - name: Run e2e tests
+      run: yarn test:e2e
       
   release:
     runs-on: ubuntu-latest
@@ -96,7 +81,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     needs: [build, test]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta')
     steps:
       - uses: actions/checkout@v1
       
@@ -105,10 +90,14 @@ jobs:
         with:
           node-version: 12
 
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
       - name: Download build artifact
         uses: actions/download-artifact@v1
         with:
           name: lib
+          path: lib
 
       - name: Release
-        run: npx semantic-release@16.0.2
+        run: yarn semantic-release

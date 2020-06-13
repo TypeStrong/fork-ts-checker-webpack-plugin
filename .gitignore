@@ -1,27 +1,20 @@
 # Logs
-logs
 *.log
-npm-debug.log*
 
+# Package artifacts
 lib
-!test/**/lib
+
+# Package archive used by e2e tests
+fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz
 
 # Coverage directory used by tools like istanbul
 coverage
 
-# Tmp directory for integration test
-tmp
-
 # Dependency directories
 node_modules
-jspm_packages
-
-# Optional npm cache directory
-.npm
-package-lock.json
-
-# Optional REPL history
-.node_repl_history
 
 # Editor directories and files
 .idea
+
+# Mac OS
+.DS_Store

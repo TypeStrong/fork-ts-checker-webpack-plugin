@@ -6,31 +6,31 @@ module.exports = {
   types: {
     feat: {
       description: 'A new feature',
-      value: 'feat'
+      value: 'feat',
     },
     fix: {
       description: 'A bug fix',
-      value: 'fix'
+      value: 'fix',
     },
     refactor: {
       description: 'A code change that neither adds a feature or fixes a bug',
-      value: 'refactor'
+      value: 'refactor',
     },
     perf: {
       description: 'A code change that improves performance',
-      value: 'perf'
+      value: 'perf',
     },
     test: {
       description: 'Adding missing tests',
-      value: 'test'
+      value: 'test',
     },
     chore: {
       description: 'Build process, CI or auxiliary tool changes',
-      value: 'chore'
+      value: 'chore',
     },
     docs: {
       description: 'Documentation only changes',
-      value: 'docs'
-    }
-  }
+      value: 'docs',
+    },
+  },
 };

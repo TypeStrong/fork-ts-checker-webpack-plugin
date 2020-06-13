@@ -1,6 +1,0 @@
-{
-  "compilerOptions": {
-    "lib": ["es2016"],
-    "allowJs": true
-  }
-}

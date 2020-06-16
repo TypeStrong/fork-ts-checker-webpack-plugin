@@ -62,7 +62,7 @@ module.exports = {
 };
 ```
 
-If you are using **TypeScript >= 2.8.0**, it's recommended to set `"importsNotUsedAsValues": "preserve"` [compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) 
+If you are using **TypeScript >= 3.8.0**, it's recommended to set `"importsNotUsedAsValues": "preserve"` [compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) 
 in the `tsconfig.json`. [Here is an explanation.](#type-only-modules-watching)
 
 > You can find examples how to configure it with [babel-loader](https://github.com/babel/babel-loader), [ts-loader](https://github.com/TypeStrong/ts-loader),

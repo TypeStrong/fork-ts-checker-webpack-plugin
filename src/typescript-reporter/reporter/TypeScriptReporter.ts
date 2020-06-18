@@ -264,6 +264,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           system.invokeFileDeleted(removedFile);
         }
       });
+      system.invokeQueuedChanged();
 
       // wait for all queued events to be processed
       performance.markStart('Queued Tasks');

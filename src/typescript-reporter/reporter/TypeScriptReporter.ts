@@ -254,6 +254,10 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         }
       }
 
+      performance.markStart('Pull And Invoke Created Or Deleted');
+      system.pullAndInvokeCreatedOrDeleted();
+      performance.markEnd('Pull And Invoke Created Or Deleted');
+
       changedFiles.forEach((changedFile) => {
         if (system) {
           system.invokeFileChanged(changedFile);
@@ -264,7 +268,6 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           system.invokeFileDeleted(removedFile);
         }
       });
-      system.invokeQueuedChanged();
 
       // wait for all queued events to be processed
       performance.markStart('Queued Tasks');

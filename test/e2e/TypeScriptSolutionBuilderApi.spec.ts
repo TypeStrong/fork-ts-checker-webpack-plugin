@@ -101,11 +101,11 @@ describe('TypeScript SolutionBuilder API', () => {
     // this compilation should be successful
     await driver.waitForNoErrors();
 
-    await sandbox.write('packages/client/src/additional.ts', 'export const x = 10;');
+    await sandbox.write('packages/client/src/nested/additional.ts', 'export const x = 10;');
     await sandbox.patch(
       'packages/client/src/index.ts',
       'import { intersect, subtract } from "@project-references-fixture/shared";',
-      'import { intersect, subtract } from "@project-references-fixture/shared";\nimport { x } from "./additional";'
+      'import { intersect, subtract } from "@project-references-fixture/shared";\nimport { x } from "./nested/additional";'
     );
 
     // this compilation should be successful

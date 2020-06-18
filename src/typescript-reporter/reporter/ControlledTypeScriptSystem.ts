@@ -6,9 +6,10 @@ import { createRealFileSystem } from '../file-system/RealFileSystem';
 
 interface ControlledTypeScriptSystem extends ts.System {
   // control watcher
+  invokeFileCreated(path: string): void;
   invokeFileChanged(path: string): void;
   invokeFileDeleted(path: string): void;
-  invokeQueuedChanged(): void;
+  pullAndInvokeCreatedOrDeleted(): void;
   // control cache
   clearCache(): void;
   // mark these methods as defined - not optional
@@ -236,6 +237,14 @@ function createControlledTypeScriptSystem(
         await new Promise((resolve) => setImmediate(resolve));
       }
     },
+    invokeFileCreated(path: string) {
+      const normalizedPath = realFileSystem.normalizePath(path);
+
+      invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
+      invokeDirectoryWatchers(normalizedPath);
+
+      deletedFiles.set(normalizedPath, false);
+    },
     invokeFileChanged(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
 
@@ -258,7 +267,7 @@ function createControlledTypeScriptSystem(
         deletedFiles.set(normalizedPath, true);
       }
     },
-    invokeQueuedChanged() {
+    pullAndInvokeCreatedOrDeleted() {
       const prevDirectorySnapshots = new Map(directorySnapshots);
 
       directorySnapshots.clear();
@@ -298,7 +307,7 @@ function createControlledTypeScriptSystem(
       );
 
       filesCreated.forEach((path) => {
-        controlledSystem.invokeFileChanged(path);
+        controlledSystem.invokeFileCreated(path);
       });
       filesDeleted.forEach((path) => {
         controlledSystem.invokeFileDeleted(path);

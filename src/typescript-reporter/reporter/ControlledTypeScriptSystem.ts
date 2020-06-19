@@ -1,13 +1,15 @@
 import * as ts from 'typescript';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
 import forwardSlash from '../../utils/path/forwardSlash';
 import { createRealFileSystem } from '../file-system/RealFileSystem';
 
 interface ControlledTypeScriptSystem extends ts.System {
   // control watcher
+  invokeFileCreated(path: string): void;
   invokeFileChanged(path: string): void;
   invokeFileDeleted(path: string): void;
+  pollAndInvokeCreatedOrDeleted(): void;
   // control cache
   clearCache(): void;
   // mark these methods as defined - not optional
@@ -41,9 +43,10 @@ function createControlledTypeScriptSystem(
   mode: FileSystemMode = 'readonly'
 ): ControlledTypeScriptSystem {
   // watchers
-  const fileWatchersMap = new Map<string, ts.FileWatcherCallback[]>();
-  const directoryWatchersMap = new Map<string, ts.DirectoryWatcherCallback[]>();
-  const recursiveDirectoryWatchersMap = new Map<string, ts.DirectoryWatcherCallback[]>();
+  const fileWatcherCallbacksMap = new Map<string, ts.FileWatcherCallback[]>();
+  const directoryWatcherCallbacksMap = new Map<string, ts.DirectoryWatcherCallback[]>();
+  const recursiveDirectoryWatcherCallbacksMap = new Map<string, ts.DirectoryWatcherCallback[]>();
+  const directorySnapshots = new Map<string, string[]>();
   const deletedFiles = new Map<string, boolean>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutCallbacks = new Set<any>();
@@ -82,10 +85,12 @@ function createControlledTypeScriptSystem(
   function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
     const normalizedPath = realFileSystem.normalizePath(path);
 
-    const fileWatchers = fileWatchersMap.get(normalizedPath);
-    if (fileWatchers) {
+    const fileWatcherCallbacks = fileWatcherCallbacksMap.get(normalizedPath);
+    if (fileWatcherCallbacks) {
       // typescript expects normalized paths with posix forward slash
-      fileWatchers.forEach((fileWatcher) => fileWatcher(forwardSlash(normalizedPath), event));
+      fileWatcherCallbacks.forEach((fileWatcherCallback) =>
+        fileWatcherCallback(forwardSlash(normalizedPath), event)
+      );
     }
   }
 
@@ -97,24 +102,42 @@ function createControlledTypeScriptSystem(
       return;
     }
 
-    const directoryWatchers = directoryWatchersMap.get(directory);
-    if (directoryWatchers) {
-      directoryWatchers.forEach((directoryWatcher) =>
-        directoryWatcher(forwardSlash(normalizedPath))
+    const directoryWatcherCallbacks = directoryWatcherCallbacksMap.get(directory);
+    if (directoryWatcherCallbacks) {
+      directoryWatcherCallbacks.forEach((directoryWatcherCallback) =>
+        directoryWatcherCallback(forwardSlash(normalizedPath))
       );
     }
 
-    recursiveDirectoryWatchersMap.forEach((recursiveDirectoryWatchers, watchedDirectory) => {
-      if (
-        watchedDirectory === directory ||
-        (directory.startsWith(watchedDirectory) &&
-          forwardSlash(directory)[watchedDirectory.length] === '/')
-      ) {
-        recursiveDirectoryWatchers.forEach((recursiveDirectoryWatcher) =>
-          recursiveDirectoryWatcher(forwardSlash(normalizedPath))
-        );
+    recursiveDirectoryWatcherCallbacksMap.forEach(
+      (recursiveDirectoryWatcherCallbacks, watchedDirectory) => {
+        if (
+          watchedDirectory === directory ||
+          (directory.startsWith(watchedDirectory) &&
+            forwardSlash(directory)[watchedDirectory.length] === '/')
+        ) {
+          recursiveDirectoryWatcherCallbacks.forEach((recursiveDirectoryWatcherCallback) =>
+            recursiveDirectoryWatcherCallback(forwardSlash(normalizedPath))
+          );
+        }
       }
-    });
+    );
+  }
+
+  function updateDirectorySnapshot(path: string, recursive = false) {
+    const dirents = passiveFileSystem.readDir(path);
+
+    if (!directorySnapshots.has(path)) {
+      directorySnapshots.set(
+        path,
+        dirents.filter((dirent) => dirent.isFile()).map((dirent) => join(path, dirent.name))
+      );
+    }
+    if (recursive) {
+      dirents
+        .filter((dirent) => dirent.isDirectory())
+        .forEach((dirent) => updateDirectorySnapshot(join(path, dirent.name)));
+    }
   }
 
   function getWriteFileSystem(path: string) {
@@ -180,15 +203,17 @@ function createControlledTypeScriptSystem(
       invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
     },
     watchFile(path: string, callback: ts.FileWatcherCallback): ts.FileWatcher {
-      return createWatcher(fileWatchersMap, path, callback);
+      return createWatcher(fileWatcherCallbacksMap, path, callback);
     },
     watchDirectory(
       path: string,
       callback: ts.DirectoryWatcherCallback,
       recursive = false
     ): ts.FileWatcher {
+      updateDirectorySnapshot(path, recursive);
+
       return createWatcher(
-        recursive ? recursiveDirectoryWatchersMap : directoryWatchersMap,
+        recursive ? recursiveDirectoryWatcherCallbacksMap : directoryWatcherCallbacksMap,
         path,
         callback
       );
@@ -212,10 +237,18 @@ function createControlledTypeScriptSystem(
         await new Promise((resolve) => setImmediate(resolve));
       }
     },
+    invokeFileCreated(path: string) {
+      const normalizedPath = realFileSystem.normalizePath(path);
+
+      invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
+      invokeDirectoryWatchers(normalizedPath);
+
+      deletedFiles.set(normalizedPath, false);
+    },
     invokeFileChanged(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
 
-      if (deletedFiles.get(normalizedPath) || !fileWatchersMap.has(normalizedPath)) {
+      if (deletedFiles.get(normalizedPath) || !fileWatcherCallbacksMap.has(normalizedPath)) {
         invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
         invokeDirectoryWatchers(normalizedPath);
 
@@ -233,6 +266,52 @@ function createControlledTypeScriptSystem(
 
         deletedFiles.set(normalizedPath, true);
       }
+    },
+    pollAndInvokeCreatedOrDeleted() {
+      const prevDirectorySnapshots = new Map(directorySnapshots);
+
+      directorySnapshots.clear();
+      directoryWatcherCallbacksMap.forEach((directoryWatcherCallback, path) => {
+        updateDirectorySnapshot(path, false);
+      });
+      recursiveDirectoryWatcherCallbacksMap.forEach((recursiveDirectoryWatcherCallback, path) => {
+        updateDirectorySnapshot(path, true);
+      });
+
+      const filesCreated = new Set<string>();
+      const filesDeleted = new Set<string>();
+
+      function diffDirectorySnapshots(
+        prevFiles: string[] | undefined,
+        nextFiles: string[] | undefined
+      ) {
+        if (prevFiles && nextFiles) {
+          nextFiles
+            .filter((nextFile) => !prevFiles.includes(nextFile))
+            .forEach((createdFile) => {
+              filesCreated.add(createdFile);
+            });
+          prevFiles
+            .filter((prevFile) => !nextFiles.includes(prevFile))
+            .forEach((deletedFile) => {
+              filesDeleted.add(deletedFile);
+            });
+        }
+      }
+
+      prevDirectorySnapshots.forEach((prevFiles, path) =>
+        diffDirectorySnapshots(prevFiles, directorySnapshots.get(path))
+      );
+      directorySnapshots.forEach((nextFiles, path) =>
+        diffDirectorySnapshots(prevDirectorySnapshots.get(path), nextFiles)
+      );
+
+      filesCreated.forEach((path) => {
+        controlledSystem.invokeFileCreated(path);
+      });
+      filesDeleted.forEach((path) => {
+        controlledSystem.invokeFileDeleted(path);
+      });
     },
     clearCache() {
       passiveFileSystem.clearCache();

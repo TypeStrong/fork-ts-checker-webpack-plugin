@@ -9,7 +9,7 @@ interface ControlledTypeScriptSystem extends ts.System {
   invokeFileCreated(path: string): void;
   invokeFileChanged(path: string): void;
   invokeFileDeleted(path: string): void;
-  pullAndInvokeCreatedOrDeleted(): void;
+  pollAndInvokeCreatedOrDeleted(): void;
   // control cache
   clearCache(): void;
   // mark these methods as defined - not optional
@@ -267,7 +267,7 @@ function createControlledTypeScriptSystem(
         deletedFiles.set(normalizedPath, true);
       }
     },
-    pullAndInvokeCreatedOrDeleted() {
+    pollAndInvokeCreatedOrDeleted() {
       const prevDirectorySnapshots = new Map(directorySnapshots);
 
       directorySnapshots.clear();

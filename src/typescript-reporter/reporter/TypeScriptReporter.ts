@@ -254,9 +254,9 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         }
       }
 
-      performance.markStart('Pull And Invoke Created Or Deleted');
-      system.pullAndInvokeCreatedOrDeleted();
-      performance.markEnd('Pull And Invoke Created Or Deleted');
+      performance.markStart('Poll And Invoke Created Or Deleted');
+      system.pollAndInvokeCreatedOrDeleted();
+      performance.markEnd('Poll And Invoke Created Or Deleted');
 
       changedFiles.forEach((changedFile) => {
         if (system) {

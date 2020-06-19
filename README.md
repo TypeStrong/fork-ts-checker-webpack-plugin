@@ -101,7 +101,7 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       eslint: {
-        files: './src/**/*' // required - same as command `eslint ./src/**/* --ext .ts,.tsx,.js,.jsx`
+        files: './src/**/*.{ts,tsx,js,jsx}' // required - same as command `eslint ./src/**/*.{ts,tsx,js,jsx} --ext .ts,.tsx,.js,.jsx`
       }
     })
   ]
@@ -182,7 +182,7 @@ Options for the ESLint linter (`eslint` option object).
 
 | Name                 | Type                   | Default value             | Description |
 | -------------------- | ---------------------- | ------------------------- | ----------- |
-| `enabled`            | `boolean`              | `false`                   | If `true`, it enables ESLint linter. |
+| `enabled`            | `boolean`              | `false`                   | If `true`, it enables ESLint linter. If you set the `files` option, it will be `true` by default. |
 | `files`              | `string` or `string[]` | This value is required    | One or more [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)) to the files that should be linted. Works the same as the `eslint` command. |
 | `memoryLimit`        | `number`               | `2048`                    | Memory limit for the linter process in MB. If the process exits with the allocation failed error, try to increase this number. |
 | `options`            | `object`               | `{}`                      | [Options](https://eslint.org/docs/developer-guide/nodejs-api#cliengine) that can be used to initialize ESLint. |

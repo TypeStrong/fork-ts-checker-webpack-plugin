@@ -48,7 +48,9 @@ function createRealFileSystem(caseSensitive = false): FileSystem {
     const normalizedPath = normalizePath(path);
 
     if (!readFileCache.has(normalizedPath)) {
-      if (exists(normalizedPath)) {
+      const stats = readStats(normalizedPath);
+
+      if (stats && stats.isFile()) {
         readFileCache.set(normalizedPath, fs.readFileSync(normalizedPath, { encoding }).toString());
       } else {
         readFileCache.set(normalizedPath, undefined);
@@ -62,7 +64,9 @@ function createRealFileSystem(caseSensitive = false): FileSystem {
     const normalizedPath = normalizePath(path);
 
     if (!readDirCache.has(normalizedPath)) {
-      if (exists(normalizedPath)) {
+      const stats = readStats(normalizedPath);
+
+      if (stats && stats.isDirectory()) {
         readDirCache.set(normalizedPath, fs.readdirSync(normalizedPath, { withFileTypes: true }));
       } else {
         readDirCache.set(normalizedPath, []);

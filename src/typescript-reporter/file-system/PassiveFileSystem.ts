@@ -24,7 +24,9 @@ function createPassiveFileSystem(caseSensitive = false, realFileSystem: FileSyst
   }
 
   function memReadFile(path: string, encoding?: string): string | undefined {
-    if (memExists(path)) {
+    const stats = memReadStats(path);
+
+    if (stats && stats.isFile()) {
       return mem
         .readFileSync(normalizePath(path), { encoding: encoding as BufferEncoding })
         .toString();
@@ -32,7 +34,9 @@ function createPassiveFileSystem(caseSensitive = false, realFileSystem: FileSyst
   }
 
   function memReadDir(path: string): Dirent[] {
-    if (memExists(path)) {
+    const stats = memReadStats(path);
+
+    if (stats && stats.isDirectory()) {
       return mem.readdirSync(normalizePath(path), { withFileTypes: true }) as Dirent[];
     }
 

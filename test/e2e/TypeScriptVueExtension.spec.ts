@@ -62,17 +62,6 @@ describe('TypeScript Vue Extension', () => {
 
       if (vue === '^2.6.11') {
         await sandbox.write(
-          'src/index.ts',
-          [
-            "import Vue from 'vue'",
-            "import App from './App.vue'",
-            '',
-            'new Vue({',
-            '  render: h => h(App)',
-            "}).$mount('#app')",
-          ].join('\n')
-        );
-        await sandbox.write(
           'src/vue-shim.d.ts',
           [
             'declare module "*.vue" {',
@@ -82,15 +71,6 @@ describe('TypeScript Vue Extension', () => {
           ].join('\n')
         );
       } else {
-        await sandbox.write(
-          'src/index.ts',
-          [
-            "import { createApp } from 'vue'",
-            "import App from './App.vue'",
-            '',
-            "createApp(App).mount('#app')",
-          ].join('\n')
-        );
         await sandbox.write('src/vue-shim.d.ts', 'declare module "*.vue";');
       }
 

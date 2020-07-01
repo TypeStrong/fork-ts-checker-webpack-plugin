@@ -20,6 +20,7 @@ interface TypeScriptHostExtension {
     host: THost,
     parsedCommandLine?: ts.ParsedCommandLine
   ): THost;
+  extendParseConfigFileHost?<THost extends ts.ParseConfigFileHost>(host: THost): THost;
 }
 
 interface TypeScriptReporterExtension {

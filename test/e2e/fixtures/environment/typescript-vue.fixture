@@ -40,8 +40,7 @@
     "importsNotUsedAsValues": "preserve"
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.vue"
+    "src",
   ],
   "exclude": [
     "node_modules"
@@ -62,7 +61,7 @@ try {
 }
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: './src/App.vue',
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),

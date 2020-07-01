@@ -130,6 +130,40 @@ function createTypeScriptEmbeddedExtension({
         fileExists: createEmbeddedFileExists(host.fileExists),
       };
     },
+    extendParseConfigFileHost<THost extends ts.ParseConfigFileHost>(host: THost): THost {
+      return {
+        ...host,
+        readDirectory(
+          rootDir: string,
+          extensions: readonly string[],
+          excludes: readonly string[] | undefined,
+          includes: readonly string[],
+          depth?: number
+        ): readonly string[] {
+          return host
+            .readDirectory(
+              rootDir,
+              [...extensions, ...embeddedExtensions],
+              excludes,
+              includes,
+              depth
+            )
+            .map((fileName) => {
+              const isEmbeddedFile = embeddedExtensions.some((embeddedExtension) =>
+                fileName.endsWith(embeddedExtension)
+              );
+
+              if (isEmbeddedFile) {
+                const embeddedSource = getCachedEmbeddedSource(fileName);
+
+                return embeddedSource ? `${fileName}${embeddedSource.extension}` : fileName;
+              } else {
+                return fileName;
+              }
+            });
+        },
+      };
+    },
   };
 }
 

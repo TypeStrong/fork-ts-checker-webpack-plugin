@@ -115,17 +115,25 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
       if (!parsedConfiguration) {
         const parseConfigurationDiagnostics: ts.Diagnostic[] = [];
 
+        let parseConfigFileHost: ts.ParseConfigFileHost = {
+          ...system,
+          onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
+            parseConfigurationDiagnostics.push(diagnostic);
+          },
+        };
+
+        extensions.forEach((extension) => {
+          if (extension.extendParseConfigFileHost) {
+            parseConfigFileHost = extension.extendParseConfigFileHost(parseConfigFileHost);
+          }
+        });
+
         performance.markStart('Parse Configuration');
         parsedConfiguration = parseTypeScriptConfiguration(
           configuration.configFile,
           configuration.context,
           configuration.configOverwrite,
-          {
-            ...system,
-            onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
-              parseConfigurationDiagnostics.push(diagnostic);
-            },
-          }
+          parseConfigFileHost
         );
         performance.markEnd('Parse Configuration');
 

@@ -1,11 +1,3 @@
-/// src/index.ts
-import Vue from 'vue'
-import App from './App.vue'
-
-new Vue({
-  render: h => h(App)
-}).$mount('#app')
-
 /// src/App.vue
 <template>
   <logged-in v-if="user" :user="user" @logout="logout"></logged-in>

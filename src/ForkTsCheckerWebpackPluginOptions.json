@@ -94,7 +94,18 @@
       "enum": ["console", "webpack-infrastructure", "silent"]
     },
     "Logger": {
-      "instanceof": "Function"
+      "type": "object",
+      "properties": {
+        "error": {
+          "instanceof": "Function"
+        },
+        "info": {
+          "instanceof": "Function"
+        },
+        "log": {
+          "instanceof": "Function"
+        }
+      }
     },
     "TypeScriptReporterOptions": {
       "oneOf": [

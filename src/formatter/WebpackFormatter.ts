@@ -15,7 +15,7 @@ function createWebpackFormatter(formatter: Formatter, context: string): Formatte
     if (issue.file) {
       let location = forwardSlash(path.relative(context, issue.file));
       if (issue.location) {
-        location += ` ${formatIssueLocation(issue.location)}`;
+        location += `:${formatIssueLocation(issue.location)}`;
       }
 
       return [color(`${severity} in ${location}`), formatter(issue), ''].join(os.EOL);

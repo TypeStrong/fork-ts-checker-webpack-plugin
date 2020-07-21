@@ -1,5 +1,8 @@
 import webpack from 'webpack';
 import validateOptions from 'schema-utils';
+// type only dependency
+// eslint-disable-next-line node/no-extraneous-import
+import type { JSONSchema7 } from 'json-schema';
 import { cosmiconfigSync } from 'cosmiconfig';
 import merge from 'deepmerge';
 import schema from './ForkTsCheckerWebpackPluginOptions.json';
@@ -28,12 +31,13 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
     const { config: externalOptions } = explorerSync.search() || {};
 
     // first validate options directly passed to the constructor
-    validateOptions(schema, options, 'ForkTsCheckerWebpackPlugin');
+    const configuration = { name: 'ForkTsCheckerWebpackPlugin' };
+    validateOptions(schema as JSONSchema7, options, configuration);
 
     this.options = merge(externalOptions || {}, options || {});
 
     // then validate merged options
-    validateOptions(schema, this.options, 'ForkTsCheckerWebpackPlugin');
+    validateOptions(schema as JSONSchema7, this.options, configuration);
   }
 
   public static getCompilerHooks(compiler: webpack.Compiler) {

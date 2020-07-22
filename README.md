@@ -62,11 +62,14 @@ module.exports = {
 };
 ```
 
-If you are using **TypeScript >= 3.8.0**, it's recommended to set `"importsNotUsedAsValues": "preserve"` [compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) 
-in the `tsconfig.json`. [Here is an explanation.](#type-only-modules-watching)
+If you are using **TypeScript >= 3.8.0**, it's recommended to:
+ * for `ts-loader` set `"importsNotUsedAsValues": "preserve"` [compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) in the [`tsconfig.json`](./examples/ts-loader/tsconfig.json)
+ * for `babel-loader` set `"onlyRemoveTypeImports": true` [preset option](https://babeljs.io/docs/en/babel-preset-typescript#onlyremovetypeimports) in the [babel configuration](./examples/babel-loader/.babelrc.js)
 
-> You can find examples how to configure it with [babel-loader](https://github.com/babel/babel-loader), [ts-loader](https://github.com/TypeStrong/ts-loader),
-> [eslint](https://github.com/eslint/eslint) and [Visual Studio Code](https://code.visualstudio.com/) in the 
+[Read more](#type-only-modules-watching) about type-only modules watching.
+
+> Examples how to configure it with [babel-loader](https://github.com/babel/babel-loader), [ts-loader](https://github.com/TypeStrong/ts-loader),
+> [eslint](https://github.com/eslint/eslint) and [Visual Studio Code](https://code.visualstudio.com/) are in the 
 > [**examples**](./examples) directory.
 
 ## Modules resolution
@@ -312,10 +315,14 @@ declare module "*.vue" {
 
 ## Type-Only modules watching
 
-At present there is an issue with the `transpileOnly` mode regarding the triggering of type-checking when a change is made in a source file that will not emit js.
-If you have a file that contains only `interface`s and/or `type`s then, by default, changes to it will **not** trigger the type checker whilst in watch mode. 
+At present `ts-loader` with `transpileOnly` mode and `babel-loader` will not add type-only files (files that contains only interfaces and/or types) 
+to the webpack dependencies set. Webpack watches only files that are in the dependencies set. This means that
+changes in type-only files will **not** trigger new compilation and therefore type-checker in watch mode.
 
-If you use **TypeScript >=3.8.0**, you can fix it by passing `"importsNotUsedAsValues": "preserve"` option to the compiler options in the `tsconfig.json`.
+If you use **TypeScript >=3.8.0**, you can fix it: 
+ * for `ts-loader` set `"importsNotUsedAsValues": "preserve"` [compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) in the [`tsconfig.json`](./examples/ts-loader/tsconfig.json)
+ * for `babel-loader` set `"onlyRemoveTypeImports": true` [preset option](https://babeljs.io/docs/en/babel-preset-typescript#onlyremovetypeimports) in the [babel configuration](./examples/babel-loader/.babelrc.js)
+
 
 ## Plugin hooks
 

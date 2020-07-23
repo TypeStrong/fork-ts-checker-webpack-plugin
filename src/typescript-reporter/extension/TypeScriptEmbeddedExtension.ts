@@ -50,10 +50,13 @@ function createTypeScriptEmbeddedExtension({
   type FileExists = (fileName: string) => boolean;
   function createEmbeddedFileExists(fileExists: FileExists): FileExists {
     return function embeddedFileExists(fileName) {
-      const { embeddedExtension, embeddedFileName } = parsePotentiallyEmbeddedFileName(fileName);
+      const { embeddedExtension, embeddedFileName, extension } = parsePotentiallyEmbeddedFileName(
+        fileName
+      );
 
       if (embeddedExtensions.includes(embeddedExtension) && fileExists(embeddedFileName)) {
-        return true;
+        const embeddedSource = getCachedEmbeddedSource(embeddedFileName);
+        return !!(embeddedSource && embeddedSource.extension === extension);
       }
 
       return fileExists(fileName);

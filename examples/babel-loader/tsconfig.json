@@ -9,9 +9,7 @@
     "skipDefaultLibCheck": true,
     "strict": true,
     "baseUrl": "./src",
-    "outDir": "./dist",
-    "forceConsistentCasingInFileNames": true,
-    "importsNotUsedAsValues": "preserve" // this is important for proper files watching
+    "outDir": "./dist"
   },
   "include": ["./src"],
   "exclude": ["node_modules"]

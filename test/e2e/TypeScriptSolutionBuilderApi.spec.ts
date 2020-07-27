@@ -6,6 +6,7 @@ import {
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { fileLocation } from './fileLocationHelper';
 
 describe('TypeScript SolutionBuilder API', () => {
   let sandbox: Sandbox;
@@ -56,7 +57,7 @@ describe('TypeScript SolutionBuilder API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in packages/shared/src/intersect.ts 2:41-49',
+        fileLocation('ERROR in packages/shared/src/intersect.ts', '2:41', async),
         "TS2339: Property 'includes' does not exist on type 'T'.",
         '    1 | function intersect<T>(arrayA: T[] = [], arrayB: T): T[] {',
         '  > 2 |   return arrayA.filter((item) => arrayB.includes(item));',
@@ -78,7 +79,7 @@ describe('TypeScript SolutionBuilder API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in packages/client/src/index.ts 4:42-48',
+        fileLocation('ERROR in packages/client/src/index.ts', '4:42', async),
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
         "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
         '    2 | ',

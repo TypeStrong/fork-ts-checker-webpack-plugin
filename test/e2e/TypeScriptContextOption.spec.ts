@@ -6,6 +6,7 @@ import {
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { fileLocation } from './fileLocationHelper';
 
 describe('TypeScript Context Option', () => {
   let sandbox: Sandbox;
@@ -102,7 +103,7 @@ describe('TypeScript Context Option', () => {
     const errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/model/User.ts 11:16-25',
+        fileLocation('ERROR in src/model/User.ts', '11:16', async),
         "TS2339: Property 'firstName' does not exist on type 'User'.",
         '     9 | ',
         '    10 | function getUserName(user: User): string {',
@@ -113,7 +114,7 @@ describe('TypeScript Context Option', () => {
         '    14 | }',
       ].join('\n'),
       [
-        'ERROR in src/model/User.ts 11:32-40',
+        fileLocation('ERROR in src/model/User.ts', '11:32', async),
         "TS2339: Property 'lastName' does not exist on type 'User'.",
         '     9 | ',
         '    10 | function getUserName(user: User): string {',

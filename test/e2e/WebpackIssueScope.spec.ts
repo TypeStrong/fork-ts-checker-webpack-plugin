@@ -6,6 +6,7 @@ import {
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { fileLocation } from './fileLocationHelper';
 
 describe('Webpack Issue Scope', () => {
   let sandbox: Sandbox;
@@ -81,7 +82,7 @@ describe('Webpack Issue Scope', () => {
         const errors = await driver.waitForErrors();
         expect(errors).toEqual([
           [
-            'ERROR in src/notUsedFile.ts 1:7-8',
+            fileLocation('ERROR in src/notUsedFile.ts', '1:7', async),
             "TS2322: Type '\"1\"' is not assignable to type 'number'.",
             '  > 1 | const x: number = "1";',
             '      |       ^',
@@ -96,7 +97,7 @@ describe('Webpack Issue Scope', () => {
         const errors = await driver.waitForErrors();
         expect(errors).toEqual([
           [
-            'ERROR in src/notUsedFile.ts 1:7-8',
+            fileLocation('ERROR in src/notUsedFile.ts', '1:7', async),
             "TS2322: Type '\"1\"' is not assignable to type 'number'.",
             '  > 1 | const x: number = "1";',
             '      |       ^',

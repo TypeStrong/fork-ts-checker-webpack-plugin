@@ -6,6 +6,7 @@ import {
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { fileLocation } from './fileLocationHelper';
 
 describe('TypeScript Watch API', () => {
   let sandbox: Sandbox;
@@ -73,7 +74,7 @@ describe('TypeScript Watch API', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/index.ts 34:7-28',
+          fileLocation('ERROR in src/index.ts', '34:7', async),
           `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
           '    32 |   const user = await login(email, password);',
           '    33 | ',
@@ -115,7 +116,7 @@ describe('TypeScript Watch API', () => {
       );
       expect(errors).toEqual([
         [
-          'ERROR in src/model/User.ts 1:22-30',
+          fileLocation('ERROR in src/model/User.ts', '1:22', async),
           "TS2307: Cannot find module './Role'.",
           "  > 1 | import { Role } from './Role';",
           '      |                      ^^^^^^^^',
@@ -135,7 +136,7 @@ describe('TypeScript Watch API', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/index.ts 34:7-31',
+          fileLocation('ERROR in src/index.ts', '34:7', async),
           "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
           '    32 |   const user = await login(email, password);',
           '    33 | ',
@@ -194,7 +195,7 @@ describe('TypeScript Watch API', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/index.ts 34:7-28',
+          fileLocation('ERROR in src/index.ts', '34:7', async),
           `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
           '    32 |   const user = await login(email, password);',
           '    33 | ',
@@ -236,7 +237,7 @@ describe('TypeScript Watch API', () => {
       );
       expect(errors).toEqual([
         [
-          'ERROR in src/model/User.ts 1:22-30',
+          fileLocation('ERROR in src/model/User.ts', '1:22', async),
           "TS2307: Cannot find module './Role'.",
           "  > 1 | import { Role } from './Role';",
           '      |                      ^^^^^^^^',
@@ -256,7 +257,7 @@ describe('TypeScript Watch API', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/index.ts 34:7-31',
+          fileLocation('ERROR in src/index.ts', '34:7', async),
           "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
           '    32 |   const user = await login(email, password);',
           '    33 | ',
@@ -308,7 +309,7 @@ describe('TypeScript Watch API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/model/User.ts 11:16-25',
+        fileLocation('ERROR in src/model/User.ts', '11:16', async),
         "TS2339: Property 'firstName' does not exist on type 'User'.",
         '     9 | ',
         '    10 | function getUserName(user: User): string {',
@@ -319,7 +320,7 @@ describe('TypeScript Watch API', () => {
         '    14 | }',
       ].join('\n'),
       [
-        'ERROR in src/model/User.ts 11:32-40',
+        fileLocation('ERROR in src/model/User.ts', '11:32', async),
         "TS2339: Property 'lastName' does not exist on type 'User'.",
         '     9 | ',
         '    10 | function getUserName(user: User): string {',
@@ -350,7 +351,7 @@ describe('TypeScript Watch API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/index.ts 1:23-39',
+        fileLocation('ERROR in src/index.ts', '1:23', async),
         "TS2307: Cannot find module './authenticate'.",
         "  > 1 | import { login } from './authenticate';",
         '      |                       ^^^^^^^^^^^^^^^^',
@@ -394,7 +395,7 @@ describe('TypeScript Watch API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/index.ts 34:12-16',
+        fileLocation('ERROR in src/index.ts', '34:12', async),
         "TS2339: Property 'role' does not exist on type 'void'.",
         '    32 |   const user = await login(email, password);',
         '    33 | ',
@@ -405,7 +406,7 @@ describe('TypeScript Watch API', () => {
         '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
       ].join('\n'),
       [
-        'ERROR in src/index.ts 35:45-49',
+        fileLocation('ERROR in src/index.ts', '35:45', async),
         "TS2345: Argument of type 'void' is not assignable to parameter of type 'User'.",
         '    33 | ',
         "    34 |   if (user.role === 'admin') {",
@@ -416,7 +417,7 @@ describe('TypeScript Watch API', () => {
         '    38 |   }',
       ].join('\n'),
       [
-        'ERROR in src/index.ts 37:45-49',
+        fileLocation('ERROR in src/index.ts', '37:45', async),
         "TS2345: Argument of type 'void' is not assignable to parameter of type 'User'.",
         '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
         '    36 |   } else {',

@@ -6,7 +6,6 @@ import {
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
-import { fileLocation } from './fileLocationHelper';
 
 describe('EsLint', () => {
   let sandbox: Sandbox;
@@ -60,7 +59,7 @@ describe('EsLint', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        fileLocation('WARNING in src/authenticate.ts', '14:34', async),
+        'WARNING in src/authenticate.ts:14:34',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
         '    12 | }',
         '    13 | ',
@@ -71,7 +70,7 @@ describe('EsLint', () => {
         '    17 |     {',
       ].join('\n'),
       [
-        fileLocation('WARNING in src/index.ts', '31:44', async),
+        'WARNING in src/index.ts:31:44',
         "@typescript-eslint/no-unused-vars: 'event' is defined but never used.",
         '    29 |   }',
         '    30 | });',
@@ -127,7 +126,7 @@ describe('EsLint', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        fileLocation('WARNING in src/model/User.ts', '11:5', async),
+        'WARNING in src/model/User.ts:11:5',
         "@typescript-eslint/no-unused-vars: 'temporary' is defined but never used.",
         '     9 | }',
         '    10 | ',
@@ -138,7 +137,7 @@ describe('EsLint', () => {
         '    14 | function getUserName(user: User): string {',
       ].join('\n'),
       [
-        fileLocation('WARNING in src/model/User.ts', '11:16', async),
+        'WARNING in src/model/User.ts:11:16',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
         '     9 | }',
         '    10 | ',

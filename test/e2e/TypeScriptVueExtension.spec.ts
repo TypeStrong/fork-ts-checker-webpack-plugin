@@ -6,7 +6,6 @@ import {
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
-import { fileLocation } from './fileLocationHelper';
 
 describe('TypeScript Vue Extension', () => {
   let sandbox: Sandbox;
@@ -95,7 +94,7 @@ describe('TypeScript Vue Extension', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          fileLocation('ERROR in src/component/LoggedIn.vue', '27:21', async),
+          'ERROR in src/component/LoggedIn.vue:27:21',
           "TS2304: Cannot find name 'getUserName'.",
           '    25 |       const user: User = this.user;',
           '    26 | ',
@@ -123,7 +122,7 @@ describe('TypeScript Vue Extension', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          fileLocation('ERROR in src/component/LoggedIn.vue', '27:29', async),
+          'ERROR in src/component/LoggedIn.vue:27:29',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
           '    25 |       const user: User = this.user;',
           '    26 | ',
@@ -134,7 +133,7 @@ describe('TypeScript Vue Extension', () => {
           '    30 |   async logout() {',
         ].join('\n'),
         [
-          fileLocation('ERROR in src/model/User.ts', '11:16', async),
+          'ERROR in src/model/User.ts:11:16',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
           '     9 | ',
           '    10 | function getUserName(user: User): string {',

@@ -94,7 +94,7 @@ describe('TypeScript Vue Extension', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/component/LoggedIn.vue 27:21-32',
+          'ERROR in src/component/LoggedIn.vue:27:21',
           "TS2304: Cannot find name 'getUserName'.",
           '    25 |       const user: User = this.user;',
           '    26 | ',
@@ -122,7 +122,7 @@ describe('TypeScript Vue Extension', () => {
       errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/component/LoggedIn.vue 27:29-38',
+          'ERROR in src/component/LoggedIn.vue:27:29',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
           '    25 |       const user: User = this.user;',
           '    26 | ',
@@ -133,7 +133,7 @@ describe('TypeScript Vue Extension', () => {
           '    30 |   async logout() {',
         ].join('\n'),
         [
-          'ERROR in src/model/User.ts 11:16-25',
+          'ERROR in src/model/User.ts:11:16',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
           '     9 | ',
           '    10 | function getUserName(user: User): string {',

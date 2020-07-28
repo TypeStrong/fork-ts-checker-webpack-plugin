@@ -17,7 +17,7 @@ class IssueWebpackError extends Error {
       this.file = forwardSlash(relative(context, issue.file));
 
       if (issue.location) {
-        this.file += ` ${formatIssueLocation(issue.location)}`;
+        this.file += `:${formatIssueLocation(issue.location)}`;
       }
     }
 

@@ -25,12 +25,7 @@ function compareIssueLocations(locationA?: IssueLocation, locationB?: IssueLocat
 }
 
 function formatIssueLocation(location: IssueLocation) {
-  return [
-    `${location.start.line}:${location.start.column}`,
-    location.start.line !== location.end.line
-      ? `${location.end.line}:${location.end.column}`
-      : `${location.end.column}`,
-  ].join('-');
+  return `${location.start.line}:${location.start.column}`;
 }
 
 export { IssueLocation, compareIssueLocations, formatIssueLocation };

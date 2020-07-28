@@ -120,7 +120,7 @@ describe('Webpack Production Build', () => {
           // first error is from the webpack module resolution
           expect.anything(),
           [
-            'ERROR in src/authenticate.ts 1:22-36',
+            'ERROR in src/authenticate.ts:1:22',
             "TS2307: Cannot find module './model/User'.",
             "  > 1 | import { User } from './model/User';",
             '      |                      ^^^^^^^^^^^^^^',
@@ -129,7 +129,7 @@ describe('Webpack Production Build', () => {
             '    4 |   const response = await fetch(',
           ].join('\n'),
           [
-            'ERROR in src/index.ts 2:29-43',
+            'ERROR in src/index.ts:2:29',
             "TS2307: Cannot find module './model/User'.",
             "    1 | import { login } from './authenticate';",
             "  > 2 | import { getUserName } from './model/User';",

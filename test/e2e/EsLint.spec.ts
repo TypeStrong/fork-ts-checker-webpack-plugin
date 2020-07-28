@@ -59,7 +59,7 @@ describe('EsLint', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'WARNING in src/authenticate.ts 14:34-37',
+        'WARNING in src/authenticate.ts:14:34',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
         '    12 | }',
         '    13 | ',
@@ -70,7 +70,7 @@ describe('EsLint', () => {
         '    17 |     {',
       ].join('\n'),
       [
-        'WARNING in src/index.ts 31:44-49',
+        'WARNING in src/index.ts:31:44',
         "@typescript-eslint/no-unused-vars: 'event' is defined but never used.",
         '    29 |   }',
         '    30 | });',
@@ -126,7 +126,7 @@ describe('EsLint', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'WARNING in src/model/User.ts 11:5-19',
+        'WARNING in src/model/User.ts:11:5',
         "@typescript-eslint/no-unused-vars: 'temporary' is defined but never used.",
         '     9 | }',
         '    10 | ',
@@ -137,7 +137,7 @@ describe('EsLint', () => {
         '    14 | function getUserName(user: User): string {',
       ].join('\n'),
       [
-        'WARNING in src/model/User.ts 11:16-19',
+        'WARNING in src/model/User.ts:11:16',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
         '     9 | }',
         '    10 | ',

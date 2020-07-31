@@ -40,7 +40,8 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
             ) &&
             (configuration.options.extensions || []).some((extension) =>
               changedFile.endsWith(extension)
-            )
+            ) &&
+            !engine.isPathIgnored(changedFile)
         );
 
         if (changedAndIncludedFiles.length) {

@@ -56,6 +56,20 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
     deleteFile(fileName: string): void {
       system.deleteFile(fileName);
     },
+    getParsedCommandLine(fileName: string): ts.ParsedCommandLine | undefined {
+      return ts.getParsedCommandLineOfConfigFile(
+        fileName,
+        { skipLibCheck: true },
+        {
+          ...system,
+          onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
+            if (reportDiagnostic) {
+              reportDiagnostic(diagnostic);
+            }
+          },
+        }
+      );
+    },
   };
 
   hostExtensions.forEach((hostExtension) => {

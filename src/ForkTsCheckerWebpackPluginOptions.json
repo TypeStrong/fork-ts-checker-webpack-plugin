@@ -20,6 +20,10 @@
     },
     "logger": {
       "$ref": "#/definitions/LoggerOptions"
+    },
+    "enableOverlay": {
+      "type": "boolean",
+      "description": "When false, plugin will not display issues in Webpack Dev Server's overlay"
     }
   },
   "additionalProperties": false,

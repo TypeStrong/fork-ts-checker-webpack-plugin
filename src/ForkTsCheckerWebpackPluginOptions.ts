@@ -11,6 +11,7 @@ interface ForkTsCheckerWebpackPluginOptions {
   formatter?: FormatterOptions;
   issue?: IssueOptions;
   logger?: LoggerOptions;
+  enableOverlay?: boolean;
 }
 
 export { ForkTsCheckerWebpackPluginOptions };

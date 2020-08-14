@@ -143,14 +143,14 @@ you can place your configuration in the:
   
 Options passed to the plugin constructor will overwrite options from the cosmiconfig (using [deepmerge](https://github.com/TehShrike/deepmerge)).
 
-| Name              | Type                  | Default value                                    | Description |
-| ----------------- | --------------------- | ------------------------------------------------ | ----------- |
-| `async`           | `boolean`             | `compiler.options.mode === 'development'`        | If `true`, reports issues **after** webpack's compilation is done. Thanks to that it doesn't block the compilation. Used only in the `watch` mode. | 
-| `typescript`      | `object` or `boolean` | `true`                                           | If a `boolean`, it enables/disables TypeScript checker. If an `object`, see [TypeScript options](#typescript-options). |
-| `eslint`          | `object`              | `undefined`                                      | If `undefined`, it disables ESLint linter. If an `object`, see [ESLint options](#eslint-options). |
-| `issue`           | `object`              | `{}`                                             | See [Issues options](#issues-options). |
-| `formatter`       | `string` or `object`  | `codeframe`                                      | Available formatters are `basic` and `codeframe`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
-| `logger`          | `object`              | `{ infrastructure: 'silent', issues: 'console' }` | Available loggers are `silent`, `console`, and `webpack-infrastructure`. Infrastructure logger prints additional information, issue logger prints `issues` in the `async` mode. |
+| Name              | Type                  | Default value                                                      | Description |
+| ----------------- | --------------------- | ------------------------------------------------------------------ | ----------- |
+| `async`           | `boolean`             | `compiler.options.mode === 'development'`                          | If `true`, reports issues **after** webpack's compilation is done. Thanks to that it doesn't block the compilation. Used only in the `watch` mode. | 
+| `typescript`      | `object` or `boolean` | `true`                                                             | If a `boolean`, it enables/disables TypeScript checker. If an `object`, see [TypeScript options](#typescript-options). |
+| `eslint`          | `object`              | `undefined`                                                        | If `undefined`, it disables ESLint linter. If an `object`, see [ESLint options](#eslint-options). |
+| `issue`           | `object`              | `{}`                                                               | See [Issues options](#issues-options). |
+| `formatter`       | `string` or `object`  | `codeframe`                                                        | Available formatters are `basic` and `codeframe`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
+| `logger`          | `object`              | `{ infrastructure: 'silent', issues: 'console', devServer: true }` | Available loggers are `silent`, `console`, and `webpack-infrastructure`. Infrastructure logger prints additional information, issue logger prints `issues` in the `async` mode. If `devServer` is set to `false`, errors will not be reported to Webpack Dev Server. |
 
 ### TypeScript options
 

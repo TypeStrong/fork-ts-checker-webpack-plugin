@@ -19,7 +19,6 @@ interface ForkTsCheckerWebpackPluginConfiguration {
   issue: IssueConfiguration;
   formatter: FormatterConfiguration;
   logger: LoggerConfiguration;
-  enableOverlay: boolean;
 }
 
 function createForkTsCheckerWebpackPluginConfiguration(
@@ -33,7 +32,6 @@ function createForkTsCheckerWebpackPluginConfiguration(
     issue: createIssueConfiguration(compiler, options.issue),
     formatter: createFormatterConfiguration(options.formatter),
     logger: createLoggerConfiguration(compiler, options.logger),
-    enableOverlay: options.enableOverlay !== false,
   };
 }
 

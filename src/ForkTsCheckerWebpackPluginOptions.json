@@ -287,6 +287,10 @@
               "$ref": "#/definitions/Logger"
             }
           ]
+        },
+        "devServer": {
+          "type": "boolean",
+          "description": "Enable reporting to Webpack Dev Server."
         }
       }
     }

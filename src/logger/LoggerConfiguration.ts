@@ -6,6 +6,7 @@ import { createLogger } from './LoggerFactory';
 interface LoggerConfiguration {
   infrastructure: Logger;
   issues: Logger;
+  devServer: boolean;
 }
 
 function createLoggerConfiguration(
@@ -15,6 +16,7 @@ function createLoggerConfiguration(
   return {
     infrastructure: createLogger((options && options.infrastructure) || 'silent', compiler),
     issues: createLogger((options && options.issues) || 'console', compiler),
+    devServer: options?.devServer !== false,
   };
 }
 

@@ -72,6 +72,16 @@
     "semver": "^7.3.2",
     "tapable": "^1.0.0"
   },
+  "peerDependencies": {
+    "eslint": ">= 6",
+    "typescript": ">= 2.7",
+    "webpack": ">= 4"
+  },
+  "peerDependenciesMeta": {
+    "eslint": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@commitlint/config-conventional": "^8.3.4",
     "@semantic-release/commit-analyzer": "^8.0.1",

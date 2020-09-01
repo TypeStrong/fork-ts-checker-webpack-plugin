@@ -40,6 +40,7 @@ interface ControlledTypeScriptSystem extends ts.System {
 type FileSystemMode = 'readonly' | 'write-tsbuildinfo' | 'write-references';
 
 function createControlledTypeScriptSystem(
+  typescript: typeof ts,
   mode: FileSystemMode = 'readonly'
 ): ControlledTypeScriptSystem {
   // watchers
@@ -50,7 +51,7 @@ function createControlledTypeScriptSystem(
   const deletedFiles = new Map<string, boolean>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutCallbacks = new Set<any>();
-  const caseSensitive = ts.sys.useCaseSensitiveFileNames;
+  const caseSensitive = typescript.sys.useCaseSensitiveFileNames;
   const realFileSystem = createRealFileSystem(caseSensitive);
   const passiveFileSystem = createPassiveFileSystem(caseSensitive, realFileSystem);
 
@@ -149,7 +150,7 @@ function createControlledTypeScriptSystem(
   }
 
   const controlledSystem: ControlledTypeScriptSystem = {
-    ...ts.sys,
+    ...typescript.sys,
     useCaseSensitiveFileNames: caseSensitive,
     fileExists(path: string): boolean {
       const stats = passiveFileSystem.readStats(path);
@@ -200,7 +201,7 @@ function createControlledTypeScriptSystem(
       getWriteFileSystem(path).updateTimes(path, date, date);
 
       invokeDirectoryWatchers(path);
-      invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
+      invokeFileWatchers(path, typescript.FileWatcherEventKind.Changed);
     },
     watchFile(path: string, callback: ts.FileWatcherCallback): ts.FileWatcher {
       return createWatcher(fileWatcherCallbacksMap, path, callback);
@@ -240,7 +241,7 @@ function createControlledTypeScriptSystem(
     invokeFileCreated(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
 
-      invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
+      invokeFileWatchers(path, typescript.FileWatcherEventKind.Created);
       invokeDirectoryWatchers(normalizedPath);
 
       deletedFiles.set(normalizedPath, false);
@@ -249,19 +250,19 @@ function createControlledTypeScriptSystem(
       const normalizedPath = realFileSystem.normalizePath(path);
 
       if (deletedFiles.get(normalizedPath) || !fileWatcherCallbacksMap.has(normalizedPath)) {
-        invokeFileWatchers(path, ts.FileWatcherEventKind.Created);
+        invokeFileWatchers(path, typescript.FileWatcherEventKind.Created);
         invokeDirectoryWatchers(normalizedPath);
 
         deletedFiles.set(normalizedPath, false);
       } else {
-        invokeFileWatchers(path, ts.FileWatcherEventKind.Changed);
+        invokeFileWatchers(path, typescript.FileWatcherEventKind.Changed);
       }
     },
     invokeFileDeleted(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
 
       if (!deletedFiles.get(normalizedPath)) {
-        invokeFileWatchers(path, ts.FileWatcherEventKind.Deleted);
+        invokeFileWatchers(path, typescript.FileWatcherEventKind.Deleted);
         invokeDirectoryWatchers(path);
 
         deletedFiles.set(normalizedPath, true);

@@ -31,7 +31,9 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
   let solutionBuilder: ts.SolutionBuilder<ts.SemanticDiagnosticsBuilderProgram> | undefined;
 
   const diagnosticsPerProject = new Map<string, ts.Diagnostic[]>();
-  const performance = connectTypeScriptPerformance(createPerformance());
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const typescript: typeof ts = require(configuration.typescriptPath);
+  const performance = connectTypeScriptPerformance(typescript, createPerformance());
 
   if (configuration.extensions.vue.enabled) {
     extensions.push(createTypeScriptVueExtension(configuration.extensions.vue));
@@ -90,7 +92,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
       }
 
       if (!system) {
-        system = createControlledTypeScriptSystem(configuration.mode);
+        system = createControlledTypeScriptSystem(typescript, configuration.mode);
       }
 
       // clear cache to be ready for next iteration and to free memory
@@ -130,6 +132,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
         performance.markStart('Parse Configuration');
         parsedConfiguration = parseTypeScriptConfiguration(
+          typescript,
           configuration.configFile,
           configuration.context,
           configuration.configOverwrite,
@@ -144,7 +147,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         // report configuration diagnostics and exit
         if (parseConfigurationDiagnostics.length) {
           parsedConfiguration = undefined;
-          let issues = createIssuesFromTsDiagnostics(parseConfigurationDiagnostics);
+          let issues = createIssuesFromTsDiagnostics(typescript, parseConfigurationDiagnostics);
 
           issues.forEach((issue) => {
             if (!issue.file) {
@@ -166,11 +169,11 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
           // try to remove outdated .tsbuildinfo file for incremental mode
           if (
-            typeof ts.getTsBuildInfoEmitOutputFilePath === 'function' &&
+            typeof typescript.getTsBuildInfoEmitOutputFilePath === 'function' &&
             configuration.mode !== 'readonly' &&
             parsedConfiguration.options.incremental
           ) {
-            const tsBuildInfoPath = ts.getTsBuildInfoEmitOutputFilePath(
+            const tsBuildInfoPath = typescript.getTsBuildInfoEmitOutputFilePath(
               parsedConfiguration.options
             );
             if (tsBuildInfoPath) {
@@ -190,9 +193,10 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         if (!watchSolutionBuilderHost) {
           performance.markStart('Create Solution Builder Host');
           watchSolutionBuilderHost = createControlledWatchSolutionBuilderHost(
+            typescript,
             parsedConfiguration,
             system,
-            ts.createSemanticDiagnosticsBuilderProgram,
+            typescript.createSemanticDiagnosticsBuilderProgram,
             undefined,
             undefined,
             undefined,
@@ -216,7 +220,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         // ensure solution builder exists
         if (!solutionBuilder) {
           performance.markStart('Create Solution Builder');
-          solutionBuilder = ts.createSolutionBuilderWithWatch(
+          solutionBuilder = typescript.createSolutionBuilderWithWatch(
             watchSolutionBuilderHost,
             [configuration.configFile],
             {}
@@ -233,9 +237,10 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         if (!watchCompilerHost) {
           performance.markStart('Create Watch Compiler Host');
           watchCompilerHost = createControlledWatchCompilerHost(
+            typescript,
             parsedConfiguration,
             system,
-            ts.createSemanticDiagnosticsBuilderProgram,
+            typescript.createSemanticDiagnosticsBuilderProgram,
             undefined,
             undefined,
             (builderProgram) => {
@@ -257,7 +262,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         // ensure watch program exists
         if (!watchProgram) {
           performance.markStart('Create Watch Program');
-          watchProgram = ts.createWatchProgram(watchCompilerHost);
+          watchProgram = typescript.createWatchProgram(watchCompilerHost);
           performance.markEnd('Create Watch Program');
         }
       }
@@ -287,7 +292,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
       diagnosticsPerProject.forEach((projectDiagnostics) => {
         diagnostics.push(...projectDiagnostics);
       });
-      let issues = createIssuesFromTsDiagnostics(diagnostics);
+      let issues = createIssuesFromTsDiagnostics(typescript, diagnostics);
 
       extensions.forEach((extension) => {
         if (extension.extendIssues) {

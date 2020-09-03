@@ -2,12 +2,16 @@ import * as ts from 'typescript';
 import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 
 function parseTypeScriptConfiguration(
+  typescript: typeof ts,
   configFileName: string,
   configFileContext: string,
   configOverwriteJSON: TypeScriptConfigurationOverwrite,
   parseConfigFileHost: ts.ParseConfigFileHost
 ): ts.ParsedCommandLine {
-  const parsedConfigFileJSON = ts.readConfigFile(configFileName, parseConfigFileHost.readFile);
+  const parsedConfigFileJSON = typescript.readConfigFile(
+    configFileName,
+    parseConfigFileHost.readFile
+  );
 
   const overwrittenConfigFileJSON = {
     ...(parsedConfigFileJSON.config || {}),
@@ -18,7 +22,7 @@ function parseTypeScriptConfiguration(
     },
   };
 
-  const parsedConfigFile = ts.parseJsonConfigFileContent(
+  const parsedConfigFile = typescript.parseJsonConfigFileContent(
     overwrittenConfigFileJSON,
     parseConfigFileHost,
     configFileContext

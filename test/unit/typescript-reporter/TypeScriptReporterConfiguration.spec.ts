@@ -36,6 +36,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
       },
     },
     profile: false,
+    typescriptPath: require.resolve('typescript'),
   };
 
   beforeEach(() => {

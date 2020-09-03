@@ -175,6 +175,10 @@
             "profile": {
               "type": "boolean",
               "description": "Measures and prints timings related to the TypeScript performance."
+            },
+            "typescriptPath": {
+              "type": "string",
+              "description": "If supplied this is a custom path where TypeScript can be found."
             }
           }
         }

@@ -3,6 +3,7 @@ import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
 import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
+  typescript: typeof ts,
   parsedCommandLine: ts.ParsedCommandLine,
   system: ControlledTypeScriptSystem,
   createProgram?: ts.CreateProgram<TProgram>,
@@ -11,7 +12,7 @@ function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
   afterProgramCreate?: (program: TProgram) => void,
   hostExtensions: TypeScriptHostExtension[] = []
 ): ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram> {
-  const baseWatchCompilerHost = ts.createWatchCompilerHost(
+  const baseWatchCompilerHost = typescript.createWatchCompilerHost(
     parsedCommandLine.fileNames,
     parsedCommandLine.options,
     system,
@@ -33,7 +34,7 @@ function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
     ): TProgram {
       // as compilerHost is optional, ensure that we have it
       if (!compilerHost) {
-        compilerHost = ts.createCompilerHost(options || parsedCommandLine.options);
+        compilerHost = typescript.createCompilerHost(options || parsedCommandLine.options);
       }
 
       hostExtensions.forEach((hostExtension) => {

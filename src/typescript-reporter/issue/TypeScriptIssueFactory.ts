@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import * as os from 'os';
 import { deduplicateAndSortIssues, Issue, IssueLocation } from '../../issue';
 
-function createIssueFromTsDiagnostic(diagnostic: ts.Diagnostic): Issue {
+function createIssueFromTsDiagnostic(typescript: typeof ts, diagnostic: ts.Diagnostic): Issue {
   let file: string | undefined;
   let location: IssueLocation | undefined;
 
@@ -37,15 +37,18 @@ function createIssueFromTsDiagnostic(diagnostic: ts.Diagnostic): Issue {
     code: 'TS' + String(diagnostic.code),
     // we don't handle Suggestion and Message diagnostics
     severity: diagnostic.category === 0 ? 'warning' : 'error',
-    message: ts.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL),
+    message: typescript.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL),
     file,
     location,
   };
 }
 
-function createIssuesFromTsDiagnostics(diagnostics: ts.Diagnostic[]): Issue[] {
+function createIssuesFromTsDiagnostics(
+  typescript: typeof ts,
+  diagnostics: ts.Diagnostic[]
+): Issue[] {
   return deduplicateAndSortIssues(
-    diagnostics.map((diagnostic) => createIssueFromTsDiagnostic(diagnostic))
+    diagnostics.map((diagnostic) => createIssueFromTsDiagnostic(typescript, diagnostic))
   );
 }
 

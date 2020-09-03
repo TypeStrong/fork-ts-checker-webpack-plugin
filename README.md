@@ -168,6 +168,7 @@ Options for the TypeScript checker (`typescript` option object).
 | `diagnosticOptions` | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform. |
 | `extensions`         | `object`  | `{}`                                                                                                           | See [TypeScript extensions options](#typescript-extensions-options). |
 | `profile`            | `boolean` | `false`                                                                                                        | Measures and prints timings related to the TypeScript performance. |
+| `typescriptPath`     | `string`  | `require.resolve('typescript')`                                                                                | If supplied this is a custom path where TypeScript can be found. |
 
 #### TypeScript extensions options
 

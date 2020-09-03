@@ -8,13 +8,16 @@ interface TypeScriptPerformance {
   measure(name: string, startMark?: string, endMark?: string): void;
 }
 
-function getTypeScriptPerformance(): TypeScriptPerformance | undefined {
+function getTypeScriptPerformance(typescript: typeof ts): TypeScriptPerformance | undefined {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (ts as any).performance;
+  return (typescript as any).performance;
 }
 
-function connectTypeScriptPerformance(performance: Performance): Performance {
-  const typeScriptPerformance = getTypeScriptPerformance();
+function connectTypeScriptPerformance(
+  typescript: typeof ts,
+  performance: Performance
+): Performance {
+  const typeScriptPerformance = getTypeScriptPerformance(typescript);
 
   if (typeScriptPerformance) {
     const { mark, measure } = typeScriptPerformance;

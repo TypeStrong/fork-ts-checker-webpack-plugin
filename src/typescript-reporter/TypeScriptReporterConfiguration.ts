@@ -23,6 +23,7 @@ interface TypeScriptReporterConfiguration {
     vue: TypeScriptVueExtensionConfiguration;
   };
   profile: boolean;
+  typescriptPath: string;
 }
 
 function createTypeScriptReporterConfiguration(
@@ -42,12 +43,14 @@ function createTypeScriptReporterConfiguration(
   const optionsAsObject: Exclude<TypeScriptReporterOptions, boolean> =
     typeof options === 'object' ? options : {};
 
+  const typescriptPath = optionsAsObject.typescriptPath || require.resolve('typescript');
+
   const defaultCompilerOptions: Record<string, unknown> = {
     skipLibCheck: true,
     sourceMap: false,
     inlineSourceMap: false,
   };
-  if (semver.gte(ts.version, '2.9.0')) {
+  if (semver.gte(require(typescriptPath).version, '2.9.0')) {
     defaultCompilerOptions.declarationMap = false;
   }
 
@@ -79,6 +82,7 @@ function createTypeScriptReporterConfiguration(
       global: false,
       ...(optionsAsObject.diagnosticOptions || {}),
     },
+    typescriptPath: typescriptPath,
   };
 }
 

@@ -42,7 +42,7 @@ describe('typescript-reporter/issue/TypeScriptIssueFactory', () => {
   it.each([[[TS_DIAGNOSTIC_WARNING, TS_DIAGNOSTIC_ERROR, TS_DIAGNOSTIC_WITHOUT_FILE]]])(
     'creates Issues from TsDiagnostics: %p',
     (tsDiagnostics) => {
-      const issues = createIssuesFromTsDiagnostics(tsDiagnostics as ts.Diagnostic[]);
+      const issues = createIssuesFromTsDiagnostics(ts, tsDiagnostics as ts.Diagnostic[]);
 
       expect(issues).toMatchSnapshot();
     }

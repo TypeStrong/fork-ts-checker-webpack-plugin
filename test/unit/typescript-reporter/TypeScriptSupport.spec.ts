@@ -28,6 +28,7 @@ describe('typescript-reporter/TypeScriptSupport', () => {
       },
       memoryLimit: 2048,
       profile: false,
+      typescriptPath: require.resolve('typescript'),
     };
   });
 

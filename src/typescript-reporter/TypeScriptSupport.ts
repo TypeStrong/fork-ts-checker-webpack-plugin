@@ -8,7 +8,7 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
   let typescriptVersion: string | undefined;
 
   try {
-    typescriptVersion = require('typescript').version;
+    typescriptVersion = require(configuration.typescriptPath).version;
   } catch (error) {}
 
   if (!typescriptVersion) {

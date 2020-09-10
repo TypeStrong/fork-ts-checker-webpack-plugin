@@ -4,6 +4,7 @@ import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
 import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderProgram>(
+  typescript: typeof ts,
   parsedCommandLine: ts.ParsedCommandLine,
   system: ControlledTypeScriptSystem,
   createProgram?: ts.CreateProgram<TProgram>,
@@ -15,6 +16,7 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
   hostExtensions: TypeScriptHostExtension[] = []
 ): ts.SolutionBuilderWithWatchHost<TProgram> {
   const controlledWatchCompilerHost = createControlledWatchCompilerHost(
+    typescript,
     parsedCommandLine,
     system,
     createProgram,

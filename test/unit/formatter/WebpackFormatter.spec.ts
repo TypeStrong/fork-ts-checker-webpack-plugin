@@ -25,7 +25,7 @@ describe('formatter/WebpackFormatter', () => {
   let formatter: Formatter;
 
   beforeEach(() => {
-    formatter = createWebpackFormatter(createBasicFormatter(), __dirname);
+    formatter = createWebpackFormatter(createBasicFormatter());
   });
 
   it('decorates existing formatter', () => {

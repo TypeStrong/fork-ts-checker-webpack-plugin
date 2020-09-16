@@ -9,7 +9,7 @@ describe('formatter/WebpackFormatter', () => {
     severity: 'error',
     code: 'TS123',
     message: 'Some issue content',
-    file: join(__dirname, 'some/file.ts'),
+    file: join(process.cwd(), 'some/file.ts'),
     location: {
       start: {
         line: 1,

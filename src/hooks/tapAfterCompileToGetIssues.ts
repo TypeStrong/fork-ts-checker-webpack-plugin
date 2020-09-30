@@ -22,7 +22,7 @@ function tapAfterCompileToGetIssues(
     let issues: Issue[] | undefined = [];
 
     try {
-      issues = await state.report;
+      issues = await state.issuesPromise;
     } catch (error) {
       hooks.error.call(error, compilation);
       return;

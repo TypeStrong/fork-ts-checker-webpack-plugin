@@ -1,8 +1,11 @@
-import { Report } from './reporter';
 import { Tap } from 'tapable';
+import { Dependencies, Report } from './reporter';
+import { Issue } from './issue';
 
 interface ForkTsCheckerWebpackPluginState {
-  report: Promise<Report | undefined>;
+  reportPromise: Promise<Report | undefined>;
+  issuesPromise: Promise<Issue[] | undefined>;
+  dependenciesPromise: Promise<Dependencies | undefined>;
   removedFiles: string[];
   watching: boolean;
   initialized: boolean;
@@ -11,7 +14,9 @@ interface ForkTsCheckerWebpackPluginState {
 
 function createForkTsCheckerWebpackPluginState(): ForkTsCheckerWebpackPluginState {
   return {
-    report: Promise.resolve([]),
+    reportPromise: Promise.resolve(undefined),
+    issuesPromise: Promise.resolve(undefined),
+    dependenciesPromise: Promise.resolve(undefined),
     removedFiles: [],
     watching: false,
     initialized: false,

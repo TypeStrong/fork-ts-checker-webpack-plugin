@@ -20,6 +20,7 @@ import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
 import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
 import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
+import { tapAfterEnvironmentToPatchWatching } from './hooks/tapAfterEnvironmentToPatchWatching';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
   static readonly version: string = '{{VERSION}}'; // will be replaced by the @semantic-release/exec
@@ -62,9 +63,10 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
     if (reporters.length) {
       const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
 
+      tapAfterEnvironmentToPatchWatching(compiler);
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
       tapDoneToCollectRemoved(compiler, configuration, state);
-      tapAfterCompileToAddDependencies(compiler, configuration);
+      tapAfterCompileToAddDependencies(compiler, configuration, state);
       tapStopToDisconnectReporter(compiler, reporter, state);
       tapErrorToLogMessage(compiler, configuration);
     } else {

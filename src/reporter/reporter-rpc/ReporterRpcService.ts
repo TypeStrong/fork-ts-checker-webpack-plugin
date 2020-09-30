@@ -1,6 +1,13 @@
 import { Reporter } from '../Reporter';
 import { createRpcService, RpcMessagePort } from '../../rpc';
-import { configure, getIssues } from './ReporterRpcProcedure';
+import {
+  configure,
+  getReport,
+  getDependencies,
+  getIssues,
+  closeReport,
+} from './ReporterRpcProcedure';
+import { Report } from '../Report';
 
 interface ReporterRpcService {
   isOpen: () => boolean;
@@ -14,18 +21,46 @@ function registerReporterRpcService<TConfiguration extends object>(
 ): ReporterRpcService {
   const rpcService = createRpcService(servicePort);
   let reporterRegistered = false;
+  let report: Report | undefined = undefined;
 
   const registerReporter = () => {
     rpcService.addCallHandler(configure, async (configuration: TConfiguration) => {
       rpcService.removeCallHandler(configure);
 
       const reporter = reporterFactory(configuration);
-      rpcService.addCallHandler(getIssues, reporter.getReport);
+
+      rpcService.addCallHandler(getReport, async (change) => {
+        if (report) {
+          throw new Error(`Close previous report before opening the next one.`);
+        }
+
+        report = await reporter.getReport(change);
+      });
+      rpcService.addCallHandler(getDependencies, () => {
+        if (!report) {
+          throw new Error(`Cannot find active report.`);
+        }
+
+        return report.getDependencies();
+      });
+      rpcService.addCallHandler(getIssues, () => {
+        if (!report) {
+          throw new Error(`Cannot find active report.`);
+        }
+
+        return report.getIssues();
+      });
+      rpcService.addCallHandler(closeReport, async () => {
+        report = undefined;
+      });
     });
   };
   const unregisterReporter = () => {
     rpcService.removeCallHandler(configure);
+    rpcService.removeCallHandler(getReport);
+    rpcService.removeCallHandler(getDependencies);
     rpcService.removeCallHandler(getIssues);
+    rpcService.removeCallHandler(closeReport);
   };
 
   return {

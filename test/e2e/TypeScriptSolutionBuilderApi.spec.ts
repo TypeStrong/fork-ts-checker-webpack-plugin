@@ -80,7 +80,9 @@ describe('TypeScript SolutionBuilder API', () => {
       [
         'ERROR in packages/client/src/index.ts:4:42',
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
-        "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
+        typescript === '~4.0.0'
+          ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."
+          : "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
         '    2 | ',
         '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
         '  > 4 |   const intersection = intersect(arrayA, arrayB);',
@@ -110,6 +112,8 @@ describe('TypeScript SolutionBuilder API', () => {
 
     // this compilation should be successful
     await driver.waitForNoErrors();
+    // close webpack-dev-server
+    await sandbox.kill(driver.process);
 
     switch (mode) {
       case 'readonly':

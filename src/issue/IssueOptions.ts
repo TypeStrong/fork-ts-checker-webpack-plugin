@@ -6,7 +6,6 @@ type IssuePredicateOption = IssuePredicate | IssueMatch | (IssuePredicate | Issu
 interface IssueOptions {
   include?: IssuePredicateOption;
   exclude?: IssuePredicateOption;
-  scope?: 'all' | 'webpack';
 }
 
 export { IssueOptions, IssuePredicateOption };

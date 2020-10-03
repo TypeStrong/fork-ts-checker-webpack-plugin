@@ -10,8 +10,7 @@
     "strict": true,
     "baseUrl": "./src",
     "outDir": "./dist",
-    "forceConsistentCasingInFileNames": true,
-    "importsNotUsedAsValues": "preserve" // this is important for proper files watching
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["./src"],
   "exclude": ["node_modules"]

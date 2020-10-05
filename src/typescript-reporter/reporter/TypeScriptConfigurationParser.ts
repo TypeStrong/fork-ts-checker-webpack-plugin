@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { normalize } from 'path';
 import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 import { Dependencies } from '../../reporter';
 
@@ -82,9 +83,18 @@ function getDependenciesFromTypeScriptConfiguration(
     });
   }
 
+  const extensions = [
+    typescript.Extension.Ts,
+    typescript.Extension.Tsx,
+    typescript.Extension.Js,
+    typescript.Extension.Jsx,
+    typescript.Extension.TsBuildInfo,
+  ];
+
   return {
-    files: Array.from(files),
-    dirs: Array.from(dirs),
+    files: Array.from(files).map((file) => normalize(file)),
+    dirs: Array.from(dirs).map((dir) => normalize(dir)),
+    extensions: extensions,
   };
 }
 

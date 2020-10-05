@@ -1,7 +1,8 @@
 import webpack from 'webpack';
 import chokidar, { FSWatcher } from 'chokidar';
 import { EventEmitter } from 'events';
-import { realpathSync } from 'fs';
+import { extname } from 'path';
+import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 
 // webpack 4 interface
 interface WatcherV4 {
@@ -60,7 +61,15 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     return this.watchFileSystem.watcher || this.watchFileSystem.wfs?.watcher;
   }
 
-  constructor(private watchFileSystem: WatchFileSystem) {}
+  constructor(
+    private watchFileSystem: WatchFileSystem,
+    private pluginState: ForkTsCheckerWebpackPluginState
+  ) {}
+
+  private paused = true;
+  private fileWatcher: Watcher | undefined;
+  private dirsWatcher: FSWatcher | undefined;
+  private dirsWatched: string[] = [];
 
   watch(
     files: Iterable<string>,
@@ -71,8 +80,60 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     callback?: Function,
     callbackUndelayed?: Function
   ): Watcher {
+    if (!this.dirsWatcher) {
+      const interval = typeof options?.poll === 'number' ? options.poll : undefined;
+
+      this.dirsWatcher = chokidar.watch([], {
+        ignoreInitial: true,
+        ignorePermissionErrors: true,
+        ignored: ['**/node_modules/**', '**/.git/**'],
+        usePolling: options?.poll ? true : undefined,
+        interval: interval,
+        binaryInterval: interval,
+        alwaysStat: true,
+        atomic: true,
+        awaitWriteFinish: true,
+      });
+
+      this.dirsWatcher.on('add', (file, stats) => {
+        if (this.paused) {
+          return;
+        }
+
+        const extension = extname(file);
+        const supportedExtensions = this.pluginState.lastDependencies?.extensions || [];
+
+        if (!supportedExtensions.includes(extension)) {
+          return;
+        }
+
+        const mtime = stats?.mtimeMs || stats?.ctimeMs || 1;
+
+        this.watcher?._onChange(file, mtime, file, 'rename');
+      });
+      this.dirsWatcher.on('unlink', (file) => {
+        if (this.paused) {
+          return;
+        }
+
+        const extension = extname(file);
+        const supportedExtensions = this.pluginState.lastDependencies?.extensions || [];
+
+        if (!supportedExtensions.includes(extension)) {
+          return;
+        }
+
+        this.watcher?._onRemove(file, file, 'rename');
+      });
+    }
+
+    // cleanup old standard watchers
+    if (this.fileWatcher) {
+      this.fileWatcher.close();
+    }
+
     // use standard watch file system for files and missing
-    const standardWatcher = this.watchFileSystem.watch(
+    this.fileWatcher = this.watchFileSystem.watch(
       files,
       [],
       missing,
@@ -82,80 +143,58 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
       callbackUndelayed
     );
 
-    let paused = false;
+    // calculate what to change
+    const prevDirs = this.dirsWatched;
+    const nextDirs = Array.from(dirs);
+    const dirsToUnwatch = prevDirs.filter((prevDir) => !nextDirs.includes(prevDir));
+    const dirsToWatch = nextDirs.filter((nextDir) => !prevDirs.includes(nextDir));
 
-    // use custom watch for dirs
-    const dirWatchers = new Map<string, FSWatcher>();
-
-    for (const dir of dirs) {
-      if (!dirWatchers.has(dir)) {
-        const watcher = chokidar.watch(dir, {
-          ignored: ['**/node_modules/**', '**/.git/**'],
-          ignoreInitial: true,
-          alwaysStat: true,
-        });
-        watcher.on('add', (file, stats) => {
-          if (paused) {
-            return;
-          }
-          const path = realpathSync.native(file);
-
-          this.watcher?._onChange(path, stats?.mtimeMs || 0, path, 'rename');
-        });
-        watcher.on('unlink', (file) => {
-          if (paused) {
-            return;
-          }
-
-          this.watcher?._onRemove(file, file, 'rename');
-        });
-        dirWatchers.set(dir, watcher);
-      }
+    // update dirs watcher
+    if (dirsToUnwatch.length) {
+      this.dirsWatcher.unwatch(dirsToUnwatch);
+    }
+    if (dirsToWatch.length) {
+      this.dirsWatcher.add(dirsToWatch);
     }
 
-    const getFileTimeInfoEntries = () => {
-      if ((standardWatcher as WatcherV4).getFileTimestamps) {
-        return (standardWatcher as WatcherV4).getFileTimestamps();
-      } else if ((standardWatcher as WatcherV5).getFileTimeInfoEntries) {
-        return (standardWatcher as WatcherV5).getFileTimeInfoEntries();
-      }
-      return new Map<string, number>();
-    };
-
-    const getContextTimeInfoEntries = () => {
-      if ((standardWatcher as WatcherV4).getContextTimestamps) {
-        return (standardWatcher as WatcherV4).getContextTimestamps();
-      } else if ((standardWatcher as WatcherV5).getContextTimeInfoEntries) {
-        return (standardWatcher as WatcherV5).getContextTimeInfoEntries();
-      }
-      return new Map<string, number>();
-    };
+    this.paused = false;
+    this.dirsWatched = nextDirs;
 
     return {
-      close() {
-        standardWatcher.close();
-        dirWatchers.forEach((dirWatcher) => dirWatcher.close());
-        paused = true;
+      ...this.fileWatcher,
+      close: () => {
+        if (this.fileWatcher) {
+          this.fileWatcher.close();
+          this.fileWatcher = undefined;
+        }
+        if (this.dirsWatcher) {
+          this.dirsWatcher.close();
+          this.dirsWatcher = undefined;
+        }
+
+        this.paused = true;
       },
-      pause() {
-        standardWatcher.pause();
-        paused = true;
+      pause: () => {
+        if (this.fileWatcher) {
+          this.fileWatcher.pause();
+        }
+        this.paused = true;
       },
-      getFileTimestamps: getFileTimeInfoEntries,
-      getContextTimestamps: getContextTimeInfoEntries,
-      getFileTimeInfoEntries: getFileTimeInfoEntries,
-      getContextTimeInfoEntries: getContextTimeInfoEntries,
     };
   }
 }
 
-function tapAfterEnvironmentToPatchWatching(compiler: webpack.Compiler) {
+function tapAfterEnvironmentToPatchWatching(
+  compiler: webpack.Compiler,
+  state: ForkTsCheckerWebpackPluginState
+) {
   compiler.hooks.afterEnvironment.tap('ForkTsCheckerWebpackPlugin', () => {
     const watchFileSystem = (compiler as CompilerWithWatchFileSystem).watchFileSystem;
     if (watchFileSystem) {
       // wrap original watch file system
       (compiler as CompilerWithWatchFileSystem).watchFileSystem = new InclusiveNodeWatchFileSystem(
-        watchFileSystem
+        watchFileSystem,
+        state
       );
     }
   });

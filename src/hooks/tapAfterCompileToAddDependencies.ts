@@ -16,6 +16,8 @@ function tapAfterCompileToAddDependencies(
     const dependencies = await state.dependenciesPromise;
 
     if (dependencies) {
+      state.lastDependencies = dependencies;
+
       dependencies.files.forEach((file) => {
         compilation.fileDependencies.add(file);
       });

@@ -71,10 +71,15 @@ function composeReporterRpcClients(clients: ReporterRpcClient[]): ReporterRpcCli
           Promise.all(reports.map((report) => report.getDependencies())).then((dependencies) =>
             dependencies.reduce(
               (mergedDependencies, singleDependencies) => ({
-                files: [...mergedDependencies.files, ...singleDependencies.files],
-                dirs: [...mergedDependencies.dirs, ...singleDependencies.dirs],
+                files: Array.from(
+                  new Set([...mergedDependencies.files, ...singleDependencies.files])
+                ),
+                dirs: Array.from(new Set([...mergedDependencies.dirs, ...singleDependencies.dirs])),
+                extensions: Array.from(
+                  new Set([...mergedDependencies.extensions, ...singleDependencies.extensions])
+                ),
               }),
-              { files: [], dirs: [] }
+              { files: [], dirs: [], extensions: [] }
             )
           ),
         getIssues: () =>

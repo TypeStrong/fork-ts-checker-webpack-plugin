@@ -49,7 +49,9 @@ function createControlledTypeScriptSystem(
   const deletedFiles = new Map<string, boolean>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutCallbacks = new Set<any>();
-  const caseSensitive = typescript.sys.useCaseSensitiveFileNames;
+  // always use case-sensitive as normalization to lower-case can be a problem for some
+  // third-party libraries, like fsevents
+  const caseSensitive = true;
   const realFileSystem = createRealFileSystem(caseSensitive);
   const passiveFileSystem = createPassiveFileSystem(caseSensitive, realFileSystem);
 

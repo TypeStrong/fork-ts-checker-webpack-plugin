@@ -63,7 +63,7 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
     if (reporters.length) {
       const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
 
-      tapAfterEnvironmentToPatchWatching(compiler);
+      tapAfterEnvironmentToPatchWatching(compiler, state);
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
       tapDoneToCollectRemoved(compiler, configuration, state);
       tapAfterCompileToAddDependencies(compiler, configuration, state);

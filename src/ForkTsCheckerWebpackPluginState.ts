@@ -6,6 +6,7 @@ interface ForkTsCheckerWebpackPluginState {
   reportPromise: Promise<Report | undefined>;
   issuesPromise: Promise<Issue[] | undefined>;
   dependenciesPromise: Promise<Dependencies | undefined>;
+  lastDependencies: Dependencies | undefined;
   removedFiles: string[];
   watching: boolean;
   initialized: boolean;
@@ -17,6 +18,7 @@ function createForkTsCheckerWebpackPluginState(): ForkTsCheckerWebpackPluginStat
     reportPromise: Promise.resolve(undefined),
     issuesPromise: Promise.resolve(undefined),
     dependenciesPromise: Promise.resolve(undefined),
+    lastDependencies: undefined,
     removedFiles: [],
     watching: false,
     initialized: false,

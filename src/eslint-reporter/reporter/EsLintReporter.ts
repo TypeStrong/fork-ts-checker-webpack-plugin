@@ -21,6 +21,7 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
           return {
             files: [],
             dirs: [],
+            extensions: [],
           };
         },
         async getIssues() {

@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from 'path';
 import { EsLintReporterConfiguration } from '../EsLintReporterConfiguration';
 import { createReporterRpcClient, ReporterRpcClient } from '../../reporter';
 import { createRpcIpcMessageChannel } from '../../rpc/rpc-ipc';

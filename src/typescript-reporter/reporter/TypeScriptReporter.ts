@@ -215,6 +215,13 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         async getDependencies() {
           if (!dependencies) {
             dependencies = getDependencies();
+            for (const extension of extensions) {
+              if (extension.extendSupportedFileExtensions) {
+                dependencies.extensions = extension.extendSupportedFileExtensions(
+                  dependencies.extensions
+                );
+              }
+            }
           }
 
           return dependencies;

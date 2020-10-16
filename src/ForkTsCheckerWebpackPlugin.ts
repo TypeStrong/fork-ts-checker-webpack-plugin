@@ -16,7 +16,6 @@ import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
 import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
 import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
@@ -65,7 +64,6 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
 
       tapAfterEnvironmentToPatchWatching(compiler, state);
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
-      tapDoneToCollectRemoved(compiler, configuration, state);
       tapAfterCompileToAddDependencies(compiler, configuration, state);
       tapStopToDisconnectReporter(compiler, reporter, state);
       tapErrorToLogMessage(compiler, configuration);

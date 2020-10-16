@@ -53,7 +53,7 @@ function tapStartToConnectAndRunReporter(
     if (state.watching) {
       change = {
         changedFiles: getChangedFiles(compilation.compiler),
-        deletedFiles: getDeletedFiles(compilation.compiler, state),
+        deletedFiles: getDeletedFiles(compilation.compiler),
       };
 
       configuration.logger.infrastructure.info(

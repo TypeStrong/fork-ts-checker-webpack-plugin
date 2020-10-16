@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from 'path';
 import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
 import { createReporterRpcClient, ReporterRpcClient } from '../../reporter';
 import { createRpcIpcMessageChannel } from '../../rpc/rpc-ipc';

@@ -16,55 +16,69 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
 
   return {
     getReport: async ({ changedFiles = [], deletedFiles = [] }) => {
-      // cleanup old results
-      changedFiles.forEach((changedFile) => {
-        lintResults.delete(changedFile);
-      });
-      deletedFiles.forEach((removedFile) => {
-        lintResults.delete(removedFile);
-      });
+      return {
+        async getDependencies() {
+          return {
+            files: [],
+            dirs: [],
+            extensions: [],
+          };
+        },
+        async getIssues() {
+          // cleanup old results
+          changedFiles.forEach((changedFile) => {
+            lintResults.delete(changedFile);
+          });
+          deletedFiles.forEach((removedFile) => {
+            lintResults.delete(removedFile);
+          });
 
-      // get reports
-      const lintReports: LintReport[] = [];
+          // get reports
+          const lintReports: LintReport[] = [];
 
-      if (isInitialRun) {
-        lintReports.push(engine.executeOnFiles(includedFilesPatterns));
-        isInitialRun = false;
-      } else {
-        // we need to take care to not lint files that are not included by the configuration.
-        // the eslint engine will not exclude them automatically
-        const changedAndIncludedFiles = changedFiles.filter(
-          (changedFile) =>
-            includedFilesPatterns.some((includedFilesPattern) =>
-              minimatch(changedFile, includedFilesPattern)
-            ) &&
-            (configuration.options.extensions || []).some((extension) =>
-              changedFile.endsWith(extension)
-            ) &&
-            !engine.isPathIgnored(changedFile)
-        );
+          if (isInitialRun) {
+            lintReports.push(engine.executeOnFiles(includedFilesPatterns));
+            isInitialRun = false;
+          } else {
+            // we need to take care to not lint files that are not included by the configuration.
+            // the eslint engine will not exclude them automatically
+            const changedAndIncludedFiles = changedFiles.filter(
+              (changedFile) =>
+                includedFilesPatterns.some((includedFilesPattern) =>
+                  minimatch(changedFile, includedFilesPattern)
+                ) &&
+                (configuration.options.extensions || []).some((extension) =>
+                  changedFile.endsWith(extension)
+                ) &&
+                !engine.isPathIgnored(changedFile)
+            );
 
-        if (changedAndIncludedFiles.length) {
-          lintReports.push(engine.executeOnFiles(changedAndIncludedFiles));
-        }
-      }
+            if (changedAndIncludedFiles.length) {
+              lintReports.push(engine.executeOnFiles(changedAndIncludedFiles));
+            }
+          }
 
-      // output fixes if `fix` option is provided
-      if (configuration.options.fix) {
-        await Promise.all(lintReports.map((lintReport) => CLIEngine.outputFixes(lintReport)));
-      }
+          // output fixes if `fix` option is provided
+          if (configuration.options.fix) {
+            await Promise.all(lintReports.map((lintReport) => CLIEngine.outputFixes(lintReport)));
+          }
 
-      // store results
-      lintReports.forEach((lintReport) => {
-        lintReport.results.forEach((lintResult) => {
-          lintResults.set(lintResult.filePath, lintResult);
-        });
-      });
+          // store results
+          lintReports.forEach((lintReport) => {
+            lintReport.results.forEach((lintResult) => {
+              lintResults.set(lintResult.filePath, lintResult);
+            });
+          });
 
-      // get actual list of previous and current reports
-      const results = Array.from(lintResults.values());
+          // get actual list of previous and current reports
+          const results = Array.from(lintResults.values());
 
-      return createIssuesFromEsLintResults(results);
+          return createIssuesFromEsLintResults(results);
+        },
+        async close() {
+          // do nothing
+        },
+      };
     },
   };
 }

@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import path from 'path';
-import { FilesChange, Reporter } from '../../reporter';
+import { Dependencies, Reporter } from '../../reporter';
 import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
 import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
@@ -11,15 +11,17 @@ import {
   ControlledTypeScriptSystem,
   createControlledTypeScriptSystem,
 } from './ControlledTypeScriptSystem';
-import { parseTypeScriptConfiguration } from './TypeScriptConfigurationParser';
+import {
+  getDependenciesFromTypeScriptConfiguration,
+  parseTypeScriptConfiguration,
+} from './TypeScriptConfigurationParser';
 import { createPerformance } from '../../profile/Performance';
 import { connectTypeScriptPerformance } from '../profile/TypeScriptPerformance';
 
 function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration): Reporter {
-  const extensions: TypeScriptExtension[] = [];
-
-  let system: ControlledTypeScriptSystem | undefined;
   let parsedConfiguration: ts.ParsedCommandLine | undefined;
+  let parseConfigurationDiagnostics: ts.Diagnostic[] = [];
+  let dependencies: Dependencies | undefined;
   let configurationChanged = false;
   let watchCompilerHost:
     | ts.WatchCompilerHostOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
@@ -27,12 +29,20 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
   let watchSolutionBuilderHost:
     | ts.SolutionBuilderWithWatchHost<ts.SemanticDiagnosticsBuilderProgram>
     | undefined;
-  let watchProgram: ts.WatchOfConfigFile<ts.SemanticDiagnosticsBuilderProgram> | undefined;
+  let watchProgram:
+    | ts.WatchOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
+    | undefined;
   let solutionBuilder: ts.SolutionBuilder<ts.SemanticDiagnosticsBuilderProgram> | undefined;
+  let shouldUpdateRootFiles = false;
 
-  const diagnosticsPerProject = new Map<string, ts.Diagnostic[]>();
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const typescript: typeof ts = require(configuration.typescriptPath);
+  const extensions: TypeScriptExtension[] = [];
+  const system: ControlledTypeScriptSystem = createControlledTypeScriptSystem(
+    typescript,
+    configuration.mode
+  );
+  const diagnosticsPerProject = new Map<string, ts.Diagnostic[]>();
   const performance = connectTypeScriptPerformance(typescript, createPerformance());
 
   if (configuration.extensions.vue.enabled) {
@@ -85,16 +95,65 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     }
   }
 
+  function parseConfiguration() {
+    const parseConfigurationDiagnostics = [];
+
+    let parseConfigFileHost: ts.ParseConfigFileHost = {
+      ...system,
+      onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
+        parseConfigurationDiagnostics.push(diagnostic);
+      },
+    };
+
+    extensions.forEach((extension) => {
+      if (extension.extendParseConfigFileHost) {
+        parseConfigFileHost = extension.extendParseConfigFileHost(parseConfigFileHost);
+      }
+    });
+
+    const parsedConfiguration = parseTypeScriptConfiguration(
+      typescript,
+      configuration.configFile,
+      configuration.context,
+      configuration.configOverwrite,
+      parseConfigFileHost
+    );
+
+    if (parsedConfiguration.errors) {
+      parseConfigurationDiagnostics.push(...parsedConfiguration.errors);
+    }
+
+    return [parsedConfiguration, parseConfigurationDiagnostics] as const;
+  }
+
+  function parseConfigurationIfNeeded(): ts.ParsedCommandLine {
+    if (!parsedConfiguration) {
+      [parsedConfiguration, parseConfigurationDiagnostics] = parseConfiguration();
+    }
+
+    return parsedConfiguration;
+  }
+
+  function getDependencies(): Dependencies {
+    parsedConfiguration = parseConfigurationIfNeeded();
+
+    const parseConfigFileHost: ts.ParseConfigFileHost = {
+      ...system,
+      onUnRecoverableConfigFileDiagnostic: () => {
+        // it's handled in a different place
+      },
+    };
+
+    return getDependenciesFromTypeScriptConfiguration(
+      typescript,
+      parsedConfiguration,
+      configuration.context,
+      parseConfigFileHost
+    );
+  }
+
   return {
-    getReport: async ({ changedFiles = [], deletedFiles = [] }: FilesChange) => {
-      if (configuration.profile) {
-        performance.enable();
-      }
-
-      if (!system) {
-        system = createControlledTypeScriptSystem(typescript, configuration.mode);
-      }
-
+    getReport: async ({ changedFiles = [], deletedFiles = [] }) => {
       // clear cache to be ready for next iteration and to free memory
       system.clearCache();
 
@@ -105,6 +164,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
       ) {
         // we need to re-create programs
         parsedConfiguration = undefined;
+        dependencies = undefined;
         watchCompilerHost = undefined;
         watchSolutionBuilderHost = undefined;
         watchProgram = undefined;
@@ -112,48 +172,197 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
         diagnosticsPerProject.clear();
         configurationChanged = true;
+      } else {
+        const previousParsedConfiguration = parsedConfiguration;
+        [parsedConfiguration, parseConfigurationDiagnostics] = parseConfiguration();
+
+        if (
+          previousParsedConfiguration &&
+          JSON.stringify(previousParsedConfiguration.fileNames) !==
+            JSON.stringify(parsedConfiguration.fileNames)
+        ) {
+          // root files changed - we need to recompute dependencies
+          dependencies = getDependencies();
+          shouldUpdateRootFiles = true;
+        }
       }
 
-      if (!parsedConfiguration) {
-        const parseConfigurationDiagnostics: ts.Diagnostic[] = [];
+      parsedConfiguration = parseConfigurationIfNeeded();
 
-        let parseConfigFileHost: ts.ParseConfigFileHost = {
-          ...system,
-          onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
-            parseConfigurationDiagnostics.push(diagnostic);
-          },
-        };
+      if (configurationChanged) {
+        configurationChanged = false;
 
-        extensions.forEach((extension) => {
-          if (extension.extendParseConfigFileHost) {
-            parseConfigFileHost = extension.extendParseConfigFileHost(parseConfigFileHost);
+        // try to remove outdated .tsbuildinfo file for incremental mode
+        if (
+          typeof typescript.getTsBuildInfoEmitOutputFilePath === 'function' &&
+          configuration.mode !== 'readonly' &&
+          parsedConfiguration.options.incremental
+        ) {
+          const tsBuildInfoPath = typescript.getTsBuildInfoEmitOutputFilePath(
+            parsedConfiguration.options
+          );
+          if (tsBuildInfoPath) {
+            try {
+              system.deleteFile(tsBuildInfoPath);
+            } catch (error) {
+              // silent
+            }
           }
-        });
-
-        performance.markStart('Parse Configuration');
-        parsedConfiguration = parseTypeScriptConfiguration(
-          typescript,
-          configuration.configFile,
-          configuration.context,
-          configuration.configOverwrite,
-          parseConfigFileHost
-        );
-        performance.markEnd('Parse Configuration');
-
-        if (parsedConfiguration.errors) {
-          parseConfigurationDiagnostics.push(...parsedConfiguration.errors);
         }
+      }
 
-        // report configuration diagnostics and exit
-        if (parseConfigurationDiagnostics.length) {
-          parsedConfiguration = undefined;
-          let issues = createIssuesFromTsDiagnostics(typescript, parseConfigurationDiagnostics);
+      return {
+        async getDependencies() {
+          if (!dependencies) {
+            dependencies = getDependencies();
+            for (const extension of extensions) {
+              if (extension.extendSupportedFileExtensions) {
+                dependencies.extensions = extension.extendSupportedFileExtensions(
+                  dependencies.extensions
+                );
+              }
+            }
+          }
 
-          issues.forEach((issue) => {
-            if (!issue.file) {
-              issue.file = configuration.configFile;
+          return dependencies;
+        },
+        async getIssues() {
+          if (configuration.profile) {
+            performance.enable();
+          }
+
+          parsedConfiguration = parseConfigurationIfNeeded();
+
+          // report configuration diagnostics and exit
+          if (parseConfigurationDiagnostics.length) {
+            let issues = createIssuesFromTsDiagnostics(typescript, parseConfigurationDiagnostics);
+
+            issues.forEach((issue) => {
+              if (!issue.file) {
+                issue.file = configuration.configFile;
+              }
+            });
+
+            extensions.forEach((extension) => {
+              if (extension.extendIssues) {
+                issues = extension.extendIssues(issues);
+              }
+            });
+
+            return issues;
+          }
+
+          if (configuration.build) {
+            // solution builder case
+            // ensure watch solution builder host exists
+            if (!watchSolutionBuilderHost) {
+              performance.markStart('Create Solution Builder Host');
+              watchSolutionBuilderHost = createControlledWatchSolutionBuilderHost(
+                typescript,
+                parsedConfiguration,
+                system,
+                typescript.createSemanticDiagnosticsBuilderProgram,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                (builderProgram) => {
+                  const projectName = getProjectNameOfBuilderProgram(builderProgram);
+                  const diagnostics = getDiagnosticsOfBuilderProgram(builderProgram);
+
+                  // update diagnostics
+                  diagnosticsPerProject.set(projectName, diagnostics);
+
+                  // emit .tsbuildinfo file if needed
+                  emitTsBuildInfoFileForBuilderProgram(builderProgram);
+                },
+                extensions
+              );
+              performance.markEnd('Create Solution Builder Host');
+              solutionBuilder = undefined;
+            }
+
+            // ensure solution builder exists and is up-to-date
+            if (!solutionBuilder || shouldUpdateRootFiles) {
+              // not sure if it's the best option - maybe there is a smarter way to do this
+              shouldUpdateRootFiles = false;
+
+              performance.markStart('Create Solution Builder');
+              solutionBuilder = typescript.createSolutionBuilderWithWatch(
+                watchSolutionBuilderHost,
+                [configuration.configFile],
+                {}
+              );
+              performance.markEnd('Create Solution Builder');
+
+              performance.markStart('Build Solutions');
+              solutionBuilder.build();
+              performance.markEnd('Build Solutions');
+            }
+          } else {
+            // watch compiler case
+            // ensure watch compiler host exists
+            if (!watchCompilerHost) {
+              performance.markStart('Create Watch Compiler Host');
+              watchCompilerHost = createControlledWatchCompilerHost(
+                typescript,
+                parsedConfiguration,
+                system,
+                typescript.createSemanticDiagnosticsBuilderProgram,
+                undefined,
+                undefined,
+                (builderProgram) => {
+                  const projectName = getProjectNameOfBuilderProgram(builderProgram);
+                  const diagnostics = getDiagnosticsOfBuilderProgram(builderProgram);
+
+                  // update diagnostics
+                  diagnosticsPerProject.set(projectName, diagnostics);
+
+                  // emit .tsbuildinfo file if needed
+                  emitTsBuildInfoFileForBuilderProgram(builderProgram);
+                },
+                extensions
+              );
+              performance.markEnd('Create Watch Compiler Host');
+              watchProgram = undefined;
+            }
+
+            // ensure watch program exists
+            if (!watchProgram) {
+              performance.markStart('Create Watch Program');
+              watchProgram = typescript.createWatchProgram(watchCompilerHost);
+              performance.markEnd('Create Watch Program');
+            }
+
+            if (shouldUpdateRootFiles && dependencies?.files) {
+              // we have to update root files manually as don't use config file as a program input
+              watchProgram.updateRootFileNames(dependencies.files);
+              shouldUpdateRootFiles = false;
+            }
+          }
+
+          changedFiles.forEach((changedFile) => {
+            if (system) {
+              system.invokeFileChanged(changedFile);
             }
           });
+          deletedFiles.forEach((removedFile) => {
+            if (system) {
+              system.invokeFileDeleted(removedFile);
+            }
+          });
+
+          // wait for all queued events to be processed
+          performance.markStart('Queued Tasks');
+          await system.waitForQueued();
+          performance.markEnd('Queued Tasks');
+
+          // aggregate all diagnostics and map them to issues
+          const diagnostics: ts.Diagnostic[] = [];
+          diagnosticsPerProject.forEach((projectDiagnostics) => {
+            diagnostics.push(...projectDiagnostics);
+          });
+          let issues = createIssuesFromTsDiagnostics(typescript, diagnostics);
 
           extensions.forEach((extension) => {
             if (extension.extendIssues) {
@@ -161,151 +370,17 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
             }
           });
 
-          return issues;
-        }
-
-        if (configurationChanged) {
-          configurationChanged = false;
-
-          // try to remove outdated .tsbuildinfo file for incremental mode
-          if (
-            typeof typescript.getTsBuildInfoEmitOutputFilePath === 'function' &&
-            configuration.mode !== 'readonly' &&
-            parsedConfiguration.options.incremental
-          ) {
-            const tsBuildInfoPath = typescript.getTsBuildInfoEmitOutputFilePath(
-              parsedConfiguration.options
-            );
-            if (tsBuildInfoPath) {
-              try {
-                system.deleteFile(tsBuildInfoPath);
-              } catch (error) {
-                // silent
-              }
-            }
+          if (configuration.profile) {
+            performance.print();
+            performance.disable();
           }
-        }
-      }
 
-      if (configuration.build) {
-        // solution builder case
-        // ensure watch solution builder host exists
-        if (!watchSolutionBuilderHost) {
-          performance.markStart('Create Solution Builder Host');
-          watchSolutionBuilderHost = createControlledWatchSolutionBuilderHost(
-            typescript,
-            parsedConfiguration,
-            system,
-            typescript.createSemanticDiagnosticsBuilderProgram,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            (builderProgram) => {
-              const projectName = getProjectNameOfBuilderProgram(builderProgram);
-              const diagnostics = getDiagnosticsOfBuilderProgram(builderProgram);
-
-              // update diagnostics
-              diagnosticsPerProject.set(projectName, diagnostics);
-
-              // emit .tsbuildinfo file if needed
-              emitTsBuildInfoFileForBuilderProgram(builderProgram);
-            },
-            extensions
-          );
-          performance.markEnd('Create Solution Builder Host');
-          solutionBuilder = undefined;
-        }
-
-        // ensure solution builder exists
-        if (!solutionBuilder) {
-          performance.markStart('Create Solution Builder');
-          solutionBuilder = typescript.createSolutionBuilderWithWatch(
-            watchSolutionBuilderHost,
-            [configuration.configFile],
-            {}
-          );
-          performance.markEnd('Create Solution Builder');
-
-          performance.markStart('Build Solutions');
-          solutionBuilder.build();
-          performance.markEnd('Build Solutions');
-        }
-      } else {
-        // watch compiler case
-        // ensure watch compiler host exists
-        if (!watchCompilerHost) {
-          performance.markStart('Create Watch Compiler Host');
-          watchCompilerHost = createControlledWatchCompilerHost(
-            typescript,
-            parsedConfiguration,
-            system,
-            typescript.createSemanticDiagnosticsBuilderProgram,
-            undefined,
-            undefined,
-            (builderProgram) => {
-              const projectName = getProjectNameOfBuilderProgram(builderProgram);
-              const diagnostics = getDiagnosticsOfBuilderProgram(builderProgram);
-
-              // update diagnostics
-              diagnosticsPerProject.set(projectName, diagnostics);
-
-              // emit .tsbuildinfo file if needed
-              emitTsBuildInfoFileForBuilderProgram(builderProgram);
-            },
-            extensions
-          );
-          performance.markEnd('Create Watch Compiler Host');
-          watchProgram = undefined;
-        }
-
-        // ensure watch program exists
-        if (!watchProgram) {
-          performance.markStart('Create Watch Program');
-          watchProgram = typescript.createWatchProgram(watchCompilerHost);
-          performance.markEnd('Create Watch Program');
-        }
-      }
-
-      performance.markStart('Poll And Invoke Created Or Deleted');
-      system.pollAndInvokeCreatedOrDeleted();
-      performance.markEnd('Poll And Invoke Created Or Deleted');
-
-      changedFiles.forEach((changedFile) => {
-        if (system) {
-          system.invokeFileChanged(changedFile);
-        }
-      });
-      deletedFiles.forEach((removedFile) => {
-        if (system) {
-          system.invokeFileDeleted(removedFile);
-        }
-      });
-
-      // wait for all queued events to be processed
-      performance.markStart('Queued Tasks');
-      await system.waitForQueued();
-      performance.markEnd('Queued Tasks');
-
-      // aggregate all diagnostics and map them to issues
-      const diagnostics: ts.Diagnostic[] = [];
-      diagnosticsPerProject.forEach((projectDiagnostics) => {
-        diagnostics.push(...projectDiagnostics);
-      });
-      let issues = createIssuesFromTsDiagnostics(typescript, diagnostics);
-
-      extensions.forEach((extension) => {
-        if (extension.extendIssues) {
-          issues = extension.extendIssues(issues);
-        }
-      });
-
-      if (configuration.profile) {
-        performance.print();
-        performance.disable();
-      }
-
-      return issues;
+          return issues;
+        },
+        async close() {
+          // do nothing
+        },
+      };
     },
   };
 }

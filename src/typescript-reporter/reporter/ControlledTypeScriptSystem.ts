@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
 import forwardSlash from '../../utils/path/forwardSlash';
 import { createRealFileSystem } from '../file-system/RealFileSystem';
@@ -9,7 +9,6 @@ interface ControlledTypeScriptSystem extends ts.System {
   invokeFileCreated(path: string): void;
   invokeFileChanged(path: string): void;
   invokeFileDeleted(path: string): void;
-  pollAndInvokeCreatedOrDeleted(): void;
   // control cache
   clearCache(): void;
   // mark these methods as defined - not optional
@@ -47,11 +46,12 @@ function createControlledTypeScriptSystem(
   const fileWatcherCallbacksMap = new Map<string, ts.FileWatcherCallback[]>();
   const directoryWatcherCallbacksMap = new Map<string, ts.DirectoryWatcherCallback[]>();
   const recursiveDirectoryWatcherCallbacksMap = new Map<string, ts.DirectoryWatcherCallback[]>();
-  const directorySnapshots = new Map<string, string[]>();
   const deletedFiles = new Map<string, boolean>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutCallbacks = new Set<any>();
-  const caseSensitive = typescript.sys.useCaseSensitiveFileNames;
+  // always use case-sensitive as normalization to lower-case can be a problem for some
+  // third-party libraries, like fsevents
+  const caseSensitive = true;
   const realFileSystem = createRealFileSystem(caseSensitive);
   const passiveFileSystem = createPassiveFileSystem(caseSensitive, realFileSystem);
 
@@ -125,22 +125,6 @@ function createControlledTypeScriptSystem(
     );
   }
 
-  function updateDirectorySnapshot(path: string, recursive = false) {
-    const dirents = passiveFileSystem.readDir(path);
-
-    if (!directorySnapshots.has(path)) {
-      directorySnapshots.set(
-        path,
-        dirents.filter((dirent) => dirent.isFile()).map((dirent) => join(path, dirent.name))
-      );
-    }
-    if (recursive) {
-      dirents
-        .filter((dirent) => dirent.isDirectory())
-        .forEach((dirent) => updateDirectorySnapshot(join(path, dirent.name)));
-    }
-  }
-
   function getWriteFileSystem(path: string) {
     if (mode === 'readonly' || (mode === 'write-tsbuildinfo' && !path.endsWith('.tsbuildinfo'))) {
       return passiveFileSystem;
@@ -211,8 +195,6 @@ function createControlledTypeScriptSystem(
       callback: ts.DirectoryWatcherCallback,
       recursive = false
     ): ts.FileWatcher {
-      updateDirectorySnapshot(path, recursive);
-
       return createWatcher(
         recursive ? recursiveDirectoryWatcherCallbacksMap : directoryWatcherCallbacksMap,
         path,
@@ -267,52 +249,6 @@ function createControlledTypeScriptSystem(
 
         deletedFiles.set(normalizedPath, true);
       }
-    },
-    pollAndInvokeCreatedOrDeleted() {
-      const prevDirectorySnapshots = new Map(directorySnapshots);
-
-      directorySnapshots.clear();
-      directoryWatcherCallbacksMap.forEach((directoryWatcherCallback, path) => {
-        updateDirectorySnapshot(path, false);
-      });
-      recursiveDirectoryWatcherCallbacksMap.forEach((recursiveDirectoryWatcherCallback, path) => {
-        updateDirectorySnapshot(path, true);
-      });
-
-      const filesCreated = new Set<string>();
-      const filesDeleted = new Set<string>();
-
-      function diffDirectorySnapshots(
-        prevFiles: string[] | undefined,
-        nextFiles: string[] | undefined
-      ) {
-        if (prevFiles && nextFiles) {
-          nextFiles
-            .filter((nextFile) => !prevFiles.includes(nextFile))
-            .forEach((createdFile) => {
-              filesCreated.add(createdFile);
-            });
-          prevFiles
-            .filter((prevFile) => !nextFiles.includes(prevFile))
-            .forEach((deletedFile) => {
-              filesDeleted.add(deletedFile);
-            });
-        }
-      }
-
-      prevDirectorySnapshots.forEach((prevFiles, path) =>
-        diffDirectorySnapshots(prevFiles, directorySnapshots.get(path))
-      );
-      directorySnapshots.forEach((nextFiles, path) =>
-        diffDirectorySnapshots(prevDirectorySnapshots.get(path), nextFiles)
-      );
-
-      filesCreated.forEach((path) => {
-        controlledSystem.invokeFileCreated(path);
-      });
-      filesDeleted.forEach((path) => {
-        controlledSystem.invokeFileDeleted(path);
-      });
     },
     clearCache() {
       passiveFileSystem.clearCache();

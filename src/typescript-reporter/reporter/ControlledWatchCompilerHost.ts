@@ -32,11 +32,6 @@ function createControlledWatchCompilerHost<TProgram extends ts.BuilderProgram>(
       configFileParsingDiagnostics?: ReadonlyArray<ts.Diagnostic>,
       projectReferences?: ReadonlyArray<ts.ProjectReference> | undefined
     ): TProgram {
-      // as compilerHost is optional, ensure that we have it
-      if (!compilerHost) {
-        compilerHost = typescript.createCompilerHost(options || parsedCommandLine.options);
-      }
-
       hostExtensions.forEach((hostExtension) => {
         if (compilerHost && hostExtension.extendCompilerHost) {
           compilerHost = hostExtension.extendCompilerHost(compilerHost, parsedCommandLine);

@@ -9,7 +9,6 @@ import { IssuePredicateOption, IssueOptions } from './IssueOptions';
 
 interface IssueConfiguration {
   predicate: IssuePredicate;
-  scope: 'all' | 'webpack';
 }
 
 function createIssuePredicateFromOption(
@@ -48,7 +47,6 @@ function createIssueConfiguration(
 
   return {
     predicate: (issue) => include(issue) && !exclude(issue),
-    scope: options.scope || 'webpack',
   };
 }
 

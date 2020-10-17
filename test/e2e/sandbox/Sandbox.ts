@@ -1,4 +1,4 @@
-import { join, resolve, dirname } from 'path';
+import { join, dirname } from 'path';
 import fs from 'fs-extra';
 import os from 'os';
 import { exec, ChildProcess } from 'child_process';
@@ -56,26 +56,12 @@ async function retry<T>(effect: () => Promise<T>, retries = 3, delay = 250): Pro
   throw lastError;
 }
 
-// create cache directory to speed-up the testing
-const CACHE_DIR = fs.mkdtempSync(join(os.tmpdir(), 'fork-ts-checker-cache-'));
-const NPM_CACHE_DIR = join(CACHE_DIR, 'npm');
-const YARN_CACHE_DIR = join(CACHE_DIR, 'yarn');
-
 async function npmInstaller(sandbox: Sandbox) {
-  await retry(() =>
-    sandbox.exec('npm install', {
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      npm_config_cache: NPM_CACHE_DIR,
-    })
-  );
+  await retry(() => sandbox.exec('npm install'));
 }
 
 async function yarnInstaller(sandbox: Sandbox) {
-  await retry(() =>
-    sandbox.exec('yarn install', {
-      YARN_CACHE_FOLDER: YARN_CACHE_DIR,
-    })
-  );
+  await retry(() => sandbox.exec('yarn install'));
 }
 
 async function createSandbox(): Promise<Sandbox> {
@@ -278,23 +264,4 @@ async function createSandbox(): Promise<Sandbox> {
   return sandbox;
 }
 
-const FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION = join(
-  resolve(__dirname, '../../..'),
-  'fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz'
-);
-
-if (!fs.pathExistsSync(FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION)) {
-  throw new Error(
-    `Cannot find ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION} file. To run e2e test, execute "npm pack" command before.`
-  );
-}
-
-export {
-  Sandbox,
-  createSandbox,
-  npmInstaller,
-  yarnInstaller,
-  NPM_CACHE_DIR,
-  YARN_CACHE_DIR,
-  FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION,
-};
+export { Sandbox, createSandbox, npmInstaller, yarnInstaller };

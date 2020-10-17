@@ -18,7 +18,7 @@ describe('Webpack Node Api', () => {
     await sandbox.cleanup();
   });
 
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0-beta.16' }])(
+  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
     'compiles the project successfully with %p',
     async ({ webpack }) => {
       await sandbox.load([

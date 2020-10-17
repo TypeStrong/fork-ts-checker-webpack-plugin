@@ -25,8 +25,8 @@ describe('EsLint', () => {
   it.each([
     { async: false, webpack: '4.0.0', absolute: false },
     { async: true, webpack: '^4.0.0', absolute: true },
-    { async: false, webpack: '^5.0.0-beta.16', absolute: true },
-    { async: true, webpack: '^5.0.0-beta.16', absolute: false },
+    { async: false, webpack: '^5.0.0', absolute: true },
+    { async: true, webpack: '^5.0.0', absolute: false },
   ])('reports lint error for %p', async ({ async, webpack, absolute }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {

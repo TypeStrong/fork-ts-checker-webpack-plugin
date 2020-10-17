@@ -51,7 +51,10 @@ function createRealFileSystem(caseSensitive = false): FileSystem {
       const stats = readStats(normalizedPath);
 
       if (stats && stats.isFile()) {
-        readFileCache.set(normalizedPath, fs.readFileSync(normalizedPath, { encoding }).toString());
+        readFileCache.set(
+          normalizedPath,
+          fs.readFileSync(normalizedPath, { encoding: encoding as BufferEncoding }).toString()
+        );
       } else {
         readFileCache.set(normalizedPath, undefined);
       }

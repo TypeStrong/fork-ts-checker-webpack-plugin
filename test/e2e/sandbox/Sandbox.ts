@@ -7,6 +7,7 @@ import { Fixture } from './Fixture';
 import stripAnsi from 'strip-ansi';
 import treeKill from 'tree-kill';
 import flatten from '../../../src/utils/array/flatten';
+import { logger } from './Logger';
 
 interface Sandbox {
   context: string;
@@ -45,7 +46,8 @@ async function retry<T>(effect: () => Promise<T>, retries = 3, delay = 250): Pro
     try {
       return await effect();
     } catch (error) {
-      console.log(`${error.toString()}.\nRetry ${retry} of ${retries}.`);
+      logger.log(error.toString());
+      logger.log(`Retry ${retry} of ${retries}.`);
       lastError = error;
       await wait(delay);
     }
@@ -101,7 +103,7 @@ async function createSandbox(): Promise<Sandbox> {
     return content.split(/\r\n?|\n/).join('\n');
   }
 
-  process.stdout.write(`Sandbox directory: ${context}\n`);
+  logger.log(`Sandbox directory: ${context}`);
 
   const sandbox: Sandbox = {
     context,
@@ -116,36 +118,36 @@ async function createSandbox(): Promise<Sandbox> {
           )
         )
       );
-      process.stdout.write('Fixtures initialized.\n');
+      logger.log('Fixtures initialized.');
 
-      process.stdout.write('Installing dependencies...\n');
+      logger.log('Installing dependencies...');
       await installer(sandbox);
-      process.stdout.write('The sandbox initialized successfully.\n');
+      logger.log('The sandbox initialized successfully.');
 
       createdFiles = [];
 
       await wait();
     },
     reset: async () => {
-      process.stdout.write('Resetting the sandbox...\n');
+      logger.log('Resetting the sandbox...');
 
       await killSpawnedProcesses();
       await removeCreatedFiles();
 
-      process.stdout.write(`Sandbox resetted.\n\n`);
+      logger.log(`Sandbox reset.\n`);
     },
     cleanup: async () => {
-      process.stdout.write('Cleaning up the sandbox...\n');
+      logger.log('Cleaning up the sandbox...');
 
       await killSpawnedProcesses();
 
-      process.stdout.write(`Removing sandbox directory: ${context}\n`);
+      logger.log(`Removing sandbox directory: ${context}`);
       await fs.remove(context);
 
-      process.stdout.write('Sandbox cleaned up.\n\n');
+      logger.log('Sandbox cleaned up.\n');
     },
     write: async (path: string, content: string) => {
-      process.stdout.write(`Writing file ${path}...\n`);
+      logger.log(`Writing file ${path}...`);
       const realPath = join(context, path);
       const dirPath = dirname(realPath);
 
@@ -165,7 +167,7 @@ async function createSandbox(): Promise<Sandbox> {
       return retry(() => fs.writeFile(realPath, normalizeEol(content)));
     },
     read: (path: string) => {
-      process.stdout.write(`Reading file ${path}...\n`);
+      logger.log(`Reading file ${path}...`);
       const realPath = join(context, path);
 
       return retry(() => fs.readFile(realPath, 'utf-8').then(normalizeEol));
@@ -176,7 +178,7 @@ async function createSandbox(): Promise<Sandbox> {
       return fs.pathExists(realPath);
     },
     remove: async (path: string) => {
-      process.stdout.write(`Removing file ${path}...\n`);
+      logger.log(`Removing file ${path}...`);
       const realPath = join(context, path);
 
       // wait for fs events to be propagated
@@ -185,9 +187,7 @@ async function createSandbox(): Promise<Sandbox> {
       return retry(() => fs.remove(realPath));
     },
     patch: async (path: string, search: string, replacement: string) => {
-      process.stdout.write(
-        `Patching file ${path} - replacing "${search}" with "${replacement}"...\n`
-      );
+      logger.log(`Patching file ${path} - replacing "${search}" with "${replacement}"...`);
       const realPath = join(context, path);
       const content = await retry(() => fs.readFile(realPath, 'utf-8').then(normalizeEol));
 
@@ -202,7 +202,7 @@ async function createSandbox(): Promise<Sandbox> {
     },
     exec: (command: string, env = {}) =>
       new Promise<string>((resolve, reject) => {
-        process.stdout.write(`Executing "${command}" command...\n`);
+        logger.log(`Executing "${command}" command...`);
 
         const childProcess = exec(
           command,
@@ -231,7 +231,7 @@ async function createSandbox(): Promise<Sandbox> {
         childProcesses.push(childProcess);
       }),
     spawn: (command: string, env = {}) => {
-      process.stdout.write(`Spawning "${command}" command...\n`);
+      logger.log(`Spawning "${command}" command...`);
 
       const [spawnCommand, ...args] = command.split(' ');
 
@@ -255,7 +255,7 @@ async function createSandbox(): Promise<Sandbox> {
     },
     kill: async (childProcess: ChildProcess) => {
       if (!childProcess.killed && childProcess.pid) {
-        process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
+        logger.log(`Killing child process ${childProcess.pid}...`);
         await retry(
           () =>
             new Promise((resolve) =>
@@ -269,7 +269,7 @@ async function createSandbox(): Promise<Sandbox> {
               })
             )
         );
-        process.stdout.write(`Child process ${childProcess.pid} killed.\n`);
+        logger.log(`Child process ${childProcess.pid} killed.`);
       }
       childProcesses = childProcesses.filter((aChildProcess) => aChildProcess !== childProcess);
     },

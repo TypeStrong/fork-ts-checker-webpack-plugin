@@ -27,8 +27,8 @@ describe('Webpack Issue Scope', () => {
     { webpack: '4.0.0', async: false, scope: 'all' },
     { webpack: '^4.0.0', async: false, scope: 'webpack' },
     { webpack: '^4.0.0', async: true, scope: 'all' },
-    { webpack: '^5.0.0-beta.16', async: true, scope: 'webpack' },
-    { webpack: '^5.0.0-beta.16', async: false, scope: 'all' },
+    { webpack: '^5.0.0', async: true, scope: 'webpack' },
+    { webpack: '^5.0.0', async: false, scope: 'all' },
   ])(
     'reports errors only related to the given scope with %p',
     async ({ webpack, async, scope }) => {

@@ -1,6 +1,5 @@
 import webpack from 'webpack';
 import path from 'path';
-import * as ts from 'typescript';
 import semver from 'semver';
 import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
 import { TypeScriptReporterOptions } from './TypeScriptReporterOptions';

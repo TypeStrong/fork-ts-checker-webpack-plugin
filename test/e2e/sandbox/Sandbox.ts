@@ -8,6 +8,7 @@ import stripAnsi from 'strip-ansi';
 import treeKill from 'tree-kill';
 import flatten from '../../../src/utils/array/flatten';
 import { logger } from './Logger';
+import { readLockFileContent, writeLockFileContent } from './Lock';
 
 interface Sandbox {
   context: string;
@@ -56,12 +57,12 @@ async function retry<T>(effect: () => Promise<T>, retries = 3, delay = 250): Pro
   throw lastError;
 }
 
-async function npmInstaller(sandbox: Sandbox) {
-  await retry(() => sandbox.exec('npm install'));
-}
-
 async function yarnInstaller(sandbox: Sandbox) {
-  await retry(() => sandbox.exec('yarn install'));
+  const lockFile = join(sandbox.context, 'yarn.lock');
+
+  await readLockFileContent(lockFile);
+  await retry(() => sandbox.exec('yarn install --prefer-offline'));
+  await writeLockFileContent(lockFile);
 }
 
 async function createSandbox(): Promise<Sandbox> {
@@ -73,16 +74,10 @@ async function createSandbox(): Promise<Sandbox> {
   async function removeCreatedFiles() {
     await Promise.all(createdFiles.map((path) => sandbox.remove(path)));
     createdFiles = [];
-
-    await wait();
   }
 
   async function killSpawnedProcesses() {
-    for (const childProcess of childProcesses) {
-      await sandbox.kill(childProcess);
-    }
-
-    await wait();
+    await Promise.all(childProcesses.map((childProcess) => sandbox.kill(childProcess)));
   }
 
   function normalizeEol(content: string): string {
@@ -93,7 +88,7 @@ async function createSandbox(): Promise<Sandbox> {
 
   const sandbox: Sandbox = {
     context,
-    load: async (fixture, installer = npmInstaller) => {
+    load: async (fixture, installer = yarnInstaller) => {
       const fixtures = Array.isArray(fixture) ? fixture : [fixture];
 
       // write files
@@ -111,8 +106,6 @@ async function createSandbox(): Promise<Sandbox> {
       logger.log('The sandbox initialized successfully.');
 
       createdFiles = [];
-
-      await wait();
     },
     reset: async () => {
       logger.log('Resetting the sandbox...');
@@ -264,4 +257,4 @@ async function createSandbox(): Promise<Sandbox> {
   return sandbox;
 }
 
-export { Sandbox, createSandbox, npmInstaller, yarnInstaller };
+export { Sandbox, createSandbox, yarnInstaller };

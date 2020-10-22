@@ -1,11 +1,12 @@
 import { join } from 'path';
 import { readFixture } from './sandbox/Fixture';
-import { Sandbox, createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Sandbox';
+import { Sandbox, createSandbox } from './sandbox/Sandbox';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('EsLint', () => {
   let sandbox: Sandbox;

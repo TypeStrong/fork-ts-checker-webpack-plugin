@@ -1,6 +1,7 @@
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
-import { readFixture } from './sandbox/Fixture';
 import { join } from 'path';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
+import { readFixture } from './sandbox/Fixture';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('Type Definitions', () => {
   let sandbox: Sandbox;

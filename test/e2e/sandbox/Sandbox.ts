@@ -1,4 +1,4 @@
-import { join, resolve, dirname } from 'path';
+import { join, dirname } from 'path';
 import fs from 'fs-extra';
 import os from 'os';
 import { exec, ChildProcess } from 'child_process';
@@ -7,6 +7,8 @@ import { Fixture } from './Fixture';
 import stripAnsi from 'strip-ansi';
 import treeKill from 'tree-kill';
 import flatten from '../../../src/utils/array/flatten';
+import { logger } from './Logger';
+import { readLockFileContent, writeLockFileContent } from './Lock';
 
 interface Sandbox {
   context: string;
@@ -45,7 +47,8 @@ async function retry<T>(effect: () => Promise<T>, retries = 3, delay = 250): Pro
     try {
       return await effect();
     } catch (error) {
-      console.log(`${error.toString()}.\nRetry ${retry} of ${retries}.`);
+      logger.log(error.toString());
+      logger.log(`Retry ${retry} of ${retries}.`);
       lastError = error;
       await wait(delay);
     }
@@ -54,26 +57,12 @@ async function retry<T>(effect: () => Promise<T>, retries = 3, delay = 250): Pro
   throw lastError;
 }
 
-// create cache directory to speed-up the testing
-const CACHE_DIR = fs.mkdtempSync(join(os.tmpdir(), 'fork-ts-checker-cache-'));
-const NPM_CACHE_DIR = join(CACHE_DIR, 'npm');
-const YARN_CACHE_DIR = join(CACHE_DIR, 'yarn');
-
-async function npmInstaller(sandbox: Sandbox) {
-  await retry(() =>
-    sandbox.exec('npm install', {
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      npm_config_cache: NPM_CACHE_DIR,
-    })
-  );
-}
-
 async function yarnInstaller(sandbox: Sandbox) {
-  await retry(() =>
-    sandbox.exec('yarn install', {
-      YARN_CACHE_FOLDER: YARN_CACHE_DIR,
-    })
-  );
+  const lockFile = join(sandbox.context, 'yarn.lock');
+
+  await readLockFileContent(lockFile);
+  await retry(() => sandbox.exec('yarn install --prefer-offline'));
+  await writeLockFileContent(lockFile);
 }
 
 async function createSandbox(): Promise<Sandbox> {
@@ -87,27 +76,21 @@ async function createSandbox(): Promise<Sandbox> {
   async function removeCreatedFiles() {
     await Promise.all(createdFiles.map((path) => sandbox.remove(path)));
     createdFiles = [];
-
-    await wait();
   }
 
   async function killSpawnedProcesses() {
-    for (const childProcess of childProcesses) {
-      await sandbox.kill(childProcess);
-    }
-
-    await wait();
+    await Promise.all(childProcesses.map((childProcess) => sandbox.kill(childProcess)));
   }
 
   function normalizeEol(content: string): string {
     return content.split(/\r\n?|\n/).join('\n');
   }
 
-  process.stdout.write(`Sandbox directory: ${context}\n`);
+  logger.log(`Sandbox directory: ${context}`);
 
   const sandbox: Sandbox = {
     context,
-    load: async (fixture, installer = npmInstaller) => {
+    load: async (fixture, installer = yarnInstaller) => {
       const fixtures = Array.isArray(fixture) ? fixture : [fixture];
 
       // write files
@@ -118,36 +101,34 @@ async function createSandbox(): Promise<Sandbox> {
           )
         )
       );
-      process.stdout.write('Fixtures initialized.\n');
+      logger.log('Fixtures initialized.');
 
-      process.stdout.write('Installing dependencies...\n');
+      logger.log('Installing dependencies...');
       await installer(sandbox);
-      process.stdout.write('The sandbox initialized successfully.\n');
+      logger.log('The sandbox initialized successfully.');
 
       createdFiles = [];
-
-      await wait();
     },
     reset: async () => {
-      process.stdout.write('Resetting the sandbox...\n');
+      logger.log('Resetting the sandbox...');
 
       await killSpawnedProcesses();
       await removeCreatedFiles();
 
-      process.stdout.write(`Sandbox resetted.\n\n`);
+      logger.log(`Sandbox reset.\n`);
     },
     cleanup: async () => {
-      process.stdout.write('Cleaning up the sandbox...\n');
+      logger.log('Cleaning up the sandbox...');
 
       await killSpawnedProcesses();
 
-      process.stdout.write(`Removing sandbox directory: ${context}\n`);
+      logger.log(`Removing sandbox directory: ${context}`);
       await fs.remove(context);
 
-      process.stdout.write('Sandbox cleaned up.\n\n');
+      logger.log('Sandbox cleaned up.\n');
     },
     write: async (path: string, content: string) => {
-      process.stdout.write(`Writing file ${path}...\n`);
+      logger.log(`Writing file ${path}...`);
       const realPath = join(context, path);
       const dirPath = dirname(realPath);
 
@@ -167,7 +148,7 @@ async function createSandbox(): Promise<Sandbox> {
       return retry(() => fs.writeFile(realPath, normalizeEol(content)));
     },
     read: (path: string) => {
-      process.stdout.write(`Reading file ${path}...\n`);
+      logger.log(`Reading file ${path}...`);
       const realPath = join(context, path);
 
       return retry(() => fs.readFile(realPath, 'utf-8').then(normalizeEol));
@@ -178,7 +159,7 @@ async function createSandbox(): Promise<Sandbox> {
       return fs.pathExists(realPath);
     },
     remove: async (path: string) => {
-      process.stdout.write(`Removing file ${path}...\n`);
+      logger.log(`Removing file ${path}...`);
       const realPath = join(context, path);
 
       // wait for fs events to be propagated
@@ -187,9 +168,7 @@ async function createSandbox(): Promise<Sandbox> {
       return retry(() => fs.remove(realPath));
     },
     patch: async (path: string, search: string, replacement: string) => {
-      process.stdout.write(
-        `Patching file ${path} - replacing "${search}" with "${replacement}"...\n`
-      );
+      logger.log(`Patching file ${path} - replacing "${search}" with "${replacement}"...`);
       const realPath = join(context, path);
       const content = await retry(() => fs.readFile(realPath, 'utf-8').then(normalizeEol));
 
@@ -204,7 +183,7 @@ async function createSandbox(): Promise<Sandbox> {
     },
     exec: (command: string, env = {}) =>
       new Promise<string>((resolve, reject) => {
-        process.stdout.write(`Executing "${command}" command...\n`);
+        logger.log(`Executing "${command}" command...`);
 
         const childProcess = exec(
           command,
@@ -233,7 +212,7 @@ async function createSandbox(): Promise<Sandbox> {
         childProcesses.push(childProcess);
       }),
     spawn: (command: string, env = {}) => {
-      process.stdout.write(`Spawning "${command}" command...\n`);
+      logger.log(`Spawning "${command}" command...`);
 
       const [spawnCommand, ...args] = command.split(' ');
 
@@ -257,7 +236,7 @@ async function createSandbox(): Promise<Sandbox> {
     },
     kill: async (childProcess: ChildProcess) => {
       if (!childProcess.killed && childProcess.pid) {
-        process.stdout.write(`Killing child process ${childProcess.pid}...\n`);
+        logger.log(`Killing child process ${childProcess.pid}...`);
         await retry(
           () =>
             new Promise((resolve) =>
@@ -271,7 +250,7 @@ async function createSandbox(): Promise<Sandbox> {
               })
             )
         );
-        process.stdout.write(`Child process ${childProcess.pid} killed.\n`);
+        logger.log(`Child process ${childProcess.pid} killed.`);
       }
       childProcesses = childProcesses.filter((aChildProcess) => aChildProcess !== childProcess);
     },
@@ -280,23 +259,4 @@ async function createSandbox(): Promise<Sandbox> {
   return sandbox;
 }
 
-const FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION = join(
-  resolve(__dirname, '../../..'),
-  'fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz'
-);
-
-if (!fs.pathExistsSync(FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION)) {
-  throw new Error(
-    `Cannot find ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION} file. To run e2e test, execute "npm pack" command before.`
-  );
-}
-
-export {
-  Sandbox,
-  createSandbox,
-  npmInstaller,
-  yarnInstaller,
-  NPM_CACHE_DIR,
-  YARN_CACHE_DIR,
-  FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION,
-};
+export { Sandbox, createSandbox, yarnInstaller };

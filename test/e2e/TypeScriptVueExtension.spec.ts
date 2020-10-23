@@ -1,11 +1,12 @@
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
-import { readFixture } from './sandbox/Fixture';
 import { join } from 'path';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
+import { readFixture } from './sandbox/Fixture';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('TypeScript Vue Extension', () => {
   let sandbox: Sandbox;

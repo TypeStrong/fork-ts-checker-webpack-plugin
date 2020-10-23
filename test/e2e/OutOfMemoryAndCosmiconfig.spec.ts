@@ -1,7 +1,8 @@
 import { join } from 'path';
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
 import { readFixture } from './sandbox/Fixture';
 import { createGenericProcessDriver } from './sandbox/GenericProcessDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
   let sandbox: Sandbox;

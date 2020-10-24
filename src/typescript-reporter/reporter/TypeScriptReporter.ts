@@ -18,6 +18,13 @@ import {
 import { createPerformance } from '../../profile/Performance';
 import { connectTypeScriptPerformance } from '../profile/TypeScriptPerformance';
 
+// write this type as it's available only in the newest TypeScript versions (^4.1.0)
+interface Tracing {
+  startTracing(configFilePath: string, traceDirPath: string, isBuildMode: boolean): void;
+  stopTracing(typeCatalog: unknown): void;
+  dumpLegend(): void;
+}
+
 function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration): Reporter {
   let parsedConfiguration: ts.ParsedCommandLine | undefined;
   let parseConfigurationDiagnostics: ts.Diagnostic[] = [];
@@ -49,8 +56,17 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     extensions.push(createTypeScriptVueExtension(configuration.extensions.vue));
   }
 
+  function getConfigFilePathFromCompilerOptions(compilerOptions: ts.CompilerOptions): string {
+    return (compilerOptions.configFilePath as unknown) as string;
+  }
+
   function getProjectNameOfBuilderProgram(builderProgram: ts.BuilderProgram): string {
-    return (builderProgram.getProgram().getCompilerOptions().configFilePath as unknown) as string;
+    return getConfigFilePathFromCompilerOptions(builderProgram.getProgram().getCompilerOptions());
+  }
+
+  function getTracing(): Tracing | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (typescript as any).tracing;
   }
 
   function getDiagnosticsOfBuilderProgram(builderProgram: ts.BuilderProgram) {
@@ -152,6 +168,49 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     );
   }
 
+  function startProfilingIfNeeded() {
+    if (configuration.profile) {
+      performance.enable();
+    }
+  }
+
+  function stopProfilingIfNeeded() {
+    if (configuration.profile) {
+      performance.print();
+      performance.disable();
+    }
+  }
+
+  function startTracingIfNeeded(compilerOptions: ts.CompilerOptions) {
+    const tracing = getTracing();
+
+    if (compilerOptions.generateTrace && tracing) {
+      tracing.startTracing(
+        getConfigFilePathFromCompilerOptions(compilerOptions),
+        compilerOptions.generateTrace as string,
+        configuration.build
+      );
+    }
+  }
+
+  function stopTracingIfNeeded(program: ts.BuilderProgram) {
+    const tracing = getTracing();
+    const compilerOptions = program.getCompilerOptions();
+
+    if (compilerOptions.generateTrace && tracing) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tracing.stopTracing((program.getProgram() as any).getTypeCatalog());
+    }
+  }
+
+  function dumpTracingLegendIfNeeded() {
+    const tracing = getTracing();
+
+    if (tracing) {
+      tracing.dumpLegend();
+    }
+  }
+
   return {
     getReport: async ({ changedFiles = [], deletedFiles = [] }) => {
       // clear cache to be ready for next iteration and to free memory
@@ -227,9 +286,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           return dependencies;
         },
         async getIssues() {
-          if (configuration.profile) {
-            performance.enable();
-          }
+          startProfilingIfNeeded();
 
           parsedConfiguration = parseConfigurationIfNeeded();
 
@@ -261,7 +318,26 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
                 typescript,
                 parsedConfiguration,
                 system,
-                typescript.createSemanticDiagnosticsBuilderProgram,
+                (
+                  rootNames,
+                  compilerOptions,
+                  host,
+                  oldProgram,
+                  configFileParsingDiagnostics,
+                  projectReferences
+                ) => {
+                  if (compilerOptions) {
+                    startTracingIfNeeded(compilerOptions);
+                  }
+                  return typescript.createSemanticDiagnosticsBuilderProgram(
+                    rootNames,
+                    compilerOptions,
+                    host,
+                    oldProgram,
+                    configFileParsingDiagnostics,
+                    projectReferences
+                  );
+                },
                 undefined,
                 undefined,
                 undefined,
@@ -275,6 +351,8 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
                   // emit .tsbuildinfo file if needed
                   emitTsBuildInfoFileForBuilderProgram(builderProgram);
+
+                  stopTracingIfNeeded(builderProgram);
                 },
                 extensions
               );
@@ -308,7 +386,26 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
                 typescript,
                 parsedConfiguration,
                 system,
-                typescript.createSemanticDiagnosticsBuilderProgram,
+                (
+                  rootNames,
+                  compilerOptions,
+                  host,
+                  oldProgram,
+                  configFileParsingDiagnostics,
+                  projectReferences
+                ) => {
+                  if (compilerOptions) {
+                    startTracingIfNeeded(compilerOptions);
+                  }
+                  return typescript.createSemanticDiagnosticsBuilderProgram(
+                    rootNames,
+                    compilerOptions,
+                    host,
+                    oldProgram,
+                    configFileParsingDiagnostics,
+                    projectReferences
+                  );
+                },
                 undefined,
                 undefined,
                 (builderProgram) => {
@@ -320,6 +417,8 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
 
                   // emit .tsbuildinfo file if needed
                   emitTsBuildInfoFileForBuilderProgram(builderProgram);
+
+                  stopTracingIfNeeded(builderProgram);
                 },
                 extensions
               );
@@ -370,10 +469,8 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
             }
           });
 
-          if (configuration.profile) {
-            performance.print();
-            performance.disable();
-          }
+          dumpTracingLegendIfNeeded();
+          stopProfilingIfNeeded();
 
           return issues;
         },

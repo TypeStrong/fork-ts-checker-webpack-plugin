@@ -23,8 +23,8 @@ interface Sandbox {
   exists: (path: string) => Promise<boolean>;
   remove: (path: string) => Promise<void>;
   patch: (path: string, search: string, replacement: string) => Promise<void>;
-  exec: (command: string, env?: Record<string, string>) => Promise<string>;
-  spawn: (command: string, env?: Record<string, string>) => ChildProcess;
+  exec: (command: string, env?: Record<string, string>, cwd?: string) => Promise<string>;
+  spawn: (command: string, env?: Record<string, string>, cwd?: string) => ChildProcess;
   kill: (childProcess: ChildProcess) => Promise<void>;
 }
 
@@ -179,14 +179,14 @@ async function createSandbox(): Promise<Sandbox> {
 
       return retry(() => fs.writeFile(realPath, content.replace(search, replacement)));
     },
-    exec: (command: string, env = {}) =>
+    exec: (command: string, env = {}, cwd = context) =>
       new Promise<string>((resolve, reject) => {
         logger.log(`Executing "${command}" command...`);
 
         const childProcess = exec(
           command,
           {
-            cwd: context,
+            cwd,
             env: {
               ...process.env,
               ...env,
@@ -209,13 +209,13 @@ async function createSandbox(): Promise<Sandbox> {
 
         childProcesses.push(childProcess);
       }),
-    spawn: (command: string, env = {}) => {
+    spawn: (command: string, env = {}, cwd = context) => {
       logger.log(`Spawning "${command}" command...`);
 
       const [spawnCommand, ...args] = command.split(' ');
 
       const childProcess = spawn(spawnCommand, args, {
-        cwd: context,
+        cwd,
         env: {
           ...process.env,
           ...env,

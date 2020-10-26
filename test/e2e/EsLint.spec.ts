@@ -1,11 +1,12 @@
 import { join } from 'path';
 import { readFixture } from './sandbox/Fixture';
-import { Sandbox, createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Sandbox';
+import { Sandbox, createSandbox } from './sandbox/Sandbox';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('EsLint', () => {
   let sandbox: Sandbox;
@@ -25,8 +26,8 @@ describe('EsLint', () => {
   it.each([
     { async: false, webpack: '4.0.0', absolute: false },
     { async: true, webpack: '^4.0.0', absolute: true },
-    { async: false, webpack: '^5.0.0-beta.16', absolute: true },
-    { async: true, webpack: '^5.0.0-beta.16', absolute: false },
+    { async: false, webpack: '^5.0.0', absolute: true },
+    { async: true, webpack: '^5.0.0', absolute: false },
   ])('reports lint error for %p', async ({ async, webpack, absolute }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {

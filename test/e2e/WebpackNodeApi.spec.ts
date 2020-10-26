@@ -1,7 +1,8 @@
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
-import { readFixture } from './sandbox/Fixture';
 import { join } from 'path';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
+import { readFixture } from './sandbox/Fixture';
 import { WEBPACK_CLI_VERSION, WEBPACK_DEV_SERVER_VERSION } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('Webpack Node Api', () => {
   let sandbox: Sandbox;
@@ -18,7 +19,7 @@ describe('Webpack Node Api', () => {
     await sandbox.cleanup();
   });
 
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0-beta.16' }])(
+  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
     'compiles the project successfully with %p',
     async ({ webpack }) => {
       await sandbox.load([

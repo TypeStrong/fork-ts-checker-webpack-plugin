@@ -1,11 +1,12 @@
 import { join } from 'path';
 import { readFixture } from './sandbox/Fixture';
-import { Sandbox, createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Sandbox';
+import { Sandbox, createSandbox } from './sandbox/Sandbox';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('TypeScript Watch API', () => {
   let sandbox: Sandbox;
@@ -25,8 +26,8 @@ describe('TypeScript Watch API', () => {
   it.each([
     { async: false, webpack: '4.0.0' },
     { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0-beta.16' },
-    { async: true, webpack: '^5.0.0-beta.16' },
+    { async: false, webpack: '^5.0.0' },
+    { async: true, webpack: '^5.0.0' },
   ])(
     'reports semantic error for %p with importsNotUsedAsValues configuration with ts-loader',
     async ({ async, webpack }) => {
@@ -152,8 +153,8 @@ describe('TypeScript Watch API', () => {
   it.each([
     { async: false, webpack: '4.0.0' },
     { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0-beta.16' },
-    { async: true, webpack: '^5.0.0-beta.16' },
+    { async: false, webpack: '^5.0.0' },
+    { async: true, webpack: '^5.0.0' },
   ])(
     'reports semantic error for %p with onlyRemoveTypeImports configuration with babel-loader',
     async ({ async, webpack }) => {

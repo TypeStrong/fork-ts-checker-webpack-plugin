@@ -1,11 +1,12 @@
-import { readFixture } from './sandbox/Fixture';
 import { join } from 'path';
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
+import { readFixture } from './sandbox/Fixture';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('Webpack Issue Scope', () => {
   let sandbox: Sandbox;
@@ -27,8 +28,8 @@ describe('Webpack Issue Scope', () => {
     { webpack: '4.0.0', async: false, scope: 'all' },
     { webpack: '^4.0.0', async: false, scope: 'webpack' },
     { webpack: '^4.0.0', async: true, scope: 'all' },
-    { webpack: '^5.0.0-beta.16', async: true, scope: 'webpack' },
-    { webpack: '^5.0.0-beta.16', async: false, scope: 'all' },
+    { webpack: '^5.0.0', async: true, scope: 'webpack' },
+    { webpack: '^5.0.0', async: false, scope: 'all' },
   ])(
     'reports errors only related to the given scope with %p',
     async ({ webpack, async, scope }) => {

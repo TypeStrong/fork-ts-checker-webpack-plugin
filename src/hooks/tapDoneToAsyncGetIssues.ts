@@ -64,7 +64,7 @@ function tapDoneToAsyncGetIssues(
     // modify list of issues in the plugin hooks
     issues = hooks.issues.call(issues, stats.compilation);
 
-    const formatter = createWebpackFormatter(configuration.formatter, compiler.context);
+    const formatter = createWebpackFormatter(configuration.formatter);
 
     if (issues.length) {
       // follow webpack's approach - one process.write to stderr with all errors and warnings

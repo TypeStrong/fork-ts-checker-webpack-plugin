@@ -167,6 +167,9 @@ function createTypeScriptEmbeddedExtension({
         },
       };
     },
+    extendSupportedFileExtensions(extensions: string[]) {
+      return [...extensions, ...embeddedExtensions];
+    },
   };
 }
 

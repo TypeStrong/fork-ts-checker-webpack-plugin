@@ -1,7 +1,14 @@
 import { Reporter } from '../Reporter';
 import { createRpcClient, RpcMessageChannel } from '../../rpc';
-import { configure, getIssues } from './ReporterRpcProcedure';
+import {
+  configure,
+  getReport,
+  getDependencies,
+  getIssues,
+  closeReport,
+} from './ReporterRpcProcedure';
 import flatten from '../../utils/array/flatten';
+import { FilesChange } from '../FilesChange';
 
 interface ReporterRpcClient extends Reporter {
   isConnected: () => boolean;
@@ -34,7 +41,21 @@ function createReporterRpcClient<TConfiguration extends object>(
         await channel.close();
       }
     },
-    getReport: async (change) => await rpcClient.dispatchCall(getIssues, change),
+    getReport: async (change) => {
+      const reportId = await rpcClient.dispatchCall(getReport, change);
+
+      return {
+        getDependencies() {
+          return rpcClient.dispatchCall(getDependencies, reportId);
+        },
+        getIssues() {
+          return rpcClient.dispatchCall(getIssues, reportId);
+        },
+        close() {
+          return rpcClient.dispatchCall(closeReport, reportId);
+        },
+      };
+    },
   };
 }
 
@@ -44,10 +65,29 @@ function composeReporterRpcClients(clients: ReporterRpcClient[]): ReporterRpcCli
     connect: () => Promise.all(clients.map((client) => client.connect())).then(() => undefined),
     disconnect: () =>
       Promise.all(clients.map((client) => client.disconnect())).then(() => undefined),
-    getReport: async (change) =>
-      Promise.all(clients.map((client) => client.getReport(change))).then((issues) =>
-        flatten(issues)
-      ),
+    getReport: (change: FilesChange) =>
+      Promise.all(clients.map((client) => client.getReport(change))).then((reports) => ({
+        getDependencies: () =>
+          Promise.all(reports.map((report) => report.getDependencies())).then((dependencies) =>
+            dependencies.reduce(
+              (mergedDependencies, singleDependencies) => ({
+                files: Array.from(
+                  new Set([...mergedDependencies.files, ...singleDependencies.files])
+                ),
+                dirs: Array.from(new Set([...mergedDependencies.dirs, ...singleDependencies.dirs])),
+                extensions: Array.from(
+                  new Set([...mergedDependencies.extensions, ...singleDependencies.extensions])
+                ),
+              }),
+              { files: [], dirs: [], extensions: [] }
+            )
+          ),
+        getIssues: () =>
+          Promise.all(reports.map((report) => report.getIssues())).then((issues) =>
+            flatten(issues)
+          ),
+        close: () => Promise.all(reports.map((report) => report.close())).then(() => undefined),
+      })),
   };
 }
 

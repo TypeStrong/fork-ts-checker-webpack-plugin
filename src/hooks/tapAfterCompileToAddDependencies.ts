@@ -1,15 +1,29 @@
 import webpack from 'webpack';
-import path from 'path';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
+import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 
 function tapAfterCompileToAddDependencies(
   compiler: webpack.Compiler,
-  configuration: ForkTsCheckerWebpackPluginConfiguration
+  configuration: ForkTsCheckerWebpackPluginConfiguration,
+  state: ForkTsCheckerWebpackPluginState
 ) {
-  compiler.hooks.afterCompile.tap('ForkTsCheckerWebpackPlugin', (compilation) => {
-    if (configuration.typescript.enabled) {
-      // watch tsconfig.json file
-      compilation.fileDependencies.add(path.normalize(configuration.typescript.configFile));
+  compiler.hooks.afterCompile.tapPromise('ForkTsCheckerWebpackPlugin', async (compilation) => {
+    if (compilation.compiler !== compiler) {
+      // run only for the compiler that the plugin was registered for
+      return;
+    }
+
+    const dependencies = await state.dependenciesPromise;
+
+    if (dependencies) {
+      state.lastDependencies = dependencies;
+
+      dependencies.files.forEach((file) => {
+        compilation.fileDependencies.add(file);
+      });
+      dependencies.dirs.forEach((dir) => {
+        compilation.contextDependencies.add(dir);
+      });
     }
   });
 }

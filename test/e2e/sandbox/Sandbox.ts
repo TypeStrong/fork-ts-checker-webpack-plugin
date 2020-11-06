@@ -66,7 +66,9 @@ async function yarnInstaller(sandbox: Sandbox) {
 }
 
 async function createSandbox(): Promise<Sandbox> {
-  const context = await fs.mkdtemp(join(os.tmpdir(), 'fork-ts-checker-sandbox-'));
+  const context = fs.realpathSync.native(
+    await fs.mkdtemp(join(os.tmpdir(), 'fork-ts-checker-sandbox-'))
+  );
 
   let createdFiles: string[] = [];
   let childProcesses: ChildProcess[] = [];

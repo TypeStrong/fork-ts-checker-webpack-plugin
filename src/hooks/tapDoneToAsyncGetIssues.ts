@@ -23,11 +23,12 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    const report = state.report;
+    const reportPromise = state.reportPromise;
+    const issuesPromise = state.issuesPromise;
     let issues: Issue[] | undefined;
 
     try {
-      if (await isPending(report)) {
+      if (await isPending(issuesPromise)) {
         hooks.waiting.call(stats.compilation);
         configuration.logger.issues.log(chalk.blue('Issues checking in progress...'));
       } else {
@@ -35,7 +36,7 @@ function tapDoneToAsyncGetIssues(
         await wait(10);
       }
 
-      issues = await report;
+      issues = await issuesPromise;
     } catch (error) {
       hooks.error.call(error, stats.compilation);
       return;
@@ -46,16 +47,9 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    if (report !== state.report) {
+    if (reportPromise !== state.reportPromise) {
       // there is a newer report - ignore this one
       return;
-    }
-
-    if (configuration.issue.scope === 'webpack') {
-      // exclude issues that are related to files outside webpack compilation
-      issues = issues.filter(
-        (issue) => !issue.file || stats.compilation.fileDependencies.has(path.normalize(issue.file))
-      );
     }
 
     // filter list of issues by provided issue predicate

@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import { Issue } from '../../issue';
+import { Dependencies } from '../../reporter';
 
 interface TypeScriptHostExtension {
   extendWatchSolutionBuilderHost?<
@@ -21,11 +22,11 @@ interface TypeScriptHostExtension {
     parsedCommandLine?: ts.ParsedCommandLine
   ): THost;
   extendParseConfigFileHost?<THost extends ts.ParseConfigFileHost>(host: THost): THost;
-  extendSupportedFileExtensions?(extensions: string[]): string[];
 }
 
 interface TypeScriptReporterExtension {
   extendIssues?(issues: Issue[]): Issue[];
+  extendDependencies?(dependencies: Dependencies): Dependencies;
 }
 
 interface TypeScriptExtension extends TypeScriptHostExtension, TypeScriptReporterExtension {}

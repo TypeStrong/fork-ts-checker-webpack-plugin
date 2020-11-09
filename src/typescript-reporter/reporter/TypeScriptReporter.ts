@@ -111,21 +111,27 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     }
   }
 
-  function parseConfiguration() {
-    const parseConfigurationDiagnostics = [];
+  function getParseConfigFileHost() {
+    const parseConfigDiagnostics: ts.Diagnostic[] = [];
 
     let parseConfigFileHost: ts.ParseConfigFileHost = {
       ...system,
       onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
-        parseConfigurationDiagnostics.push(diagnostic);
+        parseConfigDiagnostics.push(diagnostic);
       },
     };
 
-    extensions.forEach((extension) => {
+    for (const extension of extensions) {
       if (extension.extendParseConfigFileHost) {
         parseConfigFileHost = extension.extendParseConfigFileHost(parseConfigFileHost);
       }
-    });
+    }
+
+    return [parseConfigFileHost, parseConfigDiagnostics] as const;
+  }
+
+  function parseConfiguration() {
+    const [parseConfigFileHost, parseConfigDiagnostics] = getParseConfigFileHost();
 
     const parsedConfiguration = parseTypeScriptConfiguration(
       typescript,
@@ -136,10 +142,10 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     );
 
     if (parsedConfiguration.errors) {
-      parseConfigurationDiagnostics.push(...parsedConfiguration.errors);
+      parseConfigDiagnostics.push(...parsedConfiguration.errors);
     }
 
-    return [parsedConfiguration, parseConfigurationDiagnostics] as const;
+    return [parsedConfiguration, parseConfigDiagnostics] as const;
   }
 
   function parseConfigurationIfNeeded(): ts.ParsedCommandLine {
@@ -153,19 +159,22 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
   function getDependencies(): Dependencies {
     parsedConfiguration = parseConfigurationIfNeeded();
 
-    const parseConfigFileHost: ts.ParseConfigFileHost = {
-      ...system,
-      onUnRecoverableConfigFileDiagnostic: () => {
-        // it's handled in a different place
-      },
-    };
+    const [parseConfigFileHost] = getParseConfigFileHost();
 
-    return getDependenciesFromTypeScriptConfiguration(
+    let dependencies = getDependenciesFromTypeScriptConfiguration(
       typescript,
       parsedConfiguration,
       configuration.context,
       parseConfigFileHost
     );
+
+    for (const extension of extensions) {
+      if (extension.extendDependencies) {
+        dependencies = extension.extendDependencies(dependencies);
+      }
+    }
+
+    return dependencies;
   }
 
   function startProfilingIfNeeded() {
@@ -274,13 +283,6 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         async getDependencies() {
           if (!dependencies) {
             dependencies = getDependencies();
-            for (const extension of extensions) {
-              if (extension.extendSupportedFileExtensions) {
-                dependencies.extensions = extension.extendSupportedFileExtensions(
-                  dependencies.extensions
-                );
-              }
-            }
           }
 
           return dependencies;

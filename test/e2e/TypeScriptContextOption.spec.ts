@@ -69,7 +69,7 @@ describe('TypeScript Context Option', () => {
     await sandbox.patch(
       'webpack.config.js',
       "entry: './src/index.ts',",
-      "entry: path.resolve(__dirname, './src/index.ts'),"
+      ["entry: './src/index.ts',", 'context: path.resolve(__dirname),'].join('\n')
     );
     await sandbox.patch(
       'webpack.config.js',

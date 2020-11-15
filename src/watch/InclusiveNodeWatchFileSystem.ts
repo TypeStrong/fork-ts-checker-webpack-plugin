@@ -3,6 +3,12 @@ import chokidar, { FSWatcher } from 'chokidar';
 import { extname } from 'path';
 import { Watcher, WatchFileSystem, WatchFileSystemOptions } from './WatchFileSystem';
 
+const IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
+
+function isIgnored(path: string) {
+  return IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`));
+}
+
 class InclusiveNodeWatchFileSystem implements WatchFileSystem {
   get watcher() {
     return this.watchFileSystem.watcher || this.watchFileSystem.wfs?.watcher;
@@ -10,6 +16,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
 
   readonly changedFiles: Set<string>;
   readonly removedFiles: Set<string>;
+  readonly dirsWatchers: Map<string, FSWatcher | undefined>;
 
   constructor(
     private watchFileSystem: WatchFileSystem,
@@ -21,8 +28,6 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
   }
 
   private paused = true;
-  private fileWatcher: Watcher | undefined;
-  private dirsWatchers: Map<string, FSWatcher | undefined>;
 
   watch(
     files: Iterable<string>,
@@ -36,13 +41,8 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     this.changedFiles.clear();
     this.removedFiles.clear();
 
-    // cleanup old standard watchers
-    if (this.fileWatcher) {
-      this.fileWatcher.close();
-    }
-
     // use standard watch file system for files and missing
-    this.fileWatcher = this.watchFileSystem.watch(
+    const fileWatcher = this.watchFileSystem.watch(
       files,
       [],
       missing,
@@ -53,19 +53,25 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     );
 
     this.watcher?.on('change', (file: string) => {
-      this.changedFiles.add(file);
-      this.removedFiles.delete(file);
+      if (!isIgnored(file)) {
+        this.changedFiles.add(file);
+        this.removedFiles.delete(file);
+      }
     });
     this.watcher?.on('remove', (file: string) => {
-      this.removedFiles.add(file);
-      this.changedFiles.delete(file);
+      if (!isIgnored(file)) {
+        this.removedFiles.add(file);
+        this.changedFiles.delete(file);
+      }
     });
 
     // calculate what to change
     const prevDirs = Array.from(this.dirsWatchers.keys());
     const nextDirs = Array.from(dirs);
     const dirsToUnwatch = prevDirs.filter((prevDir) => !nextDirs.includes(prevDir));
-    const dirsToWatch = nextDirs.filter((nextDir) => !prevDirs.includes(nextDir));
+    const dirsToWatch = nextDirs.filter(
+      (nextDir) => !prevDirs.includes(nextDir) && !isIgnored(nextDir)
+    );
 
     // update dirs watcher
     dirsToUnwatch.forEach((dirToUnwatch) => {
@@ -78,7 +84,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
       const dirWatcher = chokidar.watch(dirToWatch, {
         ignoreInitial: true,
         ignorePermissionErrors: true,
-        ignored: ['**/node_modules/**', '**/.git/**'],
+        ignored: (path: string) => isIgnored(path),
         usePolling: options?.poll ? true : undefined,
         interval: interval,
         binaryInterval: interval,
@@ -129,14 +135,13 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     this.paused = false;
 
     return {
-      ...this.fileWatcher,
+      ...fileWatcher,
       close: () => {
         this.changedFiles.clear();
         this.removedFiles.clear();
 
-        if (this.fileWatcher) {
-          this.fileWatcher.close();
-          this.fileWatcher = undefined;
+        if (fileWatcher) {
+          fileWatcher.close();
         }
         this.dirsWatchers.forEach((dirWatcher) => {
           dirWatcher?.close();
@@ -146,8 +151,8 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
         this.paused = true;
       },
       pause: () => {
-        if (this.fileWatcher) {
-          this.fileWatcher.pause();
+        if (fileWatcher) {
+          fileWatcher.pause();
         }
         this.paused = true;
       },

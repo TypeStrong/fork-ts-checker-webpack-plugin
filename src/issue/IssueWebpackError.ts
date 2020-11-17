@@ -7,14 +7,14 @@ class IssueWebpackError extends Error {
   readonly hideStack = true;
   readonly file: string | undefined;
 
-  constructor(message: string, context: string, readonly issue: Issue) {
+  constructor(message: string, readonly issue: Issue) {
     super(message);
 
     // to display issue location using `loc` property, webpack requires `error.module` which
     // should be a NormalModule instance.
     // to avoid such a dependency, we do a workaround - error.file will contain formatted location instead
     if (issue.file) {
-      this.file = forwardSlash(relative(context, issue.file));
+      this.file = forwardSlash(relative(process.cwd(), issue.file));
 
       if (issue.location) {
         this.file += `:${formatIssueLocation(issue.location)}`;

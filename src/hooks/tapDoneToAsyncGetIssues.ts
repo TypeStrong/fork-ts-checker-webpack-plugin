@@ -69,11 +69,7 @@ function tapDoneToAsyncGetIssues(
 
     if (state.webpackDevServerDoneTap) {
       issues.forEach((issue) => {
-        const error = new IssueWebpackError(
-          configuration.formatter(issue),
-          compiler.options.context || process.cwd(),
-          issue
-        );
+        const error = new IssueWebpackError(configuration.formatter(issue), issue);
 
         if (issue.severity === 'warning') {
           stats.compilation.warnings.push(error);

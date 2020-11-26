@@ -42,9 +42,9 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     this.removedFiles.clear();
 
     // use standard watch file system for files and missing
-    const fileWatcher = this.watchFileSystem.watch(
+    const standardWatcher = this.watchFileSystem.watch(
       files,
-      [],
+      dirs,
       missing,
       startTime,
       options,
@@ -53,13 +53,13 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     );
 
     this.watcher?.on('change', (file: string) => {
-      if (!isIgnored(file)) {
+      if (typeof file === 'string' && !isIgnored(file)) {
         this.changedFiles.add(file);
         this.removedFiles.delete(file);
       }
     });
     this.watcher?.on('remove', (file: string) => {
-      if (!isIgnored(file)) {
+      if (typeof file === 'string' && !isIgnored(file)) {
         this.removedFiles.add(file);
         this.changedFiles.delete(file);
       }
@@ -67,7 +67,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
 
     // calculate what to change
     const prevDirs = Array.from(this.dirsWatchers.keys());
-    const nextDirs = Array.from(dirs);
+    const nextDirs = Array.from(this.pluginState.lastDependencies?.dirs || []);
     const dirsToUnwatch = prevDirs.filter((prevDir) => !nextDirs.includes(prevDir));
     const dirsToWatch = nextDirs.filter(
       (nextDir) => !prevDirs.includes(nextDir) && !isIgnored(nextDir)
@@ -135,13 +135,13 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     this.paused = false;
 
     return {
-      ...fileWatcher,
+      ...standardWatcher,
       close: () => {
         this.changedFiles.clear();
         this.removedFiles.clear();
 
-        if (fileWatcher) {
-          fileWatcher.close();
+        if (standardWatcher) {
+          standardWatcher.close();
         }
         this.dirsWatchers.forEach((dirWatcher) => {
           dirWatcher?.close();
@@ -151,8 +151,8 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
         this.paused = true;
       },
       pause: () => {
-        if (fileWatcher) {
-          fileWatcher.pause();
+        if (standardWatcher) {
+          standardWatcher.pause();
         }
         this.paused = true;
       },

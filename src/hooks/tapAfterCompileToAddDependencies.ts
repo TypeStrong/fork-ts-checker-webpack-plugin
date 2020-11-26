@@ -21,9 +21,6 @@ function tapAfterCompileToAddDependencies(
       dependencies.files.forEach((file) => {
         compilation.fileDependencies.add(file);
       });
-      dependencies.dirs.forEach((dir) => {
-        compilation.contextDependencies.add(dir);
-      });
     }
   });
 }

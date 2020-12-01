@@ -7,7 +7,7 @@ function getDeletedFiles(compiler: webpack.Compiler): string[] {
   const watchFileSystem = (compiler as CompilerWithWatchFileSystem<InclusiveNodeWatchFileSystem>)
     .watchFileSystem;
 
-  return watchFileSystem
+  return watchFileSystem?.removedFiles
     ? Array.from(watchFileSystem.removedFiles).map((removeFile) => path.normalize(removeFile))
     : [];
 }

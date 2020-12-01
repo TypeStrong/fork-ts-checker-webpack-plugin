@@ -7,7 +7,7 @@ function getChangedFiles(compiler: webpack.Compiler): string[] {
   const watchFileSystem = (compiler as CompilerWithWatchFileSystem<InclusiveNodeWatchFileSystem>)
     .watchFileSystem;
 
-  return watchFileSystem
+  return watchFileSystem?.changedFiles
     ? Array.from(watchFileSystem.changedFiles).map((changedFile) => path.normalize(changedFile))
     : [];
 }

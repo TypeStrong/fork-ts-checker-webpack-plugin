@@ -1,9 +1,24 @@
 import subtract from '../utils/array/substract';
 import unique from '../utils/array/unique';
+import { Compiler } from 'webpack';
 
 interface FilesChange {
   changedFiles?: string[];
   deletedFiles?: string[];
+}
+
+const compilerFilesChangeMap = new WeakMap<Compiler, FilesChange>();
+
+function getFilesChange(compiler: Compiler): FilesChange {
+  return compilerFilesChangeMap.get(compiler) || {};
+}
+
+function updateFilesChange(compiler: Compiler, change: FilesChange): void {
+  compilerFilesChangeMap.set(compiler, aggregateFilesChanges([getFilesChange(compiler), change]));
+}
+
+function clearFilesChange(compiler: Compiler): void {
+  compilerFilesChangeMap.delete(compiler);
 }
 
 /**
@@ -31,4 +46,4 @@ function aggregateFilesChanges(changes: FilesChange[]): FilesChange {
   };
 }
 
-export { FilesChange, aggregateFilesChanges };
+export { FilesChange, getFilesChange, updateFilesChange, clearFilesChange, aggregateFilesChanges };

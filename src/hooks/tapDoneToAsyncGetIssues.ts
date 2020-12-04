@@ -67,7 +67,9 @@ function tapDoneToAsyncGetIssues(
       configuration.logger.issues.log(chalk.green('No issues found.'));
     }
 
-    if (state.webpackDevServerDoneTap) {
+    // report issues to webpack-dev-server, if it's listening
+    // skip reporting if there are no issues, to avoid an extra hot reload
+    if (issues.length && state.webpackDevServerDoneTap) {
       issues.forEach((issue) => {
         const error = new IssueWebpackError(configuration.formatter(issue), issue);
 

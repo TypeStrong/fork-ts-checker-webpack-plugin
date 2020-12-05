@@ -2,6 +2,8 @@ import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginSt
 import chokidar, { FSWatcher } from 'chokidar';
 import { extname } from 'path';
 import { Watcher, WatchFileSystem, WatchFileSystemOptions } from './WatchFileSystem';
+import { Compiler } from 'webpack';
+import { clearFilesChange, updateFilesChange } from '../reporter';
 
 const IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
 
@@ -13,17 +15,13 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
   get watcher() {
     return this.watchFileSystem.watcher || this.watchFileSystem.wfs?.watcher;
   }
-
-  readonly changedFiles: Set<string>;
-  readonly removedFiles: Set<string>;
   readonly dirsWatchers: Map<string, FSWatcher | undefined>;
 
   constructor(
     private watchFileSystem: WatchFileSystem,
+    private compiler: Compiler,
     private pluginState: ForkTsCheckerWebpackPluginState
   ) {
-    this.changedFiles = new Set();
-    this.removedFiles = new Set();
     this.dirsWatchers = new Map();
   }
 
@@ -38,8 +36,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     callback?: Function,
     callbackUndelayed?: Function
   ): Watcher {
-    this.changedFiles.clear();
-    this.removedFiles.clear();
+    clearFilesChange(this.compiler);
 
     // use standard watch file system for files and missing
     const standardWatcher = this.watchFileSystem.watch(
@@ -54,14 +51,12 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
 
     this.watcher?.on('change', (file: string) => {
       if (typeof file === 'string' && !isIgnored(file)) {
-        this.changedFiles.add(file);
-        this.removedFiles.delete(file);
+        updateFilesChange(this.compiler, { changedFiles: [file] });
       }
     });
     this.watcher?.on('remove', (file: string) => {
       if (typeof file === 'string' && !isIgnored(file)) {
-        this.removedFiles.add(file);
-        this.changedFiles.delete(file);
+        updateFilesChange(this.compiler, { deletedFiles: [file] });
       }
     });
 
@@ -105,8 +100,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
           return;
         }
 
-        this.changedFiles.add(file);
-        this.removedFiles.delete(file);
+        updateFilesChange(this.compiler, { changedFiles: [file] });
 
         const mtime = stats?.mtimeMs || stats?.ctimeMs || 1;
 
@@ -124,8 +118,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
           return;
         }
 
-        this.removedFiles.add(file);
-        this.changedFiles.delete(file);
+        updateFilesChange(this.compiler, { deletedFiles: [file] });
 
         this.watcher?._onRemove(dirToWatch, file, 'rename');
       });
@@ -137,8 +130,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     return {
       ...standardWatcher,
       close: () => {
-        this.changedFiles.clear();
-        this.removedFiles.clear();
+        clearFilesChange(this.compiler);
 
         if (standardWatcher) {
           standardWatcher.close();

@@ -13,6 +13,7 @@ function tapAfterEnvironmentToPatchWatching(
       // wrap original watch file system
       (compiler as CompilerWithWatchFileSystem).watchFileSystem = new InclusiveNodeWatchFileSystem(
         watchFileSystem,
+        compiler,
         state
       );
     }

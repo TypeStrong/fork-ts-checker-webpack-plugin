@@ -2,9 +2,7 @@ import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { getDeletedFiles } from './getDeletedFiles';
-import { Dependencies, FilesChange, ReporterRpcClient } from '../reporter';
-import { getChangedFiles } from './getChangedFiles';
+import { Dependencies, FilesChange, getFilesChange, ReporterRpcClient } from '../reporter';
 import { OperationCanceledError } from '../error/OperationCanceledError';
 import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
 import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
@@ -51,10 +49,7 @@ function tapStartToConnectAndRunReporter(
     let change: FilesChange = {};
 
     if (state.watching) {
-      change = {
-        changedFiles: getChangedFiles(compilation.compiler),
-        deletedFiles: getDeletedFiles(compilation.compiler),
-      };
+      change = getFilesChange(compiler);
 
       configuration.logger.infrastructure.info(
         [

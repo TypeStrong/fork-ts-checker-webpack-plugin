@@ -187,13 +187,51 @@ Options for the ESLint linter (`eslint` option object).
 
 ### Issues options
 
-Options for the issues filtering (`issues` option object).
+Options for the issues filtering (`issue` option object).
+I could write some plain text explanation of these options but I think code will explain it better:
 
-| Name      | Type                              | Default value | Description |
-| --------- | --------------------------------- | ------------- | ----------- |
-| `include` | `object` or `function` or `array` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
-| `exclude` | `object` or `function` or `array` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
-| `scope`   | `'all'` or `'webpack'`            | `'webpack'`   | Defines issues scope to be reported. If `'webpack'`, reports errors only related to the webpack compilation. Reports all errors otherwise (like `tsc` and `eslint` command). |
+```typescript
+interface Issue {
+  origin: 'typescript' | 'eslint';
+  severity: 'error' | 'warning';
+  code: string;
+  file?: string;
+}
+
+type IssueMatch = Partial<Issue>; // file field supports glob matching
+type IssuePredicate = (issue: Issue) => boolean;
+type IssueFilter = IssueMatch | IssuePredicate | (IssueMatch | IssuePredicate)[];
+```
+
+| Name      | Type          | Default value | Description |
+| --------- | ------------- | ------------- | ----------- |
+| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
+| `exclude` | `IssueFilter` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
+
+<details>
+<summary>Expand example</summary>
+
+Include issues from the `src` directory, exclude eslint issues from `.spec.ts` files:
+
+```js
+module.exports = {
+  // ...the webpack configuration
+  plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      issue: {
+        include: [
+          { file: '**/src/**/*' }
+        ],
+        exclude: [
+          { origin: 'eslint', file: '**/*.spec.ts' }
+        ]
+      }
+    })
+  ]
+};
+```
+
+</details>
 
 ## Vue.js
 

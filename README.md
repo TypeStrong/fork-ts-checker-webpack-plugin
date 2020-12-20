@@ -187,13 +187,12 @@ Options for the ESLint linter (`eslint` option object).
 
 ### Issues options
 
-Options for the issues filtering (`issues` option object).
+Options for the issues filtering (`issue` option object).
 
 | Name      | Type                              | Default value | Description |
 | --------- | --------------------------------- | ------------- | ----------- |
 | `include` | `object` or `function` or `array` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
 | `exclude` | `object` or `function` or `array` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
-| `scope`   | `'all'` or `'webpack'`            | `'webpack'`   | Defines issues scope to be reported. If `'webpack'`, reports errors only related to the webpack compilation. Reports all errors otherwise (like `tsc` and `eslint` command). |
 
 ## Vue.js
 

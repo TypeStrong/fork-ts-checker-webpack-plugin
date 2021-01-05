@@ -24,9 +24,9 @@ describe('TypeScript PnP Support', () => {
   });
 
   it.each([
-    { async: true, webpack: '^4.0.0', typescript: '2.7.1', tsloader: '^5.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
-    { async: true, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^7.0.0' },
+    { async: true, webpack: '^5.11.0', typescript: '2.7.1', tsloader: '^5.0.0' },
+    { async: false, webpack: '^5.11.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
+    { async: true, webpack: '^5.11.0', typescript: '~3.8.0', tsloader: '^7.0.0' },
   ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
     await sandbox.load(
       [

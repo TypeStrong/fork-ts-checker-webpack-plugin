@@ -21,7 +21,7 @@ describe('Webpack Production Build', () => {
     await sandbox.cleanup();
   });
 
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
+  it.each([{ webpack: '^5.11.0' }])(
     'compiles the project successfully with %p',
     async ({ webpack }) => {
       await sandbox.load([
@@ -66,7 +66,7 @@ describe('Webpack Production Build', () => {
     }
   );
 
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
+  it.each([{ webpack: '^5.11.0' }])(
     'exits with error on the project error with %p',
     async ({ webpack }) => {
       await sandbox.load([

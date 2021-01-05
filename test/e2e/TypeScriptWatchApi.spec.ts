@@ -24,10 +24,8 @@ describe('TypeScript Watch API', () => {
   });
 
   it.each([
-    { async: false, webpack: '4.0.0' },
-    { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0' },
-    { async: true, webpack: '^5.0.0' },
+    { async: false, webpack: '^5.11.0' },
+    { async: true, webpack: '^5.11.0' },
   ])('reports semantic error for %p with ts-loader', async ({ async, webpack }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
@@ -137,10 +135,8 @@ describe('TypeScript Watch API', () => {
   });
 
   it.each([
-    { async: false, webpack: '4.0.0' },
-    { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0' },
-    { async: true, webpack: '^5.0.0' },
+    { async: false, webpack: '^5.11.0' },
+    { async: true, webpack: '^5.11.0' },
   ])('reports semantic error for %p with babel-loader', async ({ async, webpack }) => {
     await sandbox.load([
       await readFixture(
@@ -252,10 +248,10 @@ describe('TypeScript Watch API', () => {
   });
 
   it.each([
-    { async: true, webpack: '^4.0.0', typescript: '2.7.1', tsloader: '^5.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
-    { async: true, webpack: '^4.0.0', typescript: '~3.6.0', tsloader: '^7.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
+    { async: true, webpack: '^5.11.0', typescript: '2.7.1', tsloader: '^5.0.0' },
+    { async: false, webpack: '^5.11.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
+    { async: true, webpack: '^5.11.0', typescript: '~3.6.0', tsloader: '^7.0.0' },
+    { async: false, webpack: '^5.11.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
   ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {

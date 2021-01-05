@@ -50,7 +50,7 @@ describe('TypeScript Vue Extension', () => {
           ),
           TS_LOADER_VERSION: JSON.stringify(tsloader),
           TYPESCRIPT_VERSION: JSON.stringify(typescript),
-          WEBPACK_VERSION: JSON.stringify('^4.0.0'),
+          WEBPACK_VERSION: JSON.stringify('^5.11.0'),
           WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
           WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
           VUE_LOADER_VERSION: JSON.stringify(vueloader),

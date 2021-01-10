@@ -20,9 +20,18 @@ import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDe
 import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
 import { tapAfterEnvironmentToPatchWatching } from './hooks/tapAfterEnvironmentToPatchWatching';
+import { createPool, Pool } from './utils/async/pool';
+import os from 'os';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
+  /**
+   * Current version of the plugin
+   */
   static readonly version: string = '{{VERSION}}'; // will be replaced by the @semantic-release/exec
+  /**
+   * Default pool for the plugin concurrency limit
+   */
+  static readonly pool: Pool = createPool(Math.max(1, os.cpus().length));
 
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 

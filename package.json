@@ -75,10 +75,14 @@
   "peerDependencies": {
     "eslint": ">= 6",
     "typescript": ">= 2.7",
-    "webpack": ">= 4"
+    "webpack": ">= 4",
+    "vue-template-compiler": "*"
   },
   "peerDependenciesMeta": {
     "eslint": {
+      "optional": true
+    },
+    "vue-template-compiler": {
       "optional": true
     }
   },

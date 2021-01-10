@@ -11,24 +11,25 @@ describe('createPool', () => {
 
   it('limits concurrency', async () => {
     const pool = createPool(2);
-    const task = jest.fn(async (done: () => void) => {
-      setTimeout(done, 100);
+    const shortTask = jest.fn(async (done: () => void) => {
+      setTimeout(done, 10);
+    });
+    const longTask = jest.fn(async (done: () => void) => {
+      setTimeout(done, 10000);
     });
 
-    pool.submit(task);
-    pool.submit(task);
-    pool.submit(task);
-    pool.submit(task);
-    pool.submit(task);
+    pool.submit(shortTask);
+    pool.submit(shortTask);
+    pool.submit(longTask);
+    pool.submit(longTask);
+    pool.submit(longTask);
 
-    expect(task).toHaveBeenCalledTimes(2);
+    expect(shortTask).toHaveBeenCalledTimes(2);
+    expect(longTask).toHaveBeenCalledTimes(0);
 
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
-    expect(task).toHaveBeenCalledTimes(4);
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    expect(task).toHaveBeenCalledTimes(5);
+    expect(shortTask).toHaveBeenCalledTimes(2);
+    expect(longTask).toHaveBeenCalledTimes(2);
   });
 });

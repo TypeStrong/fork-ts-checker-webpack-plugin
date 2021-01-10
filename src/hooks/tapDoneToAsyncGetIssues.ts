@@ -1,6 +1,5 @@
 import webpack from 'webpack';
 import chalk from 'chalk';
-import path from 'path';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';

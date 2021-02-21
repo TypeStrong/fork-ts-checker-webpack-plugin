@@ -17,7 +17,7 @@ assignees: ''
 <!-- Describe how we can reproduce this problem step by step. -->
 
 ## Issue reproduction repository
-<!-- Optional location of a minimal repository that demonstrates the issue. -->
+<!-- Location of a (minimal) repository that demonstrates the issue. -->
 
 ## Environment
  - **fork-ts-checker-webpack-plugin**: [version from the `package.json`]

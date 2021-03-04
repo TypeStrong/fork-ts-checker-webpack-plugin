@@ -29,12 +29,12 @@ function registerReporterRpcService<TConfiguration extends object>(
 
       const reporter = reporterFactory(configuration);
 
-      rpcService.addCallHandler(getReport, async (change) => {
+      rpcService.addCallHandler(getReport, async ({ change, watching }) => {
         if (report) {
           throw new Error(`Close previous report before opening the next one.`);
         }
 
-        report = await reporter.getReport(change);
+        report = await reporter.getReport(change, watching);
       });
       rpcService.addCallHandler(getDependencies, () => {
         if (!report) {

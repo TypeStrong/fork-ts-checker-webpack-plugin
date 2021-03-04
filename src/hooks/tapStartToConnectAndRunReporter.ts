@@ -90,7 +90,7 @@ function tapStartToConnectAndRunReporter(
               await previousReport.close();
             }
 
-            const report = await reporter.getReport(change);
+            const report = await reporter.getReport(change, state.watching);
             resolve(report);
 
             report

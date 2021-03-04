@@ -29,7 +29,7 @@ function tapDoneToAsyncGetIssues(
     try {
       if (await isPending(issuesPromise)) {
         hooks.waiting.call(stats.compilation);
-        configuration.logger.issues.log(chalk.blue('Issues checking in progress...'));
+        configuration.logger.issues.log(chalk.cyan('Issues checking in progress...'));
       } else {
         // wait 10ms to log issues after webpack stats
         await wait(10);

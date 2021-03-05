@@ -41,8 +41,8 @@ function createReporterRpcClient<TConfiguration extends object>(
         await channel.close();
       }
     },
-    getReport: async (change) => {
-      const reportId = await rpcClient.dispatchCall(getReport, change);
+    getReport: async (change, watching) => {
+      const reportId = await rpcClient.dispatchCall(getReport, { change, watching });
 
       return {
         getDependencies() {
@@ -65,8 +65,8 @@ function composeReporterRpcClients(clients: ReporterRpcClient[]): ReporterRpcCli
     connect: () => Promise.all(clients.map((client) => client.connect())).then(() => undefined),
     disconnect: () =>
       Promise.all(clients.map((client) => client.disconnect())).then(() => undefined),
-    getReport: (change: FilesChange) =>
-      Promise.all(clients.map((client) => client.getReport(change))).then((reports) => ({
+    getReport: (change: FilesChange, watching: boolean) =>
+      Promise.all(clients.map((client) => client.getReport(change, watching))).then((reports) => ({
         getDependencies: () =>
           Promise.all(reports.map((report) => report.getDependencies())).then((dependencies) =>
             dependencies.reduce(

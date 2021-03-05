@@ -12,7 +12,7 @@ function createAggregatedReporter<TReporter extends Reporter>(reporter: TReporte
 
   const aggregatedReporter: TReporter = {
     ...reporter,
-    getReport: async (change) => {
+    getReport: async (change, watching) => {
       if (!pendingPromise) {
         let resolvePending: () => void;
         pendingPromise = new Promise((resolve) => {
@@ -23,7 +23,7 @@ function createAggregatedReporter<TReporter extends Reporter>(reporter: TReporte
         });
 
         return reporter
-          .getReport(change)
+          .getReport(change, watching)
           .then((report) => ({
             ...report,
             async close() {
@@ -45,7 +45,7 @@ function createAggregatedReporter<TReporter extends Reporter>(reporter: TReporte
             const change = aggregateFilesChanges(queuedChanges);
             queuedChanges = [];
 
-            return aggregatedReporter.getReport(change);
+            return aggregatedReporter.getReport(change, watching);
           } else {
             throw new OperationCanceledError('getReport canceled - new report requested.');
           }

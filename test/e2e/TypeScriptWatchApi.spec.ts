@@ -409,4 +409,51 @@ describe('TypeScript Watch API', () => {
       ].join('\n'),
     ]);
   });
+
+  it.each([
+    { webpack: '4.0.0', async: false, ignored: '[path.resolve(__dirname, "src/model/**")]' },
+    { webpack: '^4.0.0', async: true, ignored: '"**/src/model/**"' },
+    { webpack: '^5.0.0', async: false, ignored: '/src\\/model/' },
+  ])('ignores directories from watch with %p', async ({ webpack, async, ignored }) => {
+    await sandbox.load([
+      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
+        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+        ),
+        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
+        WEBPACK_VERSION: JSON.stringify(webpack),
+        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+        ASYNC: JSON.stringify(async),
+      }),
+      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+    ]);
+
+    await sandbox.patch(
+      'webpack.config.js',
+      "  entry: './src/index.ts',",
+      ["  entry: './src/index.ts',", '  watchOptions: {', `    ignored: ${ignored}`, '  },'].join(
+        '\n'
+      )
+    );
+
+    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
+
+    // first compilation is successful
+    await driver.waitForNoErrors();
+
+    // then we introduce semantic error by removing "firstName" and "lastName" from the User model
+    await sandbox.patch(
+      'src/model/User.ts',
+      ['  firstName?: string;', '  lastName?: string;'].join('\n'),
+      ''
+    );
+    // then we add a new file in this directory
+    await sandbox.write('src/model/Group.ts', '// TODO: to implement');
+
+    // there should be no re-build
+    await expect(driver.waitForErrors(3000)).rejects.toBeDefined();
+    await expect(driver.waitForNoErrors(3000)).rejects.toBeDefined();
+  });
 });

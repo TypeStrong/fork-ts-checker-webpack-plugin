@@ -411,7 +411,7 @@ describe('TypeScript Watch API', () => {
   });
 
   it.each([
-    { webpack: '4.0.0', async: false, ignored: '[path.posix.resolve(__dirname, "src/model/**")]' },
+    { webpack: '4.0.0', async: false, ignored: '[path.resolve(__dirname, "src/model/**")]' },
     { webpack: '^4.0.0', async: true, ignored: '"**/src/model/**"' },
     { webpack: '^5.0.0', async: false, ignored: '/src\\/model/' },
   ])('ignores directories from watch with %p', async ({ webpack, async, ignored }) => {

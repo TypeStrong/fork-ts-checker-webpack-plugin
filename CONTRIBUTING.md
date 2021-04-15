@@ -57,8 +57,8 @@ Here is a summary of the steps to follow:
 2. If you cloned a while ago, get the latest changes from upstream and update dependencies:
 
 ```bash
-$ git checkout master
-$ git pull upstream master
+$ git checkout main
+$ git pull upstream main
 $ yarn install
 ```
 
@@ -75,7 +75,7 @@ $ git checkout -b <topic-branch-name>
 $ git push origin <topic-branch-name>
 ```
 
-6. [Open a Pull Request](https://help.github.com/articles/creating-a-pull-request/#creating-the-pull-request) to the `master` branch with a clear title and description.
+6. [Open a Pull Request](https://help.github.com/articles/creating-a-pull-request/#creating-the-pull-request) to the `main` branch with a clear title and description.
 
 **Tips**:
 
@@ -217,5 +217,5 @@ otherwise use **rebase and merge**.
 
 ### Releasing a stable version
 
-Fixes and tested features from the `beta` branch can be merged with the `master` branch. Please ensure your branch is
-up to date with the `master` and then [open a Pull Request](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/compare/master...).
+Fixes and tested features from the `beta` branch can be merged with the `main` branch. Please ensure your branch is
+up to date with the `main` and then [open a Pull Request](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/compare/main...).

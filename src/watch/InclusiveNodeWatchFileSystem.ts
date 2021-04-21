@@ -12,11 +12,14 @@ function createIsIgnored(
   ignored: WatchFileSystemOptions['ignored'] | undefined
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
-  const ignoredFunctions = ignoredPatterns.map((pattern) =>
-    pattern instanceof RegExp
-      ? (path: string) => pattern.test(path)
-      : (path: string) => minimatch(path, pattern)
-  );
+  const ignoredFunctions = ignoredPatterns
+    // sanitize patterns - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
+    .filter((pattern) => typeof pattern === 'string' || pattern instanceof RegExp)
+    .map((pattern) =>
+      pattern instanceof RegExp
+        ? (path: string) => pattern.test(path)
+        : (path: string) => minimatch(path, pattern)
+    );
   ignoredFunctions.push((path: string) =>
     BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
   );

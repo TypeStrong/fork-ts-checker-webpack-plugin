@@ -70,7 +70,6 @@ module.exports = {
 
 It's very important to be aware that **this plugin uses [TypeScript](https://github.com/Microsoft/TypeScript)'s, not
 [webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. 
-For example if you set `files: ['./src/index.ts']` in `tsconfig.json`, this plugin will check only `index.ts` for errors. 
 
 > It's because of the performance - with TypeScript's module resolution we don't have to wait for webpack to compile files.
 >

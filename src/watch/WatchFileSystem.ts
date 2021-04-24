@@ -4,7 +4,7 @@ interface WatchFileSystemOptions {
   aggregateTimeout: number;
   poll: boolean;
   followSymlinks: boolean;
-  ignored: string | RegExp | (string | RegExp)[];
+  ignored: string | RegExp | Function | (string | RegExp | Function)[];
 }
 
 // watchpack v1 and v2 internal interface

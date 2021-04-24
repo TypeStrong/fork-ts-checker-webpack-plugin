@@ -417,7 +417,8 @@ describe('TypeScript Watch API', () => {
     {
       webpack: '^4.0.0',
       async: true,
-      ignored: '(file) => file.includes(path.resolve(__dirname, "src/model/"))',
+      ignored:
+        '(file) => forwardSlash(file).includes(forwardSlash(path.resolve(__dirname, "src/model/")))',
     },
   ])('ignores directories from watch with %p', async ({ webpack, async, ignored }) => {
     await sandbox.load([
@@ -435,6 +436,16 @@ describe('TypeScript Watch API', () => {
       await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
     ]);
 
+    await sandbox.patch(
+      'webpack.config.js',
+      'module.exports = {',
+      [
+        'function forwardSlash(input) {',
+        "  return path.normalize(input).replace(/\\\\+/g, '/');",
+        '}',
+        'module.exports = {',
+      ].join('\n')
+    );
     await sandbox.patch(
       'webpack.config.js',
       "  entry: './src/index.ts',",

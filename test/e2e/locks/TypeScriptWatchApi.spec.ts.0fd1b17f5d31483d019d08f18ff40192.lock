@@ -1470,9 +1470,9 @@ for-in@^1.0.2:
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
-"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/pj/fsllpv2x7r9bjmxj_1nrtn200000gn/T/fork-ts-checker-tmp-tJ6I9F/fork-ts-checker-webpack-plugin-0.1826471077.tgz":
+"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/pj/fsllpv2x7r9bjmxj_1nrtn200000gn/T/fork-ts-checker-tmp-ylumwT/fork-ts-checker-webpack-plugin-0.2769681570.tgz":
   version "0.0.0-semantic-release"
-  resolved "file:../../../../../../../var/folders/pj/fsllpv2x7r9bjmxj_1nrtn200000gn/T/fork-ts-checker-tmp-tJ6I9F/fork-ts-checker-webpack-plugin-0.1826471077.tgz#ced9ab627b40fda23e7d1a91cac6780676111f4d"
+  resolved "file:../../../../../../../var/folders/pj/fsllpv2x7r9bjmxj_1nrtn200000gn/T/fork-ts-checker-tmp-ylumwT/fork-ts-checker-webpack-plugin-0.2769681570.tgz#ced9ab627b40fda23e7d1a91cac6780676111f4d"
   dependencies:
     "@babel/code-frame" "^7.8.3"
     "@types/json-schema" "^7.0.5"
@@ -3413,9 +3413,9 @@ split-string@^3.0.1, split-string@^3.0.2:
     extend-shallow "^3.0.0"
 
 ssri@^6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/ssri/-/ssri-6.0.1.tgz#2a3c41b28dd45b62b63676ecb74001265ae9edd8"
-  integrity sha512-3Wge10hNcT1Kur4PDFwEieXSCMCJs/7WvSACcrMYrNp+b8kDL1/0wJch5Ni2WrtwEa2IO8OsVfeKIciKCDx/QA==
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/ssri/-/ssri-6.0.2.tgz#157939134f20464e7301ddba3e90ffa8f7728ac5"
+  integrity sha512-cepbSq/neFK7xB6A50KHN0xHDotYzq58wWCa5LeWqnPrHG8GzfEjO/4O8kpmcGW+oaxkvhEJCWgbgNk4/ZV93Q==
   dependencies:
     figgy-pudding "^3.5.1"
 

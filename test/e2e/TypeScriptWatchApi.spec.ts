@@ -414,6 +414,12 @@ describe('TypeScript Watch API', () => {
     { webpack: '4.0.0', async: false, ignored: '[path.resolve(__dirname, "src/model/**")]' },
     { webpack: '^4.0.0', async: true, ignored: '"**/src/model/**"' },
     { webpack: '^5.0.0', async: false, ignored: '/src\\/model/' },
+    {
+      webpack: '^4.0.0',
+      async: true,
+      ignored:
+        '(file) => forwardSlash(file).includes(forwardSlash(path.resolve(__dirname, "src/model/")))',
+    },
   ])('ignores directories from watch with %p', async ({ webpack, async, ignored }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
@@ -430,6 +436,16 @@ describe('TypeScript Watch API', () => {
       await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
     ]);
 
+    await sandbox.patch(
+      'webpack.config.js',
+      'module.exports = {',
+      [
+        'function forwardSlash(input) {',
+        "  return path.normalize(input).replace(/\\\\+/g, '/');",
+        '}',
+        'module.exports = {',
+      ].join('\n')
+    );
     await sandbox.patch(
       'webpack.config.js',
       "  entry: './src/index.ts',",
@@ -453,7 +469,11 @@ describe('TypeScript Watch API', () => {
     await sandbox.write('src/model/Group.ts', '// TODO: to implement');
 
     // there should be no re-build
-    await expect(driver.waitForErrors(3000)).rejects.toBeDefined();
-    await expect(driver.waitForNoErrors(3000)).rejects.toBeDefined();
+    await expect(driver.waitForNoErrors(3000)).rejects.toEqual(
+      new Error('Exceeded time on waiting for no errors message to appear.')
+    );
+    await expect(driver.waitForErrors(3000)).rejects.toEqual(
+      new Error('Exceeded time on waiting for errors to appear.')
+    );
   });
 });

@@ -12,14 +12,19 @@ function createIsIgnored(
   ignored: WatchFileSystemOptions['ignored'] | undefined
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
-  const ignoredFunctions = ignoredPatterns
-    // sanitize patterns - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
-    .filter((pattern) => typeof pattern === 'string' || pattern instanceof RegExp)
-    .map((pattern) =>
-      pattern instanceof RegExp
-        ? (path: string) => pattern.test(path)
-        : (path: string) => minimatch(path, pattern)
-    );
+  const ignoredFunctions = ignoredPatterns.map((pattern) => {
+    // ensure patterns are valid - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
+    if (typeof pattern === 'string') {
+      return (path: string) => minimatch(path, pattern);
+    } else if (typeof pattern === 'function') {
+      return pattern;
+    } else if (pattern instanceof RegExp) {
+      return (path: string) => pattern.test(path);
+    } else {
+      // fallback to no-ignore function
+      return () => false;
+    }
+  });
   ignoredFunctions.push((path: string) =>
     BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
   );

@@ -85,7 +85,7 @@ module.exports = {
       async: ${ASYNC},
       eslint: {
         enabled: true,
-        files: './src/**/*'
+        files: './src/**/*.{ts,tsx,js,jsx}'
       },
       logger: {
         infrastructure: "console"

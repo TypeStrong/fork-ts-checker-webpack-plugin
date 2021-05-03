@@ -48,17 +48,15 @@ describe('EsLint', () => {
       // test case for providing absolute path to files
       await sandbox.patch(
         'webpack.config.js',
-        "files: './src/**/*'",
-        "files: path.resolve(__dirname, './src/**/*')"
+        "files: './src/**/*.{ts,tsx,js,jsx}'",
+        "files: path.resolve(__dirname, './src/**/*.{ts,tsx,js,jsx}')"
       );
     }
 
     const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
-    let errors: string[];
 
     // first compilation contains 2 warnings
-    errors = await driver.waitForErrors();
-    expect(errors).toEqual([
+    expect(await driver.waitForErrors()).toEqual([
       [
         'WARNING in src/authenticate.ts:14:34',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
@@ -124,8 +122,7 @@ describe('EsLint', () => {
       ['  lastName?: string;', '}', '', 'let temporary: any;', ''].join('\n')
     );
 
-    errors = await driver.waitForErrors();
-    expect(errors).toEqual([
+    expect(await driver.waitForErrors()).toEqual([
       [
         'WARNING in src/model/User.ts:11:5',
         "@typescript-eslint/no-unused-vars: 'temporary' is defined but never used.",
@@ -149,6 +146,68 @@ describe('EsLint', () => {
         '    14 | function getUserName(user: User): string {',
       ].join('\n'),
     ]);
+  });
+
+  it('adds files dependencies to webpack', async () => {
+    await sandbox.load([
+      await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
+        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+        ),
+        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
+        WEBPACK_VERSION: JSON.stringify('^4.0.0'),
+        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+        ASYNC: JSON.stringify(false),
+      }),
+      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+    ]);
+
+    // update configuration
+    await sandbox.patch(
+      'webpack.config.js',
+      "files: './src/**/*.{ts,tsx,js,jsx}'",
+      "files: './outside/**/*.{ts,tsx,js,jsx}'"
+    );
+
+    // create a file with lint error
+    await sandbox.write('./outside/test.ts', 'const x = 4;');
+
+    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), false);
+
+    // initially we should have 1 error
+    expect(await driver.waitForErrors()).toEqual([
+      [
+        'WARNING in outside/test.ts:1:7',
+        "@typescript-eslint/no-unused-vars: 'x' is assigned a value but never used.",
+        '  > 1 | const x = 4;',
+        '      |       ^',
+      ].join('\n'),
+    ]);
+
+    // let's fix that error
+    await sandbox.write('./outside/test.ts', 'export const x = 4;');
+    await driver.waitForNoErrors();
+
+    // add a new file in this directory
+    await sandbox.write('./outside/another.ts', '');
+    await driver.waitForNoErrors();
+
+    // update another.ts with a code that has 1 lint error
+    await sandbox.write('./outside/another.ts', 'const y = 5;');
+    expect(await driver.waitForErrors()).toEqual([
+      [
+        'WARNING in outside/another.ts:1:7',
+        "@typescript-eslint/no-unused-vars: 'y' is assigned a value but never used.",
+        '  > 1 | const y = 5;',
+        '      |       ^',
+      ].join('\n'),
+    ]);
+
+    // let's remove this file - this will check if we handle remove events
+    await sandbox.remove('./outside/another.ts');
+    await driver.waitForNoErrors();
   });
 
   it('fixes errors with `fix: true` option', async () => {

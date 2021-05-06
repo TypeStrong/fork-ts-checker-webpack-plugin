@@ -85,6 +85,11 @@ function createControlledTypeScriptSystem(
 
   function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
     const normalizedPath = realFileSystem.normalizePath(path);
+    if (normalizedPath.endsWith('.js')) {
+      // trigger relevant .d.ts file watcher - handles the case, when we have webpack watcher
+      // that points to a symlinked package
+      invokeFileWatchers(normalizedPath.slice(0, -3) + '.d.ts', event);
+    }
 
     const fileWatcherCallbacks = fileWatcherCallbacksMap.get(normalizedPath);
     if (fileWatcherCallbacks) {

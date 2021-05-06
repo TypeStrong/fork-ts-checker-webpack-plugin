@@ -4,11 +4,34 @@ import { extname } from 'path';
 import { Watcher, WatchFileSystem, WatchFileSystemOptions } from './WatchFileSystem';
 import { Compiler } from 'webpack';
 import { clearFilesChange, updateFilesChange } from '../reporter';
+import minimatch from 'minimatch';
 
-const IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
+const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
 
-function isIgnored(path: string) {
-  return IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`));
+function createIsIgnored(
+  ignored: WatchFileSystemOptions['ignored'] | undefined
+): (path: string) => boolean {
+  const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
+  const ignoredFunctions = ignoredPatterns.map((pattern) => {
+    // ensure patterns are valid - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
+    if (typeof pattern === 'string') {
+      return (path: string) => minimatch(path, pattern);
+    } else if (typeof pattern === 'function') {
+      return pattern;
+    } else if (pattern instanceof RegExp) {
+      return (path: string) => pattern.test(path);
+    } else {
+      // fallback to no-ignore function
+      return () => false;
+    }
+  });
+  ignoredFunctions.push((path: string) =>
+    BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
+  );
+
+  return function isIgnored(path: string) {
+    return ignoredFunctions.some((ignoredFunction) => ignoredFunction(path));
+  };
 }
 
 class InclusiveNodeWatchFileSystem implements WatchFileSystem {
@@ -37,6 +60,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     callbackUndelayed?: Function
   ): Watcher {
     clearFilesChange(this.compiler);
+    const isIgnored = createIsIgnored(options?.ignored);
 
     // use standard watch file system for files and missing
     const standardWatcher = this.watchFileSystem.watch(

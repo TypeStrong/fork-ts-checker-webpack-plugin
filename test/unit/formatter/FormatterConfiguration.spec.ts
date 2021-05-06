@@ -41,7 +41,11 @@ describe('formatter/FormatterConfiguration', () => {
     },
   };
 
+  const customFormatter = (issue: Issue) =>
+    `${issue.code}: ${issue.message} at line ${issue.location.start.line}`;
+
   const BASIC_FORMATTER_OUTPUT = `TS2322: Type '"1"' is not assignable to type 'number'.`;
+  const CUSTOM_FORMATTER_OUTPUT = `TS2322: Type '"1"' is not assignable to type 'number'. at line 1`;
   const CODEFRAME_FORMATTER_OUTPUT = [
     BASIC_FORMATTER_OUTPUT,
     '  > 1 | const foo: number = "1";',
@@ -60,6 +64,7 @@ describe('formatter/FormatterConfiguration', () => {
   it.each([
     [undefined, CODEFRAME_FORMATTER_OUTPUT],
     ['basic', BASIC_FORMATTER_OUTPUT],
+    [customFormatter, CUSTOM_FORMATTER_OUTPUT],
     ['codeframe', CODEFRAME_FORMATTER_OUTPUT],
     [{ type: 'basic' }, BASIC_FORMATTER_OUTPUT],
     [{ type: 'codeframe' }, CODEFRAME_FORMATTER_OUTPUT],

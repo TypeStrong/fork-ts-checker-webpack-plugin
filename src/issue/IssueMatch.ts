@@ -4,11 +4,10 @@ import minimatch from 'minimatch';
 import path from 'path';
 import forwardSlash from '../utils/path/forwardSlash';
 
-type IssueMatch = Partial<Pick<Issue, 'origin' | 'severity' | 'code' | 'file'>>;
+type IssueMatch = Partial<Pick<Issue, 'severity' | 'code' | 'file'>>;
 
 function createIssuePredicateFromIssueMatch(context: string, match: IssueMatch): IssuePredicate {
   return (issue) => {
-    const matchesOrigin = !match.origin || match.origin === issue.origin;
     const matchesSeverity = !match.severity || match.severity === issue.severity;
     const matchesCode = !match.code || match.code === issue.code;
     const matchesFile =
@@ -16,7 +15,7 @@ function createIssuePredicateFromIssueMatch(context: string, match: IssueMatch):
       (!!issue.file &&
         (!match.file || minimatch(forwardSlash(path.relative(context, issue.file)), match.file)));
 
-    return matchesOrigin && matchesSeverity && matchesCode && matchesFile;
+    return matchesSeverity && matchesCode && matchesFile;
   };
 }
 

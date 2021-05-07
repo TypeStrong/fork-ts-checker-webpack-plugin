@@ -26,7 +26,6 @@ describe('formatter/CodeFrameFormatter', () => {
   it.each([
     [
       {
-        origin: 'typescript',
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
@@ -51,7 +50,6 @@ describe('formatter/CodeFrameFormatter', () => {
     ],
     [
       {
-        origin: 'typescript',
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
@@ -61,7 +59,6 @@ describe('formatter/CodeFrameFormatter', () => {
     ],
     [
       {
-        origin: 'typescript',
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
@@ -82,7 +79,6 @@ describe('formatter/CodeFrameFormatter', () => {
     ],
     [
       {
-        origin: 'typescript',
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
@@ -99,32 +95,6 @@ describe('formatter/CodeFrameFormatter', () => {
         },
       },
       `TS2322: Type '"1"' is not assignable to type 'number'.`,
-    ],
-    [
-      {
-        origin: 'eslint',
-        severity: 'warning',
-        code: 'no-unused-vars',
-        message: `'bar' is assigned a value but never used.`,
-        file: 'src/index.ts',
-        location: {
-          start: {
-            line: 2,
-            column: 7,
-          },
-          end: {
-            line: 2,
-            column: 10,
-          },
-        },
-      },
-      [
-        `no-unused-vars: 'bar' is assigned a value but never used.`,
-        '    1 | const foo: number = "1";',
-        '  > 2 | const bar = 1;',
-        '      |       ^^^',
-        '    3 | ',
-      ].join(os.EOL),
     ],
   ])('formats issue message "%p" to "%p"', (...args) => {
     const [issue, expectedFormatted] = args as [Issue, string];

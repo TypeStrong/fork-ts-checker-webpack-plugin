@@ -2,7 +2,6 @@ import { IssueSeverity, compareIssueSeverities, isIssueSeverity } from './IssueS
 import { compareIssueLocations, IssueLocation } from './IssueLocation';
 
 interface Issue {
-  origin: string;
   severity: IssueSeverity;
   code: string;
   message: string;
@@ -14,7 +13,6 @@ function isIssue(value: unknown): value is Issue {
   return (
     !!value &&
     typeof value === 'object' &&
-    !!(value as Issue).origin &&
     isIssueSeverity((value as Issue).severity) &&
     !!(value as Issue).code &&
     !!(value as Issue).message
@@ -39,7 +37,6 @@ function compareStrings(stringA?: string, stringB?: string) {
 function compareIssues(issueA: Issue, issueB: Issue) {
   return (
     compareIssueSeverities(issueA.severity, issueB.severity) ||
-    compareStrings(issueA.origin, issueB.origin) ||
     compareStrings(issueA.file, issueB.file) ||
     compareIssueLocations(issueA.location, issueB.location) ||
     compareStrings(issueA.code, issueB.code) ||

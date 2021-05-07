@@ -24,7 +24,6 @@ describe('formatter/FormatterFactory', () => {
   });
 
   const issue: Issue = {
-    origin: 'typescript',
     severity: 'error',
     code: 'TS123',
     message: 'Some issue content',

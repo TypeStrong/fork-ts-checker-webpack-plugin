@@ -27,7 +27,7 @@ function tapErrorToLogMessage(
           chalk.red(
             'Issues checking service aborted - probably out of memory. ' +
               'Check the `memoryLimit` option in the ForkTsCheckerWebpackPlugin configuration.\n' +
-              "If increasing the memory doesn't solve the issue, it's most probably a bug in the TypeScript or EsLint."
+              "If increasing the memory doesn't solve the issue, it's most probably a bug in the TypeScript."
           )
         );
       }

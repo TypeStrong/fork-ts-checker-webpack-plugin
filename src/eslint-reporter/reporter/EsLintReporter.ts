@@ -21,6 +21,7 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
 
   function isFileIncluded(path: string) {
     return (
+      !path.includes('node_modules') &&
       includedGlobPatterns.some((pattern) => minimatch(path, pattern)) &&
       !engine.isPathIgnored(path)
     );

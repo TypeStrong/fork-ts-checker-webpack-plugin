@@ -5,7 +5,6 @@ import { createBasicFormatter, createWebpackFormatter, Formatter } from 'lib/for
 
 describe('formatter/WebpackFormatter', () => {
   const issue: Issue = {
-    origin: 'typescript',
     severity: 'error',
     code: 'TS123',
     message: 'Some issue content',

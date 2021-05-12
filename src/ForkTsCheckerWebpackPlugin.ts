@@ -12,8 +12,6 @@ import { createForkTsCheckerWebpackPluginState } from './ForkTsCheckerWebpackPlu
 import { composeReporterRpcClients, createAggregatedReporter, ReporterRpcClient } from './reporter';
 import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport';
 import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
-import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
-import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
 import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
@@ -61,11 +59,6 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
     if (configuration.typescript.enabled) {
       assertTypeScriptSupport(configuration.typescript);
       reporters.push(createTypeScriptReporterRpcClient(configuration.typescript));
-    }
-
-    if (configuration.eslint.enabled) {
-      assertEsLintSupport(configuration.eslint);
-      reporters.push(createEsLintReporterRpcClient(configuration.eslint));
     }
 
     if (reporters.length) {

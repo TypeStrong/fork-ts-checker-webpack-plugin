@@ -33,7 +33,6 @@ function createIssueFromTsDiagnostic(typescript: typeof ts, diagnostic: ts.Diagn
   }
 
   return {
-    origin: 'typescript',
     code: 'TS' + String(diagnostic.code),
     // we don't handle Suggestion and Message diagnostics
     severity: diagnostic.category === 0 ? 'warning' : 'error',

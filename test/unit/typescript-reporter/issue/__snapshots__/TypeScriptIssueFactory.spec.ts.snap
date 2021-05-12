@@ -16,7 +16,6 @@ Array [
       },
     },
     "message": "Cannot assign string to the number type",
-    "origin": "typescript",
     "severity": "error",
   },
   Object {
@@ -24,7 +23,6 @@ Array [
     "file": undefined,
     "location": undefined,
     "message": "Cannot assign object to the string type",
-    "origin": "typescript",
     "severity": "warning",
   },
   Object {
@@ -41,7 +39,6 @@ Array [
       },
     },
     "message": "Cannot assign object to the string type",
-    "origin": "typescript",
     "severity": "warning",
   },
 ]

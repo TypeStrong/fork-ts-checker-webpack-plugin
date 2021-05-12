@@ -83,7 +83,6 @@
     "@semantic-release/release-notes-generator": "^9.0.1",
     "@types/babel__code-frame": "^7.0.2",
     "@types/cross-spawn": "^6.0.2",
-    "@types/eslint": "^7.2.4",
     "@types/fs-extra": "^9.0.2",
     "@types/jest": "^26.0.14",
     "@types/minimatch": "^3.0.1",

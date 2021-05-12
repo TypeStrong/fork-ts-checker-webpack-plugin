@@ -24,7 +24,6 @@ describe('formatter/FormatterConfiguration', () => {
   });
 
   const issue: Issue = {
-    origin: 'typescript',
     severity: 'error',
     code: 'TS2322',
     message: `Type '"1"' is not assignable to type 'number'.`,

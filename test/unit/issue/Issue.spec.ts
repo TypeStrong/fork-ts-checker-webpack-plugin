@@ -8,20 +8,13 @@ function omit<TObject extends object>(object: TObject, keys: (keyof TObject)[]) 
 }
 
 describe('issue/Issue', () => {
-  const BASIC_TYPESCRIPT_ISSUE = {
-    origin: 'typescript',
+  const BASIC_ISSUE = {
     severity: 'error',
     code: 'TS4221',
     message: 'Cannot assign string to the number type',
   };
-  const BASIC_ESLINT_ISSUE = {
-    origin: 'eslint',
-    severity: 'error',
-    code: 'white-space',
-    message: 'Missing space between function brackets',
-  };
 
-  it.each([BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE])("checks if '%p' is a Issue", (issue) => {
+  it.each([BASIC_ISSUE])("checks if '%p' is a Issue", (issue) => {
     expect(isIssue(issue)).toEqual(true);
   });
 
@@ -35,52 +28,46 @@ describe('issue/Issue', () => {
     new Date(),
     true,
     false,
-    omit(BASIC_TYPESCRIPT_ISSUE, ['severity']),
-    omit(BASIC_ESLINT_ISSUE, ['code']),
-    omit(BASIC_TYPESCRIPT_ISSUE, ['origin', 'message']),
+    omit(BASIC_ISSUE, ['severity']),
+    omit(BASIC_ISSUE, ['message']),
   ])("checks if '%p' isn't a Issue", (issue) => {
     expect(isIssue(issue)).toEqual(false);
   });
 
   it.each([
     [
-      // compare origin
-      [BASIC_ESLINT_ISSUE, BASIC_TYPESCRIPT_ISSUE, BASIC_ESLINT_ISSUE, BASIC_ESLINT_ISSUE],
-      [BASIC_ESLINT_ISSUE, BASIC_TYPESCRIPT_ISSUE],
-    ],
-    [
       // compare file
       [
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/index.ts',
         },
-        BASIC_TYPESCRIPT_ISSUE,
+        BASIC_ISSUE,
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/different.ts',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/another.ts',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/different.ts',
         },
       ],
       [
-        BASIC_TYPESCRIPT_ISSUE,
+        BASIC_ISSUE,
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/another.ts',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/different.ts',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           file: 'src/index.ts',
         },
       ],
@@ -89,25 +76,25 @@ describe('issue/Issue', () => {
       // compare severity
       [
         {
-          ...BASIC_ESLINT_ISSUE,
+          ...BASIC_ISSUE,
           severity: 'warning',
         },
         {
-          ...BASIC_ESLINT_ISSUE,
+          ...BASIC_ISSUE,
           severity: 'error',
         },
         {
-          ...BASIC_ESLINT_ISSUE,
+          ...BASIC_ISSUE,
           severity: 'warning',
         },
       ],
       [
         {
-          ...BASIC_ESLINT_ISSUE,
+          ...BASIC_ISSUE,
           severity: 'error',
         },
         {
-          ...BASIC_ESLINT_ISSUE,
+          ...BASIC_ISSUE,
           severity: 'warning',
         },
       ],
@@ -116,7 +103,7 @@ describe('issue/Issue', () => {
       // compare location
       [
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 10,
@@ -128,9 +115,9 @@ describe('issue/Issue', () => {
             },
           },
         },
-        BASIC_TYPESCRIPT_ISSUE,
+        BASIC_ISSUE,
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 10,
@@ -143,7 +130,7 @@ describe('issue/Issue', () => {
           },
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 10,
@@ -156,7 +143,7 @@ describe('issue/Issue', () => {
           },
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 9,
@@ -170,9 +157,9 @@ describe('issue/Issue', () => {
         },
       ],
       [
-        BASIC_TYPESCRIPT_ISSUE,
+        BASIC_ISSUE,
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 9,
@@ -185,7 +172,7 @@ describe('issue/Issue', () => {
           },
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 10,
@@ -198,7 +185,7 @@ describe('issue/Issue', () => {
           },
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 10,
@@ -211,7 +198,7 @@ describe('issue/Issue', () => {
           },
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           location: {
             start: {
               line: 10,
@@ -229,33 +216,33 @@ describe('issue/Issue', () => {
       // compare code
       [
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS1500',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS1000',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS2000',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS1000',
         },
       ],
       [
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS1000',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS1500',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           code: 'TS2000',
         },
       ],
@@ -264,33 +251,33 @@ describe('issue/Issue', () => {
       // compare message
       [
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'B',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'C',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'A',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'B',
         },
       ],
       [
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'A',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'B',
         },
         {
-          ...BASIC_TYPESCRIPT_ISSUE,
+          ...BASIC_ISSUE,
           message: 'C',
         },
       ],
@@ -300,11 +287,8 @@ describe('issue/Issue', () => {
       [],
       [],
     ],
-    [
-      [BASIC_ESLINT_ISSUE, omit(BASIC_ESLINT_ISSUE, ['message']), BASIC_ESLINT_ISSUE],
-      [BASIC_ESLINT_ISSUE],
-    ],
-    [[omit(BASIC_ESLINT_ISSUE, ['message'])], []],
+    [[BASIC_ISSUE, omit(BASIC_ISSUE, ['message']), BASIC_ISSUE], [BASIC_ISSUE]],
+    [[omit(BASIC_ISSUE, ['message'])], []],
   ])('deduplicates issues %p to %p', (...args) => {
     const [issues, deduplicatedIssues] = args as [Issue[], Issue[]];
     expect(deduplicateAndSortIssues(issues)).toEqual(deduplicatedIssues);

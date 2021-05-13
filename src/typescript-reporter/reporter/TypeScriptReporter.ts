@@ -100,7 +100,8 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     if (
       configuration.mode !== 'readonly' &&
       parsedConfiguration &&
-      parsedConfiguration.options.incremental
+      parsedConfiguration.options.incremental &&
+      !parsedConfiguration.options.outFile
     ) {
       const program = builderProgram.getProgram();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

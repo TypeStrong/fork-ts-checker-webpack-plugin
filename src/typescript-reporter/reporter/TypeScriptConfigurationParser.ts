@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { normalize } from 'path';
+import { normalize, dirname } from 'path';
 import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 import { Dependencies } from '../../reporter';
 
@@ -63,14 +63,14 @@ function getDependenciesFromTypeScriptConfiguration(
       const parsedConfiguration = parseTypeScriptConfiguration(
         typescript,
         configFile,
-        configFileContext,
+        dirname(configFile),
         {},
         parseConfigFileHost
       );
       const childDependencies = getDependenciesFromTypeScriptConfiguration(
         typescript,
         parsedConfiguration,
-        configFileContext,
+        dirname(configFile),
         parseConfigFileHost,
         [...processedConfigFiles, configFile]
       );

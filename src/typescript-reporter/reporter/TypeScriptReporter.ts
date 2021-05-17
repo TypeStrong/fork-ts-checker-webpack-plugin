@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import path from 'path';
-import { Dependencies, Reporter } from '../../reporter';
+import { FilesMatch, Reporter } from '../../reporter';
 import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
 import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
@@ -13,7 +13,9 @@ import {
 } from './ControlledTypeScriptSystem';
 import {
   getDependenciesFromTypeScriptConfiguration,
+  getArtifactsFromTypeScriptConfiguration,
   parseTypeScriptConfiguration,
+  isIncrementalCompilation,
 } from './TypeScriptConfigurationParser';
 import { createPerformance } from '../../profile/Performance';
 import { connectTypeScriptPerformance } from '../profile/TypeScriptPerformance';
@@ -28,7 +30,8 @@ interface Tracing {
 function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration): Reporter {
   let parsedConfiguration: ts.ParsedCommandLine | undefined;
   let parseConfigurationDiagnostics: ts.Diagnostic[] = [];
-  let dependencies: Dependencies | undefined;
+  let dependencies: FilesMatch | undefined;
+  let artifacts: FilesMatch | undefined;
   let configurationChanged = false;
   let watchCompilerHost:
     | ts.WatchCompilerHostOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
@@ -100,8 +103,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     if (
       configuration.mode !== 'readonly' &&
       parsedConfiguration &&
-      parsedConfiguration.options.incremental &&
-      !parsedConfiguration.options.outFile
+      isIncrementalCompilation(parsedConfiguration.options)
     ) {
       const program = builderProgram.getProgram();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -157,7 +159,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     return parsedConfiguration;
   }
 
-  function getDependencies(): Dependencies {
+  function getDependencies(): FilesMatch {
     parsedConfiguration = parseConfigurationIfNeeded();
 
     const [parseConfigFileHost] = getParseConfigFileHost();
@@ -165,7 +167,6 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     let dependencies = getDependenciesFromTypeScriptConfiguration(
       typescript,
       parsedConfiguration,
-      configuration.context,
       parseConfigFileHost
     );
 
@@ -176,6 +177,27 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     }
 
     return dependencies;
+  }
+
+  function getArtifacts(): FilesMatch {
+    parsedConfiguration = parseConfigurationIfNeeded();
+
+    const [parseConfigFileHost] = getParseConfigFileHost();
+
+    return getArtifactsFromTypeScriptConfiguration(
+      typescript,
+      parsedConfiguration,
+      configuration.context,
+      parseConfigFileHost
+    );
+  }
+
+  function getArtifactsIfNeeded(): FilesMatch {
+    if (!artifacts) {
+      artifacts = getArtifacts();
+    }
+
+    return artifacts;
   }
 
   function startProfilingIfNeeded() {
@@ -234,6 +256,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         // we need to re-create programs
         parsedConfiguration = undefined;
         dependencies = undefined;
+        artifacts = undefined;
         watchCompilerHost = undefined;
         watchSolutionBuilderHost = undefined;
         watchProgram = undefined;
@@ -250,13 +273,15 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
           JSON.stringify(previousParsedConfiguration.fileNames) !==
             JSON.stringify(parsedConfiguration.fileNames)
         ) {
-          // root files changed - we need to recompute dependencies
+          // root files changed - we need to recompute dependencies and artifacts
           dependencies = getDependencies();
+          artifacts = getArtifacts();
           shouldUpdateRootFiles = true;
         }
       }
 
       parsedConfiguration = parseConfigurationIfNeeded();
+      system.setArtifacts(getArtifactsIfNeeded());
 
       if (configurationChanged) {
         configurationChanged = false;

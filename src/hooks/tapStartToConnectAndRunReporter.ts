@@ -2,7 +2,7 @@ import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { Dependencies, FilesChange, getFilesChange, ReporterRpcClient } from '../reporter';
+import { FilesMatch, FilesChange, getFilesChange, ReporterRpcClient } from '../reporter';
 import { OperationCanceledError } from '../error/OperationCanceledError';
 import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
 import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
@@ -63,7 +63,7 @@ function tapStartToConnectAndRunReporter(
       configuration.logger.infrastructure.info('Calling reporter service for single check.');
     }
 
-    let resolveDependencies: (dependencies: Dependencies | undefined) => void;
+    let resolveDependencies: (dependencies: FilesMatch | undefined) => void;
     let rejectedDependencies: (error: Error) => void;
     let resolveIssues: (issues: Issue[] | undefined) => void;
     let rejectIssues: (error: Error) => void;

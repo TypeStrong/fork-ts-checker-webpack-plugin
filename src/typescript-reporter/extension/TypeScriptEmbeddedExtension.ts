@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { extname } from 'path';
 import { TypeScriptExtension } from './TypeScriptExtension';
 import { Issue } from '../../issue';
-import { Dependencies } from '../../reporter';
+import { FilesMatch } from '../../reporter';
 
 interface TypeScriptEmbeddedSource {
   sourceText: string;
@@ -168,7 +168,7 @@ function createTypeScriptEmbeddedExtension({
         },
       };
     },
-    extendDependencies(dependencies: Dependencies) {
+    extendDependencies(dependencies: FilesMatch) {
       return {
         ...dependencies,
         files: dependencies.files.map((fileName) => {

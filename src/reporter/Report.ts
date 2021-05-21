@@ -1,8 +1,8 @@
-import { Dependencies } from './Dependencies';
+import { FilesMatch } from './FilesMatch';
 import { Issue } from '../issue';
 
 interface Report {
-  getDependencies(): Promise<Dependencies>;
+  getDependencies(): Promise<FilesMatch>;
   getIssues(): Promise<Issue[]>;
   close(): Promise<void>;
 }

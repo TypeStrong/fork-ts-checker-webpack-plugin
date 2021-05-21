@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { Issue } from '../../issue';
-import { Dependencies } from '../../reporter';
+import { FilesMatch } from '../../reporter';
 
 interface TypeScriptHostExtension {
   extendWatchSolutionBuilderHost?<
@@ -26,7 +26,7 @@ interface TypeScriptHostExtension {
 
 interface TypeScriptReporterExtension {
   extendIssues?(issues: Issue[]): Issue[];
-  extendDependencies?(dependencies: Dependencies): Dependencies;
+  extendDependencies?(dependencies: FilesMatch): FilesMatch;
 }
 
 interface TypeScriptExtension extends TypeScriptHostExtension, TypeScriptReporterExtension {}

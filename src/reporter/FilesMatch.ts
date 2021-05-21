@@ -1,7 +1,7 @@
-interface Dependencies {
+interface FilesMatch {
   files: string[];
   dirs: string[];
   extensions: string[];
 }
 
-export { Dependencies };
+export { FilesMatch };

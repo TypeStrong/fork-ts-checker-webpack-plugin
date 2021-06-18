@@ -48,6 +48,7 @@ function createControlledTypeScriptSystem(
   let artifacts: FilesMatch = {
     files: [],
     dirs: [],
+    excluded: [],
     extensions: [],
   };
   let isInitialRun = true;

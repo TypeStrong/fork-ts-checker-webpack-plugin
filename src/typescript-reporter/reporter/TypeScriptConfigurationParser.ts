@@ -43,33 +43,40 @@ function parseTypeScriptConfiguration(
 function getDependenciesFromTypeScriptConfiguration(
   typescript: typeof ts,
   parsedConfiguration: ts.ParsedCommandLine,
+  configFileContext: string,
   parseConfigFileHost: ts.ParseConfigFileHost,
   processedConfigFiles: string[] = []
 ): FilesMatch {
   const files = new Set<string>(parsedConfiguration.fileNames);
-  if (typeof parsedConfiguration.options.configFilePath === 'string') {
-    files.add(parsedConfiguration.options.configFilePath);
+  const configFilePath = parsedConfiguration.options.configFilePath;
+  if (typeof configFilePath === 'string') {
+    files.add(configFilePath);
   }
   const dirs = new Set(Object.keys(parsedConfiguration.wildcardDirectories || {}));
+  const excluded = new Set<string>(
+    (parsedConfiguration.raw?.exclude || []).map((path: string) => resolve(configFileContext, path))
+  );
 
   for (const projectReference of parsedConfiguration.projectReferences || []) {
-    const configFile = typescript.resolveProjectReferencePath(projectReference);
-    if (processedConfigFiles.includes(configFile)) {
+    const childConfigFilePath = typescript.resolveProjectReferencePath(projectReference);
+    const childConfigContext = dirname(childConfigFilePath);
+    if (processedConfigFiles.includes(childConfigFilePath)) {
       // handle circular dependencies
       continue;
     }
-    const parsedConfiguration = parseTypeScriptConfiguration(
+    const childParsedConfiguration = parseTypeScriptConfiguration(
       typescript,
-      configFile,
-      dirname(configFile),
+      childConfigFilePath,
+      childConfigContext,
       {},
       parseConfigFileHost
     );
     const childDependencies = getDependenciesFromTypeScriptConfiguration(
       typescript,
-      parsedConfiguration,
+      childParsedConfiguration,
+      childConfigContext,
       parseConfigFileHost,
-      [...processedConfigFiles, configFile]
+      [...processedConfigFiles, childConfigFilePath]
     );
     childDependencies.files.forEach((file) => {
       files.add(file);
@@ -90,6 +97,7 @@ function getDependenciesFromTypeScriptConfiguration(
   return {
     files: Array.from(files).map((file) => normalize(file)),
     dirs: Array.from(dirs).map((dir) => normalize(dir)),
+    excluded: Array.from(excluded).map((path) => normalize(path)),
     extensions: extensions,
   };
 }
@@ -198,6 +206,7 @@ function getArtifactsFromTypeScriptConfiguration(
   return {
     files: Array.from(files).map((file) => normalize(file)),
     dirs: Array.from(dirs).map((dir) => normalize(dir)),
+    excluded: [],
     extensions,
   };
 }

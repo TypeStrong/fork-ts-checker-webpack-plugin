@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
 import forwardSlash from '../../utils/path/forwardSlash';
 import { createRealFileSystem } from '../file-system/RealFileSystem';
@@ -198,9 +198,7 @@ function createControlledTypeScriptSystem(
       controlledSystem.invokeFileDeleted(path);
     },
     directoryExists(path: string): boolean {
-      const stats = getReadFileSystem(path).readStats(path);
-
-      return !!stats && stats.isDirectory();
+      return Boolean(getReadFileSystem(path).readStats(path)?.isDirectory());
     },
     createDirectory(path: string): void {
       getWriteFileSystem(path).createDir(path);
@@ -210,7 +208,13 @@ function createControlledTypeScriptSystem(
     getDirectories(path: string): string[] {
       const dirents = getReadFileSystem(path).readDir(path);
 
-      return dirents.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
+      return dirents
+        .filter(
+          (dirent) =>
+            dirent.isDirectory() ||
+            (dirent.isSymbolicLink() && controlledSystem.directoryExists(join(path, dirent.name)))
+        )
+        .map((dirent) => dirent.name);
     },
     getModifiedTime(path: string): Date | undefined {
       const stats = getReadFileSystem(path).readStats(path);

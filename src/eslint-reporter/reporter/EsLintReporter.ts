@@ -83,6 +83,7 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
           return {
             files: (await getFiles()).map((file) => normalize(file)),
             dirs: getDirs().map((dir) => normalize(dir)),
+            excluded: [],
             extensions: getExtensions(),
           };
         },

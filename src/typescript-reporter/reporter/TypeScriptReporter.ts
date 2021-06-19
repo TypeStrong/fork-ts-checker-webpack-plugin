@@ -167,6 +167,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     let dependencies = getDependenciesFromTypeScriptConfiguration(
       typescript,
       parsedConfiguration,
+      configuration.context,
       parseConfigFileHost
     );
 

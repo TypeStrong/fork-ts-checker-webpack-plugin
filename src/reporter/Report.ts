@@ -1,5 +1,10 @@
+import { FilesMatch } from './FilesMatch';
 import { Issue } from '../issue';
 
-type Report = Issue[];
+interface Report {
+  getDependencies(): Promise<FilesMatch>;
+  getIssues(): Promise<Issue[]>;
+  close(): Promise<void>;
+}
 
 export { Report };

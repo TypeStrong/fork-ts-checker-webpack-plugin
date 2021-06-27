@@ -1,6 +1,5 @@
 import webpack from 'webpack';
 import chalk from 'chalk';
-import path from 'path';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
@@ -23,19 +22,20 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    const report = state.report;
+    const reportPromise = state.reportPromise;
+    const issuesPromise = state.issuesPromise;
     let issues: Issue[] | undefined;
 
     try {
-      if (await isPending(report)) {
+      if (await isPending(issuesPromise)) {
         hooks.waiting.call(stats.compilation);
-        configuration.logger.issues.log(chalk.blue('Issues checking in progress...'));
+        configuration.logger.issues.log(chalk.cyan('Issues checking in progress...'));
       } else {
         // wait 10ms to log issues after webpack stats
         await wait(10);
       }
 
-      issues = await report;
+      issues = await issuesPromise;
     } catch (error) {
       hooks.error.call(error, stats.compilation);
       return;
@@ -46,16 +46,9 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    if (report !== state.report) {
+    if (reportPromise !== state.reportPromise) {
       // there is a newer report - ignore this one
       return;
-    }
-
-    if (configuration.issue.scope === 'webpack') {
-      // exclude issues that are related to files outside webpack compilation
-      issues = issues.filter(
-        (issue) => !issue.file || stats.compilation.fileDependencies.has(path.normalize(issue.file))
-      );
     }
 
     // filter list of issues by provided issue predicate
@@ -64,7 +57,7 @@ function tapDoneToAsyncGetIssues(
     // modify list of issues in the plugin hooks
     issues = hooks.issues.call(issues, stats.compilation);
 
-    const formatter = createWebpackFormatter(configuration.formatter, compiler.context);
+    const formatter = createWebpackFormatter(configuration.formatter);
 
     if (issues.length) {
       // follow webpack's approach - one process.write to stderr with all errors and warnings
@@ -73,13 +66,11 @@ function tapDoneToAsyncGetIssues(
       configuration.logger.issues.log(chalk.green('No issues found.'));
     }
 
-    if (state.webpackDevServerDoneTap) {
+    // report issues to webpack-dev-server, if it's listening
+    // skip reporting if there are no issues, to avoid an extra hot reload
+    if (issues.length && state.webpackDevServerDoneTap) {
       issues.forEach((issue) => {
-        const error = new IssueWebpackError(
-          configuration.formatter(issue),
-          compiler.options.context || process.cwd(),
-          issue
-        );
+        const error = new IssueWebpackError(configuration.formatter(issue), issue);
 
         if (issue.severity === 'warning') {
           stats.compilation.warnings.push(error);

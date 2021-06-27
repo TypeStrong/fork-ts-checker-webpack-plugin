@@ -16,13 +16,22 @@ import { assertEsLintSupport } from './eslint-reporter/assertEsLintSupport';
 import { createEsLintReporterRpcClient } from './eslint-reporter/reporter/EsLintReporterRpcClient';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { tapDoneToCollectRemoved } from './hooks/tapDoneToCollectRemoved';
 import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
 import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
 import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
+import { tapAfterEnvironmentToPatchWatching } from './hooks/tapAfterEnvironmentToPatchWatching';
+import { createPool, Pool } from './utils/async/pool';
+import os from 'os';
 
 class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
+  /**
+   * Current version of the plugin
+   */
   static readonly version: string = '{{VERSION}}'; // will be replaced by the @semantic-release/exec
+  /**
+   * Default pool for the plugin concurrency limit
+   */
+  static readonly pool: Pool = createPool(Math.max(1, os.cpus().length));
 
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
@@ -62,9 +71,9 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
     if (reporters.length) {
       const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
 
+      tapAfterEnvironmentToPatchWatching(compiler, state);
       tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
-      tapDoneToCollectRemoved(compiler, configuration, state);
-      tapAfterCompileToAddDependencies(compiler, configuration);
+      tapAfterCompileToAddDependencies(compiler, configuration, state);
       tapStopToDisconnectReporter(compiler, reporter, state);
       tapErrorToLogMessage(compiler, configuration);
     } else {

@@ -2,13 +2,13 @@ import webpack from 'webpack';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { getDeletedFiles } from './getDeletedFiles';
-import { FilesChange, ReporterRpcClient } from '../reporter';
-import { getChangedFiles } from './getChangedFiles';
+import { FilesMatch, FilesChange, getFilesChange, ReporterRpcClient } from '../reporter';
 import { OperationCanceledError } from '../error/OperationCanceledError';
 import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
 import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
 import { interceptDoneToGetWebpackDevServerTap } from './interceptDoneToGetWebpackDevServerTap';
+import { Issue } from '../issue';
+import { ForkTsCheckerWebpackPlugin } from '../ForkTsCheckerWebpackPlugin';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
@@ -50,10 +50,7 @@ function tapStartToConnectAndRunReporter(
     let change: FilesChange = {};
 
     if (state.watching) {
-      change = {
-        changedFiles: getChangedFiles(compilation.compiler),
-        deletedFiles: getDeletedFiles(compilation.compiler, state),
-      };
+      change = getFilesChange(compiler);
 
       configuration.logger.infrastructure.info(
         [
@@ -66,24 +63,58 @@ function tapStartToConnectAndRunReporter(
       configuration.logger.infrastructure.info('Calling reporter service for single check.');
     }
 
-    state.report = new Promise(async (resolve) => {
-      change = await hooks.start.promise(change, compilation);
+    let resolveDependencies: (dependencies: FilesMatch | undefined) => void;
+    let rejectedDependencies: (error: Error) => void;
+    let resolveIssues: (issues: Issue[] | undefined) => void;
+    let rejectIssues: (error: Error) => void;
 
-      try {
-        await reporter.connect();
-        const report = await reporter.getReport(change);
-
-        resolve(report);
-      } catch (error) {
-        if (error instanceof OperationCanceledError) {
-          hooks.canceled.call(compilation);
-        } else {
-          hooks.error.call(error, compilation);
-        }
-
-        resolve(undefined);
-      }
+    state.dependenciesPromise = new Promise((resolve, reject) => {
+      resolveDependencies = resolve;
+      rejectedDependencies = reject;
     });
+    state.issuesPromise = new Promise((resolve, reject) => {
+      resolveIssues = resolve;
+      rejectIssues = reject;
+    });
+    const previousReportPromise = state.reportPromise;
+    state.reportPromise = ForkTsCheckerWebpackPlugin.pool.submit(
+      (done) =>
+        new Promise(async (resolve) => {
+          change = await hooks.start.promise(change, compilation);
+
+          try {
+            await reporter.connect();
+
+            const previousReport = await previousReportPromise;
+            if (previousReport) {
+              await previousReport.close();
+            }
+
+            const report = await reporter.getReport(change);
+            resolve(report);
+
+            report
+              .getDependencies()
+              .then(resolveDependencies)
+              .catch(rejectedDependencies)
+              .finally(() => {
+                // get issues after dependencies are resolved as it can be blocking
+                report.getIssues().then(resolveIssues).catch(rejectIssues).finally(done);
+              });
+          } catch (error) {
+            if (error instanceof OperationCanceledError) {
+              hooks.canceled.call(compilation);
+            } else {
+              hooks.error.call(error, compilation);
+            }
+
+            resolve(undefined);
+            resolveDependencies(undefined);
+            resolveIssues(undefined);
+            done();
+          }
+        })
+    );
   });
 }
 

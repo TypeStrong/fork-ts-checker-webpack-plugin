@@ -1,7 +1,8 @@
 import { join } from 'path';
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
 import { readFixture } from './sandbox/Fixture';
 import { createGenericProcessDriver } from './sandbox/GenericProcessDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
   let sandbox: Sandbox;
@@ -21,8 +22,8 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
   it.each([
     { async: false, webpack: '4.0.0' },
     { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0-beta.16' },
-    { async: true, webpack: '^5.0.0-beta.16' },
+    { async: false, webpack: '^5.0.0' },
+    { async: true, webpack: '^5.0.0' },
   ])('handles out of memory for %p', async ({ async, webpack }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {

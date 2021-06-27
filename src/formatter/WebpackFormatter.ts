@@ -5,7 +5,7 @@ import { Formatter } from './Formatter';
 import { formatIssueLocation } from '../issue';
 import forwardSlash from '../utils/path/forwardSlash';
 
-function createWebpackFormatter(formatter: Formatter, context: string): Formatter {
+function createWebpackFormatter(formatter: Formatter): Formatter {
   // mimics webpack error formatter
   return function webpackFormatter(issue) {
     const color = issue.severity === 'warning' ? chalk.yellow.bold : chalk.red.bold;
@@ -13,7 +13,7 @@ function createWebpackFormatter(formatter: Formatter, context: string): Formatte
     const severity = issue.severity.toUpperCase();
 
     if (issue.file) {
-      let location = forwardSlash(path.relative(context, issue.file));
+      let location = forwardSlash(path.relative(process.cwd(), issue.file));
       if (issue.location) {
         location += `:${formatIssueLocation(issue.location)}`;
       }

@@ -3,13 +3,14 @@ import { dirname, join } from 'path';
 import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
 import forwardSlash from '../../utils/path/forwardSlash';
 import { createRealFileSystem } from '../file-system/RealFileSystem';
+import { createMemFileSystem } from '../file-system/MemFileSystem';
+import { FilesMatch } from '../../reporter';
 
 interface ControlledTypeScriptSystem extends ts.System {
   // control watcher
   invokeFileCreated(path: string): void;
   invokeFileChanged(path: string): void;
   invokeFileDeleted(path: string): void;
-  pollAndInvokeCreatedOrDeleted(): void;
   // control cache
   clearCache(): void;
   // mark these methods as defined - not optional
@@ -35,6 +36,7 @@ interface ControlledTypeScriptSystem extends ts.System {
   clearTimeout(timeoutId: any): void;
   // detect when all tasks scheduled by `setTimeout` finished
   waitForQueued(): Promise<void>;
+  setArtifacts(artifacts: FilesMatch): void;
 }
 
 type FileSystemMode = 'readonly' | 'write-tsbuildinfo' | 'write-references';
@@ -43,17 +45,26 @@ function createControlledTypeScriptSystem(
   typescript: typeof ts,
   mode: FileSystemMode = 'readonly'
 ): ControlledTypeScriptSystem {
+  let artifacts: FilesMatch = {
+    files: [],
+    dirs: [],
+    excluded: [],
+    extensions: [],
+  };
+  let isInitialRun = true;
   // watchers
   const fileWatcherCallbacksMap = new Map<string, ts.FileWatcherCallback[]>();
   const directoryWatcherCallbacksMap = new Map<string, ts.DirectoryWatcherCallback[]>();
   const recursiveDirectoryWatcherCallbacksMap = new Map<string, ts.DirectoryWatcherCallback[]>();
-  const directorySnapshots = new Map<string, string[]>();
   const deletedFiles = new Map<string, boolean>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutCallbacks = new Set<any>();
-  const caseSensitive = typescript.sys.useCaseSensitiveFileNames;
+  // always use case-sensitive as normalization to lower-case can be a problem for some
+  // third-party libraries, like fsevents
+  const caseSensitive = true;
   const realFileSystem = createRealFileSystem(caseSensitive);
-  const passiveFileSystem = createPassiveFileSystem(caseSensitive, realFileSystem);
+  const memFileSystem = createMemFileSystem(realFileSystem);
+  const passiveFileSystem = createPassiveFileSystem(memFileSystem, realFileSystem);
 
   // based on the ts.ignorePaths
   const ignoredPaths = ['/node_modules/.', '/.git', '/.#'];
@@ -85,6 +96,11 @@ function createControlledTypeScriptSystem(
 
   function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
     const normalizedPath = realFileSystem.normalizePath(path);
+    if (normalizedPath.endsWith('.js')) {
+      // trigger relevant .d.ts file watcher - handles the case, when we have webpack watcher
+      // that points to a symlinked package
+      invokeFileWatchers(normalizedPath.slice(0, -3) + '.d.ts', event);
+    }
 
     const fileWatcherCallbacks = fileWatcherCallbacksMap.get(normalizedPath);
     if (fileWatcherCallbacks) {
@@ -125,43 +141,50 @@ function createControlledTypeScriptSystem(
     );
   }
 
-  function updateDirectorySnapshot(path: string, recursive = false) {
-    const dirents = passiveFileSystem.readDir(path);
+  function isArtifact(path: string) {
+    return (
+      (artifacts.dirs.some((dir) => path.includes(dir)) ||
+        artifacts.files.some((file) => path === file)) &&
+      artifacts.extensions.some((extension) => path.endsWith(extension))
+    );
+  }
 
-    if (!directorySnapshots.has(path)) {
-      directorySnapshots.set(
-        path,
-        dirents.filter((dirent) => dirent.isFile()).map((dirent) => join(path, dirent.name))
-      );
+  function getReadFileSystem(path: string) {
+    if (
+      !isInitialRun &&
+      (mode === 'readonly' || mode === 'write-tsbuildinfo') &&
+      isArtifact(path)
+    ) {
+      return memFileSystem;
     }
-    if (recursive) {
-      dirents
-        .filter((dirent) => dirent.isDirectory())
-        .forEach((dirent) => updateDirectorySnapshot(join(path, dirent.name)));
-    }
+
+    return passiveFileSystem;
   }
 
   function getWriteFileSystem(path: string) {
-    if (mode === 'readonly' || (mode === 'write-tsbuildinfo' && !path.endsWith('.tsbuildinfo'))) {
-      return passiveFileSystem;
-    } else {
+    if (
+      mode === 'write-references' ||
+      (mode === 'write-tsbuildinfo' && path.endsWith('.tsbuildinfo'))
+    ) {
       return realFileSystem;
     }
+
+    return passiveFileSystem;
   }
 
   const controlledSystem: ControlledTypeScriptSystem = {
     ...typescript.sys,
     useCaseSensitiveFileNames: caseSensitive,
     fileExists(path: string): boolean {
-      const stats = passiveFileSystem.readStats(path);
+      const stats = getReadFileSystem(path).readStats(path);
 
       return !!stats && stats.isFile();
     },
     readFile(path: string, encoding?: string): string | undefined {
-      return passiveFileSystem.readFile(path, encoding);
+      return getReadFileSystem(path).readFile(path, encoding);
     },
     getFileSize(path: string): number {
-      const stats = passiveFileSystem.readStats(path);
+      const stats = getReadFileSystem(path).readStats(path);
 
       return stats ? stats.size : 0;
     },
@@ -176,9 +199,7 @@ function createControlledTypeScriptSystem(
       controlledSystem.invokeFileDeleted(path);
     },
     directoryExists(path: string): boolean {
-      const stats = passiveFileSystem.readStats(path);
-
-      return !!stats && stats.isDirectory();
+      return Boolean(getReadFileSystem(path).readStats(path)?.isDirectory());
     },
     createDirectory(path: string): void {
       getWriteFileSystem(path).createDir(path);
@@ -186,12 +207,18 @@ function createControlledTypeScriptSystem(
       invokeDirectoryWatchers(path);
     },
     getDirectories(path: string): string[] {
-      const dirents = passiveFileSystem.readDir(path);
+      const dirents = getReadFileSystem(path).readDir(path);
 
-      return dirents.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
+      return dirents
+        .filter(
+          (dirent) =>
+            dirent.isDirectory() ||
+            (dirent.isSymbolicLink() && controlledSystem.directoryExists(join(path, dirent.name)))
+        )
+        .map((dirent) => dirent.name);
     },
     getModifiedTime(path: string): Date | undefined {
-      const stats = passiveFileSystem.readStats(path);
+      const stats = getReadFileSystem(path).readStats(path);
 
       if (stats) {
         return stats.mtime;
@@ -211,8 +238,6 @@ function createControlledTypeScriptSystem(
       callback: ts.DirectoryWatcherCallback,
       recursive = false
     ): ts.FileWatcher {
-      updateDirectorySnapshot(path, recursive);
-
       return createWatcher(
         recursive ? recursiveDirectoryWatcherCallbacksMap : directoryWatcherCallbacksMap,
         path,
@@ -237,6 +262,7 @@ function createControlledTypeScriptSystem(
       while (timeoutCallbacks.size > 0) {
         await new Promise((resolve) => setImmediate(resolve));
       }
+      isInitialRun = false;
     },
     invokeFileCreated(path: string) {
       const normalizedPath = realFileSystem.normalizePath(path);
@@ -268,55 +294,13 @@ function createControlledTypeScriptSystem(
         deletedFiles.set(normalizedPath, true);
       }
     },
-    pollAndInvokeCreatedOrDeleted() {
-      const prevDirectorySnapshots = new Map(directorySnapshots);
-
-      directorySnapshots.clear();
-      directoryWatcherCallbacksMap.forEach((directoryWatcherCallback, path) => {
-        updateDirectorySnapshot(path, false);
-      });
-      recursiveDirectoryWatcherCallbacksMap.forEach((recursiveDirectoryWatcherCallback, path) => {
-        updateDirectorySnapshot(path, true);
-      });
-
-      const filesCreated = new Set<string>();
-      const filesDeleted = new Set<string>();
-
-      function diffDirectorySnapshots(
-        prevFiles: string[] | undefined,
-        nextFiles: string[] | undefined
-      ) {
-        if (prevFiles && nextFiles) {
-          nextFiles
-            .filter((nextFile) => !prevFiles.includes(nextFile))
-            .forEach((createdFile) => {
-              filesCreated.add(createdFile);
-            });
-          prevFiles
-            .filter((prevFile) => !nextFiles.includes(prevFile))
-            .forEach((deletedFile) => {
-              filesDeleted.add(deletedFile);
-            });
-        }
-      }
-
-      prevDirectorySnapshots.forEach((prevFiles, path) =>
-        diffDirectorySnapshots(prevFiles, directorySnapshots.get(path))
-      );
-      directorySnapshots.forEach((nextFiles, path) =>
-        diffDirectorySnapshots(prevDirectorySnapshots.get(path), nextFiles)
-      );
-
-      filesCreated.forEach((path) => {
-        controlledSystem.invokeFileCreated(path);
-      });
-      filesDeleted.forEach((path) => {
-        controlledSystem.invokeFileDeleted(path);
-      });
-    },
     clearCache() {
-      passiveFileSystem.clearCache();
       realFileSystem.clearCache();
+      memFileSystem.clearCache();
+      passiveFileSystem.clearCache();
+    },
+    setArtifacts(nextArtifacts: FilesMatch) {
+      artifacts = nextArtifacts;
     },
   };
 

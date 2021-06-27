@@ -81,10 +81,19 @@ describe('formatter/FormatterFactory', () => {
     );
   });
 
+  it('creates customized formatter with a formatter function directly', () => {
+    const customizedFormatter = (issue: Issue) =>
+      `${issue.code}: ${issue.message} at ${issue.file}`;
+    const formatter = createFormatter(customizedFormatter);
+    const formattedMessage = formatter(issue);
+
+    expect(formattedMessage).toEqual('TS123: Some issue content at some/file.ts');
+  });
+
   it('throws an error on unknown formatter type', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => createFormatter('unknown-type' as any)).toThrowError(
-      `Unknown "unknown-type" formatter. Available types are: basic, codeframe.`
+      `Unknown "unknown-type" formatter. Available types are: "basic", "codeframe" or a custom function.`
     );
   });
 });

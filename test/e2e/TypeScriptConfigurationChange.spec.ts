@@ -1,11 +1,12 @@
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
-import { readFixture } from './sandbox/Fixture';
 import { join } from 'path';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
+import { readFixture } from './sandbox/Fixture';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('TypeScript Configuration Change', () => {
   let sandbox: Sandbox;
@@ -25,8 +26,8 @@ describe('TypeScript Configuration Change', () => {
   it.each([
     { async: true, webpack: '~4.0.0', typescript: '2.7.1', tsloader: '^5.0.0' },
     { async: false, webpack: '^4.0.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
-    { async: true, webpack: '^5.0.0-beta.16', typescript: '~3.7.0', tsloader: '^7.0.0' },
-    { async: false, webpack: '^5.0.0-beta.16', typescript: '~3.8.0', tsloader: '^6.0.0' },
+    { async: true, webpack: '^5.0.0', typescript: '~3.7.0', tsloader: '^7.0.0' },
+    { async: false, webpack: '^5.0.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
   ])(
     'change in the tsconfig.json affects compilation for %p',
     async ({ async, webpack, typescript, tsloader }) => {

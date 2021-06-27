@@ -1,5 +1,4 @@
 import webpack from 'webpack';
-import path from 'path';
 import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
@@ -22,7 +21,7 @@ function tapAfterCompileToGetIssues(
     let issues: Issue[] | undefined = [];
 
     try {
-      issues = await state.report;
+      issues = await state.issuesPromise;
     } catch (error) {
       hooks.error.call(error, compilation);
       return;
@@ -33,13 +32,6 @@ function tapAfterCompileToGetIssues(
       return;
     }
 
-    if (configuration.issue.scope === 'webpack') {
-      // exclude issues that are related to files outside webpack compilation
-      issues = issues.filter(
-        (issue) => !issue.file || compilation.fileDependencies.has(path.normalize(issue.file))
-      );
-    }
-
     // filter list of issues by provided issue predicate
     issues = issues.filter(configuration.issue.predicate);
 
@@ -47,11 +39,7 @@ function tapAfterCompileToGetIssues(
     issues = hooks.issues.call(issues, compilation);
 
     issues.forEach((issue) => {
-      const error = new IssueWebpackError(
-        configuration.formatter(issue),
-        compiler.options.context || process.cwd(),
-        issue
-      );
+      const error = new IssueWebpackError(configuration.formatter(issue), issue);
 
       if (issue.severity === 'warning') {
         compilation.warnings.push(error);

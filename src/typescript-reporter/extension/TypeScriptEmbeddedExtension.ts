@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { extname } from 'path';
 import { TypeScriptExtension } from './TypeScriptExtension';
 import { Issue } from '../../issue';
+import { FilesMatch } from '../../reporter';
 
 interface TypeScriptEmbeddedSource {
   sourceText: string;
@@ -165,6 +166,28 @@ function createTypeScriptEmbeddedExtension({
               }
             });
         },
+      };
+    },
+    extendDependencies(dependencies: FilesMatch) {
+      return {
+        ...dependencies,
+        files: dependencies.files.map((fileName) => {
+          const {
+            embeddedExtension,
+            embeddedFileName,
+            extension,
+          } = parsePotentiallyEmbeddedFileName(fileName);
+
+          if (embeddedExtensions.includes(embeddedExtension)) {
+            const embeddedSource = getCachedEmbeddedSource(embeddedFileName);
+            if (embeddedSource && embeddedSource.extension === extension) {
+              return embeddedFileName;
+            }
+          }
+
+          return fileName;
+        }),
+        extensions: [...dependencies.extensions, ...embeddedExtensions],
       };
     },
   };

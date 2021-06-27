@@ -9,7 +9,7 @@ describe('formatter/WebpackFormatter', () => {
     severity: 'error',
     code: 'TS123',
     message: 'Some issue content',
-    file: join(__dirname, 'some/file.ts'),
+    file: join(process.cwd(), 'some/file.ts'),
     location: {
       start: {
         line: 1,
@@ -25,7 +25,7 @@ describe('formatter/WebpackFormatter', () => {
   let formatter: Formatter;
 
   beforeEach(() => {
-    formatter = createWebpackFormatter(createBasicFormatter(), __dirname);
+    formatter = createWebpackFormatter(createBasicFormatter());
   });
 
   it('decorates existing formatter', () => {

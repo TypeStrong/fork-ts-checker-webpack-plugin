@@ -1,70 +1,37 @@
-import { dirname, normalize } from 'path';
-import { fs as mem } from 'memfs';
 import { FileSystem } from './FileSystem';
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
-import { Dirent, Stats } from 'fs';
 
 /**
  * It's an implementation of FileSystem interface which reads from the real file system, but write to the in-memory file system.
  *
- * @param caseSensitive
+ * @param memFileSystem
  * @param realFileSystem
  */
-function createPassiveFileSystem(caseSensitive = false, realFileSystem: FileSystem): FileSystem {
-  function normalizePath(path: string): string {
-    return caseSensitive ? normalize(path) : normalize(path).toLowerCase();
-  }
-
-  function memExists(path: string): boolean {
-    return mem.existsSync(normalizePath(path));
-  }
-
-  function memReadStats(path: string): Stats | undefined {
-    return memExists(path) ? mem.statSync(normalizePath(path)) : undefined;
-  }
-
-  function memReadFile(path: string, encoding?: string): string | undefined {
-    const stats = memReadStats(path);
-
-    if (stats && stats.isFile()) {
-      return mem
-        .readFileSync(normalizePath(path), { encoding: encoding as BufferEncoding })
-        .toString();
-    }
-  }
-
-  function memReadDir(path: string): Dirent[] {
-    const stats = memReadStats(path);
-
-    if (stats && stats.isDirectory()) {
-      return mem.readdirSync(normalizePath(path), { withFileTypes: true }) as Dirent[];
-    }
-
-    return [];
-  }
-
+function createPassiveFileSystem(
+  memFileSystem: FileSystem,
+  realFileSystem: FileSystem
+): FileSystem {
   function exists(path: string) {
-    return realFileSystem.exists(path) || memExists(path);
+    return realFileSystem.exists(path) || memFileSystem.exists(path);
   }
 
   function readFile(path: string, encoding?: string) {
     const fsStats = realFileSystem.readStats(path);
-    const memStats = memReadStats(path);
+    const memStats = memFileSystem.readStats(path);
 
     if (fsStats && memStats) {
       return fsStats.mtimeMs > memStats.mtimeMs
         ? realFileSystem.readFile(path, encoding)
-        : memReadFile(path, encoding);
+        : memFileSystem.readFile(path, encoding);
     } else if (fsStats) {
       return realFileSystem.readFile(path, encoding);
     } else if (memStats) {
-      return memReadFile(path, encoding);
+      return memFileSystem.readFile(path, encoding);
     }
   }
 
   function readDir(path: string) {
     const fsDirents = realFileSystem.readDir(path);
-    const memDirents = memReadDir(path);
+    const memDirents = memFileSystem.readDir(path);
 
     // merge list of dirents from fs and mem
     return fsDirents
@@ -74,7 +41,7 @@ function createPassiveFileSystem(caseSensitive = false, realFileSystem: FileSyst
 
   function readStats(path: string) {
     const fsStats = realFileSystem.readStats(path);
-    const memStats = memReadStats(path);
+    const memStats = memFileSystem.readStats(path);
 
     if (fsStats && memStats) {
       return fsStats.mtimeMs > memStats.mtimeMs ? fsStats : memStats;
@@ -85,31 +52,8 @@ function createPassiveFileSystem(caseSensitive = false, realFileSystem: FileSyst
     }
   }
 
-  function createDir(path: string) {
-    mem.mkdirSync(normalizePath(path), { recursive: true });
-  }
-
-  function writeFile(path: string, data: string) {
-    if (!memExists(dirname(path))) {
-      createDir(dirname(path));
-    }
-
-    mem.writeFileSync(normalizePath(path), data);
-  }
-
-  function deleteFile(path: string) {
-    if (memExists(path)) {
-      mem.unlinkSync(normalizePath(path));
-    }
-  }
-
-  function updateTimes(path: string, atime: Date, mtime: Date) {
-    if (memExists(path)) {
-      mem.utimesSync(normalizePath(path), atime, mtime);
-    }
-  }
-
   return {
+    ...memFileSystem,
     exists(path: string) {
       return exists(realFileSystem.realPath(path));
     },
@@ -124,21 +68,6 @@ function createPassiveFileSystem(caseSensitive = false, realFileSystem: FileSyst
     },
     realPath(path: string) {
       return realFileSystem.realPath(path);
-    },
-    normalizePath(path: string) {
-      return normalizePath(path);
-    },
-    writeFile(path: string, data: string) {
-      writeFile(realFileSystem.realPath(path), data);
-    },
-    deleteFile(path: string) {
-      deleteFile(realFileSystem.realPath(path));
-    },
-    createDir(path: string) {
-      createDir(realFileSystem.realPath(path));
-    },
-    updateTimes(path: string, atime: Date, mtime: Date) {
-      updateTimes(realFileSystem.realPath(path), atime, mtime);
     },
     clearCache() {
       realFileSystem.clearCache();

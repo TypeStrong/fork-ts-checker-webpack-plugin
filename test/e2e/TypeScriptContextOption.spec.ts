@@ -1,11 +1,13 @@
 import { readFixture } from './sandbox/Fixture';
 import { join } from 'path';
-import { createSandbox, FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION, Sandbox } from './sandbox/Sandbox';
+import os from 'os';
+import { createSandbox, Sandbox } from './sandbox/Sandbox';
 import {
   createWebpackDevServerDriver,
   WEBPACK_CLI_VERSION,
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
+import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
 
 describe('TypeScript Context Option', () => {
   let sandbox: Sandbox;
@@ -27,7 +29,7 @@ describe('TypeScript Context Option', () => {
     { async: false, typescript: '~3.0.0' },
     { async: true, typescript: '~3.6.0' },
     { async: false, typescript: '~3.8.0' },
-  ])('uses context to resolve project files for %p', async ({ async, typescript }) => {
+  ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
@@ -66,11 +68,16 @@ describe('TypeScript Context Option', () => {
     );
     await sandbox.patch(
       'webpack.config.js',
+      "entry: './src/index.ts',",
+      ["entry: './src/index.ts',", 'context: path.resolve(__dirname),'].join('\n')
+    );
+    await sandbox.patch(
+      'webpack.config.js',
       '      logger: {',
       [
         '      typescript: {',
         '        enabled: true,',
-        '        configFile: "build/tsconfig.json",',
+        '        configFile: path.resolve(__dirname, "build/tsconfig.json"),',
         '        context: __dirname,',
         '      },',
         '      logger: {',
@@ -81,12 +88,21 @@ describe('TypeScript Context Option', () => {
       '          transpileOnly: true',
       [
         '          transpileOnly: true,',
-        '          configFile: "build/tsconfig.json",',
+        '          configFile: path.resolve(__dirname, "build/tsconfig.json"),',
         '          context: __dirname,',
       ].join('\n')
     );
+    // create additional directory for cwd test
+    await sandbox.write('foo/.gitignore', '');
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn(
+        `../node_modules/.bin/webpack-dev-server${os.platform() === 'win32' ? '.cmd' : ''}`,
+        {},
+        join(sandbox.context, 'foo')
+      ),
+      async
+    );
 
     // first compilation is successful
     await driver.waitForNoErrors();
@@ -102,7 +118,7 @@ describe('TypeScript Context Option', () => {
     const errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/model/User.ts:11:16',
+        'ERROR in ../src/model/User.ts:11:16',
         "TS2339: Property 'firstName' does not exist on type 'User'.",
         '     9 | ',
         '    10 | function getUserName(user: User): string {',
@@ -113,7 +129,7 @@ describe('TypeScript Context Option', () => {
         '    14 | }',
       ].join('\n'),
       [
-        'ERROR in src/model/User.ts:11:32',
+        'ERROR in ../src/model/User.ts:11:32',
         "TS2339: Property 'lastName' does not exist on type 'User'.",
         '     9 | ',
         '    10 | function getUserName(user: User): string {',

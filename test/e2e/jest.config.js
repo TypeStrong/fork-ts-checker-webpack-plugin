@@ -4,14 +4,14 @@ module.exports = {
   testRunner: 'jest-circus/runner',
   testTimeout: 300000,
   verbose: true,
-  setupFilesAfterEnv: ['./jest.setup.js'],
+  setupFilesAfterEnv: ['./jest.setup.ts'],
   rootDir: '.',
   moduleNameMapper: {
     '^lib/(.*)$': '<rootDir>/../../lib/$1',
   },
   globals: {
     'ts-jest': {
-      tsConfig: '<rootDir>/../tsconfig.json',
+      tsConfig: '<rootDir>/tsconfig.json',
     },
   },
 };

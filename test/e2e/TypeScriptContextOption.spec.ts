@@ -1,49 +1,17 @@
-import { readFixture } from './sandbox/Fixture';
-import { join } from 'path';
+import path from 'path';
 import os from 'os';
-import { createSandbox, Sandbox } from './sandbox/Sandbox';
-import {
-  createWebpackDevServerDriver,
-  WEBPACK_CLI_VERSION,
-  WEBPACK_DEV_SERVER_VERSION,
-} from './sandbox/WebpackDevServerDriver';
-import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
+import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Context Option', () => {
-  let sandbox: Sandbox;
-
-  beforeAll(async () => {
-    sandbox = await createSandbox();
-  });
-
-  beforeEach(async () => {
-    await sandbox.reset();
-  });
-
-  afterAll(async () => {
-    await sandbox.cleanup();
-  });
-
   it.each([
     { async: true, typescript: '2.7.1' },
     { async: false, typescript: '~3.0.0' },
     { async: true, typescript: '~3.6.0' },
     { async: false, typescript: '~3.8.0' },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
-    await sandbox.load([
-      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TS_LOADER_VERSION: JSON.stringify('^7.0.0'),
-        TYPESCRIPT_VERSION: JSON.stringify(typescript),
-        WEBPACK_VERSION: JSON.stringify('^4.0.0'),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(async),
-      }),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
-    ]);
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', { typescript });
+    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     // update sandbox to use context option
     await sandbox.remove('tsconfig.json');
@@ -85,7 +53,7 @@ describe('TypeScript Context Option', () => {
     );
     await sandbox.patch(
       'webpack.config.js',
-      '          transpileOnly: true',
+      '          transpileOnly: true,',
       [
         '          transpileOnly: true,',
         '          configFile: path.resolve(__dirname, "build/tsconfig.json"),',
@@ -98,8 +66,9 @@ describe('TypeScript Context Option', () => {
     const driver = createWebpackDevServerDriver(
       sandbox.spawn(
         `../node_modules/.bin/webpack-dev-server${os.platform() === 'win32' ? '.cmd' : ''}`,
-        {},
-        join(sandbox.context, 'foo')
+        {
+          cwd: path.join(sandbox.context, 'foo'),
+        }
       ),
       async
     );
@@ -120,24 +89,24 @@ describe('TypeScript Context Option', () => {
       [
         'ERROR in ../src/model/User.ts:11:16',
         "TS2339: Property 'firstName' does not exist on type 'User'.",
-        '     9 | ',
+        '     9 |',
         '    10 | function getUserName(user: User): string {',
-        '  > 11 |   return [user.firstName, user.lastName]',
+        "  > 11 |   return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
         '       |                ^^^^^^^^^',
-        '    12 |     .filter(name => name !== undefined)',
-        "    13 |     .join(' ');",
-        '    14 | }',
+        '    12 | }',
+        '    13 |',
+        '    14 | export { User, getUserName };',
       ].join('\n'),
       [
         'ERROR in ../src/model/User.ts:11:32',
         "TS2339: Property 'lastName' does not exist on type 'User'.",
-        '     9 | ',
+        '     9 |',
         '    10 | function getUserName(user: User): string {',
-        '  > 11 |   return [user.firstName, user.lastName]',
+        "  > 11 |   return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
         '       |                                ^^^^^^^^',
-        '    12 |     .filter(name => name !== undefined)',
-        "    13 |     .join(' ');",
-        '    14 | }',
+        '    12 | }',
+        '    13 |',
+        '    14 | export { User, getUserName };',
       ].join('\n'),
     ]);
   });

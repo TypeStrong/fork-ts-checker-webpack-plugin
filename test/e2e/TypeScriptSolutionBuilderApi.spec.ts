@@ -1,47 +1,16 @@
-import { join } from 'path';
-import { readFixture } from './sandbox/Fixture';
-import { Sandbox, createSandbox } from './sandbox/Sandbox';
-import {
-  createWebpackDevServerDriver,
-  WEBPACK_CLI_VERSION,
-  WEBPACK_DEV_SERVER_VERSION,
-} from './sandbox/WebpackDevServerDriver';
-import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
+import path from 'path';
+import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript SolutionBuilder API', () => {
-  let sandbox: Sandbox;
-
-  beforeAll(async () => {
-    sandbox = await createSandbox();
-  });
-
-  beforeEach(async () => {
-    await sandbox.reset();
-  });
-
-  afterAll(async () => {
-    await sandbox.cleanup();
-  });
-
   it.each([
     { async: false, typescript: '~3.6.0', mode: 'readonly' },
     { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
     { async: false, typescript: '~3.8.0', mode: 'write-references' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
-    await sandbox.load([
-      await readFixture(join(__dirname, 'fixtures/environment/typescript-monorepo.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TYPESCRIPT_VERSION: JSON.stringify(typescript),
-        WEBPACK_VERSION: JSON.stringify('^4.0.0'),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(async),
-        MODE: JSON.stringify(mode),
-      }),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-monorepo.fixture')),
-    ]);
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    await sandbox.install('yarn', { typescript });
+    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+    await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
 
     const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
@@ -63,7 +32,7 @@ describe('TypeScript SolutionBuilder API', () => {
         '  > 2 |   return arrayA.filter((item) => arrayB.includes(item));',
         '      |                                         ^^^^^^^^',
         '    3 | }',
-        '    4 | ',
+        '    4 |',
         '    5 | export default intersect;',
       ].join('\n'),
     ]);
@@ -84,12 +53,12 @@ describe('TypeScript SolutionBuilder API', () => {
         typescript === '~4.0.0'
           ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."
           : "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
-        '    2 | ',
+        '    2 |',
         '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
         '  > 4 |   const intersection = intersect(arrayA, arrayB);',
         '      |                                          ^^^^^^',
         '    5 |   const difference = subtract(arrayA, arrayB);',
-        '    6 | ',
+        '    6 |',
         '    7 |   return {',
       ].join('\n'),
     ]);
@@ -107,8 +76,11 @@ describe('TypeScript SolutionBuilder API', () => {
     await sandbox.write('packages/client/src/nested/additional.ts', 'export const x = 10;');
     await sandbox.patch(
       'packages/client/src/index.ts',
-      'import { intersect, subtract } from "@project-references-fixture/shared";',
-      'import { intersect, subtract } from "@project-references-fixture/shared";\nimport { x } from "./nested/additional";'
+      "import { intersect, subtract } from '@project-references-fixture/shared';",
+      [
+        "import { intersect, subtract } from '@project-references-fixture/shared';",
+        "import { x } from './nested/additional';",
+      ].join('\n')
     );
 
     // this compilation should be successful

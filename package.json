@@ -105,6 +105,7 @@
     "jest": "^26.5.3",
     "jest-circus": "^26.5.3",
     "jest-environment-node": "^26.5.2",
+    "karton": "^0.4.1",
     "lint-staged": "^10.4.2",
     "mock-fs": "^4.13.0",
     "prettier": "^2.1.2",

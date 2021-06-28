@@ -1,0 +1,16 @@
+{
+  "name": "typescript-vue-fixture",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "webpack-dev-server": "webpack-dev-server"
+  },
+  "devDependencies": {
+    "css-loader": "^3.4.2",
+    "qrcode.vue": "^1.7.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  }
+}

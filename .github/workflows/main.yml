@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -44,7 +44,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v1
-      
+
     - name: Setup node
       uses: actions/setup-node@v1
       with:
@@ -61,7 +61,13 @@ jobs:
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-yarn-
-      
+
+    - name: Locks cache
+      uses: actions/cache@v2
+      with:
+        path: test/e2e/__locks__
+        key: ${{ runner.os }}-locks
+
     - name: Install dependencies
       run: yarn install --frozen-lockfile
 
@@ -76,7 +82,7 @@ jobs:
 
     - name: Run e2e tests
       run: yarn test:e2e
-      
+
   release:
     runs-on: ubuntu-latest
     env:
@@ -86,7 +92,7 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta')
     steps:
       - uses: actions/checkout@v1
-      
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:

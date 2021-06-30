@@ -1,0 +1,13 @@
+{
+  "name": "@project-references-fixture/client",
+  "license": "MIT",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "@project-references-fixture/shared": "1.0.0"
+  }
+}

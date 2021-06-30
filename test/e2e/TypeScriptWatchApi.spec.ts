@@ -1,48 +1,16 @@
-import { join } from 'path';
-import { readFixture } from './sandbox/Fixture';
-import { Sandbox, createSandbox } from './sandbox/Sandbox';
-import {
-  createWebpackDevServerDriver,
-  WEBPACK_CLI_VERSION,
-  WEBPACK_DEV_SERVER_VERSION,
-} from './sandbox/WebpackDevServerDriver';
-import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
+import path from 'path';
+import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Watch API', () => {
-  let sandbox: Sandbox;
-
-  beforeAll(async () => {
-    sandbox = await createSandbox();
-  });
-
-  beforeEach(async () => {
-    await sandbox.reset();
-  });
-
-  afterAll(async () => {
-    await sandbox.cleanup();
-  });
-
   it.each([
     { async: false, webpack: '4.0.0' },
     { async: true, webpack: '^4.0.0' },
     { async: false, webpack: '^5.0.0' },
     { async: true, webpack: '^5.0.0' },
   ])('reports semantic error for %p with ts-loader', async ({ async, webpack }) => {
-    await sandbox.load([
-      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
-        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
-        WEBPACK_VERSION: JSON.stringify(webpack),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(async),
-      }),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
-    ]);
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', { webpack });
+    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
@@ -53,8 +21,8 @@ describe('TypeScript Watch API', () => {
     // then we introduce semantic error by removing "admin" role
     await sandbox.patch(
       'src/model/Role.ts',
-      'type Role = "admin" | "client" | "provider";',
-      'type Role = "client" | "provider";'
+      "type Role = 'admin' | 'client' | 'provider';",
+      "type Role = 'client' | 'provider';"
     );
 
     // we should receive only one semantic error
@@ -64,7 +32,7 @@ describe('TypeScript Watch API', () => {
         'ERROR in src/index.ts:34:7',
         `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
         '    32 |   const user = await login(email, password);',
-        '    33 | ',
+        '    33 |',
         `  > 34 |   if (user.role === 'admin') {`,
         '       |       ^^^^^^^^^^^^^^^^^^^^^',
         '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
@@ -104,10 +72,10 @@ describe('TypeScript Watch API', () => {
     expect(errors).toEqual([
       [
         'ERROR in src/model/User.ts:1:22',
-        "TS2307: Cannot find module './Role'.",
+        "TS2307: Cannot find module './Role' or its corresponding type declarations.",
         "  > 1 | import { Role } from './Role';",
         '      |                      ^^^^^^^^',
-        '    2 | ',
+        '    2 |',
         '    3 | type User = {',
         '    4 |   id: string;',
       ].join('\n'),
@@ -126,7 +94,7 @@ describe('TypeScript Watch API', () => {
         'ERROR in src/index.ts:34:7',
         "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
         '    32 |   const user = await login(email, password);',
-        '    33 | ',
+        '    33 |',
         "  > 34 |   if (user.role === 'provider') {",
         '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
         '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
@@ -142,22 +110,9 @@ describe('TypeScript Watch API', () => {
     { async: false, webpack: '^5.0.0' },
     { async: true, webpack: '^5.0.0' },
   ])('reports semantic error for %p with babel-loader', async ({ async, webpack }) => {
-    await sandbox.load([
-      await readFixture(
-        join(__dirname, 'fixtures/environment/typescript-basic-babel-loader.fixture'),
-        {
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-            FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-          ),
-          TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
-          WEBPACK_VERSION: JSON.stringify(webpack),
-          WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-          WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-          ASYNC: JSON.stringify(async),
-        }
-      ),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
-    ]);
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', { webpack });
+    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
@@ -168,8 +123,8 @@ describe('TypeScript Watch API', () => {
     // then we introduce semantic error by removing "admin" role
     await sandbox.patch(
       'src/model/Role.ts',
-      'type Role = "admin" | "client" | "provider";',
-      'type Role = "client" | "provider";'
+      "type Role = 'admin' | 'client' | 'provider';",
+      "type Role = 'client' | 'provider';"
     );
 
     // we should receive only one semantic error
@@ -179,7 +134,7 @@ describe('TypeScript Watch API', () => {
         'ERROR in src/index.ts:34:7',
         `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
         '    32 |   const user = await login(email, password);',
-        '    33 | ',
+        '    33 |',
         `  > 34 |   if (user.role === 'admin') {`,
         '       |       ^^^^^^^^^^^^^^^^^^^^^',
         '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
@@ -219,10 +174,10 @@ describe('TypeScript Watch API', () => {
     expect(errors).toEqual([
       [
         'ERROR in src/model/User.ts:1:22',
-        "TS2307: Cannot find module './Role'.",
+        "TS2307: Cannot find module './Role' or its corresponding type declarations.",
         "  > 1 | import { Role } from './Role';",
         '      |                      ^^^^^^^^',
-        '    2 | ',
+        '    2 |',
         '    3 | type User = {',
         '    4 |   id: string;',
       ].join('\n'),
@@ -241,7 +196,7 @@ describe('TypeScript Watch API', () => {
         'ERROR in src/index.ts:34:7',
         "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
         '    32 |   const user = await login(email, password);',
-        '    33 | ',
+        '    33 |',
         "  > 34 |   if (user.role === 'provider') {",
         '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
         '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
@@ -252,25 +207,14 @@ describe('TypeScript Watch API', () => {
   });
 
   it.each([
-    { async: true, webpack: '^4.0.0', typescript: '2.7.1', tsloader: '^5.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', tsloader: '^6.0.0' },
-    { async: true, webpack: '^4.0.0', typescript: '~3.6.0', tsloader: '^7.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.8.0', tsloader: '^6.0.0' },
-  ])('reports semantic error for %p', async ({ async, webpack, typescript, tsloader }) => {
-    await sandbox.load([
-      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TS_LOADER_VERSION: JSON.stringify(tsloader),
-        TYPESCRIPT_VERSION: JSON.stringify(typescript),
-        WEBPACK_VERSION: JSON.stringify(webpack),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(async),
-      }),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
-    ]);
+    { async: true, webpack: '^4.0.0', typescript: '2.7.1', 'ts-loader': '^5.0.0' },
+    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
+    { async: true, webpack: '^4.0.0', typescript: '~3.6.0', 'ts-loader': '^7.0.0' },
+    { async: false, webpack: '^4.0.0', typescript: '~3.8.0', 'ts-loader': '^6.0.0' },
+  ])('reports semantic error for %p', async ({ async, ...dependencies }) => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', { ...dependencies });
+    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
     let errors: string[];
@@ -291,36 +235,32 @@ describe('TypeScript Watch API', () => {
       [
         'ERROR in src/model/User.ts:11:16',
         "TS2339: Property 'firstName' does not exist on type 'User'.",
-        '     9 | ',
+        '     9 |',
         '    10 | function getUserName(user: User): string {',
-        '  > 11 |   return [user.firstName, user.lastName]',
+        "  > 11 |   return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
         '       |                ^^^^^^^^^',
-        '    12 |     .filter(name => name !== undefined)',
-        "    13 |     .join(' ');",
-        '    14 | }',
+        '    12 | }',
+        '    13 |',
+        '    14 | export { User, getUserName };',
       ].join('\n'),
       [
         'ERROR in src/model/User.ts:11:32',
         "TS2339: Property 'lastName' does not exist on type 'User'.",
-        '     9 | ',
+        '     9 |',
         '    10 | function getUserName(user: User): string {',
-        '  > 11 |   return [user.firstName, user.lastName]',
+        "  > 11 |   return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
         '       |                                ^^^^^^^^',
-        '    12 |     .filter(name => name !== undefined)',
-        "    13 |     .join(' ');",
-        '    14 | }',
+        '    12 | }',
+        '    13 |',
+        '    14 | export { User, getUserName };',
       ].join('\n'),
     ]);
 
     // fix the semantic error
     await sandbox.patch(
       'src/model/User.ts',
-      [
-        '  return [user.firstName, user.lastName]',
-        '    .filter(name => name !== undefined)',
-        "    .join(' ');",
-      ].join('\n'),
-      `  return user.email;`
+      "  return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
+      '  return user.email;'
     );
 
     await driver.waitForNoErrors();
@@ -336,7 +276,7 @@ describe('TypeScript Watch API', () => {
         "  > 1 | import { login } from './authenticate';",
         '      |                       ^^^^^^^^^^^^^^^^',
         "    2 | import { getUserName } from './model/User';",
-        '    3 | ',
+        '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
       ].join('\n'),
     ]);
@@ -378,7 +318,7 @@ describe('TypeScript Watch API', () => {
         'ERROR in src/index.ts:34:12',
         "TS2339: Property 'role' does not exist on type 'void'.",
         '    32 |   const user = await login(email, password);',
-        '    33 | ',
+        '    33 |',
         "  > 34 |   if (user.role === 'admin') {",
         '       |            ^^^^',
         '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
@@ -388,7 +328,7 @@ describe('TypeScript Watch API', () => {
       [
         'ERROR in src/index.ts:35:45',
         "TS2345: Argument of type 'void' is not assignable to parameter of type 'User'.",
-        '    33 | ',
+        '    33 |',
         "    34 |   if (user.role === 'admin') {",
         '  > 35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
         '       |                                             ^^^^',
@@ -405,7 +345,7 @@ describe('TypeScript Watch API', () => {
         '       |                                             ^^^^',
         '    38 |   }',
         '    39 | });',
-        '    40 | ',
+        '    40 |',
       ].join('\n'),
     ]);
   });
@@ -420,21 +360,10 @@ describe('TypeScript Watch API', () => {
       ignored:
         '(file) => forwardSlash(file).includes(forwardSlash(path.resolve(__dirname, "src/model/")))',
     },
-  ])('ignores directories from watch with %p', async ({ webpack, async, ignored }) => {
-    await sandbox.load([
-      await readFixture(join(__dirname, 'fixtures/environment/typescript-basic.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
-        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
-        WEBPACK_VERSION: JSON.stringify(webpack),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(async),
-      }),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
-    ]);
+  ])('ignores directories from watch with %p', async ({ async, webpack, ignored }) => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', { webpack });
+    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     await sandbox.patch(
       'webpack.config.js',

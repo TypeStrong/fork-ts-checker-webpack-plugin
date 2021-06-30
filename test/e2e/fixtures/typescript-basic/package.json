@@ -1,0 +1,17 @@
+{
+  "name": "typescript-basic",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "webpack": "webpack -p",
+    "webpack-dev-server": "webpack-dev-server"
+  },
+  "dependencies": {
+    "ts-loader": "^5.0.0",
+    "typescript": "^3.8.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  }
+}

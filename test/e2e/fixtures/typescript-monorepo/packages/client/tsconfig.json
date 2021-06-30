@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "sourceRoot": "./src",
+    "baseUrl": "./src"
+  },
+  "references": [{ "path": "../shared" }],
+  "include": ["src"],
+  "exclude": ["node_modules", "lib"]
+}

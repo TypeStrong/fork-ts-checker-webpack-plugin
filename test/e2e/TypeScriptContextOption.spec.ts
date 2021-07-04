@@ -120,7 +120,7 @@ describe('TypeScript Context Option', () => {
       [
         'ERROR in ../src/model/User.ts:11:16',
         "TS2339: Property 'firstName' does not exist on type 'User'.",
-        '     9 | ',
+        '     9 |',
         '    10 | function getUserName(user: User): string {',
         '  > 11 |   return [user.firstName, user.lastName]',
         '       |                ^^^^^^^^^',
@@ -131,7 +131,7 @@ describe('TypeScript Context Option', () => {
       [
         'ERROR in ../src/model/User.ts:11:32',
         "TS2339: Property 'lastName' does not exist on type 'User'.",
-        '     9 | ',
+        '     9 |',
         '    10 | function getUserName(user: User): string {',
         '  > 11 |   return [user.firstName, user.lastName]',
         '       |                                ^^^^^^^^',

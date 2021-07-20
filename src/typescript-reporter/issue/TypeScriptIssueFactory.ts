@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import * as os from 'os';
 import { deduplicateAndSortIssues, Issue, IssueLocation } from '../../issue';
 

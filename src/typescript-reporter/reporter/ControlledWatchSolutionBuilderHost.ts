@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
 import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
 import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
@@ -59,7 +59,7 @@ function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderPro
       system.deleteFile(fileName);
     },
     getParsedCommandLine(fileName: string): ts.ParsedCommandLine | undefined {
-      return ts.getParsedCommandLineOfConfigFile(
+      return typescript.getParsedCommandLineOfConfigFile(
         fileName,
         { skipLibCheck: true },
         {

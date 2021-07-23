@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import { normalize, dirname, basename, resolve, relative } from 'path';
 import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 import { FilesMatch } from '../../reporter';
@@ -114,10 +114,10 @@ function removeJsonExtension(path: string) {
   }
 }
 
-function getTsBuildInfoEmitOutputFilePath(options: ts.CompilerOptions) {
-  if (typeof ts.getTsBuildInfoEmitOutputFilePath === 'function') {
+function getTsBuildInfoEmitOutputFilePath(typescript: typeof ts, options: ts.CompilerOptions) {
+  if (typeof typescript.getTsBuildInfoEmitOutputFilePath === 'function') {
     // old TypeScript version doesn't provides this method
-    return ts.getTsBuildInfoEmitOutputFilePath(options);
+    return typescript.getTsBuildInfoEmitOutputFilePath(options);
   }
 
   // based on the implementation from typescript
@@ -159,7 +159,10 @@ function getArtifactsFromTypeScriptConfiguration(
     if (parsedConfiguration.options.outFile) {
       files.add(resolve(configFileContext, parsedConfiguration.options.outFile));
     }
-    const tsBuildInfoPath = getTsBuildInfoEmitOutputFilePath(parsedConfiguration.options);
+    const tsBuildInfoPath = getTsBuildInfoEmitOutputFilePath(
+      typescript,
+      parsedConfiguration.options
+    );
     if (tsBuildInfoPath) {
       files.add(resolve(configFileContext, tsBuildInfoPath));
     }

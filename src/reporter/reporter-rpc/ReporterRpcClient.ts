@@ -29,8 +29,16 @@ function createReporterRpcClient<TConfiguration extends object>(
         await channel.open();
       }
       if (!rpcClient.isConnected()) {
-        await rpcClient.connect();
-        await rpcClient.dispatchCall(configure, configuration);
+        try {
+          await rpcClient.connect();
+          await rpcClient.dispatchCall(configure, configuration);
+        } catch (error) {
+          // connect or configure was not successful -
+          // close the reporter and re-throw an error
+          await rpcClient.disconnect();
+          await channel.close();
+          throw error;
+        }
       }
     },
     disconnect: async () => {

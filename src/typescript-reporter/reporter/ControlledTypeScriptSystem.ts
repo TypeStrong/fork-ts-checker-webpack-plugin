@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import { dirname, join } from 'path';
 import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
 import forwardSlash from '../../utils/path/forwardSlash';

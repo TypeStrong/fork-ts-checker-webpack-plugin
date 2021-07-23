@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import path from 'path';
 import { FilesMatch, Reporter } from '../../reporter';
 import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';

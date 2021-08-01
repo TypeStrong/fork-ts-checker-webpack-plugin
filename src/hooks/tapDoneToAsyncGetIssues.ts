@@ -22,7 +22,7 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    const reportPromise = state.reportPromise;
+    const reportPromise = state.issuesReportPromise;
     const issuesPromise = state.issuesPromise;
     let issues: Issue[] | undefined;
 
@@ -46,7 +46,7 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    if (reportPromise !== state.reportPromise) {
+    if (reportPromise !== state.issuesReportPromise) {
       // there is a newer report - ignore this one
       return;
     }

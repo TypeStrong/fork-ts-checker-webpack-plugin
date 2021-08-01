@@ -82,8 +82,8 @@ function createWebpackDevServerDriver(
       const extracted = extractWebpackErrors(content);
       errors.push(...extracted);
 
-      if (async && errors.length && errorsListener.active) {
-        errorsListener.resolve(errors);
+      if (async && extracted.length && errorsListener.active) {
+        errorsListener.resolve(extracted);
       }
     });
   }

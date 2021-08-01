@@ -274,7 +274,7 @@ describe('TypeScript Watch API', () => {
     await sandbox.remove('src/authenticate.ts');
 
     errors = await driver.waitForErrors();
-    expect(errors).toEqual([
+    expect(errors).toContain(
       [
         'ERROR in src/index.ts:1:23',
         "TS2307: Cannot find module './authenticate'.",
@@ -283,8 +283,8 @@ describe('TypeScript Watch API', () => {
         "    2 | import { getUserName } from './model/User';",
         '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
-      ].join('\n'),
-    ]);
+      ].join('\n')
+    );
 
     // re-create deleted module
     await sandbox.write(
@@ -359,11 +359,6 @@ describe('TypeScript Watch API', () => {
     { async: false, ignored: '[path.resolve(__dirname, "src/model/**")]' },
     { async: true, ignored: '"**/src/model/**"' },
     { async: false, ignored: '/src\\/model/' },
-    {
-      async: true,
-      ignored:
-        '(file) => forwardSlash(file).includes(forwardSlash(path.resolve(__dirname, "src/model/")))',
-    },
   ])('ignores directories from watch with %p', async ({ async, ignored }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', {});

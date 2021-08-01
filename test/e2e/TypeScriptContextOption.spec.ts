@@ -65,7 +65,9 @@ describe('TypeScript Context Option', () => {
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn(
-        `../node_modules/.bin/webpack-dev-server${os.platform() === 'win32' ? '.cmd' : ''}`,
+        `../node_modules/.bin/webpack${
+          os.platform() === 'win32' ? '.cmd' : ''
+        } serve --mode=development`,
         {
           cwd: path.join(sandbox.context, 'foo'),
         }

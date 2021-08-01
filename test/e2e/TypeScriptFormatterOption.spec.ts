@@ -25,7 +25,7 @@ describe('TypeScript Formatter Option', () => {
       );
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm run webpack-dev-server'),
+        sandbox.spawn('yarn webpack serve --mode=development'),
         async
       );
 

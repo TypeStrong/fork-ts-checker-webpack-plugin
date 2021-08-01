@@ -12,7 +12,10 @@ describe('TypeScript SolutionBuilder API', () => {
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
     await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      async
+    );
     let errors: string[];
 
     // initial compilation should be successful

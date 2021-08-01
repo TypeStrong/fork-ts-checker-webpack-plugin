@@ -1,11 +1,5 @@
 import { EventEmitter } from 'events';
-
-interface WatchFileSystemOptions {
-  aggregateTimeout: number;
-  poll: boolean;
-  followSymlinks: boolean;
-  ignored: string | RegExp | Function | (string | RegExp | Function)[];
-}
+import webpack from 'webpack';
 
 // watchpack v1 and v2 internal interface
 interface Watchpack extends EventEmitter {
@@ -13,38 +7,14 @@ interface Watchpack extends EventEmitter {
   _onRemove(item: string, file: string, type?: string): void;
 }
 
-// webpack 4 interface
-interface WatcherV4 {
-  close(): void;
-  pause(): void;
-  getFileTimestamps(): Map<string, number>;
-  getContextTimestamps(): Map<string, number>;
-}
-
-// webpack 5 interface
-interface WatcherV5 {
-  close(): void;
-  pause(): void;
-  getFileTimeInfoEntries(): Map<string, number>;
-  getContextTimeInfoEntries(): Map<string, number>;
-}
-
-type Watcher = WatcherV4 | WatcherV5;
+type Watch = webpack.Compiler['watchFileSystem']['watch'];
 
 interface WatchFileSystem {
   watcher: Watchpack;
   wfs?: {
     watcher: Watchpack;
   };
-  watch(
-    files: Iterable<string>,
-    dirs: Iterable<string>,
-    missing: Iterable<string>,
-    startTime?: number,
-    options?: Partial<WatchFileSystemOptions>,
-    callback?: Function,
-    callbackUndelayed?: Function
-  ): Watcher;
+  watch: Watch;
 }
 
-export { WatchFileSystem, WatchFileSystemOptions, Watchpack, WatcherV4, WatcherV5, Watcher };
+export { WatchFileSystem, Watchpack };

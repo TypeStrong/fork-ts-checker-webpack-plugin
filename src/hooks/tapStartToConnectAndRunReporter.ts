@@ -52,7 +52,7 @@ function tapStartToConnectAndRunReporter(
     if (state.watching) {
       change = getFilesChange(compiler);
 
-      configuration.logger.infrastructure.info(
+      configuration.logger.infrastructure.log(
         [
           'Calling reporter service for incremental check.',
           `  Changed files: ${JSON.stringify(change.changedFiles)}`,
@@ -60,7 +60,7 @@ function tapStartToConnectAndRunReporter(
         ].join('\n')
       );
     } else {
-      configuration.logger.infrastructure.info('Calling reporter service for single check.');
+      configuration.logger.infrastructure.log('Calling reporter service for single check.');
     }
 
     let resolveDependencies: (dependencies: FilesMatch | undefined) => void;

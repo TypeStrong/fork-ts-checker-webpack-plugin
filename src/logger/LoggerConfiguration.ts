@@ -14,7 +14,10 @@ function createLoggerConfiguration(
   options: LoggerOptions | undefined
 ): LoggerConfiguration {
   return {
-    infrastructure: createLogger((options && options.infrastructure) || 'silent', compiler),
+    infrastructure: createLogger(
+      (options && options.infrastructure) || 'webpack-infrastructure',
+      compiler
+    ),
     issues: createLogger((options && options.issues) || 'console', compiler),
     devServer: options?.devServer !== false,
   };

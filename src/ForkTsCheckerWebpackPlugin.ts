@@ -29,9 +29,18 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
    */
   static readonly version: string = '{{VERSION}}'; // will be replaced by the @semantic-release/exec
   /**
-   * Default pool for the plugin concurrency limit
+   * Default pools for the plugin concurrency limit
    */
-  static readonly pool: Pool = createPool(Math.max(1, os.cpus().length));
+  static readonly issuesPool: Pool = createPool(Math.max(1, os.cpus().length));
+  static readonly dependenciesPool: Pool = createPool(Math.max(1, os.cpus().length));
+
+  /**
+   * @deprecated Use ForkTsCheckerWebpackPlugin.issuesPool instead
+   */
+  static get pool(): Pool {
+    // for backward compatibility
+    return ForkTsCheckerWebpackPlugin.issuesPool;
+  }
 
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
@@ -56,25 +65,37 @@ class ForkTsCheckerWebpackPlugin implements webpack.Plugin {
   apply(compiler: webpack.Compiler) {
     const configuration = createForkTsCheckerWebpackPluginConfiguration(compiler, this.options);
     const state = createForkTsCheckerWebpackPluginState();
-    const reporters: ReporterRpcClient[] = [];
+    const issuesReporters: ReporterRpcClient[] = [];
+    const dependenciesReporters: ReporterRpcClient[] = [];
 
     if (configuration.typescript.enabled) {
       assertTypeScriptSupport(configuration.typescript);
-      reporters.push(createTypeScriptReporterRpcClient(configuration.typescript));
+      issuesReporters.push(createTypeScriptReporterRpcClient(configuration.typescript));
+      dependenciesReporters.push(createTypeScriptReporterRpcClient(configuration.typescript));
     }
 
     if (configuration.eslint.enabled) {
       assertEsLintSupport(configuration.eslint);
-      reporters.push(createEsLintReporterRpcClient(configuration.eslint));
+      issuesReporters.push(createEsLintReporterRpcClient(configuration.eslint));
+      dependenciesReporters.push(createEsLintReporterRpcClient(configuration.eslint));
     }
 
-    if (reporters.length) {
-      const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
+    if (issuesReporters.length) {
+      const issuesReporter = createAggregatedReporter(composeReporterRpcClients(issuesReporters));
+      const dependenciesReporter = createAggregatedReporter(
+        composeReporterRpcClients(dependenciesReporters)
+      );
 
       tapAfterEnvironmentToPatchWatching(compiler, state);
-      tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
+      tapStartToConnectAndRunReporter(
+        compiler,
+        issuesReporter,
+        dependenciesReporter,
+        configuration,
+        state
+      );
       tapAfterCompileToAddDependencies(compiler, configuration, state);
-      tapStopToDisconnectReporter(compiler, reporter, state);
+      tapStopToDisconnectReporter(compiler, issuesReporter, dependenciesReporter, state);
       tapErrorToLogMessage(compiler, configuration);
     } else {
       throw new Error(

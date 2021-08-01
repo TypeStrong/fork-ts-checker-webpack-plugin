@@ -9,15 +9,13 @@ import minimatch from 'minimatch';
 const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
 
 function createIsIgnored(
-  ignored: string | RegExp | Function | (string | RegExp | Function)[] | undefined
+  ignored: string | RegExp | (string | RegExp)[] | undefined
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
   const ignoredFunctions = ignoredPatterns.map((pattern) => {
     // ensure patterns are valid - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
     if (typeof pattern === 'string') {
       return (path: string) => minimatch(path, pattern);
-    } else if (typeof pattern === 'function') {
-      return pattern;
     } else if (pattern instanceof RegExp) {
       return (path: string) => pattern.test(path);
     } else {

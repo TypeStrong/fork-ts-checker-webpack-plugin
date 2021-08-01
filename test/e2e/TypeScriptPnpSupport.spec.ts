@@ -67,7 +67,7 @@ describe('TypeScript PnP Support', () => {
     await sandbox.remove('src/authenticate.ts');
 
     errors = await driver.waitForErrors();
-    expect(errors).toEqual([
+    expect(errors).toContain(
       [
         'ERROR in src/index.ts:1:23',
         "TS2307: Cannot find module './authenticate'.",
@@ -76,8 +76,8 @@ describe('TypeScript PnP Support', () => {
         "    2 | import { getUserName } from './model/User';",
         '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
-      ].join('\n'),
-    ]);
+      ].join('\n')
+    );
 
     // re-create deleted module
     await sandbox.write(

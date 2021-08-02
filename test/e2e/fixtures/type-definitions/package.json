@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "license": "MIT",
-  "scripts": {
-    "tsc": "tsc"
-  },
   "devDependencies": {
-    "@types/webpack": "^4.0.0",
-    "typescript": "~3.8.0"
+    "typescript": "~3.8.0",
+    "webpack": "^5.11.0"
   }
 }

@@ -3,7 +3,7 @@ import stripAnsi from 'strip-ansi';
 import { extractWebpackErrors } from './driver/WebpackErrorsExtractor';
 
 describe('Webpack Production Build', () => {
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
+  it.each([{ webpack: '5.11.0' }, { webpack: '^5.11.0' }])(
     'compiles the project successfully with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
@@ -12,31 +12,18 @@ describe('Webpack Production Build', () => {
       // lets remove the async option at all as the plugin should now how to set it by default
       await sandbox.patch(
         'webpack.config.js',
-        [
-          '    new ForkTsCheckerWebpackPlugin({',
-          '      async: false,',
-          '      logger: {',
-          "        infrastructure: 'console',",
-          '      },',
-          '    }),',
-        ].join('\n'),
-        [
-          '    new ForkTsCheckerWebpackPlugin({',
-          '      logger: {',
-          "        infrastructure: 'console',",
-          '      },',
-          '    }),',
-        ].join('\n')
+        ['    new ForkTsCheckerWebpackPlugin({', '      async: false,', '    }),'].join('\n'),
+        ['    new ForkTsCheckerWebpackPlugin(),'].join('\n')
       );
 
-      const result = await sandbox.exec('npm run webpack');
+      const result = await sandbox.exec('yarn webpack --mode=production');
       const errors = extractWebpackErrors(result);
 
       expect(errors).toEqual([]);
     }
   );
 
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
+  it.each([{ webpack: '5.11.0' }, { webpack: '^5.11.0' }])(
     'exits with error on the project error with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
@@ -45,26 +32,13 @@ describe('Webpack Production Build', () => {
       // remove the async option at all as the plugin should now how to set it by default
       await sandbox.patch(
         'webpack.config.js',
-        [
-          '    new ForkTsCheckerWebpackPlugin({',
-          '      async: false,',
-          '      logger: {',
-          "        infrastructure: 'console',",
-          '      },',
-          '    }),',
-        ].join('\n'),
-        [
-          '    new ForkTsCheckerWebpackPlugin({',
-          '      logger: {',
-          "        infrastructure: 'console',",
-          '      },',
-          '    }),',
-        ].join('\n')
+        ['    new ForkTsCheckerWebpackPlugin({', '      async: false,', '    }),'].join('\n'),
+        ['    new ForkTsCheckerWebpackPlugin(),'].join('\n')
       );
 
       // introduce an error in the project
       await sandbox.remove('src/model/User.ts');
-      const result = await sandbox.exec('npm run webpack', { fail: true });
+      const result = await sandbox.exec('yarn webpack --mode=production', { fail: true });
 
       // remove npm related output
       const output = stripAnsi(String(result)).replace(/npm (ERR!|WARN).*/g, '');

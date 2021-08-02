@@ -3,15 +3,18 @@ import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript PnP Support', () => {
   it.each([
-    { async: true, webpack: '^4.0.0', typescript: '2.7.1', 'ts-loader': '^5.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
-    { async: true, webpack: '^4.0.0', typescript: '~3.8.0', 'ts-loader': '^7.0.0' },
+    { async: true, typescript: '2.7.1', 'ts-loader': '^5.0.0' },
+    { async: false, typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
+    { async: true, typescript: '~3.8.0', 'ts-loader': '^7.0.0' },
   ])('reports semantic error for %p', async ({ async, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-pnp'));
     await sandbox.install('yarn', { ...dependencies });
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('yarn webpack-dev-server'), async);
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      async
+    );
     let errors: string[];
 
     // first compilation is successful
@@ -64,7 +67,7 @@ describe('TypeScript PnP Support', () => {
     await sandbox.remove('src/authenticate.ts');
 
     errors = await driver.waitForErrors();
-    expect(errors).toEqual([
+    expect(errors).toContain(
       [
         'ERROR in src/index.ts:1:23',
         "TS2307: Cannot find module './authenticate'.",
@@ -73,8 +76,8 @@ describe('TypeScript PnP Support', () => {
         "    2 | import { getUserName } from './model/User';",
         '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
-      ].join('\n'),
-    ]);
+      ].join('\n')
+    );
 
     // re-create deleted module
     await sandbox.write(

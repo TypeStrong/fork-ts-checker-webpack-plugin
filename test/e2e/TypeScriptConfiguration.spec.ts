@@ -6,10 +6,10 @@ import {
 
 describe('TypeScript Configuration', () => {
   it.each([
-    { async: true, webpack: '~4.0.0', typescript: '2.7.1', 'ts-loader': '^5.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
-    { async: true, webpack: '^5.0.0', typescript: '~3.7.0', 'ts-loader': '^7.0.0' },
-    { async: false, webpack: '^5.0.0', typescript: '~3.8.0', 'ts-loader': '^6.0.0' },
+    { async: true, typescript: '2.7.1', 'ts-loader': '^5.0.0' },
+    { async: false, typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
+    { async: true, typescript: '~3.7.0', 'ts-loader': '^7.0.0' },
+    { async: false, typescript: '~3.8.0', 'ts-loader': '^6.0.0' },
   ])(
     'change in the tsconfig.json affects compilation for %p',
     async ({ async, ...dependencies }) => {
@@ -18,7 +18,7 @@ describe('TypeScript Configuration', () => {
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm run webpack-dev-server'),
+        sandbox.spawn('yarn webpack serve --mode=development'),
         async
       );
 
@@ -55,7 +55,10 @@ describe('TypeScript Configuration', () => {
       'module.exports = { typescript: { configOverwrite: { compilerOptions: { target: "ES3", lib: ["ES3"] } } } };'
     );
 
-    driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), false);
+    driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
     errors = await driver.waitForErrors();
     expect(errors.length).toBeGreaterThan(0);
     await sandbox.kill(driver.process);
@@ -65,7 +68,10 @@ describe('TypeScript Configuration', () => {
       'module.exports = { typescript: { configOverwrite: { include: [] } } };'
     );
 
-    driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), false);
+    driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
     errors = await driver.waitForErrors();
     expect(errors.length).toBeGreaterThan(0);
     await sandbox.kill(driver.process);

@@ -25,9 +25,9 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       async: false,
-      logger: {
-        infrastructure: 'console',
-      },
     }),
   ],
+  infrastructureLogging: {
+    level: 'log',
+  },
 };

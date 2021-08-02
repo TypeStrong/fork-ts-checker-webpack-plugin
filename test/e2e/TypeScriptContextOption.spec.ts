@@ -11,7 +11,18 @@ describe('TypeScript Context Option', () => {
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { typescript });
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+    await sandbox.patch(
+      'webpack.config.js',
+      '      async: false,',
+      [
+        `      async: ${JSON.stringify(async)},`,
+        '      typescript: {',
+        '        enabled: true,',
+        '        configFile: path.resolve(__dirname, "build/tsconfig.json"),',
+        '        context: __dirname,',
+        '      },',
+      ].join('\n')
+    );
 
     // update sandbox to use context option
     await sandbox.remove('tsconfig.json');
@@ -41,18 +52,6 @@ describe('TypeScript Context Option', () => {
     );
     await sandbox.patch(
       'webpack.config.js',
-      '      logger: {',
-      [
-        '      typescript: {',
-        '        enabled: true,',
-        '        configFile: path.resolve(__dirname, "build/tsconfig.json"),',
-        '        context: __dirname,',
-        '      },',
-        '      logger: {',
-      ].join('\n')
-    );
-    await sandbox.patch(
-      'webpack.config.js',
       '          transpileOnly: true,',
       [
         '          transpileOnly: true,',
@@ -65,7 +64,9 @@ describe('TypeScript Context Option', () => {
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn(
-        `../node_modules/.bin/webpack-dev-server${os.platform() === 'win32' ? '.cmd' : ''}`,
+        `../node_modules/.bin/webpack${
+          os.platform() === 'win32' ? '.cmd' : ''
+        } serve --mode=development --config=../webpack.config.js`,
         {
           cwd: path.join(sandbox.context, 'foo'),
         }

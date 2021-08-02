@@ -42,7 +42,10 @@ describe('TypeScript Vue Extension', () => {
       await sandbox.write('src/vue-shim.d.ts', 'declare module "*.vue";');
     }
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      async
+    );
     let errors: string[] = [];
 
     // first compilation is successful

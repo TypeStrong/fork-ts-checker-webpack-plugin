@@ -34,9 +34,9 @@ module.exports = {
         build: true,
         mode: 'readonly',
       },
-      logger: {
-        infrastructure: 'console',
-      },
     }),
   ],
+  infrastructureLogging: {
+    level: 'log',
+  },
 };

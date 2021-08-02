@@ -1,7 +1,7 @@
 import path from 'path';
 
 describe('Webpack Node Api', () => {
-  it.each([{ webpack: '4.0.0' }, { webpack: '^4.0.0' }, { webpack: '^5.0.0' }])(
+  it.each([{ webpack: '5.11.0' }, { webpack: '^5.11.0' }])(
     'compiles the project successfully with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));

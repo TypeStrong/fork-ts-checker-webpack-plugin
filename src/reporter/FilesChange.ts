@@ -10,7 +10,7 @@ interface FilesChange {
 const compilerFilesChangeMap = new WeakMap<Compiler, FilesChange>();
 
 function getFilesChange(compiler: Compiler): FilesChange {
-  return compilerFilesChangeMap.get(compiler) || {};
+  return compilerFilesChangeMap.get(compiler) || { changedFiles: [], deletedFiles: [] };
 }
 
 function updateFilesChange(compiler: Compiler, change: FilesChange): void {

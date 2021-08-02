@@ -56,9 +56,9 @@ module.exports = {
           },
         },
       },
-      logger: {
-        infrastructure: 'console',
-      },
     }),
   ],
+  infrastructureLogging: {
+    level: 'log',
+  },
 };

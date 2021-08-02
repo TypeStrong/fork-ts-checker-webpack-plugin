@@ -1,7 +1,7 @@
 import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import chokidar, { FSWatcher } from 'chokidar';
 import { extname } from 'path';
-import { Watcher, WatchFileSystem, WatchFileSystemOptions } from './WatchFileSystem';
+import { WatchFileSystem } from './WatchFileSystem';
 import { Compiler } from 'webpack';
 import { clearFilesChange, updateFilesChange } from '../reporter';
 import minimatch from 'minimatch';
@@ -9,15 +9,13 @@ import minimatch from 'minimatch';
 const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
 
 function createIsIgnored(
-  ignored: WatchFileSystemOptions['ignored'] | undefined
+  ignored: string | RegExp | (string | RegExp)[] | undefined
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
   const ignoredFunctions = ignoredPatterns.map((pattern) => {
     // ensure patterns are valid - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
     if (typeof pattern === 'string') {
       return (path: string) => minimatch(path, pattern);
-    } else if (typeof pattern === 'function') {
-      return pattern;
     } else if (pattern instanceof RegExp) {
       return (path: string) => pattern.test(path);
     } else {
@@ -50,15 +48,15 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
 
   private paused = true;
 
-  watch(
-    files: Iterable<string>,
-    dirs: Iterable<string>,
-    missing: Iterable<string>,
-    startTime?: number,
-    options?: Partial<WatchFileSystemOptions>,
-    callback?: Function,
-    callbackUndelayed?: Function
-  ): Watcher {
+  watch: WatchFileSystem['watch'] = (
+    files,
+    dirs,
+    missing,
+    startTime,
+    options,
+    callback,
+    callbackUndelayed
+  ) => {
     clearFilesChange(this.compiler);
     const isIgnored = createIsIgnored(options?.ignored);
 
@@ -173,7 +171,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
         this.paused = true;
       },
     };
-  }
+  };
 }
 
 export { InclusiveNodeWatchFileSystem };

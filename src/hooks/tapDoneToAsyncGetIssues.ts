@@ -83,7 +83,7 @@ function tapDoneToAsyncGetIssues(
     }
 
     if (stats.startTime) {
-      configuration.logger.infrastructure.info(
+      configuration.logger.infrastructure.log(
         `Time: ${Math.round(Date.now() - stats.startTime).toString()} ms`
       );
     }

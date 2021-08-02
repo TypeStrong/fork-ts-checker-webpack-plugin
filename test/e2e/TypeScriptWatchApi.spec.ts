@@ -2,221 +2,226 @@ import path from 'path';
 import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Watch API', () => {
+  it.each([{ async: false }, { async: true }])(
+    'reports semantic error for %p with ts-loader',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
+      let errors: string[];
+
+      // first compilation is successful
+      await driver.waitForNoErrors();
+
+      // then we introduce semantic error by removing "admin" role
+      await sandbox.patch(
+        'src/model/Role.ts',
+        "type Role = 'admin' | 'client' | 'provider';",
+        "type Role = 'client' | 'provider';"
+      );
+
+      // we should receive only one semantic error
+      errors = await driver.waitForErrors();
+      expect(errors).toEqual([
+        [
+          'ERROR in src/index.ts:34:7',
+          `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
+          '    32 |   const user = await login(email, password);',
+          '    33 |',
+          `  > 34 |   if (user.role === 'admin') {`,
+          '       |       ^^^^^^^^^^^^^^^^^^^^^',
+          '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
+          '    36 |   } else {',
+          '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
+        ].join('\n'),
+      ]);
+
+      // fix the semantic error by changing condition branch related to the "admin" role
+      await sandbox.patch(
+        'src/index.ts',
+        [
+          "  if (user.role === 'admin') {",
+          '    console.log(`Logged in as ${getUserName(user)} [admin].`);',
+          '  } else {',
+          '    console.log(`Logged in as ${getUserName(user)}`);',
+          '  }',
+        ].join('\n'),
+        [
+          "  if (user.role === 'provider') {",
+          '    console.log(`Logged in as ${getUserName(user)} [provider].`);',
+          '  } else {',
+          '    console.log(`Logged in as ${getUserName(user)}`);',
+          '  }',
+        ].join('\n')
+      );
+
+      await driver.waitForNoErrors();
+
+      // delete module to trigger another error
+      await sandbox.remove('src/model/Role.ts');
+
+      // filter-out ts-loader related errors
+      errors = (await driver.waitForErrors()).filter(
+        (error) => !error.includes('Module build failed') && !error.includes('Module not found')
+      );
+      expect(errors).toEqual([
+        [
+          'ERROR in src/model/User.ts:1:22',
+          "TS2307: Cannot find module './Role' or its corresponding type declarations.",
+          "  > 1 | import { Role } from './Role';",
+          '      |                      ^^^^^^^^',
+          '    2 |',
+          '    3 | type User = {',
+          '    4 |   id: string;',
+        ].join('\n'),
+      ]);
+
+      // re-create deleted module
+      await sandbox.write(
+        'src/model/Role.ts',
+        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
+      );
+
+      // we should receive again the one semantic error but now for "provider" role
+      errors = await driver.waitForErrors();
+      expect(errors).toEqual([
+        [
+          'ERROR in src/index.ts:34:7',
+          "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
+          '    32 |   const user = await login(email, password);',
+          '    33 |',
+          "  > 34 |   if (user.role === 'provider') {",
+          '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
+          '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
+          '    36 |   } else {',
+          '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
+        ].join('\n'),
+      ]);
+    }
+  );
+
+  it.each([{ async: false }, { async: true }])(
+    'reports semantic error for %p with babel-loader',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
+      let errors: string[];
+
+      // first compilation is successful
+      await driver.waitForNoErrors();
+
+      // then we introduce semantic error by removing "admin" role
+      await sandbox.patch(
+        'src/model/Role.ts',
+        "type Role = 'admin' | 'client' | 'provider';",
+        "type Role = 'client' | 'provider';"
+      );
+
+      // we should receive only one semantic error
+      errors = await driver.waitForErrors();
+      expect(errors).toEqual([
+        [
+          'ERROR in src/index.ts:34:7',
+          `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
+          '    32 |   const user = await login(email, password);',
+          '    33 |',
+          `  > 34 |   if (user.role === 'admin') {`,
+          '       |       ^^^^^^^^^^^^^^^^^^^^^',
+          '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
+          '    36 |   } else {',
+          '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
+        ].join('\n'),
+      ]);
+
+      // fix the semantic error by changing condition branch related to the "admin" role
+      await sandbox.patch(
+        'src/index.ts',
+        [
+          "  if (user.role === 'admin') {",
+          '    console.log(`Logged in as ${getUserName(user)} [admin].`);',
+          '  } else {',
+          '    console.log(`Logged in as ${getUserName(user)}`);',
+          '  }',
+        ].join('\n'),
+        [
+          "  if (user.role === 'provider') {",
+          '    console.log(`Logged in as ${getUserName(user)} [provider].`);',
+          '  } else {',
+          '    console.log(`Logged in as ${getUserName(user)}`);',
+          '  }',
+        ].join('\n')
+      );
+
+      await driver.waitForNoErrors();
+
+      // delete module to trigger another error
+      await sandbox.remove('src/model/Role.ts');
+
+      // filter-out ts-loader related errors
+      errors = (await driver.waitForErrors()).filter(
+        (error) => !error.includes('Module build failed') && !error.includes('Module not found')
+      );
+      expect(errors).toEqual([
+        [
+          'ERROR in src/model/User.ts:1:22',
+          "TS2307: Cannot find module './Role' or its corresponding type declarations.",
+          "  > 1 | import { Role } from './Role';",
+          '      |                      ^^^^^^^^',
+          '    2 |',
+          '    3 | type User = {',
+          '    4 |   id: string;',
+        ].join('\n'),
+      ]);
+
+      // re-create deleted module
+      await sandbox.write(
+        'src/model/Role.ts',
+        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
+      );
+
+      // we should receive again the one semantic error but now for "provider" role
+      errors = await driver.waitForErrors();
+      expect(errors).toEqual([
+        [
+          'ERROR in src/index.ts:34:7',
+          "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
+          '    32 |   const user = await login(email, password);',
+          '    33 |',
+          "  > 34 |   if (user.role === 'provider') {",
+          '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
+          '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
+          '    36 |   } else {',
+          '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
+        ].join('\n'),
+      ]);
+    }
+  );
+
   it.each([
-    { async: false, webpack: '4.0.0' },
-    { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0' },
-    { async: true, webpack: '^5.0.0' },
-  ])('reports semantic error for %p with ts-loader', async ({ async, webpack }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { webpack });
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
-
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
-    let errors: string[];
-
-    // first compilation is successful
-    await driver.waitForNoErrors();
-
-    // then we introduce semantic error by removing "admin" role
-    await sandbox.patch(
-      'src/model/Role.ts',
-      "type Role = 'admin' | 'client' | 'provider';",
-      "type Role = 'client' | 'provider';"
-    );
-
-    // we should receive only one semantic error
-    errors = await driver.waitForErrors();
-    expect(errors).toEqual([
-      [
-        'ERROR in src/index.ts:34:7',
-        `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
-        '    32 |   const user = await login(email, password);',
-        '    33 |',
-        `  > 34 |   if (user.role === 'admin') {`,
-        '       |       ^^^^^^^^^^^^^^^^^^^^^',
-        '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
-        '    36 |   } else {',
-        '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
-      ].join('\n'),
-    ]);
-
-    // fix the semantic error by changing condition branch related to the "admin" role
-    await sandbox.patch(
-      'src/index.ts',
-      [
-        "  if (user.role === 'admin') {",
-        '    console.log(`Logged in as ${getUserName(user)} [admin].`);',
-        '  } else {',
-        '    console.log(`Logged in as ${getUserName(user)}`);',
-        '  }',
-      ].join('\n'),
-      [
-        "  if (user.role === 'provider') {",
-        '    console.log(`Logged in as ${getUserName(user)} [provider].`);',
-        '  } else {',
-        '    console.log(`Logged in as ${getUserName(user)}`);',
-        '  }',
-      ].join('\n')
-    );
-
-    await driver.waitForNoErrors();
-
-    // delete module to trigger another error
-    await sandbox.remove('src/model/Role.ts');
-
-    // filter-out ts-loader related errors
-    errors = (await driver.waitForErrors()).filter(
-      (error) => !error.includes('Module build failed') && !error.includes('Module not found')
-    );
-    expect(errors).toEqual([
-      [
-        'ERROR in src/model/User.ts:1:22',
-        "TS2307: Cannot find module './Role' or its corresponding type declarations.",
-        "  > 1 | import { Role } from './Role';",
-        '      |                      ^^^^^^^^',
-        '    2 |',
-        '    3 | type User = {',
-        '    4 |   id: string;',
-      ].join('\n'),
-    ]);
-
-    // re-create deleted module
-    await sandbox.write(
-      'src/model/Role.ts',
-      ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
-    );
-
-    // we should receive again the one semantic error but now for "provider" role
-    errors = await driver.waitForErrors();
-    expect(errors).toEqual([
-      [
-        'ERROR in src/index.ts:34:7',
-        "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
-        '    32 |   const user = await login(email, password);',
-        '    33 |',
-        "  > 34 |   if (user.role === 'provider') {",
-        '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
-        '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
-        '    36 |   } else {',
-        '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
-      ].join('\n'),
-    ]);
-  });
-
-  it.each([
-    { async: false, webpack: '4.0.0' },
-    { async: true, webpack: '^4.0.0' },
-    { async: false, webpack: '^5.0.0' },
-    { async: true, webpack: '^5.0.0' },
-  ])('reports semantic error for %p with babel-loader', async ({ async, webpack }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { webpack });
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
-
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
-    let errors: string[];
-
-    // first compilation is successful
-    await driver.waitForNoErrors();
-
-    // then we introduce semantic error by removing "admin" role
-    await sandbox.patch(
-      'src/model/Role.ts',
-      "type Role = 'admin' | 'client' | 'provider';",
-      "type Role = 'client' | 'provider';"
-    );
-
-    // we should receive only one semantic error
-    errors = await driver.waitForErrors();
-    expect(errors).toEqual([
-      [
-        'ERROR in src/index.ts:34:7',
-        `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
-        '    32 |   const user = await login(email, password);',
-        '    33 |',
-        `  > 34 |   if (user.role === 'admin') {`,
-        '       |       ^^^^^^^^^^^^^^^^^^^^^',
-        '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
-        '    36 |   } else {',
-        '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
-      ].join('\n'),
-    ]);
-
-    // fix the semantic error by changing condition branch related to the "admin" role
-    await sandbox.patch(
-      'src/index.ts',
-      [
-        "  if (user.role === 'admin') {",
-        '    console.log(`Logged in as ${getUserName(user)} [admin].`);',
-        '  } else {',
-        '    console.log(`Logged in as ${getUserName(user)}`);',
-        '  }',
-      ].join('\n'),
-      [
-        "  if (user.role === 'provider') {",
-        '    console.log(`Logged in as ${getUserName(user)} [provider].`);',
-        '  } else {',
-        '    console.log(`Logged in as ${getUserName(user)}`);',
-        '  }',
-      ].join('\n')
-    );
-
-    await driver.waitForNoErrors();
-
-    // delete module to trigger another error
-    await sandbox.remove('src/model/Role.ts');
-
-    // filter-out ts-loader related errors
-    errors = (await driver.waitForErrors()).filter(
-      (error) => !error.includes('Module build failed') && !error.includes('Module not found')
-    );
-    expect(errors).toEqual([
-      [
-        'ERROR in src/model/User.ts:1:22',
-        "TS2307: Cannot find module './Role' or its corresponding type declarations.",
-        "  > 1 | import { Role } from './Role';",
-        '      |                      ^^^^^^^^',
-        '    2 |',
-        '    3 | type User = {',
-        '    4 |   id: string;',
-      ].join('\n'),
-    ]);
-
-    // re-create deleted module
-    await sandbox.write(
-      'src/model/Role.ts',
-      ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
-    );
-
-    // we should receive again the one semantic error but now for "provider" role
-    errors = await driver.waitForErrors();
-    expect(errors).toEqual([
-      [
-        'ERROR in src/index.ts:34:7',
-        "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
-        '    32 |   const user = await login(email, password);',
-        '    33 |',
-        "  > 34 |   if (user.role === 'provider') {",
-        '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
-        '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
-        '    36 |   } else {',
-        '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
-      ].join('\n'),
-    ]);
-  });
-
-  it.each([
-    { async: true, webpack: '^4.0.0', typescript: '2.7.1', 'ts-loader': '^5.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
-    { async: true, webpack: '^4.0.0', typescript: '~3.6.0', 'ts-loader': '^7.0.0' },
-    { async: false, webpack: '^4.0.0', typescript: '~3.8.0', 'ts-loader': '^6.0.0' },
+    { async: true, typescript: '2.7.1', 'ts-loader': '^5.0.0' },
+    { async: false, typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
+    { async: true, typescript: '~3.6.0', 'ts-loader': '^7.0.0' },
+    { async: false, typescript: '~3.8.0', 'ts-loader': '^6.0.0' },
   ])('reports semantic error for %p', async ({ async, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { ...dependencies });
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      async
+    );
     let errors: string[];
 
     // first compilation is successful
@@ -269,7 +274,7 @@ describe('TypeScript Watch API', () => {
     await sandbox.remove('src/authenticate.ts');
 
     errors = await driver.waitForErrors();
-    expect(errors).toEqual([
+    expect(errors).toContain(
       [
         'ERROR in src/index.ts:1:23',
         "TS2307: Cannot find module './authenticate'.",
@@ -278,8 +283,8 @@ describe('TypeScript Watch API', () => {
         "    2 | import { getUserName } from './model/User';",
         '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
-      ].join('\n'),
-    ]);
+      ].join('\n')
+    );
 
     // re-create deleted module
     await sandbox.write(
@@ -351,18 +356,12 @@ describe('TypeScript Watch API', () => {
   });
 
   it.each([
-    { webpack: '4.0.0', async: false, ignored: '[path.resolve(__dirname, "src/model/**")]' },
-    { webpack: '^4.0.0', async: true, ignored: '"**/src/model/**"' },
-    { webpack: '^5.0.0', async: false, ignored: '/src\\/model/' },
-    {
-      webpack: '^4.0.0',
-      async: true,
-      ignored:
-        '(file) => forwardSlash(file).includes(forwardSlash(path.resolve(__dirname, "src/model/")))',
-    },
-  ])('ignores directories from watch with %p', async ({ async, webpack, ignored }) => {
+    { async: false, ignored: '[path.resolve(__dirname, "src/model/**")]' },
+    { async: true, ignored: '"**/src/model/**"' },
+    { async: false, ignored: '/src\\/model/' },
+  ])('ignores directories from watch with %p', async ({ async, ignored }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { webpack });
+    await sandbox.install('yarn', {});
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     await sandbox.patch(
@@ -383,7 +382,10 @@ describe('TypeScript Watch API', () => {
       )
     );
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), async);
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      async
+    );
 
     // first compilation is successful
     await driver.waitForNoErrors();

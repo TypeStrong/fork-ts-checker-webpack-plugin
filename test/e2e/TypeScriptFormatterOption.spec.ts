@@ -10,22 +10,19 @@ describe('TypeScript Formatter Option', () => {
     async ({ async, typescript }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
       await sandbox.install('yarn', { typescript });
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
-
-      // update sandbox to use custom formatter
       await sandbox.patch(
         'webpack.config.js',
-        '      logger: {',
+        '      async: false,',
         [
+          `      async: ${JSON.stringify(async)},`,
           '      formatter: (issue) => {',
           '        return `It is the custom issue statement - ${issue.code}: ${issue.message}`',
           '      },',
-          '      logger: {',
         ].join('\n')
       );
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm run webpack-dev-server'),
+        sandbox.spawn('yarn webpack serve --mode=development'),
         async
       );
 

@@ -40,11 +40,11 @@ describe('TypeScript Formatter Option', () => {
       const errors = await driver.waitForErrors();
       expect(errors).toEqual([
         [
-          'ERROR in src/model/User.ts:11:16',
+          'ERROR in ./src/model/User.ts 11:16-25',
           "It is the custom issue statement - TS2339: Property 'firstName' does not exist on type 'User'.",
         ].join('\n'),
         [
-          'ERROR in src/model/User.ts:11:32',
+          'ERROR in ./src/model/User.ts 11:32-40',
           "It is the custom issue statement - TS2339: Property 'lastName' does not exist on type 'User'.",
         ].join('\n'),
       ]);

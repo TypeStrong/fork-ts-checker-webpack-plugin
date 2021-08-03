@@ -1,12 +1,11 @@
 import webpack from 'webpack';
-import { relative } from 'path';
 import { Issue } from './Issue';
 import { formatIssueLocation } from './IssueLocation';
-import forwardSlash from '../utils/path/forwardSlash';
+import { relativeToContext } from '../utils/path/relativeToContext';
+import chalk from 'chalk';
 
 class IssueWebpackError extends webpack.WebpackError {
   readonly hideStack = true;
-  readonly file: string = '';
 
   constructor(message: string, readonly issue: Issue) {
     super(message);
@@ -15,10 +14,10 @@ class IssueWebpackError extends webpack.WebpackError {
     // should be a NormalModule instance.
     // to avoid such a dependency, we do a workaround - error.file will contain formatted location instead
     if (issue.file) {
-      this.file = forwardSlash(relative(process.cwd(), issue.file));
+      this.file = relativeToContext(issue.file, process.cwd());
 
       if (issue.location) {
-        this.file += `:${formatIssueLocation(issue.location)}`;
+        this.file += ` ${chalk.green.bold(formatIssueLocation(issue.location))}`;
       }
     }
 

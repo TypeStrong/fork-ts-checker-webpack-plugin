@@ -31,7 +31,7 @@ describe('TypeScript PnP Support', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/model/User.ts:11:16',
+        'ERROR in ./src/model/User.ts 11:16-25',
         "TS2339: Property 'firstName' does not exist on type 'User'.",
         '     9 |',
         '    10 | function getUserName(user: User): string {',
@@ -42,7 +42,7 @@ describe('TypeScript PnP Support', () => {
         '    14 | export { User, getUserName };',
       ].join('\n'),
       [
-        'ERROR in src/model/User.ts:11:32',
+        'ERROR in ./src/model/User.ts 11:32-40',
         "TS2339: Property 'lastName' does not exist on type 'User'.",
         '     9 |',
         '    10 | function getUserName(user: User): string {',
@@ -69,7 +69,7 @@ describe('TypeScript PnP Support', () => {
     errors = await driver.waitForErrors();
     expect(errors).toContain(
       [
-        'ERROR in src/index.ts:1:23',
+        'ERROR in ./src/index.ts 1:23-39',
         "TS2307: Cannot find module './authenticate'.",
         "  > 1 | import { login } from './authenticate';",
         '      |                       ^^^^^^^^^^^^^^^^',
@@ -113,7 +113,7 @@ describe('TypeScript PnP Support', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in src/index.ts:34:12',
+        'ERROR in ./src/index.ts 34:12-16',
         "TS2339: Property 'role' does not exist on type 'void'.",
         '    32 |   const user = await login(email, password);',
         '    33 |',
@@ -124,7 +124,7 @@ describe('TypeScript PnP Support', () => {
         '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
       ].join('\n'),
       [
-        'ERROR in src/index.ts:35:45',
+        'ERROR in ./src/index.ts 35:45-49',
         "TS2345: Argument of type 'void' is not assignable to parameter of type 'User'.",
         '    33 |',
         "    34 |   if (user.role === 'admin') {",
@@ -135,7 +135,7 @@ describe('TypeScript PnP Support', () => {
         '    38 |   }',
       ].join('\n'),
       [
-        'ERROR in src/index.ts:37:45',
+        'ERROR in ./src/index.ts 37:45-49',
         "TS2345: Argument of type 'void' is not assignable to parameter of type 'User'.",
         '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
         '    36 |   } else {',

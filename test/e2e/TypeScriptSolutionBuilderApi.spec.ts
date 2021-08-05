@@ -29,7 +29,7 @@ describe('TypeScript SolutionBuilder API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in packages/shared/src/intersect.ts:2:41',
+        'ERROR in ./packages/shared/src/intersect.ts 2:41-49',
         "TS2339: Property 'includes' does not exist on type 'T'.",
         '    1 | function intersect<T>(arrayA: T[] = [], arrayB: T): T[] {',
         '  > 2 |   return arrayA.filter((item) => arrayB.includes(item));',
@@ -51,7 +51,7 @@ describe('TypeScript SolutionBuilder API', () => {
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in packages/client/src/index.ts:4:42',
+        'ERROR in ./packages/client/src/index.ts 4:42-48',
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
         typescript === '~4.0.0'
           ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."

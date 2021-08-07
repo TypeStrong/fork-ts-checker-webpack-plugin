@@ -23,7 +23,7 @@
   }
 }
 
-/// tsconfig.json
+/// tsconfig.base.json
 {
   "compilerOptions": {
     "target": "es5",
@@ -42,7 +42,12 @@
     "declarationMap": true,
     "sourceMap": true,
     "rootDir": "./packages"
-  },
+  }
+}
+
+/// tsconfig.json
+{
+  "extends": "./tsconfig.base.json",
   "files": [],
   "references": [
     { "path": "./packages/shared" },

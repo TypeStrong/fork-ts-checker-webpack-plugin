@@ -150,11 +150,18 @@ function createControlledTypeScriptSystem(
   }
 
   function getReadFileSystem(path: string) {
-    if (
-      !isInitialRun &&
-      (mode === 'readonly' || mode === 'write-tsbuildinfo') &&
-      isArtifact(path)
-    ) {
+    if ((mode === 'readonly' || mode === 'write-tsbuildinfo') && isArtifact(path)) {
+      if (isInitialRun && !memFileSystem.exists(path) && passiveFileSystem.exists(path)) {
+        // copy file to memory on initial run
+        const stats = passiveFileSystem.readStats(path);
+        if (stats?.isFile()) {
+          const content = passiveFileSystem.readFile(path);
+          if (content) {
+            memFileSystem.writeFile(path, content);
+            memFileSystem.updateTimes(path, stats.atime, stats.mtime);
+          }
+        }
+      }
       return memFileSystem;
     }
 
@@ -175,6 +182,9 @@ function createControlledTypeScriptSystem(
   const controlledSystem: ControlledTypeScriptSystem = {
     ...typescript.sys,
     useCaseSensitiveFileNames: caseSensitive,
+    realpath(path: string): string {
+      return getReadFileSystem(path).realPath(path);
+    },
     fileExists(path: string): boolean {
       const stats = getReadFileSystem(path).readStats(path);
 

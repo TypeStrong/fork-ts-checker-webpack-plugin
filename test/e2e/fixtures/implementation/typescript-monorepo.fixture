@@ -12,15 +12,15 @@
 
 /// packages/shared/tsconfig.json
 {
-  "extends": "../../tsconfig",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./lib",
+    "tsBuildInfoFile": "lib/tsconfig.tsbuildinfo",
     "sourceRoot": "./src",
     "baseUrl": "./src"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "lib"]
+  "include": ["src"]
 }
 
 /// packages/shared/src/intersect.ts
@@ -63,16 +63,16 @@ export {
 
 /// packages/client/tsconfig.json
 {
-  "extends": "../../tsconfig",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./lib",
+    "tsBuildInfoFile": "lib/tsconfig.tsbuildinfo",
     "sourceRoot": "./src",
     "baseUrl": "./src"
   },
   "references": [{ "path": "../shared" }],
-  "include": ["src"],
-  "exclude": ["node_modules", "lib"]
+  "include": ["src"]
 }
 
 

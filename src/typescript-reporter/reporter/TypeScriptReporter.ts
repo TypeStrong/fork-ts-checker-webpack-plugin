@@ -266,16 +266,15 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
         diagnosticsPerProject.clear();
         configurationChanged = true;
       } else {
-        const previousParsedConfiguration = parsedConfiguration;
+        const previousDependencies = dependencies;
         [parsedConfiguration, parseConfigurationDiagnostics] = parseConfiguration();
+        dependencies = getDependencies();
 
         if (
-          previousParsedConfiguration &&
-          JSON.stringify(previousParsedConfiguration.fileNames) !==
-            JSON.stringify(parsedConfiguration.fileNames)
+          previousDependencies &&
+          JSON.stringify(previousDependencies) !== JSON.stringify(dependencies)
         ) {
-          // root files changed - we need to recompute dependencies and artifacts
-          dependencies = getDependencies();
+          // dependencies changed - we need to recompute artifacts
           artifacts = getArtifacts();
           shouldUpdateRootFiles = true;
         }

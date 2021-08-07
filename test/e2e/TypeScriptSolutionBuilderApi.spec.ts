@@ -105,6 +105,10 @@ describe('TypeScript SolutionBuilder API', () => {
     await driver.waitForNoErrors();
 
     await sandbox.write('packages/client/src/nested/additional.ts', 'export const x = 10;');
+
+    // this compilation should be successful
+    await driver.waitForNoErrors();
+
     await sandbox.patch(
       'packages/client/src/index.ts',
       'import { intersect, subtract } from "@project-references-fixture/shared";',
@@ -125,31 +129,31 @@ describe('TypeScript SolutionBuilder API', () => {
         break;
 
       case 'write-tsbuildinfo':
-        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(false);
+        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
 
-        expect(await sandbox.read('packages/shared/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
 
-        await sandbox.remove('packages/shared/tsconfig.tsbuildinfo');
-        await sandbox.remove('packages/client/tsconfig.tsbuildinfo');
+        await sandbox.remove('packages/shared/lib');
+        await sandbox.remove('packages/client/lib');
         break;
 
       case 'write-references':
-        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
         expect(await sandbox.exists('packages/client/lib')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(true);
         expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(true);
 
-        expect(await sandbox.read('packages/shared/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
 
-        await sandbox.remove('packages/shared/tsconfig.tsbuildinfo');
-        await sandbox.remove('packages/client/tsconfig.tsbuildinfo');
         await sandbox.remove('packages/shared/lib');
         await sandbox.remove('packages/client/lib');
         break;

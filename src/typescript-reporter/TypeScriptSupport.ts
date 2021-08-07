@@ -8,8 +8,11 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
   let typescriptVersion: string | undefined;
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     typescriptVersion = require(configuration.typescriptPath).version;
-  } catch (error) {}
+  } catch (error) {
+    // silent catch
+  }
 
   if (!typescriptVersion) {
     throw new Error(

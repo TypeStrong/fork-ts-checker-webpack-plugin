@@ -14,6 +14,8 @@ declare global {
 
 beforeAll(async () => {
   const forkTsCheckerWebpackPluginTar = await packLocalPackage(path.resolve(__dirname, '../../'));
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   global.sandbox = await createSandbox({
     lockDirectory: path.resolve(__dirname, '__locks__'),
     fixedDependencies: {
@@ -23,11 +25,15 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   await global.sandbox.reset();
 });
 
 afterAll(async () => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   await global.sandbox.cleanup();
 });
 
-jest.retryTimes(5);
+jest.retryTimes(3);

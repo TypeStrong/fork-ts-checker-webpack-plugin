@@ -79,6 +79,7 @@ function tapStartToConnectAndRunReporter(
     const previousReportPromise = state.reportPromise;
     state.reportPromise = ForkTsCheckerWebpackPlugin.pool.submit(
       (done) =>
+        // eslint-disable-next-line no-async-promise-executor
         new Promise(async (resolve) => {
           change = await hooks.start.promise(change, compilation);
 

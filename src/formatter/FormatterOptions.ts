@@ -1,9 +1,20 @@
-import { ComplexFormatterOptions, FormatterType } from './FormatterFactory';
+import { Formatter } from './Formatter';
+import { BabelCodeFrameOptions } from './types/babel__code-frame';
 
-type ComplexFormatterPreferences<T extends FormatterType = FormatterType> = {
-  type: T;
-  options?: ComplexFormatterOptions<T>;
+type FormatterType = 'basic' | 'codeframe';
+
+type BasicFormatterOptions = {
+  type: 'basic';
 };
-type FormatterOptions = FormatterType | ComplexFormatterPreferences;
+type CodeframeFormatterOptions = {
+  type: 'codeframe';
+  options?: BabelCodeFrameOptions;
+};
+type FormatterOptions =
+  | undefined
+  | FormatterType
+  | BasicFormatterOptions
+  | CodeframeFormatterOptions
+  | Formatter;
 
-export { FormatterOptions };
+export { FormatterOptions, FormatterType, BasicFormatterOptions, CodeframeFormatterOptions };

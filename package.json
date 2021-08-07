@@ -60,18 +60,18 @@
     }
   },
   "dependencies": {
-    "@babel/code-frame": "^7.8.3",
-    "@types/json-schema": "^7.0.5",
-    "chalk": "^4.1.0",
-    "chokidar": "^3.4.2",
-    "cosmiconfig": "^6.0.0",
+    "@babel/code-frame": "^7.14.5",
+    "@types/json-schema": "^7.0.9",
+    "chalk": "^4.1.2",
+    "chokidar": "^3.5.2",
+    "cosmiconfig": "^7.0.0",
     "deepmerge": "^4.2.2",
     "fs-extra": "^9.0.0",
-    "glob": "^7.1.6",
-    "memfs": "^3.1.2",
+    "glob": "^7.1.7",
+    "memfs": "^3.2.2",
     "minimatch": "^3.0.4",
-    "schema-utils": "2.7.0",
-    "semver": "^7.3.2",
+    "schema-utils": "3.1.1",
+    "semver": "^7.3.5",
     "tapable": "^2.0.0"
   },
   "peerDependencies": {

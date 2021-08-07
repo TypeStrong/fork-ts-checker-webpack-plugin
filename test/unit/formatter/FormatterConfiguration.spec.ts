@@ -50,7 +50,7 @@ describe('formatter/FormatterConfiguration', () => {
     '  > 1 | const foo: number = "1";',
     '      |       ^^^',
     '    2 | const bar = 1;',
-    '    3 | ',
+    '    3 |',
     '    4 | function baz() {',
   ].join(os.EOL);
   const CUSTOM_CODEFRAME_FORMATTER_OUTPUT = [

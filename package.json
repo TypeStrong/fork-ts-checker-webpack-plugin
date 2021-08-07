@@ -61,7 +61,6 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.14.5",
-    "@types/json-schema": "^7.0.9",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.2",
     "cosmiconfig": "^7.0.0",
@@ -88,6 +87,7 @@
     "@types/cross-spawn": "^6.0.2",
     "@types/fs-extra": "^9.0.2",
     "@types/jest": "^26.0.14",
+    "@types/json-schema": "^7.0.9",
     "@types/minimatch": "^3.0.1",
     "@types/mock-fs": "^4.13.0",
     "@types/node": "^14.11.10",
@@ -97,7 +97,6 @@
     "@typescript-eslint/parser": "^2.27.0",
     "commitlint": "^11.0.0",
     "cross-env": "^7.0.2",
-    "cross-spawn": "^7.0.3",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.13.0",
     "eslint-plugin-node": "^11.1.0",
@@ -114,7 +113,6 @@
     "rimraf": "^3.0.2",
     "semantic-release": "^17.2.1",
     "strip-ansi": "^6.0.0",
-    "tree-kill": "^1.2.2",
     "ts-jest": "^26.4.1",
     "typescript": "^3.8.3",
     "webpack": "^5.11.0"

@@ -65,7 +65,7 @@
     "chokidar": "^3.5.2",
     "cosmiconfig": "^7.0.0",
     "deepmerge": "^4.2.2",
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "memfs": "^3.2.2",
     "minimatch": "^3.0.4",
@@ -118,7 +118,7 @@
     "webpack": "^5.11.0"
   },
   "engines": {
-    "node": ">=10",
+    "node": ">=12",
     "yarn": ">=1.0.0"
   }
 }

@@ -75,7 +75,8 @@
     "tapable": "^2.0.0"
   },
   "peerDependencies": {
-    "webpack": "^5.11.0"
+    "webpack": "^5.11.0",
+    "typescript": ">3.6.0"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^11.0.0",

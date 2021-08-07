@@ -6,10 +6,10 @@ import {
 
 describe('TypeScript Configuration', () => {
   it.each([
-    { async: true, typescript: '2.7.1', 'ts-loader': '^5.0.0' },
-    { async: false, typescript: '~3.0.0', 'ts-loader': '^6.0.0' },
-    { async: true, typescript: '~3.7.0', 'ts-loader': '^7.0.0' },
-    { async: false, typescript: '~3.8.0', 'ts-loader': '^6.0.0' },
+    { async: true, typescript: '~3.6.0', 'ts-loader': '^7.0.0' },
+    { async: false, typescript: '~3.8.0', 'ts-loader': '^8.0.0' },
+    { async: true, typescript: '~4.0.0', 'ts-loader': '^8.0.0' },
+    { async: false, typescript: '~4.3.0', 'ts-loader': '^8.0.0' },
   ])(
     'change in the tsconfig.json affects compilation for %p',
     async ({ async, ...dependencies }) => {
@@ -39,10 +39,10 @@ describe('TypeScript Configuration', () => {
   );
 
   it.each([
-    { typescript: '2.7.1' },
-    { typescript: '~3.0.0' },
     { typescript: '~3.6.0' },
     { typescript: '^3.8.0' },
+    { typescript: '^4.0.0' },
+    { typescript: '^4.3.0' },
   ])('reports errors because of the misconfiguration', async (dependencies) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { ...dependencies });

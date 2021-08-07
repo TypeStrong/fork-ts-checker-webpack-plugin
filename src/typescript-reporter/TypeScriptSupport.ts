@@ -17,21 +17,11 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
     );
   }
 
-  if (semver.lt(typescriptVersion, '2.7.0')) {
+  if (semver.lt(typescriptVersion, '3.6.0')) {
     throw new Error(
       [
         `ForkTsCheckerWebpackPlugin cannot use the current typescript version of ${typescriptVersion}.`,
-        'The minimum required version is 2.7.0.',
-      ].join(os.EOL)
-    );
-  }
-
-  if (configuration.build && semver.lt(typescriptVersion, '3.6.0')) {
-    throw new Error(
-      [
-        `ForkTsCheckerWebpackPlugin cannot use the current typescript version of ${typescriptVersion} because of the "build" option enabled.`,
-        'The minimum version that supports "build" option is 3.6.0.',
-        'Consider upgrading `typescript` or disabling "build" option.',
+        'The minimum required version is 3.6.0.',
       ].join(os.EOL)
     );
   }

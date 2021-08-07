@@ -4,7 +4,7 @@ import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 describe('TypeScript Formatter Option', () => {
   it.each([
     { async: true, typescript: '~3.6.0' },
-    { async: false, typescript: '~3.8.0' },
+    { async: false, typescript: '~4.3.0' },
   ])(
     'uses the custom formatter to format the error message for %p',
     async ({ async, typescript }) => {

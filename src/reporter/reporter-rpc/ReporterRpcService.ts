@@ -15,6 +15,8 @@ interface ReporterRpcService {
   close: () => Promise<void>;
 }
 
+// suppressing because it will be removed anyway
+// eslint-disable-next-line @typescript-eslint/ban-types
 function registerReporterRpcService<TConfiguration extends object>(
   servicePort: RpcMessagePort,
   reporterFactory: (configuration: TConfiguration) => Reporter

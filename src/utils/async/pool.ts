@@ -5,6 +5,7 @@ interface Pool {
   submit<T>(task: Task<T>): Promise<T>;
   size: number;
   readonly pending: number;
+  readonly drained: Promise<void>;
 }
 
 function createPool(size: number): Pool {
@@ -40,6 +41,15 @@ function createPool(size: number): Pool {
     size,
     get pending() {
       return pendingPromises.length;
+    },
+    get drained() {
+      // eslint-disable-next-line no-async-promise-executor
+      return new Promise<void>(async (resolve) => {
+        while (pendingPromises.length > 0) {
+          await Promise.race(pendingPromises).catch(() => undefined);
+        }
+        resolve(undefined);
+      });
     },
   };
 

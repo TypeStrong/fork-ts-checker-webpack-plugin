@@ -16,6 +16,8 @@ interface ReporterRpcClient extends Reporter {
   disconnect: () => Promise<void>;
 }
 
+// suppressing because it will be removed anyway
+// eslint-disable-next-line @typescript-eslint/ban-types
 function createReporterRpcClient<TConfiguration extends object>(
   channel: RpcMessageChannel,
   configuration: TConfiguration

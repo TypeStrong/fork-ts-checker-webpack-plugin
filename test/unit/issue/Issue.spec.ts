@@ -1,6 +1,6 @@
 import { isIssue, deduplicateAndSortIssues, Issue } from 'lib/issue';
 
-function omit<TObject extends object>(object: TObject, keys: (keyof TObject)[]) {
+function omit<TObject extends Record<string, unknown>>(object: TObject, keys: (keyof TObject)[]) {
   const omittedObject = Object.assign({}, object);
   keys.forEach((key) => delete omittedObject[key]);
 

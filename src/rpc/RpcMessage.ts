@@ -65,6 +65,8 @@ function createRpcReturn<TProcedure extends RpcProcedure>(
   return createRpcMessage(procedure, index, 'return', payload);
 }
 
+// suppressing as it will be removed anyway
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createRpcThrow<TProcedure extends RpcProcedure, TError = Error>(
   procedure: TProcedure,
   index: number,
@@ -81,6 +83,8 @@ function isRpcMessage<
 }
 
 function isRpcCallMessage<
+  // suppressing as it will be removed anyway
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   TType extends string = string,
   TProcedure extends RpcProcedure = RpcProcedure
 >(candidate: unknown): candidate is RpcCall<TProcedure> {
@@ -88,6 +92,8 @@ function isRpcCallMessage<
 }
 
 function isRpcReturnMessage<
+  // suppressing as it will be removed anyway
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   TType extends string = string,
   TProcedure extends RpcProcedure = RpcProcedure
 >(candidate: unknown): candidate is RpcReturn<TProcedure> {
@@ -95,6 +101,8 @@ function isRpcReturnMessage<
 }
 
 function isRpcThrowMessage<
+  // suppressing as it will be removed anyway
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   TType extends string = string,
   TProcedure extends RpcProcedure = RpcProcedure
 >(candidate: unknown): candidate is RpcThrow<TProcedure> {

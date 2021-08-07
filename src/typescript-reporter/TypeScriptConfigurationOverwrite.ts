@@ -1,6 +1,7 @@
 interface TypeScriptConfigurationOverwrite {
   extends?: string;
-  compilerOptions?: object;
+  // eslint-disable-next-line
+  compilerOptions?: any;
   include?: string[];
   exclude?: string[];
   files?: string[];

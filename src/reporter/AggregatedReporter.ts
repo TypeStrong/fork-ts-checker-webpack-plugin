@@ -17,7 +17,7 @@ function createAggregatedReporter<TReporter extends Reporter>(reporter: TReporte
         let resolvePending: () => void;
         pendingPromise = new Promise((resolve) => {
           resolvePending = () => {
-            resolve();
+            resolve(undefined);
             pendingPromise = undefined;
           };
         });

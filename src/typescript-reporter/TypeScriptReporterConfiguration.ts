@@ -49,6 +49,7 @@ function createTypeScriptReporterConfiguration(
     sourceMap: false,
     inlineSourceMap: false,
   };
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   if (semver.gte(require(typescriptPath).version, '2.9.0')) {
     defaultCompilerOptions.declarationMap = false;
   }

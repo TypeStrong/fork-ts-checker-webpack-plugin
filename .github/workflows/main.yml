@@ -9,7 +9,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Yarn cache directory
         id: yarn-cache
@@ -40,7 +40,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        node: [10, 12] # add 14 when we drop support for webpack 4 as fsevents 1 is not compatible with node 14
+        node: [12, 14, 16]
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v1
@@ -96,7 +96,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 16
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile

@@ -4,22 +4,25 @@ import { ReporterRpcClient } from '../reporter';
 
 function tapStopToDisconnectReporter(
   compiler: webpack.Compiler,
-  reporter: ReporterRpcClient,
+  issuesReporter: ReporterRpcClient,
+  dependenciesReporter: ReporterRpcClient,
   state: ForkTsCheckerWebpackPluginState
 ) {
   compiler.hooks.watchClose.tap('ForkTsCheckerWebpackPlugin', () => {
-    reporter.disconnect();
+    issuesReporter.disconnect();
+    dependenciesReporter.disconnect();
   });
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', async () => {
     if (!state.watching) {
-      await reporter.disconnect();
+      await Promise.all([issuesReporter.disconnect(), dependenciesReporter.disconnect()]);
     }
   });
 
   compiler.hooks.failed.tap('ForkTsCheckerWebpackPlugin', () => {
     if (!state.watching) {
-      reporter.disconnect();
+      issuesReporter.disconnect();
+      dependenciesReporter.disconnect();
     }
   });
 }

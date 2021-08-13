@@ -73,7 +73,7 @@ describe('TypeScript Generate Trace', () => {
 
     // update sandbox to generate trace
     await sandbox.patch(
-      'tsconfig.json',
+      'tsconfig.base.json',
       '    "rootDir": "./packages"',
       ['    "rootDir": "./packages",', '    "generateTrace": "./traces"'].join('\n')
     );

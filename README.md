@@ -362,24 +362,37 @@ When we call this method with a [webpack compiler instance](https://webpack.js.o
 [tapable](https://github.com/webpack/tapable) hooks where you can pass in your callbacks.
 
 ```js
-const webpack = require('webpack');
+// ./src/webpack/MyWebpackPlugin.js
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-const compiler = webpack({
-  // ... webpack config
-});
+class MyWebpackPlugin {
+  apply(compiler) {
+    const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
 
-// optionally add the plugin to the compiler
-// **don't do this if already added through configuration**
-new ForkTsCheckerWebpackPlugin().apply(compiler);
+    // log some message on waiting
+    hooks.waiting.tap('MyPlugin', () => {
+      console.log('waiting for issues');
+    });
+    // don't show warnings
+    hooks.issues.tap('MyPlugin', (issues) => 
+      issues.filter((issue) => issue.severity === 'error')
+    );
+  }
+}
 
-// now get the plugin hooks from compiler
-const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+module.exports = MyWebpackPlugin;
 
-// say we want to show some message when plugin is waiting for issues results
-hooks.waiting.tap('yourListenerName', () => {
-  console.log('waiting for issues');
-});
+// webpack.config.js
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const MyWebpackPlugin = require('./src/webpack/MyWebpackPlugin');
+
+module.exports = {
+  /* ... */
+  plugins: [
+    new ForkTsCheckerWebpackPlugin(),
+    new MyWebpackPlugin()
+  ]
+};
 ```
 
 ## Typings

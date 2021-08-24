@@ -42,43 +42,20 @@ describe('typescript-reporter/TypeScriptSupport', () => {
     );
   });
 
-  it('throws error if typescript version is lower then 2.7.0', async () => {
-    jest.setMock('typescript', { version: '2.6.9' });
+  it('throws error if typescript version is lower then 3.6.0', async () => {
+    jest.setMock('typescript', { version: '3.5.9' });
 
     const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
 
     expect(() => assertTypeScriptSupport(configuration)).toThrowError(
       [
-        `ForkTsCheckerWebpackPlugin cannot use the current typescript version of 2.6.9.`,
-        'The minimum required version is 2.7.0.',
+        `ForkTsCheckerWebpackPlugin cannot use the current typescript version of 3.5.9.`,
+        'The minimum required version is 3.6.0.',
       ].join(os.EOL)
     );
   });
 
-  it("doesn't throw error if typescript version is greater or equal 2.7.0", async () => {
-    jest.setMock('typescript', { version: '2.7.0' });
-    jest.setMock('fs-extra', { existsSync: () => true });
-
-    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
-
-    expect(() => assertTypeScriptSupport(configuration)).not.toThrowError();
-  });
-
-  it('throws error if typescript version is lower then 3.6.0 and configuration has enabled build option', async () => {
-    jest.setMock('typescript', { version: '3.5.9' });
-
-    const { assertTypeScriptSupport } = await import('lib/typescript-reporter/TypeScriptSupport');
-
-    expect(() => assertTypeScriptSupport({ ...configuration, build: true })).toThrowError(
-      [
-        `ForkTsCheckerWebpackPlugin cannot use the current typescript version of 3.5.9 because of the "build" option enabled.`,
-        'The minimum version that supports "build" option is 3.6.0.',
-        'Consider upgrading `typescript` or disabling "build" option.',
-      ].join(os.EOL)
-    );
-  });
-
-  it("doesn't throw error if typescript version is greater or equal 3.6.0 and configuration has enabled build option", async () => {
+  it("doesn't throw error if typescript version is greater or equal 3.6.0", async () => {
     jest.setMock('typescript', { version: '3.6.0' });
     jest.setMock('fs-extra', { existsSync: () => true });
 

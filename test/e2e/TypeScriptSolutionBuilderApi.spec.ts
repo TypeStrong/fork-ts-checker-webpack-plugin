@@ -1,11 +1,13 @@
 import path from 'path';
 import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
+import semver from 'semver';
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
     { async: false, typescript: '~3.6.0', mode: 'readonly' },
     { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
-    { async: false, typescript: '~3.8.0', mode: 'write-references' },
+    { async: false, typescript: '~4.0.0', mode: 'write-references' },
+    { async: true, typescript: '~4.3.0', mode: 'readonly' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
     await sandbox.install('yarn', { typescript });
@@ -53,7 +55,7 @@ describe('TypeScript SolutionBuilder API', () => {
       [
         'ERROR in ./packages/client/src/index.ts 4:42-48',
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
-        typescript === '~4.0.0'
+        semver.satisfies(semver.minVersion(typescript), '>=4.0.0')
           ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."
           : "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
         '    2 |',

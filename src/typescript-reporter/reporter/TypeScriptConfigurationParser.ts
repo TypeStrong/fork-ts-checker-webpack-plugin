@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import { normalize, dirname, basename, resolve, relative } from 'path';
 import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 import { FilesMatch } from '../../reporter';
+import forwardSlash from '../../utils/path/forwardSlash';
 
 function parseTypeScriptConfiguration(
   typescript: typeof ts,
@@ -10,8 +11,9 @@ function parseTypeScriptConfiguration(
   configOverwriteJSON: TypeScriptConfigurationOverwrite,
   parseConfigFileHost: ts.ParseConfigFileHost
 ): ts.ParsedCommandLine {
+  const configFilePath = forwardSlash(configFileName);
   const parsedConfigFileJSON = typescript.readConfigFile(
-    configFileName,
+    configFilePath,
     parseConfigFileHost.readFile
   );
 
@@ -34,7 +36,7 @@ function parseTypeScriptConfiguration(
     ...parsedConfigFile,
     options: {
       ...parsedConfigFile.options,
-      configFilePath: configFileName,
+      configFilePath: configFilePath,
     },
     errors: parsedConfigFileJSON.error ? [parsedConfigFileJSON.error] : parsedConfigFile.errors,
   };

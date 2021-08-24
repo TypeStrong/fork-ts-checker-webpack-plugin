@@ -4,10 +4,10 @@ import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Context Option', () => {
   it.each([
-    { async: true, typescript: '2.7.1' },
-    { async: false, typescript: '~3.0.0' },
     { async: true, typescript: '~3.6.0' },
     { async: false, typescript: '~3.8.0' },
+    { async: true, typescript: '~4.0.0' },
+    { async: false, typescript: '~4.3.0' },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { typescript });

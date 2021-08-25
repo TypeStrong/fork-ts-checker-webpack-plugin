@@ -9,7 +9,6 @@ import schema from './ForkTsCheckerWebpackPluginOptions.json';
 import { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
 import { createForkTsCheckerWebpackPluginConfiguration } from './ForkTsCheckerWebpackPluginConfiguration';
 import { createForkTsCheckerWebpackPluginState } from './ForkTsCheckerWebpackPluginState';
-import { composeReporterRpcClients, createAggregatedReporter, ReporterRpcClient } from './reporter';
 import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport';
 import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
@@ -27,9 +26,18 @@ class ForkTsCheckerWebpackPlugin {
    */
   static readonly version: string = '{{VERSION}}'; // will be replaced by the @semantic-release/exec
   /**
-   * Default pool for the plugin concurrency limit
+   * Default pools for the plugin concurrency limit
    */
-  static readonly pool: Pool = createPool(Math.max(1, os.cpus().length));
+  static readonly issuesPool: Pool = createPool(Math.max(1, os.cpus().length));
+  static readonly dependenciesPool: Pool = createPool(Math.max(1, os.cpus().length));
+
+  /**
+   * @deprecated Use ForkTsCheckerWebpackPlugin.issuesPool instead
+   */
+  static get pool(): Pool {
+    // for backward compatibility
+    return ForkTsCheckerWebpackPlugin.issuesPool;
+  }
 
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
@@ -54,26 +62,22 @@ class ForkTsCheckerWebpackPlugin {
   apply(compiler: webpack.Compiler) {
     const configuration = createForkTsCheckerWebpackPluginConfiguration(compiler, this.options);
     const state = createForkTsCheckerWebpackPluginState();
-    const reporters: ReporterRpcClient[] = [];
 
-    if (configuration.typescript.enabled) {
-      assertTypeScriptSupport(configuration.typescript);
-      reporters.push(createTypeScriptReporterRpcClient(configuration.typescript));
-    }
+    assertTypeScriptSupport(configuration.typescript);
+    const issuesReporter = createTypeScriptReporterRpcClient(configuration.typescript);
+    const dependenciesReporter = createTypeScriptReporterRpcClient(configuration.typescript);
 
-    if (reporters.length) {
-      const reporter = createAggregatedReporter(composeReporterRpcClients(reporters));
-
-      tapAfterEnvironmentToPatchWatching(compiler, state);
-      tapStartToConnectAndRunReporter(compiler, reporter, configuration, state);
-      tapAfterCompileToAddDependencies(compiler, configuration, state);
-      tapStopToDisconnectReporter(compiler, reporter, state);
-      tapErrorToLogMessage(compiler, configuration);
-    } else {
-      throw new Error(
-        `ForkTsCheckerWebpackPlugin is configured to not use any issue reporter. It's probably a configuration issue.`
-      );
-    }
+    tapAfterEnvironmentToPatchWatching(compiler, state);
+    tapStartToConnectAndRunReporter(
+      compiler,
+      issuesReporter,
+      dependenciesReporter,
+      configuration,
+      state
+    );
+    tapAfterCompileToAddDependencies(compiler, configuration, state);
+    tapStopToDisconnectReporter(compiler, issuesReporter, dependenciesReporter, state);
+    tapErrorToLogMessage(compiler, configuration);
   }
 }
 

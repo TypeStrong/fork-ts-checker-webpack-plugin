@@ -12,7 +12,8 @@ import { ForkTsCheckerWebpackPlugin } from '../ForkTsCheckerWebpackPlugin';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
-  reporter: ReporterRpcClient,
+  issuesReporter: ReporterRpcClient,
+  dependenciesReporter: ReporterRpcClient,
   configuration: ForkTsCheckerWebpackPluginConfiguration,
   state: ForkTsCheckerWebpackPluginState
 ) {
@@ -64,44 +65,72 @@ function tapStartToConnectAndRunReporter(
     }
 
     let resolveDependencies: (dependencies: FilesMatch | undefined) => void;
-    let rejectedDependencies: (error: Error) => void;
+    let rejectDependencies: (error: Error) => void;
     let resolveIssues: (issues: Issue[] | undefined) => void;
     let rejectIssues: (error: Error) => void;
 
     state.dependenciesPromise = new Promise((resolve, reject) => {
       resolveDependencies = resolve;
-      rejectedDependencies = reject;
+      rejectDependencies = reject;
     });
     state.issuesPromise = new Promise((resolve, reject) => {
       resolveIssues = resolve;
       rejectIssues = reject;
     });
-    const previousReportPromise = state.reportPromise;
-    state.reportPromise = ForkTsCheckerWebpackPlugin.pool.submit(
+    const previousIssuesReportPromise = state.issuesReportPromise;
+    const previousDependenciesReportPromise = state.dependenciesReportPromise;
+
+    change = await hooks.start.promise(change, compilation);
+
+    state.issuesReportPromise = ForkTsCheckerWebpackPlugin.issuesPool.submit(
       (done) =>
         // eslint-disable-next-line no-async-promise-executor
         new Promise(async (resolve) => {
-          change = await hooks.start.promise(change, compilation);
-
           try {
-            await reporter.connect();
+            await issuesReporter.connect();
 
-            const previousReport = await previousReportPromise;
+            const previousReport = await previousIssuesReportPromise;
             if (previousReport) {
               await previousReport.close();
             }
 
-            const report = await reporter.getReport(change, state.watching);
+            const report = await issuesReporter.getReport(change, state.watching);
+            resolve(report);
+
+            report.getIssues().then(resolveIssues).catch(rejectIssues).finally(done);
+          } catch (error) {
+            if (error instanceof OperationCanceledError) {
+              hooks.canceled.call(compilation);
+            } else {
+              hooks.error.call(error, compilation);
+            }
+
+            resolve(undefined);
+            resolveIssues(undefined);
+            done();
+          }
+        })
+    );
+    state.dependenciesReportPromise = ForkTsCheckerWebpackPlugin.dependenciesPool.submit(
+      (done) =>
+        // eslint-disable-next-line no-async-promise-executor
+        new Promise(async (resolve) => {
+          try {
+            await dependenciesReporter.connect();
+
+            const previousReport = await previousDependenciesReportPromise;
+            if (previousReport) {
+              await previousReport.close();
+            }
+
+            const report = await dependenciesReporter.getReport(change, state.watching);
             resolve(report);
 
             report
               .getDependencies()
               .then(resolveDependencies)
-              .catch(rejectedDependencies)
-              .finally(() => {
-                // get issues after dependencies are resolved as it can be blocking
-                report.getIssues().then(resolveIssues).catch(rejectIssues).finally(done);
-              });
+              .catch(rejectDependencies)
+              .finally(done);
           } catch (error) {
             if (error instanceof OperationCanceledError) {
               hooks.canceled.call(compilation);
@@ -111,7 +140,6 @@ function tapStartToConnectAndRunReporter(
 
             resolve(undefined);
             resolveDependencies(undefined);
-            resolveIssues(undefined);
             done();
           }
         })

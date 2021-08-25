@@ -35,18 +35,26 @@
           "additionalProperties": true
         }
       },
-      "required": ["type"]
+      "required": [
+        "type"
+      ]
     },
-    "FormatterType":  {
+    "FormatterType": {
       "type": "string",
-      "enum": ["basic", "codeframe"]
+      "enum": [
+        "basic",
+        "codeframe"
+      ]
     },
     "IssueMatch": {
       "type": "object",
       "properties": {
         "severity": {
           "type": "string",
-          "enum": ["error", "warning"]
+          "enum": [
+            "error",
+            "warning"
+          ]
         },
         "code": {
           "type": "string"
@@ -84,7 +92,11 @@
     },
     "LoggerType": {
       "type": "string",
-      "enum": ["console", "webpack-infrastructure", "silent"]
+      "enum": [
+        "console",
+        "webpack-infrastructure",
+        "silent"
+      ]
     },
     "Logger": {
       "type": "object",
@@ -101,81 +113,73 @@
       }
     },
     "TypeScriptReporterOptions": {
-      "oneOf": [
-        {
-          "type": "boolean",
-          "description": "Enable TypeScript reporter."
+      "type": "object",
+      "properties": {
+        "memoryLimit": {
+          "type": "number",
+          "description": "Memory limit for TypeScript reporter process."
         },
-        {
+        "configFile": {
+          "type": "string",
+          "description": "Path to tsconfig.json. By default plugin uses context or process.cwd() to localize tsconfig.json file."
+        },
+        "context": {
+          "type": "string",
+          "description": "The base path for finding files specified in the tsconfig.json. Same as context option from the ts-loader."
+        },
+        "build": {
+          "type": "boolean",
+          "description": "The equivalent of the `--build` flag from the `tsc`."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "readonly",
+            "write-tsbuildinfo",
+            "write-references"
+          ],
+          "description": "`readonly` keeps all emitted files in memory, `write-tsbuildinfo` which writes only .tsbuildinfo files and `write-references` which writes both .tsbuildinfo and referenced projects output"
+        },
+        "compilerOptions": {
           "type": "object",
+          "description": "Custom compilerOptions to be passed to the TypeScript compiler.",
+          "additionalProperties": true
+        },
+        "diagnosticOptions": {
+          "type": "object",
+          "description": "Types of diagnostics to be reported.",
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "Enable TypeScript reporter."
+            "syntactic": {
+              "type": "boolean"
             },
-            "memoryLimit": {
-              "type": "number",
-              "description": "Memory limit for TypeScript reporter process."
+            "semantic": {
+              "type": "boolean"
             },
-            "configFile": {
-              "type": "string",
-              "description": "Path to tsconfig.json. By default plugin uses context or process.cwd() to localize tsconfig.json file."
+            "declaration": {
+              "type": "boolean"
             },
-            "context": {
-              "type": "string",
-              "description": "The base path for finding files specified in the tsconfig.json. Same as context option from the ts-loader."
-            },
-            "build": {
-              "type": "boolean",
-              "description": "The equivalent of the `--build` flag from the `tsc`."
-            },
-            "mode": {
-              "type": "string",
-              "enum": ["readonly", "write-tsbuildinfo", "write-references"],
-              "description": "`readonly` keeps all emitted files in memory, `write-tsbuildinfo` which writes only .tsbuildinfo files and `write-references` which writes both .tsbuildinfo and referenced projects output"
-            },
-            "compilerOptions": {
-              "type": "object",
-              "description": "Custom compilerOptions to be passed to the TypeScript compiler.",
-              "additionalProperties": true
-            },
-            "diagnosticOptions": {
-              "type": "object",
-              "description": "Types of diagnostics to be reported.",
-              "properties": {
-                "syntactic": {
-                  "type": "boolean"
-                },
-                "semantic": {
-                  "type": "boolean"
-                },
-                "declaration": {
-                  "type": "boolean"
-                },
-                "global": {
-                  "type": "boolean"
-                }
-              }
-            },
-            "extensions": {
-              "type": "object",
-              "properties": {
-                "vue": {
-                  "$ref": "#/definitions/TypeScriptVueExtensionOptions"
-                }
-              }
-            },
-            "profile": {
-              "type": "boolean",
-              "description": "Measures and prints timings related to the TypeScript performance."
-            },
-            "typescriptPath": {
-              "type": "string",
-              "description": "If supplied this is a custom path where TypeScript can be found."
+            "global": {
+              "type": "boolean"
             }
           }
+        },
+        "extensions": {
+          "type": "object",
+          "properties": {
+            "vue": {
+              "$ref": "#/definitions/TypeScriptVueExtensionOptions"
+            }
+          }
+        },
+        "profile": {
+          "type": "boolean",
+          "description": "Measures and prints timings related to the TypeScript performance."
+        },
+        "typescriptPath": {
+          "type": "string",
+          "description": "If supplied this is a custom path where TypeScript can be found."
         }
-      ]
+      }
     },
     "TypeScriptVueExtensionOptions": {
       "oneOf": [

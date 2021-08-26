@@ -3,7 +3,8 @@ import { FilesMatch, Report } from './reporter';
 import { Issue } from './issue';
 
 interface ForkTsCheckerWebpackPluginState {
-  reportPromise: Promise<Report | undefined>;
+  issuesReportPromise: Promise<Report | undefined>;
+  dependenciesReportPromise: Promise<Report | undefined>;
   issuesPromise: Promise<Issue[] | undefined>;
   dependenciesPromise: Promise<FilesMatch | undefined>;
   lastDependencies: FilesMatch | undefined;
@@ -14,7 +15,8 @@ interface ForkTsCheckerWebpackPluginState {
 
 function createForkTsCheckerWebpackPluginState(): ForkTsCheckerWebpackPluginState {
   return {
-    reportPromise: Promise.resolve(undefined),
+    issuesReportPromise: Promise.resolve(undefined),
+    dependenciesReportPromise: Promise.resolve(undefined),
     issuesPromise: Promise.resolve(undefined),
     dependenciesPromise: Promise.resolve(undefined),
     lastDependencies: undefined,

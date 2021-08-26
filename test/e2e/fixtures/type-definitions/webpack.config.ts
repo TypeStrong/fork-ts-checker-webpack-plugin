@@ -5,9 +5,7 @@ const config = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       async: 'invalid_value',
-      typescript: {
-        enabled: true,
-      },
+      typescript: {},
     }),
   ],
 };

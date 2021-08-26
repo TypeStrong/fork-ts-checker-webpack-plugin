@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
 import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 

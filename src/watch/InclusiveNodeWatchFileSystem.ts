@@ -9,7 +9,8 @@ import minimatch from 'minimatch';
 const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
 
 function createIsIgnored(
-  ignored: string | RegExp | (string | RegExp)[] | undefined
+  ignored: string | RegExp | (string | RegExp)[] | undefined,
+  excluded: string[]
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
   const ignoredFunctions = ignoredPatterns.map((pattern) => {
@@ -23,6 +24,9 @@ function createIsIgnored(
       return () => false;
     }
   });
+  ignoredFunctions.push((path: string) =>
+    excluded.some((excludedPath) => path.startsWith(excludedPath))
+  );
   ignoredFunctions.push((path: string) =>
     BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
   );
@@ -58,7 +62,10 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     callbackUndelayed
   ) => {
     clearFilesChange(this.compiler);
-    const isIgnored = createIsIgnored(options?.ignored);
+    const isIgnored = createIsIgnored(
+      options?.ignored,
+      this.pluginState.lastDependencies?.excluded || []
+    );
 
     // use standard watch file system for files and missing
     const standardWatcher = this.watchFileSystem.watch(

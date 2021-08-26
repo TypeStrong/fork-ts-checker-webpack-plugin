@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import { extname } from 'path';
 import { TypeScriptExtension } from './TypeScriptExtension';
 import { Issue } from '../../issue';

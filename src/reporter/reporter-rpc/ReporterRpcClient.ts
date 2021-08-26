@@ -31,8 +31,16 @@ function createReporterRpcClient<TConfiguration extends object>(
         await channel.open();
       }
       if (!rpcClient.isConnected()) {
-        await rpcClient.connect();
-        await rpcClient.dispatchCall(configure, configuration);
+        try {
+          await rpcClient.connect();
+          await rpcClient.dispatchCall(configure, configuration);
+        } catch (error) {
+          // connect or configure was not successful -
+          // close the reporter and re-throw an error
+          await rpcClient.disconnect();
+          await channel.close();
+          throw error;
+        }
       }
     },
     disconnect: async () => {
@@ -77,11 +85,14 @@ function composeReporterRpcClients(clients: ReporterRpcClient[]): ReporterRpcCli
                   new Set([...mergedDependencies.files, ...singleDependencies.files])
                 ),
                 dirs: Array.from(new Set([...mergedDependencies.dirs, ...singleDependencies.dirs])),
+                excluded: Array.from(
+                  new Set([...mergedDependencies.excluded, ...singleDependencies.excluded])
+                ),
                 extensions: Array.from(
                   new Set([...mergedDependencies.extensions, ...singleDependencies.extensions])
                 ),
               }),
-              { files: [], dirs: [], extensions: [] }
+              { files: [], dirs: [], excluded: [], extensions: [] }
             )
           ),
         getIssues: () =>

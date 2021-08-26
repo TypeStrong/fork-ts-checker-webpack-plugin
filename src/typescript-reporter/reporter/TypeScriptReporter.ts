@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import path from 'path';
 import { FilesMatch, Reporter } from '../../reporter';
 import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
@@ -170,6 +170,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
     let dependencies = getDependenciesFromTypeScriptConfiguration(
       typescript,
       parsedConfiguration,
+      configuration.context,
       parseConfigFileHost
     );
 
@@ -481,7 +482,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
               );
             }
             if (!program) {
-              program = ts.createProgram({
+              program = typescript.createProgram({
                 rootNames: parsedConfiguration.fileNames,
                 options: parsedConfiguration.options,
                 projectReferences: parsedConfiguration.projectReferences,

@@ -84,7 +84,13 @@
     "eslint": {
       "optional": true
     },
+    "typescript": {
+      "optional": true
+    },
     "vue-template-compiler": {
+      "optional": true
+    },
+    "webpack": {
       "optional": true
     }
   },

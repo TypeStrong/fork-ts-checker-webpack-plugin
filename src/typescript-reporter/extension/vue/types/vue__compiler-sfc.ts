@@ -23,6 +23,7 @@ interface SFCDescriptor {
   filename: string;
   template: SFCBlock | null;
   script: SFCBlock | null;
+  scriptSetup: SFCBlock | null;
   styles: SFCBlock[];
   customBlocks: SFCBlock[];
 }

@@ -1,4 +1,5 @@
 import { join } from 'path';
+import process from 'process';
 import { readFixture } from './sandbox/Fixture';
 import { Sandbox, createSandbox } from './sandbox/Sandbox';
 import {
@@ -7,6 +8,8 @@ import {
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
 import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
+
+const ignored = process.version.startsWith('v10');
 
 describe('EsLint', () => {
   let sandbox: Sandbox;
@@ -24,17 +27,27 @@ describe('EsLint', () => {
   });
 
   it.each([
-    { async: false, webpack: '4.0.0', absolute: false },
-    { async: true, webpack: '^4.0.0', absolute: true },
-    { async: false, webpack: '^5.0.0', absolute: true },
-    { async: true, webpack: '^5.0.0', absolute: false },
-  ])('reports lint error for %p', async ({ async, webpack, absolute }) => {
+    { async: false, webpack: '4.0.0', eslint: '^6.0.0', absolute: false },
+    { async: true, webpack: '^4.0.0', eslint: '^7.0.0', absolute: true },
+    { async: false, webpack: '^5.0.0', eslint: '^7.0.0', absolute: true },
+    {
+      async: true,
+      webpack: '^5.0.0',
+      eslint: '^8.0.0',
+      absolute: false,
+    },
+  ])('reports lint error for %p', async ({ async, webpack, eslint, absolute }) => {
+    if (ignored) {
+      console.warn('Ignoring test - incompatible node version');
+      return;
+    }
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
         ),
         TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+        ESLINT_VERSION: JSON.stringify(eslint),
         TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
         WEBPACK_VERSION: JSON.stringify(webpack),
         WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
@@ -61,7 +74,7 @@ describe('EsLint', () => {
         'WARNING in src/authenticate.ts:14:34',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
         '    12 | }',
-        '    13 | ',
+        '    13 |',
         '  > 14 | async function logout(): Promise<any> {',
         '       |                                  ^^^',
         '    15 |   const response = await fetch(',
@@ -76,7 +89,7 @@ describe('EsLint', () => {
         "  > 31 | loginForm.addEventListener('submit', async event => {",
         '       |                                            ^^^^^',
         '    32 |   const user = await login(email, password);',
-        '    33 | ',
+        '    33 |',
         "    34 |   if (user.role === 'admin') {",
       ].join('\n'),
     ]);
@@ -127,34 +140,39 @@ describe('EsLint', () => {
         'WARNING in src/model/User.ts:11:5',
         "@typescript-eslint/no-unused-vars: 'temporary' is defined but never used.",
         '     9 | }',
-        '    10 | ',
+        '    10 |',
         '  > 11 | let temporary: any;',
         '       |     ^^^^^^^^^^^^^^',
-        '    12 | ',
-        '    13 | ',
+        '    12 |',
+        '    13 |',
         '    14 | function getUserName(user: User): string {',
       ].join('\n'),
       [
         'WARNING in src/model/User.ts:11:16',
         '@typescript-eslint/no-explicit-any: Unexpected any. Specify a different type.',
         '     9 | }',
-        '    10 | ',
+        '    10 |',
         '  > 11 | let temporary: any;',
         '       |                ^^^',
-        '    12 | ',
-        '    13 | ',
+        '    12 |',
+        '    13 |',
         '    14 | function getUserName(user: User): string {',
       ].join('\n'),
     ]);
   });
 
   it('adds files dependencies to webpack', async () => {
+    if (ignored) {
+      console.warn('Ignoring test - incompatible node version');
+      return;
+    }
     await sandbox.load([
       await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
         FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
         ),
         TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+        ESLINT_VERSION: JSON.stringify('~6.8.0'),
         TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
         WEBPACK_VERSION: JSON.stringify('^4.0.0'),
         WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
@@ -210,54 +228,65 @@ describe('EsLint', () => {
     await driver.waitForNoErrors();
   });
 
-  it('fixes errors with `fix: true` option', async () => {
-    await sandbox.load([
-      await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
-        FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
-          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
-        ),
-        TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
-        TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
-        WEBPACK_VERSION: JSON.stringify('^4.0.0'),
-        WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
-        WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
-        ASYNC: JSON.stringify(false),
-      }),
-      await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
-    ]);
+  it.each([{ eslint: '^6.0.0' }, { eslint: '^7.0.0' }, { eslint: '^8.0.0' }])(
+    'fixes errors with `fix: true` option for %p',
+    async ({ eslint }) => {
+      if (ignored) {
+        console.warn('Ignoring test - incompatible node version');
+        return;
+      }
+      await sandbox.load([
+        await readFixture(join(__dirname, 'fixtures/environment/eslint-basic.fixture'), {
+          FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
+            FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
+          ),
+          TS_LOADER_VERSION: JSON.stringify('^5.0.0'),
+          ESLINT_VERSION: JSON.stringify(eslint),
+          TYPESCRIPT_VERSION: JSON.stringify('~3.8.0'),
+          WEBPACK_VERSION: JSON.stringify('^4.0.0'),
+          WEBPACK_CLI_VERSION: JSON.stringify(WEBPACK_CLI_VERSION),
+          WEBPACK_DEV_SERVER_VERSION: JSON.stringify(WEBPACK_DEV_SERVER_VERSION),
+          ASYNC: JSON.stringify(false),
+        }),
+        await readFixture(join(__dirname, 'fixtures/implementation/typescript-basic.fixture')),
+      ]);
 
-    // fix initial issues
-    await sandbox.patch(
-      'src/authenticate.ts',
-      'async function logout(): Promise<any> {',
-      'async function logout(): Promise<unknown> {'
-    );
-    await sandbox.patch(
-      'src/index.ts',
-      "loginForm.addEventListener('submit', async event => {",
-      "loginForm.addEventListener('submit', async () => {"
-    );
+      // fix initial issues
+      await sandbox.patch(
+        'src/authenticate.ts',
+        'async function logout(): Promise<any> {',
+        'async function logout(): Promise<unknown> {'
+      );
+      await sandbox.patch(
+        'src/index.ts',
+        "loginForm.addEventListener('submit', async event => {",
+        "loginForm.addEventListener('submit', async () => {"
+      );
 
-    // set fix option for the eslint
-    await sandbox.write(
-      'fork-ts-checker.config.js',
-      'module.exports = { eslint: { enabled: true, options: { fix: true } } };'
-    );
+      // set fix option for the eslint
+      await sandbox.write(
+        'fork-ts-checker.config.js',
+        'module.exports = { eslint: { enabled: true, options: { fix: true } } };'
+      );
 
-    // add fixable issue
-    await sandbox.patch(
-      'src/authenticate.ts',
-      'const response = await fetch(',
-      'let response = await fetch('
-    );
+      // add fixable issue
+      await sandbox.patch(
+        'src/authenticate.ts',
+        'const response = await fetch(',
+        'let response = await fetch('
+      );
 
-    const driver = createWebpackDevServerDriver(sandbox.spawn('npm run webpack-dev-server'), false);
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('npm run webpack-dev-server'),
+        false
+      );
 
-    // it should be automatically fixed
-    await driver.waitForNoErrors();
+      // it should be automatically fixed
+      await driver.waitForNoErrors();
 
-    // check if issue has been fixed
-    const content = await sandbox.read('src/authenticate.ts');
-    expect(content).not.toContain('let response = await fetch(');
-  });
+      // check if issue has been fixed
+      const content = await sandbox.read('src/authenticate.ts');
+      expect(content).not.toContain('let response = await fetch(');
+    }
+  );
 });

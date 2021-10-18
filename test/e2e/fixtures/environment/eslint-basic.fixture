@@ -9,10 +9,10 @@
   },
   "devDependencies": {
     "@types/eslint": "^6.8.0",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "css-loader": "^3.5.0",
-    "eslint": "^6.8.0",
+    "eslint": ${ESLINT_VERSION},
     "fork-ts-checker-webpack-plugin": ${FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION},
     "style-loader": "^1.2.0",
     "ts-loader": ${TS_LOADER_VERSION},
@@ -44,11 +44,11 @@
 /// .eslintrc.js
 module.exports = {
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2018,
-    sourceType: 'module'
-  },
-  extends: ['plugin:@typescript-eslint/recommended']
+  plugins: ["@typescript-eslint"],
+  extends: ["plugin:@typescript-eslint/recommended"],
+  rules: {
+    '@typescript-eslint/no-loss-of-precision': 'off'
+  }
 };
 
 /// webpack.config.js

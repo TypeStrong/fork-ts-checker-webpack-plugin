@@ -112,8 +112,8 @@ function createTypeScriptVueExtension(
     } else if (isVueTemplateCompilerV3(compiler)) {
       const parsed = compiler.parse(vueSourceText);
 
-      if (parsed.descriptor && (parsed.descriptor.script || parsed.descriptor.scriptSetup)) {
-        const scriptV3 = (parsed.descriptor.script || parsed.descriptor.scriptSetup)!;
+      if (parsed.descriptor && parsed.descriptor.script) {
+        const scriptV3 = parsed.descriptor.script;
 
         // map newer version of SFCScriptBlock to the generic one
         script = {

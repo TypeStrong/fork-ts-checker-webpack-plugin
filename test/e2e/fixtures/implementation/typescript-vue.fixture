@@ -92,7 +92,7 @@ h1 {
   </p>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import User, { getUserName } from '@/model/User';
 
 export default {

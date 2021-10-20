@@ -30,6 +30,13 @@ export interface CLIEngine {
   resolveFileGlobPatterns(filesPatterns: string[]): string[];
   isPathIgnored(filePath: string): boolean;
 }
+export interface ESLint {
+  version: string;
+  lintFiles(filesPatterns: string[]): Promise<LintResult[]>;
+  isPathIgnored(filePath: string): Promise<boolean>;
+}
+
+export type ESLintOrCLIEngine = CLIEngine | ESLint;
 
 export interface CLIEngineOptions {
   cwd?: string;

@@ -1,29 +1,36 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { CLIEngine, LintReport, LintResult } from '../types/eslint';
+import { CLIEngine, ESLintOrCLIEngine, LintReport, LintResult } from '../types/eslint';
 import { createIssuesFromEsLintResults } from '../issue/EsLintIssueFactory';
 import { EsLintReporterConfiguration } from '../EsLintReporterConfiguration';
 import { Reporter } from '../../reporter';
-import { normalize } from 'path';
+import path from 'path';
+import fs from 'fs-extra';
 import minimatch from 'minimatch';
 import glob from 'glob';
 
+const isOldCLIEngine = (eslint: ESLintOrCLIEngine): eslint is CLIEngine =>
+  (eslint as CLIEngine).resolveFileGlobPatterns !== undefined;
+
 function createEsLintReporter(configuration: EsLintReporterConfiguration): Reporter {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { CLIEngine } = require('eslint');
-  const engine: CLIEngine = new CLIEngine(configuration.options);
+  const { CLIEngine, ESLint } = require('eslint');
+
+  const eslint: ESLintOrCLIEngine = ESLint
+    ? new ESLint(configuration.options)
+    : new CLIEngine(configuration.options);
 
   let isInitialRun = true;
   let isInitialGetFiles = true;
 
   const lintResults = new Map<string, LintResult>();
-  const includedGlobPatterns = engine.resolveFileGlobPatterns(configuration.files);
+  const includedGlobPatterns = resolveFileGlobPatterns(configuration.files);
   const includedFiles = new Set<string>();
 
-  function isFileIncluded(path: string) {
+  async function isFileIncluded(path: string): Promise<boolean> {
     return (
       !path.includes('node_modules') &&
       includedGlobPatterns.some((pattern) => minimatch(path, pattern)) &&
-      !engine.isPathIgnored(path)
+      !(await eslint.isPathIgnored(path))
     );
   }
 
@@ -49,7 +56,7 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
 
       for (const resolvedGlob of resolvedGlobs) {
         for (const resolvedFile of resolvedGlob) {
-          if (isFileIncluded(resolvedFile)) {
+          if (await isFileIncluded(resolvedFile)) {
             includedFiles.add(resolvedFile);
           }
         }
@@ -67,12 +74,43 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
     return configuration.options.extensions || [];
   }
 
+  // Copied from the eslint 6 implementation, as it's not available in eslint 8
+  function resolveFileGlobPatterns(globPatterns: string[]) {
+    if (configuration.options.globInputPaths === false) {
+      return globPatterns.filter(Boolean);
+    }
+
+    const extensions = getExtensions().map((ext) => ext.replace(/^\./u, ''));
+    const dirSuffix = `/**/*.{${extensions.join(',')}}`;
+
+    return globPatterns.filter(Boolean).map((globPattern) => {
+      const resolvedPath = path.resolve(configuration.options.cwd || '', globPattern);
+      const newPath = directoryExists(resolvedPath)
+        ? globPattern.replace(/[/\\]$/u, '') + dirSuffix
+        : globPattern;
+
+      return path.normalize(newPath).replace(/\\/gu, '/');
+    });
+  }
+
+  // Copied from the eslint 6 implementation, as it's not available in eslint 8
+  function directoryExists(resolvedPath: string) {
+    try {
+      return fs.statSync(resolvedPath).isDirectory();
+    } catch (error) {
+      if (error && error.code === 'ENOENT') {
+        return false;
+      }
+      throw error;
+    }
+  }
+
   return {
     getReport: async ({ changedFiles = [], deletedFiles = [] }) => {
       return {
         async getDependencies() {
           for (const changedFile of changedFiles) {
-            if (isFileIncluded(changedFile)) {
+            if (await isFileIncluded(changedFile)) {
               includedFiles.add(changedFile);
             }
           }
@@ -81,8 +119,8 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
           }
 
           return {
-            files: (await getFiles()).map((file) => normalize(file)),
-            dirs: getDirs().map((dir) => normalize(dir)),
+            files: (await getFiles()).map((file) => path.normalize(file)),
+            dirs: getDirs().map((dir) => path.normalize(dir)),
             excluded: [],
             extensions: getExtensions(),
           };
@@ -100,23 +138,38 @@ function createEsLintReporter(configuration: EsLintReporterConfiguration): Repor
           const lintReports: LintReport[] = [];
 
           if (isInitialRun) {
-            lintReports.push(engine.executeOnFiles(includedGlobPatterns));
+            const lintReport: LintReport = await (isOldCLIEngine(eslint)
+              ? Promise.resolve(eslint.executeOnFiles(includedGlobPatterns))
+              : eslint.lintFiles(includedGlobPatterns).then((results) => ({ results })));
+            lintReports.push(lintReport);
             isInitialRun = false;
           } else {
             // we need to take care to not lint files that are not included by the configuration.
             // the eslint engine will not exclude them automatically
-            const changedAndIncludedFiles = changedFiles.filter((changedFile) =>
-              isFileIncluded(changedFile)
-            );
+            const changedAndIncludedFiles: string[] = [];
+            for (const changedFile of changedFiles) {
+              if (await isFileIncluded(changedFile)) {
+                changedAndIncludedFiles.push(changedFile);
+              }
+            }
 
             if (changedAndIncludedFiles.length) {
-              lintReports.push(engine.executeOnFiles(changedAndIncludedFiles));
+              const lintReport: LintReport = await (isOldCLIEngine(eslint)
+                ? Promise.resolve(eslint.executeOnFiles(changedAndIncludedFiles))
+                : eslint.lintFiles(changedAndIncludedFiles).then((results) => ({ results })));
+              lintReports.push(lintReport);
             }
           }
 
           // output fixes if `fix` option is provided
           if (configuration.options.fix) {
-            await Promise.all(lintReports.map((lintReport) => CLIEngine.outputFixes(lintReport)));
+            await Promise.all(
+              lintReports.map((lintReport) =>
+                isOldCLIEngine(eslint)
+                  ? CLIEngine.outputFixes(lintReport)
+                  : ESLint.outputFixes(lintReport.results)
+              )
+            );
           }
 
           // store results

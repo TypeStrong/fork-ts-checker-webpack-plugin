@@ -28,6 +28,14 @@ function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration)
       ].join(os.EOL)
     );
   }
+  if (configuration.build && semver.lt(typescriptVersion, '3.8.0')) {
+    throw new Error(
+      [
+        `ForkTsCheckerWebpackPlugin doesn't support build option for the current typescript version of ${typescriptVersion}.`,
+        'The minimum required version is 3.8.0.',
+      ].join(os.EOL)
+    );
+  }
 
   if (!fs.existsSync(configuration.configFile)) {
     throw new Error(

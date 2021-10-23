@@ -1,3 +1,3 @@
-export * from './Issue';
-export * from './IssueSeverity';
-export * from './IssueLocation';
+export * from './issue';
+export * from './issue-severity';
+export * from './issue-location';

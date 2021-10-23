@@ -1,5 +1,5 @@
 const path = require('path');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { ForkTsCheckerWebpackPlugin } = require('fork-ts-checker-webpack-plugin');
 
 let VueLoaderPlugin;
 try {

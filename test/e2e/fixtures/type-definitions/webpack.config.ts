@@ -1,4 +1,4 @@
-import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
+import { ForkTsCheckerWebpackPlugin } from 'fork-ts-checker-webpack-plugin';
 
 const config = {
   entry: './src/index.ts',

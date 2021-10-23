@@ -85,13 +85,13 @@ you can place your configuration in the:
   
 Options passed to the plugin constructor will overwrite options from the cosmiconfig (using [deepmerge](https://github.com/TehShrike/deepmerge)).
 
-| Name              | Type                               | Default value                                                      | Description |
-| ----------------- | ---------------------------------- | ------------------------------------------------------------------ | ----------- |
-| `async`           | `boolean`                          | `compiler.options.mode === 'development'`                          | If `true`, reports issues **after** webpack's compilation is done. Thanks to that it doesn't block the compilation. Used only in the `watch` mode. |
-| `typescript`      | `object`                           | `{}`                                                               | See [TypeScript options](#typescript-options). |
-| `issue`           | `object`                           | `{}`                                                               | See [Issues options](#issues-options). |
-| `formatter`       | `string` or `object` or `function` | `codeframe`                                                        | Available formatters are `basic`, `codeframe` and a custom `function`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
-| `logger`          | `object`                           | `{ infrastructure: 'silent', issues: 'console', devServer: true }` | Available loggers are `silent`, `console`, and `webpack-infrastructure`. Infrastructure logger prints additional information, issue logger prints `issues` in the `async` mode. If `devServer` is set to `false`, errors will not be reported to Webpack Dev Server. |
+| Name              | Type                               | Default value                             | Description |
+| ----------------- | ---------------------------------- | ----------------------------------------- | ----------- |
+| `async`           | `boolean`                          | `compiler.options.mode === 'development'` | If `true`, reports issues **after** webpack's compilation is done. Thanks to that it doesn't block the compilation. Used only in the `watch` mode. |
+| `typescript`      | `object`                           | `{}`                                      | See [TypeScript options](#typescript-options). |
+| `issue`           | `object`                           | `{}`                                      | See [Issues options](#issues-options). |
+| `formatter`       | `string` or `object` or `function` | `codeframe`                               | Available formatters are `basic`, `codeframe` and a custom `function`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
+| `logger`          | `object`                           | `console`                                 | console-like object to report issues in async mode. |
 
 ### TypeScript options
 
@@ -105,7 +105,7 @@ Options for the TypeScript checker (`typescript` option object).
 | `context`            | `string`  | `dirname(configuration.configFile)`                                                                            | The base path for finding files specified in the `tsconfig.json`. Same as the `context` option from the [ts-loader](https://github.com/TypeStrong/ts-loader#context). Useful if you want to keep your `tsconfig.json` in an external package. Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `fork-ts-checker-webpack-plugin` and `tsc`. When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file referenced in option `configFile`.  |
 | `build`              | `boolean` | `false`                                                                                                        | The equivalent of the `--build` flag for the `tsc` command. |
 | `mode`               | `'readonly'` or `'write-tsbuildinfo'` or `'write-references'` | `'write-tsbuildinfo'`                                      | If you use the `babel-loader`, it's recommended to use `write-references` mode to improve initial compilation time. If you use `ts-loader`, it's recommended to use `write-tsbuildinfo` mode to not overwrite files emitted by the `ts-loader`. |
-| `diagnosticOptions` | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform. |
+| `diagnosticOptions`  | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform. |
 | `extensions`         | `object`  | `{}`                                                                                                           | See [TypeScript extensions options](#typescript-extensions-options). |
 | `profile`            | `boolean` | `false`                                                                                                        | Measures and prints timings related to the TypeScript performance. |
 | `typescriptPath`     | `string`  | `require.resolve('typescript')`                                                                                | If supplied this is a custom path where TypeScript can be found. |
@@ -139,7 +139,7 @@ type IssueFilter = IssueMatch | IssuePredicate | (IssueMatch | IssuePredicate)[]
 
 | Name      | Type          | Default value | Description |
 | --------- | ------------- | ------------- | ----------- |
-| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
+| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](src/issue/issue-match.ts). If `function`, acts as a predicate where `issue` is an argument. |
 | `exclude` | `IssueFilter` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
 
 <details>

@@ -1,6 +1,6 @@
 import type { ChildProcess } from 'child_process';
 
-import stripAnsi from 'strip-ansi';
+import stripAnsi = require('strip-ansi');
 
 import type { Listener, QueuedListener } from './Listener';
 import { createQueuedListener } from './Listener';

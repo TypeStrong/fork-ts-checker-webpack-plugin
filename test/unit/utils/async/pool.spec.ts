@@ -12,20 +12,26 @@ describe('createPool', () => {
   it('limits concurrency', async () => {
     const pool = createPool(2);
     const cleanups: (() => void)[] = [];
-    const shortTask = jest.fn(async (done: () => void) => {
-      const timeout = setTimeout(done, 10);
-      cleanups.push(() => {
-        done();
-        clearTimeout(timeout);
-      });
-    });
-    const longTask = jest.fn(async (done: () => void) => {
-      const timeout = setTimeout(done, 500);
-      cleanups.push(() => {
-        done();
-        clearTimeout(timeout);
-      });
-    });
+    const shortTask = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          const timeout = setTimeout(resolve, 10);
+          cleanups.push(() => {
+            resolve(undefined);
+            clearTimeout(timeout);
+          });
+        })
+    );
+    const longTask = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          const timeout = setTimeout(resolve, 500);
+          cleanups.push(() => {
+            resolve(undefined);
+            clearTimeout(timeout);
+          });
+        })
+    );
 
     pool.submit(shortTask);
     pool.submit(shortTask);

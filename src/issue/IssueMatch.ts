@@ -1,8 +1,12 @@
-import { Issue } from './index';
-import { IssuePredicate } from './IssuePredicate';
-import minimatch from 'minimatch';
 import path from 'path';
+
+import minimatch from 'minimatch';
+
 import forwardSlash from '../utils/path/forwardSlash';
+
+import type { IssuePredicate } from './IssuePredicate';
+
+import type { Issue } from './index';
 
 type IssueMatch = Partial<Pick<Issue, 'severity' | 'code' | 'file'>>;
 

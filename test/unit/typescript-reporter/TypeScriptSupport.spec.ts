@@ -1,5 +1,6 @@
-import { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
 import os from 'os';
+
+import type { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
 
 describe('typescript-reporter/TypeScriptSupport', () => {
   let configuration: TypeScriptReporterConfiguration;

@@ -1,5 +1,5 @@
-import { Issue } from 'lib/issue';
 import { createBasicFormatter } from 'lib/formatter';
+import type { Issue } from 'lib/issue';
 
 describe('formatter/BasicFormatter', () => {
   it.each([

@@ -1,7 +1,9 @@
 import os from 'os';
 import { join } from 'path';
-import { Issue } from 'lib/issue';
-import { createBasicFormatter, createWebpackFormatter, Formatter } from 'lib/formatter';
+
+import type { Formatter } from 'lib/formatter';
+import { createBasicFormatter, createWebpackFormatter } from 'lib/formatter';
+import type { Issue } from 'lib/issue';
 
 describe('formatter/WebpackFormatter', () => {
   const issue: Issue = {

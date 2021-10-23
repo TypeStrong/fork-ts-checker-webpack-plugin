@@ -1,8 +1,10 @@
-import webpack from 'webpack';
-import { Issue } from './Issue';
-import { formatIssueLocation } from './IssueLocation';
-import { relativeToContext } from '../utils/path/relativeToContext';
 import chalk from 'chalk';
+import webpack from 'webpack';
+
+import { relativeToContext } from '../utils/path/relativeToContext';
+
+import type { Issue } from './Issue';
+import { formatIssueLocation } from './IssueLocation';
 
 class IssueWebpackError extends webpack.WebpackError {
   readonly hideStack = true;

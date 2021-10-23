@@ -1,4 +1,4 @@
-import { Issue } from './index';
+import type { Issue } from './index';
 
 type IssuePredicate = (issue: Issue) => boolean;
 

@@ -1,7 +1,7 @@
-import { CodeframeFormatterOptions, FormatterOptions } from './FormatterOptions';
-import { Formatter } from './Formatter';
 import { createBasicFormatter } from './BasicFormatter';
 import { createCodeFrameFormatter } from './CodeFrameFormatter';
+import type { Formatter } from './Formatter';
+import type { CodeframeFormatterOptions, FormatterOptions } from './FormatterOptions';
 
 type FormatterConfiguration = Formatter;
 

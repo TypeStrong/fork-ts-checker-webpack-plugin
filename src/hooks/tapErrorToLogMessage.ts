@@ -1,8 +1,10 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
-import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { RpcIpcMessagePortClosedError } from '../rpc/rpc-ipc/error/RpcIpcMessagePortClosedError';
 import chalk from 'chalk';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
+import { RpcIpcMessagePortClosedError } from '../rpc/rpc-ipc/error/RpcIpcMessagePortClosedError';
+
+import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 
 function tapErrorToLogMessage(
   compiler: webpack.Compiler,

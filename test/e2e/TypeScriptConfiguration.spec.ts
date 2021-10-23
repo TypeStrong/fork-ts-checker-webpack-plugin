@@ -1,8 +1,7 @@
 import path from 'path';
-import {
-  createWebpackDevServerDriver,
-  WebpackDevServerDriver,
-} from './driver/WebpackDevServerDriver';
+
+import type { WebpackDevServerDriver } from './driver/WebpackDevServerDriver';
+import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Configuration', () => {
   it.each([

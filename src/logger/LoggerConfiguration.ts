@@ -1,7 +1,8 @@
-import LoggerOptions from './LoggerOptions';
-import Logger from './Logger';
-import webpack from 'webpack';
+import type webpack from 'webpack';
+
+import type Logger from './Logger';
 import { createLogger } from './LoggerFactory';
+import type LoggerOptions from './LoggerOptions';
 
 interface LoggerConfiguration {
   infrastructure: Logger;

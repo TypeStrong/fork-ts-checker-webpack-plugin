@@ -1,5 +1,5 @@
-import { Formatter } from './Formatter';
-import { BabelCodeFrameOptions } from './types/babel__code-frame';
+import type { Formatter } from './Formatter';
+import type { BabelCodeFrameOptions } from './types/babel__code-frame';
 
 type FormatterType = 'basic' | 'codeframe';
 

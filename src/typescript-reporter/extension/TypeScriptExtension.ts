@@ -1,6 +1,7 @@
 import type * as ts from 'typescript';
-import { Issue } from '../../issue';
-import { FilesMatch } from '../../reporter';
+
+import type { Issue } from '../../issue';
+import type { FilesMatch } from '../../reporter';
 
 interface TypeScriptHostExtension {
   extendWatchSolutionBuilderHost?<

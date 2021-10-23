@@ -1,5 +1,6 @@
 import chalk from 'chalk';
-import { Formatter } from './Formatter';
+
+import type { Formatter } from './Formatter';
 
 function createBasicFormatter(): Formatter {
   return function basicFormatter(issue) {

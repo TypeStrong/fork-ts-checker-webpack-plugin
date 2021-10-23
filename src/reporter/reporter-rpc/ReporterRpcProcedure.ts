@@ -1,7 +1,7 @@
-import { RpcProcedure } from '../../rpc';
-import { FilesChange } from '../FilesChange';
-import { Issue } from '../../issue';
-import { FilesMatch } from '../FilesMatch';
+import type { Issue } from '../../issue';
+import type { RpcProcedure } from '../../rpc';
+import type { FilesChange } from '../FilesChange';
+import type { FilesMatch } from '../FilesMatch';
 
 // suppressing because it will be removed anyway
 // eslint-disable-next-line @typescript-eslint/ban-types

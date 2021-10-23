@@ -1,5 +1,5 @@
-import { IssueMatch } from './IssueMatch';
-import { IssuePredicate } from './IssuePredicate';
+import type { IssueMatch } from './IssueMatch';
+import type { IssuePredicate } from './IssuePredicate';
 
 type IssuePredicateOption = IssuePredicate | IssueMatch | (IssuePredicate | IssueMatch)[];
 

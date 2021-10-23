@@ -1,12 +1,12 @@
-import { RpcProcedure, RpcProcedurePayload, RpcProcedureResult } from './RpcProcedure';
-import { RpcMessagePort } from './RpcMessagePort';
+import { RpcRemoteError } from './error/RpcRemoteError';
 import {
   createRpcCall,
   getRpcMessageKey,
   isRpcReturnMessage,
   isRpcThrowMessage,
 } from './RpcMessage';
-import { RpcRemoteError } from './error/RpcRemoteError';
+import type { RpcMessagePort } from './RpcMessagePort';
+import type { RpcProcedure, RpcProcedurePayload, RpcProcedureResult } from './RpcProcedure';
 
 interface RpcClient {
   readonly isConnected: () => boolean;

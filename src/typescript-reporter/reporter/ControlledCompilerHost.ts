@@ -1,6 +1,8 @@
-import * as ts from 'typescript';
-import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
-import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
+import type * as ts from 'typescript';
+
+import type { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
+
+import type { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledCompilerHost(
   typescript: typeof ts,

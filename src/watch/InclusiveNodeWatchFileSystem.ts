@@ -1,10 +1,14 @@
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
-import chokidar, { FSWatcher } from 'chokidar';
 import { extname } from 'path';
-import { WatchFileSystem } from './WatchFileSystem';
-import { Compiler } from 'webpack';
-import { clearFilesChange, updateFilesChange } from '../reporter';
+
+import type { FSWatcher } from 'chokidar';
+import chokidar from 'chokidar';
 import minimatch from 'minimatch';
+import type { Compiler } from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import { clearFilesChange, updateFilesChange } from '../reporter';
+
+import type { WatchFileSystem } from './WatchFileSystem';
 
 const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
 

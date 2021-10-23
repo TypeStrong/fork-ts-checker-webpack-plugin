@@ -1,4 +1,4 @@
-import { TypeScriptVueExtensionOptions } from './TypeScriptVueExtensionOptions';
+import type { TypeScriptVueExtensionOptions } from './TypeScriptVueExtensionOptions';
 
 interface TypeScriptVueExtensionConfiguration {
   enabled: boolean;

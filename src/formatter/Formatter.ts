@@ -1,4 +1,4 @@
-import { Issue } from '../issue';
+import type { Issue } from '../issue';
 
 type Formatter = (issue: Issue) => string;
 

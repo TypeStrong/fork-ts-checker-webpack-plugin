@@ -1,5 +1,9 @@
-import { Reporter } from '../Reporter';
-import { createRpcClient, RpcMessageChannel } from '../../rpc';
+import type { RpcMessageChannel } from '../../rpc';
+import { createRpcClient } from '../../rpc';
+import flatten from '../../utils/array/flatten';
+import type { FilesChange } from '../FilesChange';
+import type { Reporter } from '../Reporter';
+
 import {
   configure,
   getReport,
@@ -7,8 +11,6 @@ import {
   getIssues,
   closeReport,
 } from './ReporterRpcProcedure';
-import flatten from '../../utils/array/flatten';
-import { FilesChange } from '../FilesChange';
 
 interface ReporterRpcClient extends Reporter {
   isConnected: () => boolean;

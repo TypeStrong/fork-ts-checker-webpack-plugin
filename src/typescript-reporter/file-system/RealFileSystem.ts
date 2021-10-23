@@ -1,8 +1,10 @@
+import type { Dirent, Stats } from 'fs';
 import { dirname, basename, join, normalize } from 'path';
+
 import fs from 'fs-extra';
-import { FileSystem } from './FileSystem';
+
+import type { FileSystem } from './FileSystem';
 // eslint-disable-next-line node/no-unsupported-features/node-builtins
-import { Dirent, Stats } from 'fs';
 
 /**
  * It's an implementation of the FileSystem interface which reads and writes directly to the real file system.

@@ -1,8 +1,11 @@
-import type * as ts from 'typescript';
 import { extname } from 'path';
-import { TypeScriptExtension } from './TypeScriptExtension';
-import { Issue } from '../../issue';
-import { FilesMatch } from '../../reporter';
+
+import type * as ts from 'typescript';
+
+import type { Issue } from '../../issue';
+import type { FilesMatch } from '../../reporter';
+
+import type { TypeScriptExtension } from './TypeScriptExtension';
 
 interface TypeScriptEmbeddedSource {
   sourceText: string;
@@ -51,9 +54,8 @@ function createTypeScriptEmbeddedExtension({
   type FileExists = (fileName: string) => boolean;
   function createEmbeddedFileExists(fileExists: FileExists): FileExists {
     return function embeddedFileExists(fileName) {
-      const { embeddedExtension, embeddedFileName, extension } = parsePotentiallyEmbeddedFileName(
-        fileName
-      );
+      const { embeddedExtension, embeddedFileName, extension } =
+        parsePotentiallyEmbeddedFileName(fileName);
 
       if (embeddedExtensions.includes(embeddedExtension) && fileExists(embeddedFileName)) {
         const embeddedSource = getCachedEmbeddedSource(embeddedFileName);
@@ -67,9 +69,8 @@ function createTypeScriptEmbeddedExtension({
   type ReadFile = (fileName: string, encoding?: string) => string | undefined;
   function createEmbeddedReadFile(readFile: ReadFile): ReadFile {
     return function embeddedReadFile(fileName, encoding) {
-      const { embeddedExtension, embeddedFileName, extension } = parsePotentiallyEmbeddedFileName(
-        fileName
-      );
+      const { embeddedExtension, embeddedFileName, extension } =
+        parsePotentiallyEmbeddedFileName(fileName);
 
       if (embeddedExtensions.includes(embeddedExtension)) {
         const embeddedSource = getCachedEmbeddedSource(embeddedFileName);
@@ -106,9 +107,8 @@ function createTypeScriptEmbeddedExtension({
       return {
         ...host,
         watchFile(fileName, callback, poolingInterval) {
-          const { embeddedExtension, embeddedFileName } = parsePotentiallyEmbeddedFileName(
-            fileName
-          );
+          const { embeddedExtension, embeddedFileName } =
+            parsePotentiallyEmbeddedFileName(fileName);
 
           if (embeddedExtensions.includes(embeddedExtension)) {
             return host.watchFile(
@@ -172,11 +172,8 @@ function createTypeScriptEmbeddedExtension({
       return {
         ...dependencies,
         files: dependencies.files.map((fileName) => {
-          const {
-            embeddedExtension,
-            embeddedFileName,
-            extension,
-          } = parsePotentiallyEmbeddedFileName(fileName);
+          const { embeddedExtension, embeddedFileName, extension } =
+            parsePotentiallyEmbeddedFileName(fileName);
 
           if (embeddedExtensions.includes(embeddedExtension)) {
             const embeddedSource = getCachedEmbeddedSource(embeddedFileName);

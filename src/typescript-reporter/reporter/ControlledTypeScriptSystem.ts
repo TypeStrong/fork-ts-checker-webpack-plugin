@@ -1,10 +1,12 @@
-import type * as ts from 'typescript';
 import { dirname, join } from 'path';
-import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
+
+import type * as ts from 'typescript';
+
+import type { FilesMatch } from '../../reporter';
 import forwardSlash from '../../utils/path/forwardSlash';
-import { createRealFileSystem } from '../file-system/RealFileSystem';
 import { createMemFileSystem } from '../file-system/MemFileSystem';
-import { FilesMatch } from '../../reporter';
+import { createPassiveFileSystem } from '../file-system/PassiveFileSystem';
+import { createRealFileSystem } from '../file-system/RealFileSystem';
 
 interface ControlledTypeScriptSystem extends ts.System {
   // control watcher

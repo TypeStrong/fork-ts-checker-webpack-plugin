@@ -1,5 +1,7 @@
-import { IssueSeverity, compareIssueSeverities, isIssueSeverity } from './IssueSeverity';
-import { compareIssueLocations, IssueLocation } from './IssueLocation';
+import type { IssueLocation } from './IssueLocation';
+import { compareIssueLocations } from './IssueLocation';
+import type { IssueSeverity } from './IssueSeverity';
+import { compareIssueSeverities, isIssueSeverity } from './IssueSeverity';
 
 interface Issue {
   severity: IssueSeverity;

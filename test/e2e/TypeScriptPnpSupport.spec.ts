@@ -1,6 +1,8 @@
 import path from 'path';
-import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
+
 import semver from 'semver';
+
+import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript PnP Support', () => {
   it.each([

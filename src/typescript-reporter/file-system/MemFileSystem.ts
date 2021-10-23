@@ -1,8 +1,10 @@
+import type { Dirent, Stats } from 'fs';
 import { dirname } from 'path';
+
 import { fs as mem } from 'memfs';
-import { FileSystem } from './FileSystem';
+
+import type { FileSystem } from './FileSystem';
 // eslint-disable-next-line node/no-unsupported-features/node-builtins
-import { Dirent, Stats } from 'fs';
 
 /**
  * It's an implementation of FileSystem interface which reads and writes to the in-memory file system.

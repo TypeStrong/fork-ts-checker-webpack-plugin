@@ -1,7 +1,9 @@
 import path from 'path';
-import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
-import { createReporterRpcClient, ReporterRpcClient } from '../../reporter';
+
+import type { ReporterRpcClient } from '../../reporter';
+import { createReporterRpcClient } from '../../reporter';
 import { createRpcIpcMessageChannel } from '../../rpc/rpc-ipc';
+import type { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
 
 function createTypeScriptReporterRpcClient(
   configuration: TypeScriptReporterConfiguration

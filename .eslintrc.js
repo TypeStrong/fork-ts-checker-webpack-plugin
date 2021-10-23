@@ -1,17 +1,42 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'import', 'prettier'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:node/recommended',
-    'prettier',
   ],
   settings: {
     node: {
       tryExtensions: ['.js', '.json', '.ts', '.d.ts'],
     },
+    'import/extensions': ['.js', '.json', '.ts', '.d.ts'],
+    'import/external-module-folders': ['node_modules', 'node_modules/@types'],
+    'import/parsers': {
+      '@typescript-eslint/parser': ['.ts'],
+    },
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.json', '.ts', '.d.ts'],
+      },
+    },
+  },
+  rules: {
+    '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object'],
+        'newlines-between': 'always',
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
+    ],
+    'import/no-cycle': ['error'],
+    'prettier/prettier': 'error',
   },
   overrides: [
     {

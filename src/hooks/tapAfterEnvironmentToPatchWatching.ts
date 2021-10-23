@@ -1,7 +1,8 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { InclusiveNodeWatchFileSystem } from '../watch/InclusiveNodeWatchFileSystem';
-import { WatchFileSystem } from '../watch/WatchFileSystem';
+import type { WatchFileSystem } from '../watch/WatchFileSystem';
 
 function tapAfterEnvironmentToPatchWatching(
   compiler: webpack.Compiler,

@@ -1,5 +1,8 @@
-import { Reporter } from '../Reporter';
-import { createRpcService, RpcMessagePort } from '../../rpc';
+import type { RpcMessagePort } from '../../rpc';
+import { createRpcService } from '../../rpc';
+import type { Report } from '../Report';
+import type { Reporter } from '../Reporter';
+
 import {
   configure,
   getReport,
@@ -7,7 +10,6 @@ import {
   getIssues,
   closeReport,
 } from './ReporterRpcProcedure';
-import { Report } from '../Report';
 
 interface ReporterRpcService {
   isOpen: () => boolean;

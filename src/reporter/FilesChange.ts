@@ -1,6 +1,7 @@
+import type { Compiler } from 'webpack';
+
 import subtract from '../utils/array/substract';
 import unique from '../utils/array/unique';
-import { Compiler } from 'webpack';
 
 interface FilesChange {
   changedFiles?: string[];

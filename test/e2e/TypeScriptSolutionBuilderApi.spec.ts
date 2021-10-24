@@ -4,7 +4,7 @@ import semver from 'semver';
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: '~3.6.0', mode: 'readonly' },
+    { async: false, typescript: '~3.8.0', mode: 'readonly' },
     { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
     { async: false, typescript: '~4.0.0', mode: 'write-references' },
     { async: true, typescript: '~4.3.0', mode: 'readonly' },

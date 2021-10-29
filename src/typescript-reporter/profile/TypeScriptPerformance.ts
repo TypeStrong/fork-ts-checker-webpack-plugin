@@ -1,5 +1,6 @@
 import type * as ts from 'typescript';
-import { Performance } from '../../profile/Performance';
+
+import type { Performance } from '../../profile/Performance';
 
 interface TypeScriptPerformance {
   enable(): void;

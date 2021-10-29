@@ -1,7 +1,10 @@
-import { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
+
 import stripAnsi from 'strip-ansi';
+
+import type { Listener, QueuedListener } from './Listener';
+import { createQueuedListener } from './Listener';
 import { extractWebpackErrors } from './WebpackErrorsExtractor';
-import { createQueuedListener, Listener, QueuedListener } from './Listener';
 
 interface WebpackDevServerDriver {
   process: ChildProcess;

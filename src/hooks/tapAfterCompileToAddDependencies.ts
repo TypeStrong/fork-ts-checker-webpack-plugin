@@ -1,6 +1,7 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 
 function tapAfterCompileToAddDependencies(
   compiler: webpack.Compiler,

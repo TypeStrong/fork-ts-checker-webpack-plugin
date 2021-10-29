@@ -1,14 +1,17 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
-import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
-import { FilesMatch, FilesChange, getFilesChange, ReporterRpcClient } from '../reporter';
+import type webpack from 'webpack';
+
 import { OperationCanceledError } from '../error/OperationCanceledError';
-import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
-import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
+import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import type { Issue } from '../issue';
+import type { FilesMatch, FilesChange, ReporterRpcClient } from '../reporter';
+import { getFilesChange } from '../reporter';
+
 import { interceptDoneToGetWebpackDevServerTap } from './interceptDoneToGetWebpackDevServerTap';
-import { Issue } from '../issue';
-import { ForkTsCheckerWebpackPlugin } from '../ForkTsCheckerWebpackPlugin';
+import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
+import { dependenciesPool, issuesPool } from './pluginPools';
+import { tapAfterCompileToGetIssues } from './tapAfterCompileToGetIssues';
+import { tapDoneToAsyncGetIssues } from './tapDoneToAsyncGetIssues';
 
 function tapStartToConnectAndRunReporter(
   compiler: webpack.Compiler,
@@ -82,7 +85,7 @@ function tapStartToConnectAndRunReporter(
 
     change = await hooks.start.promise(change, compilation);
 
-    state.issuesReportPromise = ForkTsCheckerWebpackPlugin.issuesPool.submit(
+    state.issuesReportPromise = issuesPool.submit(
       (done) =>
         // eslint-disable-next-line no-async-promise-executor
         new Promise(async (resolve) => {
@@ -111,7 +114,7 @@ function tapStartToConnectAndRunReporter(
           }
         })
     );
-    state.dependenciesReportPromise = ForkTsCheckerWebpackPlugin.dependenciesPool.submit(
+    state.dependenciesReportPromise = dependenciesPool.submit(
       (done) =>
         // eslint-disable-next-line no-async-promise-executor
         new Promise(async (resolve) => {

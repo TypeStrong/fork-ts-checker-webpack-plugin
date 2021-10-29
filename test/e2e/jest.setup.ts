@@ -1,6 +1,7 @@
-import { createSandbox, packLocalPackage } from 'karton';
 import path from 'path';
-import { Sandbox } from 'karton';
+
+import { createSandbox, packLocalPackage } from 'karton';
+import type { Sandbox } from 'karton';
 
 declare global {
   let sandbox: Sandbox;

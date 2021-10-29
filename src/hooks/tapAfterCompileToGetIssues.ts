@@ -1,9 +1,11 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
-import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import type { Issue } from '../issue';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
-import { Issue } from '../issue';
+
+import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 
 function tapAfterCompileToGetIssues(
   compiler: webpack.Compiler,

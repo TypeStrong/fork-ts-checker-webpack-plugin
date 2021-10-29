@@ -1,5 +1,6 @@
-import webpack from 'webpack';
-import Logger from './Logger';
+import type webpack from 'webpack';
+
+import type Logger from './Logger';
 
 interface InfrastructureLoggerProvider {
   getInfrastructureLogger(name: string): Logger;

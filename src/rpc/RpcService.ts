@@ -1,6 +1,6 @@
-import { RpcProcedure } from './RpcProcedure';
-import { RpcMessagePort } from './RpcMessagePort';
 import { createRpcReturn, createRpcThrow, isRpcCallMessage } from './RpcMessage';
+import type { RpcMessagePort } from './RpcMessagePort';
+import type { RpcProcedure } from './RpcProcedure';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RpcCallHandler<TPayload = any, TResult = any> = (payload: TPayload) => Promise<TResult>;

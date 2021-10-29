@@ -1,11 +1,9 @@
-import webpack from 'webpack';
+import type webpack from 'webpack';
+
 import { createIssuePredicateFromIssueMatch } from './IssueMatch';
-import {
-  composeIssuePredicates,
-  createTrivialIssuePredicate,
-  IssuePredicate,
-} from './IssuePredicate';
-import { IssuePredicateOption, IssueOptions } from './IssueOptions';
+import type { IssuePredicateOption, IssueOptions } from './IssueOptions';
+import type { IssuePredicate } from './IssuePredicate';
+import { composeIssuePredicates, createTrivialIssuePredicate } from './IssuePredicate';
 
 interface IssueConfiguration {
   predicate: IssuePredicate;

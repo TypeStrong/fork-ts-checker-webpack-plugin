@@ -1,8 +1,10 @@
 import os from 'os';
-import fs from 'fs-extra';
+
 import { codeFrameColumns } from '@babel/code-frame';
-import { Formatter } from './Formatter';
+import fs from 'fs-extra';
+
 import { createBasicFormatter } from './BasicFormatter';
+import type { Formatter } from './Formatter';
 import { BabelCodeFrameOptions } from './types/babel__code-frame';
 
 function createCodeFrameFormatter(options?: BabelCodeFrameOptions): Formatter {

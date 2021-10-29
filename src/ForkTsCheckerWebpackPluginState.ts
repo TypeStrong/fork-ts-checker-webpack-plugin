@@ -1,6 +1,7 @@
-import { FullTap } from 'tapable';
-import { FilesMatch, Report } from './reporter';
-import { Issue } from './issue';
+import type { FullTap } from 'tapable';
+
+import type { Issue } from './issue';
+import type { FilesMatch, Report } from './reporter';
 
 interface ForkTsCheckerWebpackPluginState {
   issuesReportPromise: Promise<Report | undefined>;

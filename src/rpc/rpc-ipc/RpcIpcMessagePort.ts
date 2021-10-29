@@ -1,7 +1,10 @@
-import { ProcessLike } from './ProcessLike';
-import { RpcMessagePort, RpcMessageListener, RpcErrorListener } from '../index';
-import { ChildProcess, fork } from 'child_process';
+import type { ChildProcess } from 'child_process';
+import { fork } from 'child_process';
+
+import type { RpcMessagePort, RpcMessageListener, RpcErrorListener } from '../index';
+
 import { RpcIpcMessagePortClosedError } from './error/RpcIpcMessagePortClosedError';
+import type { ProcessLike } from './ProcessLike';
 
 function createRpcIpcMessagePort(process: ProcessLike): RpcMessagePort {
   const messageListeners = new Set<RpcMessageListener>();

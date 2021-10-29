@@ -1,4 +1,5 @@
-import { isIssue, deduplicateAndSortIssues, Issue } from 'lib/issue';
+import type { Issue } from 'lib/issue';
+import { isIssue, deduplicateAndSortIssues } from 'lib/issue';
 
 function omit<TObject extends Record<string, unknown>>(object: TObject, keys: (keyof TObject)[]) {
   const omittedObject = Object.assign({}, object);

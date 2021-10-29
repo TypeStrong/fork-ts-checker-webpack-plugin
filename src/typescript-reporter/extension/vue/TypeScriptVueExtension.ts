@@ -1,12 +1,12 @@
-import {
-  createTypeScriptEmbeddedExtension,
-  TypeScriptEmbeddedSource,
-} from '../TypeScriptEmbeddedExtension';
 import fs from 'fs-extra';
-import { TypeScriptExtension } from '../TypeScriptExtension';
-import { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
-import { VueTemplateCompilerV2 } from './types/vue-template-compiler';
-import { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
+
+import type { TypeScriptEmbeddedSource } from '../TypeScriptEmbeddedExtension';
+import { createTypeScriptEmbeddedExtension } from '../TypeScriptEmbeddedExtension';
+import type { TypeScriptExtension } from '../TypeScriptExtension';
+
+import type { VueTemplateCompilerV2 } from './types/vue-template-compiler';
+import type { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
+import type { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
 
 interface GenericScriptSFCBlock {
   content: string;

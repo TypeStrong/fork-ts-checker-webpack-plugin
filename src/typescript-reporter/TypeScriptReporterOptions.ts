@@ -1,6 +1,6 @@
-import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
-import { TypeScriptVueExtensionOptions } from './extension/vue/TypeScriptVueExtensionOptions';
-import { TypeScriptConfigurationOverwrite } from './TypeScriptConfigurationOverwrite';
+import type { TypeScriptVueExtensionOptions } from './extension/vue/TypeScriptVueExtensionOptions';
+import type { TypeScriptConfigurationOverwrite } from './TypeScriptConfigurationOverwrite';
+import type { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
 
 type TypeScriptReporterOptions = {
   memoryLimit?: number;

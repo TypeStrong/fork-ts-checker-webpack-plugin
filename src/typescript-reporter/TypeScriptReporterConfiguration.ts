@@ -1,13 +1,13 @@
-import webpack from 'webpack';
 import path from 'path';
+
 import semver from 'semver';
-import { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
-import { TypeScriptReporterOptions } from './TypeScriptReporterOptions';
-import {
-  createTypeScriptVueExtensionConfiguration,
-  TypeScriptVueExtensionConfiguration,
-} from './extension/vue/TypeScriptVueExtensionConfiguration';
-import { TypeScriptConfigurationOverwrite } from './TypeScriptConfigurationOverwrite';
+import type webpack from 'webpack';
+
+import type { TypeScriptVueExtensionConfiguration } from './extension/vue/TypeScriptVueExtensionConfiguration';
+import { createTypeScriptVueExtensionConfiguration } from './extension/vue/TypeScriptVueExtensionConfiguration';
+import type { TypeScriptConfigurationOverwrite } from './TypeScriptConfigurationOverwrite';
+import type { TypeScriptDiagnosticsOptions } from './TypeScriptDiagnosticsOptions';
+import type { TypeScriptReporterOptions } from './TypeScriptReporterOptions';
 
 interface TypeScriptReporterConfiguration {
   enabled: boolean;

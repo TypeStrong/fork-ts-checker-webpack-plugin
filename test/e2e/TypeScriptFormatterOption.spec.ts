@@ -1,4 +1,5 @@
 import path from 'path';
+
 import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Formatter Option', () => {

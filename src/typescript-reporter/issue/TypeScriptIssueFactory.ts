@@ -1,6 +1,9 @@
-import type * as ts from 'typescript';
 import * as os from 'os';
-import { deduplicateAndSortIssues, Issue, IssueLocation } from '../../issue';
+
+import type * as ts from 'typescript';
+
+import type { Issue, IssueLocation } from '../../issue';
+import { deduplicateAndSortIssues } from '../../issue';
 
 function createIssueFromTsDiagnostic(typescript: typeof ts, diagnostic: ts.Diagnostic): Issue {
   let file: string | undefined;
@@ -10,14 +13,10 @@ function createIssueFromTsDiagnostic(typescript: typeof ts, diagnostic: ts.Diagn
     file = diagnostic.file.fileName;
 
     if (diagnostic.start && diagnostic.length) {
-      const {
-        line: startLine,
-        character: startCharacter,
-      } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-      const {
-        line: endLine,
-        character: endCharacter,
-      } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start + diagnostic.length);
+      const { line: startLine, character: startCharacter } =
+        diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+      const { line: endLine, character: endCharacter } =
+        diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start + diagnostic.length);
 
       location = {
         start: {

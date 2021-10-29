@@ -1,5 +1,6 @@
-import path from 'path';
 import os from 'os';
+import path from 'path';
+
 import { createWebpackDevServerDriver } from './driver/WebpackDevServerDriver';
 
 describe('TypeScript Context Option', () => {

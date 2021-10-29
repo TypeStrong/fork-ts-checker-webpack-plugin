@@ -1,8 +1,11 @@
 import os from 'os';
+
 import chalk from 'chalk';
-import { Formatter } from './Formatter';
+
 import { formatIssueLocation } from '../issue';
 import { relativeToContext } from '../utils/path/relativeToContext';
+
+import type { Formatter } from './Formatter';
 
 function createWebpackFormatter(formatter: Formatter): Formatter {
   // mimics webpack error formatter

@@ -1,8 +1,10 @@
-import type * as ts from 'typescript';
 import { normalize, dirname, basename, resolve, relative } from 'path';
-import { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
-import { FilesMatch } from '../../reporter';
+
+import type * as ts from 'typescript';
+
+import type { FilesMatch } from '../../reporter';
 import forwardSlash from '../../utils/path/forwardSlash';
+import type { TypeScriptConfigurationOverwrite } from '../TypeScriptConfigurationOverwrite';
 
 function parseTypeScriptConfiguration(
   typescript: typeof ts,

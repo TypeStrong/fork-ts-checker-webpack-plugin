@@ -1,7 +1,8 @@
-import webpack from 'webpack';
 import path from 'path';
-import { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
-import { TypeScriptReporterOptions } from 'lib/typescript-reporter/TypeScriptReporterOptions';
+
+import type { TypeScriptReporterConfiguration } from 'lib/typescript-reporter/TypeScriptReporterConfiguration';
+import type { TypeScriptReporterOptions } from 'lib/typescript-reporter/TypeScriptReporterOptions';
+import type webpack from 'webpack';
 
 describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
   let compiler: webpack.Compiler;

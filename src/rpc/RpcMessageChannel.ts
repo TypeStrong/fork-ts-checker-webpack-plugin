@@ -1,4 +1,4 @@
-import { RpcMessagePort } from './RpcMessagePort';
+import type { RpcMessagePort } from './RpcMessagePort';
 
 interface RpcMessageChannel {
   readonly servicePort: RpcMessagePort;

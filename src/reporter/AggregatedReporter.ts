@@ -1,6 +1,8 @@
-import { Reporter } from './Reporter';
 import { OperationCanceledError } from '../error/OperationCanceledError';
-import { aggregateFilesChanges, FilesChange } from './FilesChange';
+
+import type { FilesChange } from './FilesChange';
+import { aggregateFilesChanges } from './FilesChange';
+import type { Reporter } from './Reporter';
 
 /**
  * This higher order reporter aggregates too frequent getReport requests to avoid unnecessary computation.

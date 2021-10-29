@@ -1,7 +1,8 @@
 import * as os from 'os';
-import mockFs from 'mock-fs';
-import { Issue } from 'lib/issue';
+
 import { createCodeFrameFormatter } from 'lib/formatter';
+import type { Issue } from 'lib/issue';
+import mockFs from 'mock-fs';
 
 describe('formatter/CodeFrameFormatter', () => {
   beforeEach(() => {

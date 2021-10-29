@@ -1,12 +1,14 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
-import { createIssueConfiguration, IssueConfiguration } from './issue/IssueConfiguration';
-import { createFormatterConfiguration, FormatterConfiguration } from './formatter';
-import {
-  createTypeScriptReporterConfiguration,
-  TypeScriptReporterConfiguration,
-} from './typescript-reporter/TypeScriptReporterConfiguration';
-import { createLoggerConfiguration, LoggerConfiguration } from './logger/LoggerConfiguration';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
+import type { FormatterConfiguration } from './formatter';
+import { createFormatterConfiguration } from './formatter';
+import type { IssueConfiguration } from './issue/IssueConfiguration';
+import { createIssueConfiguration } from './issue/IssueConfiguration';
+import type { LoggerConfiguration } from './logger/LoggerConfiguration';
+import { createLoggerConfiguration } from './logger/LoggerConfiguration';
+import type { TypeScriptReporterConfiguration } from './typescript-reporter/TypeScriptReporterConfiguration';
+import { createTypeScriptReporterConfiguration } from './typescript-reporter/TypeScriptReporterConfiguration';
 
 interface ForkTsCheckerWebpackPluginConfiguration {
   async: boolean;

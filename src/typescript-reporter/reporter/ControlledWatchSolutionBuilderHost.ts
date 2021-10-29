@@ -1,7 +1,9 @@
 import type * as ts from 'typescript';
+
+import type { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
+
+import type { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
-import { TypeScriptHostExtension } from '../extension/TypeScriptExtension';
-import { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
 
 function createControlledWatchSolutionBuilderHost<TProgram extends ts.BuilderProgram>(
   typescript: typeof ts,

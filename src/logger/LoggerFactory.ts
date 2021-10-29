@@ -1,7 +1,8 @@
-import webpack from 'webpack';
-import Logger from './Logger';
-import { createWebpackInfrastructureLogger } from './WebpackInfrastructureLogger';
+import type webpack from 'webpack';
+
+import type Logger from './Logger';
 import { createPartialLogger } from './PartialLogger';
+import { createWebpackInfrastructureLogger } from './WebpackInfrastructureLogger';
 
 type LoggerType = 'console' | 'webpack-infrastructure' | 'silent';
 

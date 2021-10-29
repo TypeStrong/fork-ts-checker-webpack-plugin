@@ -1,4 +1,4 @@
-import { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
+import type { TypeScriptVueExtensionConfiguration } from './TypeScriptVueExtensionConfiguration';
 
 function assertTypeScriptVueExtensionSupport(configuration: TypeScriptVueExtensionConfiguration) {
   // We need to import template compiler for vue lazily because it cannot be included it

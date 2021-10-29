@@ -1,5 +1,7 @@
 import path from 'path';
+
 import stripAnsi from 'strip-ansi';
+
 import { extractWebpackErrors } from './driver/WebpackErrorsExtractor';
 
 describe('Webpack Production Build', () => {

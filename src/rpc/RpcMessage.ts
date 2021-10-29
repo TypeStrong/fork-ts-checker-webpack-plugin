@@ -1,4 +1,4 @@
-import { RpcProcedure, RpcProcedurePayload, RpcProcedureResult } from './RpcProcedure';
+import type { RpcProcedure, RpcProcedurePayload, RpcProcedureResult } from './RpcProcedure';
 
 interface RpcMessage<
   TType extends string = string,

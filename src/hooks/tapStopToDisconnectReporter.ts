@@ -1,6 +1,7 @@
-import webpack from 'webpack';
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
-import { ReporterRpcClient } from '../reporter';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import type { ReporterRpcClient } from '../reporter';
 
 function tapStopToDisconnectReporter(
   compiler: webpack.Compiler,

@@ -1,25 +1,26 @@
-import type * as ts from 'typescript';
 import path from 'path';
-import { FilesMatch, Reporter } from '../../reporter';
-import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
-import { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
-import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
-import { TypeScriptExtension } from '../extension/TypeScriptExtension';
+
+import type * as ts from 'typescript';
+
+import { createPerformance } from '../../profile/Performance';
+import type { FilesMatch, Reporter } from '../../reporter';
+import type { TypeScriptExtension } from '../extension/TypeScriptExtension';
 import { createTypeScriptVueExtension } from '../extension/vue/TypeScriptVueExtension';
+import { createIssuesFromTsDiagnostics } from '../issue/TypeScriptIssueFactory';
+import { connectTypeScriptPerformance } from '../profile/TypeScriptPerformance';
+import type { TypeScriptReporterConfiguration } from '../TypeScriptReporterConfiguration';
+
+import { createControlledCompilerHost } from './ControlledCompilerHost';
+import type { ControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
+import { createControlledTypeScriptSystem } from './ControlledTypeScriptSystem';
+import { createControlledWatchCompilerHost } from './ControlledWatchCompilerHost';
 import { createControlledWatchSolutionBuilderHost } from './ControlledWatchSolutionBuilderHost';
-import {
-  ControlledTypeScriptSystem,
-  createControlledTypeScriptSystem,
-} from './ControlledTypeScriptSystem';
 import {
   getDependenciesFromTypeScriptConfiguration,
   getArtifactsFromTypeScriptConfiguration,
   parseTypeScriptConfiguration,
   isIncrementalCompilation,
 } from './TypeScriptConfigurationParser';
-import { createPerformance } from '../../profile/Performance';
-import { connectTypeScriptPerformance } from '../profile/TypeScriptPerformance';
-import { createControlledCompilerHost } from './ControlledCompilerHost';
 
 // write this type as it's available only in the newest TypeScript versions (^4.1.0)
 interface Tracing {
@@ -63,7 +64,7 @@ function createTypeScriptReporter(configuration: TypeScriptReporterConfiguration
   }
 
   function getConfigFilePathFromCompilerOptions(compilerOptions: ts.CompilerOptions): string {
-    return (compilerOptions.configFilePath as unknown) as string;
+    return compilerOptions.configFilePath as unknown as string;
   }
 
   function getProjectNameOfBuilderProgram(builderProgram: ts.BuilderProgram): string {

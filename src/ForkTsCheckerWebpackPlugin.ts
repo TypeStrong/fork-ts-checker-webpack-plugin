@@ -1,24 +1,24 @@
-import webpack from 'webpack';
-import { validate } from 'schema-utils';
-// type only dependency
-// eslint-disable-next-line node/no-extraneous-import
-import type { JSONSchema7 } from 'json-schema';
 import { cosmiconfigSync } from 'cosmiconfig';
 import merge from 'deepmerge';
-import schema from './ForkTsCheckerWebpackPluginOptions.json';
-import { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
+import type { JSONSchema7 } from 'json-schema';
+import { validate } from 'schema-utils';
+import type webpack from 'webpack';
+// type only dependency
+// eslint-disable-next-line node/no-extraneous-import
+
 import { createForkTsCheckerWebpackPluginConfiguration } from './ForkTsCheckerWebpackPluginConfiguration';
+import type { ForkTsCheckerWebpackPluginOptions } from './ForkTsCheckerWebpackPluginOptions';
+import schema from './ForkTsCheckerWebpackPluginOptions.json';
 import { createForkTsCheckerWebpackPluginState } from './ForkTsCheckerWebpackPluginState';
-import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport';
-import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
+import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
+import { dependenciesPool, issuesPool } from './hooks/pluginPools';
+import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
+import { tapAfterEnvironmentToPatchWatching } from './hooks/tapAfterEnvironmentToPatchWatching';
+import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
 import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
 import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
-import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
-import { getForkTsCheckerWebpackPluginHooks } from './hooks/pluginHooks';
-import { tapAfterEnvironmentToPatchWatching } from './hooks/tapAfterEnvironmentToPatchWatching';
-import { createPool, Pool } from './utils/async/pool';
-import os from 'os';
+import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
+import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport';
 
 class ForkTsCheckerWebpackPlugin {
   /**
@@ -28,16 +28,13 @@ class ForkTsCheckerWebpackPlugin {
   /**
    * Default pools for the plugin concurrency limit
    */
-  static readonly issuesPool: Pool = createPool(Math.max(1, os.cpus().length));
-  static readonly dependenciesPool: Pool = createPool(Math.max(1, os.cpus().length));
+  static readonly issuesPool = issuesPool;
+  static readonly dependenciesPool = dependenciesPool;
 
   /**
    * @deprecated Use ForkTsCheckerWebpackPlugin.issuesPool instead
    */
-  static get pool(): Pool {
-    // for backward compatibility
-    return ForkTsCheckerWebpackPlugin.issuesPool;
-  }
+  static readonly pool = issuesPool;
 
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 

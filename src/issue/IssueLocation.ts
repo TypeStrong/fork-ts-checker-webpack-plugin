@@ -1,4 +1,5 @@
-import { compareIssuePositions, IssuePosition } from './IssuePosition';
+import type { IssuePosition } from './IssuePosition';
+import { compareIssuePositions } from './IssuePosition';
 
 interface IssueLocation {
   start: IssuePosition;

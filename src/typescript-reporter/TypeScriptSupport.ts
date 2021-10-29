@@ -1,8 +1,10 @@
-import * as semver from 'semver';
-import fs from 'fs-extra';
 import os from 'os';
-import { TypeScriptReporterConfiguration } from './TypeScriptReporterConfiguration';
+
+import fs from 'fs-extra';
+import * as semver from 'semver';
+
 import { assertTypeScriptVueExtensionSupport } from './extension/vue/TypeScriptVueExtensionSupport';
+import type { TypeScriptReporterConfiguration } from './TypeScriptReporterConfiguration';
 
 function assertTypeScriptSupport(configuration: TypeScriptReporterConfiguration) {
   let typescriptVersion: string | undefined;

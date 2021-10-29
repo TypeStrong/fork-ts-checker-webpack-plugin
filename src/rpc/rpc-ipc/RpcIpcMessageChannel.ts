@@ -1,4 +1,6 @@
-import { createRpcMessageChannel, RpcMessageChannel } from '../index';
+import type { RpcMessageChannel } from '../index';
+import { createRpcMessageChannel } from '../index';
+
 import { createRpcIpcForkedProcessMessagePort } from './RpcIpcMessagePort';
 
 function createRpcIpcMessageChannel(servicePath: string, memoryLimit = 2048): RpcMessageChannel {

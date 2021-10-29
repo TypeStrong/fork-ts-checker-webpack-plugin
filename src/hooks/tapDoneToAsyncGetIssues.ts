@@ -1,13 +1,15 @@
-import webpack from 'webpack';
 import chalk from 'chalk';
-import { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
-import { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
-import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
+import type webpack from 'webpack';
+
+import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
+import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { createWebpackFormatter } from '../formatter/WebpackFormatter';
-import { Issue } from '../issue';
+import type { Issue } from '../issue';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
 import isPending from '../utils/async/isPending';
 import wait from '../utils/async/wait';
+
+import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 
 function tapDoneToAsyncGetIssues(
   compiler: webpack.Compiler,

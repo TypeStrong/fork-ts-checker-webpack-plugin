@@ -17,7 +17,7 @@
     "typescript": ${TYPESCRIPT_VERSION},
     "vue-loader": ${VUE_LOADER_VERSION},
     ${VUE_COMPILER}: ${VUE_VERSION},
-    "qrcode.vue": "^1.7.0",
+    "qrcode.vue": ${QRCODE_VUE_VERSION},
     "webpack": ${WEBPACK_VERSION},
     "webpack-cli": ${WEBPACK_CLI_VERSION},
     "webpack-dev-server": ${WEBPACK_DEV_SERVER_VERSION}

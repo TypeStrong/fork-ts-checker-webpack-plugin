@@ -11,8 +11,6 @@ import { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
 interface GenericScriptSFCBlock {
   content: string;
   attrs: Record<string, string | true>;
-  start?: number;
-  end?: number;
   lang?: string;
   src?: string;
 }
@@ -105,25 +103,38 @@ function createTypeScriptVueExtension(
     let script: GenericScriptSFCBlock | undefined;
     if (isVueTemplateCompilerV2(compiler)) {
       const parsed = compiler.parseComponent(vueSourceText, {
-        pad: 'space',
+        pad: 'line',
       });
 
       script = parsed.script;
     } else if (isVueTemplateCompilerV3(compiler)) {
-      const parsed = compiler.parse(vueSourceText);
+      const parsed = compiler.parse(vueSourceText, {
+        pad: 'line',
+      });
 
-      if (parsed.descriptor && parsed.descriptor.script) {
-        const scriptV3 = parsed.descriptor.script;
+      if (parsed.descriptor) {
+        const scriptV3 = parsed.descriptor.scriptSetup || parsed.descriptor.script;
+        const isScriptSetup = Boolean(parsed.descriptor.scriptSetup);
 
-        // map newer version of SFCScriptBlock to the generic one
-        script = {
-          content: scriptV3.content,
-          attrs: scriptV3.attrs,
-          start: scriptV3.loc.start.offset,
-          end: scriptV3.loc.end.offset,
-          lang: scriptV3.lang,
-          src: scriptV3.src,
-        };
+        if (scriptV3) {
+          const scriptV3Content =
+            isScriptSetup && scriptV3.content
+              ? scriptV3.content +
+                [
+                  'export default {};',
+                  // fallback to "any" in case we can't import from '@vue/runtime-core';
+                  '// @ts-ignore',
+                  "import { defineProps, defineEmits, defineExpose, withDefaults } from '@vue/runtime-core';",
+                ].join('\n')
+              : scriptV3.content;
+          // map newer version of SFCScriptBlock to the generic one
+          script = {
+            content: scriptV3Content,
+            attrs: scriptV3.attrs,
+            lang: scriptV3.lang,
+            src: scriptV3.src,
+          };
+        }
       }
     } else {
       throw new Error(
@@ -141,12 +152,7 @@ function createTypeScriptVueExtension(
       }
     } else {
       // <script lang="ts"></script> block
-      // pad blank lines to retain diagnostics location
-      const lineOffset = vueSourceText.slice(0, script.start).split(/\r?\n/g).length;
-      const paddedSourceText =
-        Array(lineOffset).join('\n') + vueSourceText.slice(script.start, script.end);
-
-      return createVueInlineScriptEmbeddedSource(paddedSourceText, script.attrs.lang);
+      return createVueInlineScriptEmbeddedSource(script.content, script.attrs.lang);
     }
   }
 

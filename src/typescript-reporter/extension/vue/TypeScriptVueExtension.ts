@@ -10,8 +10,7 @@ import { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
 
 interface GenericScriptSFCBlock {
   content: string;
-  attrs: Record<string, string | true>;
-  lang?: string;
+  attrs: Record<string, string | true | undefined>;
   src?: string;
 }
 
@@ -92,6 +91,22 @@ function createTypeScriptVueExtension(
     };
   }
 
+  function mergeVueScriptsContent(
+    scriptContent: string | undefined,
+    scriptSetupContent: string | undefined
+  ): string {
+    const scriptLines = scriptContent?.split(/\r?\n/) ?? [];
+    const scriptSetupLines = scriptSetupContent?.split(/\r?\n/) ?? [];
+    const maxScriptLines = Math.max(scriptLines.length, scriptSetupLines.length);
+    const mergedScriptLines: string[] = [];
+
+    for (let line = 0; line < maxScriptLines; ++line) {
+      mergedScriptLines.push(scriptLines[line] || scriptSetupLines[line]);
+    }
+
+    return mergedScriptLines.join('\n');
+  }
+
   function getVueEmbeddedSource(fileName: string): TypeScriptEmbeddedSource | undefined {
     if (!fs.existsSync(fileName)) {
       return undefined;
@@ -113,26 +128,32 @@ function createTypeScriptVueExtension(
       });
 
       if (parsed.descriptor) {
-        const scriptV3 = parsed.descriptor.scriptSetup || parsed.descriptor.script;
-        const isScriptSetup = Boolean(parsed.descriptor.scriptSetup);
+        const parsedScript = parsed.descriptor.script;
+        const parsedScriptSetup = parsed.descriptor.scriptSetup;
+        let parsedContent = mergeVueScriptsContent(
+          parsedScript?.content,
+          parsedScriptSetup?.content
+        );
 
-        if (scriptV3) {
-          const scriptV3Content =
-            isScriptSetup && scriptV3.content
-              ? scriptV3.content +
-                [
-                  'export default {};',
-                  // fallback to "any" in case we can't import from '@vue/runtime-core';
-                  '// @ts-ignore',
-                  "import { defineProps, defineEmits, defineExpose, withDefaults } from '@vue/runtime-core';",
-                ].join('\n')
-              : scriptV3.content;
+        if (parsedScriptSetup) {
+          // a little bit naive, but should work in 99.9% cases without need for parsing script
+          const alreadyHasExportDefault = /export\s+default[\s|{]/gm.test(parsedContent);
+
+          if (!alreadyHasExportDefault) {
+            parsedContent += '\nexport default {};';
+          }
+          // add script setup lines at the end
+          parsedContent +=
+            "\n// @ts-ignore\nimport { defineProps, defineEmits, defineExpose, withDefaults } from '@vue/runtime-core';";
+        }
+
+        if (parsedScript || parsedScriptSetup) {
           // map newer version of SFCScriptBlock to the generic one
           script = {
-            content: scriptV3Content,
-            attrs: scriptV3.attrs,
-            lang: scriptV3.lang,
-            src: scriptV3.src,
+            content: parsedContent,
+            attrs: {
+              lang: parsedScript?.lang || parsedScriptSetup?.lang,
+            },
           };
         }
       }

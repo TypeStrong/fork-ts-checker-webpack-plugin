@@ -189,6 +189,31 @@ describe('TypeScript Vue Extension', () => {
             '    9 | });',
           ].join('\n'),
         ]);
+        // fix the issue
+        await sandbox.patch('src/component/Header.vue', 'let x: number = "1"', '');
+        await driver.waitForNoErrors();
+
+        // introduce error in second <script>
+        await sandbox.patch(
+          'src/component/Logo.vue',
+          'export default {',
+          ['let x: number = "1";', 'export default {'].join('\n')
+        );
+
+        errors = await driver.waitForErrors();
+        expect(errors).toEqual([
+          [
+            'ERROR in src/component/Logo.vue:15:5',
+            "TS2322: Type '\"1\"' is not assignable to type 'number'.",
+            '    13 |',
+            '    14 | <script lang="ts">',
+            '  > 15 | let x: number = "1";',
+            '       |     ^',
+            '    16 | export default {',
+            '    17 |   inheritAttrs: false,',
+            '    18 |   customOptions: {}',
+          ].join('\n'),
+        ]);
       }
     }
   );

@@ -43,6 +43,13 @@ withDefaults(defineProps<Props>(), {
 })
 </script>
 
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+  customOptions: {}
+}
+</script>
+
 <style scoped>
 img {
   width: 100%;

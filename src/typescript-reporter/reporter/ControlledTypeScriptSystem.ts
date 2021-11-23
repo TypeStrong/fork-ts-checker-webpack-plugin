@@ -39,7 +39,7 @@ interface ControlledTypeScriptSystem extends ts.System {
   setArtifacts(artifacts: FilesMatch): void;
 }
 
-type FileSystemMode = 'readonly' | 'write-tsbuildinfo' | 'write-references';
+type FileSystemMode = 'readonly' | 'write-tsbuildinfo' | 'write-dts' | 'write-references';
 
 function createControlledTypeScriptSystem(
   typescript: typeof ts,
@@ -171,7 +171,9 @@ function createControlledTypeScriptSystem(
   function getWriteFileSystem(path: string) {
     if (
       mode === 'write-references' ||
-      (mode === 'write-tsbuildinfo' && path.endsWith('.tsbuildinfo'))
+      (mode === 'write-tsbuildinfo' && path.endsWith('.tsbuildinfo')) ||
+      (mode === 'write-dts' &&
+        ['.tsbuildinfo', '.d.ts', '.d.ts.map'].some((prefix) => path.endsWith(prefix)))
     ) {
       return realFileSystem;
     }

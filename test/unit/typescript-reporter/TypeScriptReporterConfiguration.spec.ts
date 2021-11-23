@@ -74,6 +74,7 @@ describe('typescript-reporter/TypeScriptsReporterConfiguration', () => {
     [{ build: true }, { ...configuration, build: true }],
     [{ mode: 'readonly' }, { ...configuration, mode: 'readonly' }],
     [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
+    [{ mode: 'write-dts' }, { ...configuration, mode: 'write-dts' }],
     [{ mode: 'write-references' }, { ...configuration, mode: 'write-references' }],
     [
       { configOverwrite: { compilerOptions: { strict: true }, include: ['src'] } },

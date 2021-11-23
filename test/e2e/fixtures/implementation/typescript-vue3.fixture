@@ -1,0 +1,63 @@
+/// src/App.vue
+<template>
+  <Header title="My App" />
+  <Logo />
+  <LoginView />
+</template>
+
+<script setup lang="ts">
+import Header from './component/Header.vue';
+import Logo from './component/Logo.vue';
+import LoginView from './component/LoginView.vue';
+</script>
+
+/// src/component/Header.vue
+<template>
+  <h1>{{ title }}</h1>
+</template>
+
+<script setup lang="ts">
+defineProps({
+  title: String,
+});
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+h1 {
+  font-size: 32px;
+}
+</style>
+
+/// src/component/Logo.vue
+<template>
+  <img src="public/logo.png" v-bind:class="size" />
+</template>
+
+<script setup lang="ts">
+interface Props {
+  size: 'sm' | 'lg' | 'xl';
+}
+withDefaults(defineProps<Props>(), {
+  size: 'sm'
+})
+</script>
+
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+  customOptions: {}
+}
+</script>
+
+<style scoped>
+img {
+  width: 100%;
+}
+.sm {
+  width: 50%;
+}
+.xl {
+  width: 200%;
+}
+</style>

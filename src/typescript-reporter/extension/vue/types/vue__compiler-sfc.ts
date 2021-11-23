@@ -23,6 +23,7 @@ interface SFCDescriptor {
   filename: string;
   template: SFCBlock | null;
   script: SFCBlock | null;
+  scriptSetup: SFCBlock | null;
   styles: SFCBlock[];
   customBlocks: SFCBlock[];
 }
@@ -37,7 +38,11 @@ interface SFCParseResult {
   errors: CompilerError[];
 }
 
+interface SFCParserOptionsV3 {
+  pad?: true | 'line' | 'space';
+}
+
 export interface VueTemplateCompilerV3 {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parse(template: string, options?: any): SFCParseResult;
+  parse(template: string, options?: SFCParserOptionsV3): SFCParseResult;
 }

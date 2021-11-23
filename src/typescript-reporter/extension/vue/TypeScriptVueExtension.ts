@@ -10,10 +10,7 @@ import { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
 
 interface GenericScriptSFCBlock {
   content: string;
-  attrs: Record<string, string | true>;
-  start?: number;
-  end?: number;
-  lang?: string;
+  attrs: Record<string, string | true | undefined>;
   src?: string;
 }
 
@@ -94,6 +91,22 @@ function createTypeScriptVueExtension(
     };
   }
 
+  function mergeVueScriptsContent(
+    scriptContent: string | undefined,
+    scriptSetupContent: string | undefined
+  ): string {
+    const scriptLines = scriptContent?.split(/\r?\n/) ?? [];
+    const scriptSetupLines = scriptSetupContent?.split(/\r?\n/) ?? [];
+    const maxScriptLines = Math.max(scriptLines.length, scriptSetupLines.length);
+    const mergedScriptLines: string[] = [];
+
+    for (let line = 0; line < maxScriptLines; ++line) {
+      mergedScriptLines.push(scriptLines[line] || scriptSetupLines[line]);
+    }
+
+    return mergedScriptLines.join('\n');
+  }
+
   function getVueEmbeddedSource(fileName: string): TypeScriptEmbeddedSource | undefined {
     if (!fs.existsSync(fileName)) {
       return undefined;
@@ -105,25 +118,44 @@ function createTypeScriptVueExtension(
     let script: GenericScriptSFCBlock | undefined;
     if (isVueTemplateCompilerV2(compiler)) {
       const parsed = compiler.parseComponent(vueSourceText, {
-        pad: 'space',
+        pad: 'line',
       });
 
       script = parsed.script;
     } else if (isVueTemplateCompilerV3(compiler)) {
-      const parsed = compiler.parse(vueSourceText);
+      const parsed = compiler.parse(vueSourceText, {
+        pad: 'line',
+      });
 
-      if (parsed.descriptor && parsed.descriptor.script) {
-        const scriptV3 = parsed.descriptor.script;
+      if (parsed.descriptor) {
+        const parsedScript = parsed.descriptor.script;
+        const parsedScriptSetup = parsed.descriptor.scriptSetup;
+        let parsedContent = mergeVueScriptsContent(
+          parsedScript?.content,
+          parsedScriptSetup?.content
+        );
 
-        // map newer version of SFCScriptBlock to the generic one
-        script = {
-          content: scriptV3.content,
-          attrs: scriptV3.attrs,
-          start: scriptV3.loc.start.offset,
-          end: scriptV3.loc.end.offset,
-          lang: scriptV3.lang,
-          src: scriptV3.src,
-        };
+        if (parsedScriptSetup) {
+          // a little bit naive, but should work in 99.9% cases without need for parsing script
+          const alreadyHasExportDefault = /export\s+default[\s|{]/gm.test(parsedContent);
+
+          if (!alreadyHasExportDefault) {
+            parsedContent += '\nexport default {};';
+          }
+          // add script setup lines at the end
+          parsedContent +=
+            "\n// @ts-ignore\nimport { defineProps, defineEmits, defineExpose, withDefaults } from '@vue/runtime-core';";
+        }
+
+        if (parsedScript || parsedScriptSetup) {
+          // map newer version of SFCScriptBlock to the generic one
+          script = {
+            content: parsedContent,
+            attrs: {
+              lang: parsedScript?.lang || parsedScriptSetup?.lang,
+            },
+          };
+        }
       }
     } else {
       throw new Error(
@@ -141,12 +173,7 @@ function createTypeScriptVueExtension(
       }
     } else {
       // <script lang="ts"></script> block
-      // pad blank lines to retain diagnostics location
-      const lineOffset = vueSourceText.slice(0, script.start).split(/\r?\n/g).length;
-      const paddedSourceText =
-        Array(lineOffset).join('\n') + vueSourceText.slice(script.start, script.end);
-
-      return createVueInlineScriptEmbeddedSource(paddedSourceText, script.attrs.lang);
+      return createVueInlineScriptEmbeddedSource(script.content, script.attrs.lang);
     }
   }
 

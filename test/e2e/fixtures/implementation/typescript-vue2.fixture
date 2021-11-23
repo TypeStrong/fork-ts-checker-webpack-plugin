@@ -1,0 +1,8 @@
+/// src/App.vue
+<template>
+  <LoginView />
+</template>
+
+<script lang="ts">
+import LoginView from "@/component/LoginView.vue";
+</script>

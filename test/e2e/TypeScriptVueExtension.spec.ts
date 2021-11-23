@@ -7,7 +7,6 @@ import {
   WEBPACK_DEV_SERVER_VERSION,
 } from './sandbox/WebpackDevServerDriver';
 import { FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION } from './sandbox/Plugin';
-import semver from 'semver/preload';
 
 describe('TypeScript Vue Extension', () => {
   let sandbox: Sandbox;
@@ -30,23 +29,21 @@ describe('TypeScript Vue Extension', () => {
       typescript: '^3.8.0',
       tsloader: '^7.0.0',
       vueloader: '^15.8.3',
-      vue: '^2.0.0',
+      vue: '^2.6.11',
       compiler: 'vue-template-compiler',
-      qrcodevue: '^1.7.0',
     },
     {
       async: true,
       typescript: '^3.8.0',
       tsloader: '^7.0.0',
-      vueloader: 'v16.8.3',
-      vue: '^3.0.0',
+      vueloader: 'v16.0.0-beta.3',
+      vue: '^3.0.0-beta.14',
       compiler: '@vue/compiler-sfc',
-      qrcodevue: '^3.0.0',
     },
   ])(
     'reports semantic error for %p',
-    async ({ async, typescript, tsloader, vueloader, vue, compiler, qrcodevue }) => {
-      const fixtures = [
+    async ({ async, typescript, tsloader, vueloader, vue, compiler }) => {
+      await sandbox.load([
         await readFixture(join(__dirname, 'fixtures/environment/typescript-vue.fixture'), {
           FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION: JSON.stringify(
             FORK_TS_CHECKER_WEBPACK_PLUGIN_VERSION
@@ -59,23 +56,12 @@ describe('TypeScript Vue Extension', () => {
           VUE_LOADER_VERSION: JSON.stringify(vueloader),
           VUE_VERSION: JSON.stringify(vue),
           VUE_COMPILER: JSON.stringify(compiler),
-          QRCODE_VUE_VERSION: JSON.stringify(qrcodevue),
           ASYNC: JSON.stringify(async),
         }),
-        await readFixture(join(__dirname, 'fixtures/implementation/typescript-vue-shared.fixture')),
-      ];
-      if (semver.satisfies('2.0.0', vue)) {
-        fixtures.push(
-          await readFixture(join(__dirname, 'fixtures/implementation/typescript-vue2.fixture'))
-        );
-      } else if (semver.satisfies('3.0.0', vue)) {
-        fixtures.push(
-          await readFixture(join(__dirname, 'fixtures/implementation/typescript-vue3.fixture'))
-        );
-      }
-      await sandbox.load(fixtures);
+        await readFixture(join(__dirname, 'fixtures/implementation/typescript-vue.fixture')),
+      ]);
 
-      if (semver.satisfies('2.0.0', vue)) {
+      if (vue === '^2.6.11') {
         await sandbox.write(
           'src/vue-shim.d.ts',
           [
@@ -85,7 +71,7 @@ describe('TypeScript Vue Extension', () => {
             '}',
           ].join('\n')
         );
-      } else if (semver.satisfies('3.0.0', vue)) {
+      } else {
         await sandbox.write('src/vue-shim.d.ts', 'declare module "*.vue";');
       }
 
@@ -112,7 +98,7 @@ describe('TypeScript Vue Extension', () => {
           'ERROR in src/component/LoggedIn.vue:27:21',
           "TS2304: Cannot find name 'getUserName'.",
           '    25 |       const user: User = this.user;',
-          '    26 |',
+          '    26 | ',
           "  > 27 |       return user ? getUserName(user) : '';",
           '       |                     ^^^^^^^^^^^',
           '    28 |     }',
@@ -140,7 +126,7 @@ describe('TypeScript Vue Extension', () => {
           'ERROR in src/component/LoggedIn.vue:27:29',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
           '    25 |       const user: User = this.user;',
-          '    26 |',
+          '    26 | ',
           "  > 27 |       return user ? `${user.firstName} ${user.lastName}` : '';",
           '       |                             ^^^^^^^^^',
           '    28 |     }',
@@ -150,7 +136,7 @@ describe('TypeScript Vue Extension', () => {
         [
           'ERROR in src/model/User.ts:11:16',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
-          '     9 |',
+          '     9 | ',
           '    10 | function getUserName(user: User): string {',
           '  > 11 |   return [user.firstName, user.lastName]',
           '       |                ^^^^^^^^^',
@@ -159,62 +145,6 @@ describe('TypeScript Vue Extension', () => {
           '    14 | }',
         ].join('\n'),
       ]);
-
-      // fix the error
-      await sandbox.patch(
-        'src/model/User.ts',
-        '  lastName?: string;',
-        ['  firstName?: string;', '  lastName?: string;'].join('\n')
-      );
-      await driver.waitForNoErrors();
-
-      if (semver.satisfies('3.0.0', vue)) {
-        await sandbox.patch(
-          'src/component/Header.vue',
-          'defineProps({',
-          ['let x: number = "1"', 'defineProps({'].join('\n')
-        );
-
-        errors = await driver.waitForErrors();
-        expect(errors).toEqual([
-          [
-            'ERROR in src/component/Header.vue:6:5',
-            "TS2322: Type '\"1\"' is not assignable to type 'number'.",
-            '    4 |',
-            '    5 | <script setup lang="ts">',
-            '  > 6 | let x: number = "1"',
-            '      |     ^',
-            '    7 | defineProps({',
-            '    8 |   title: String,',
-            '    9 | });',
-          ].join('\n'),
-        ]);
-        // fix the issue
-        await sandbox.patch('src/component/Header.vue', 'let x: number = "1"', '');
-        await driver.waitForNoErrors();
-
-        // introduce error in second <script>
-        await sandbox.patch(
-          'src/component/Logo.vue',
-          'export default {',
-          ['let x: number = "1";', 'export default {'].join('\n')
-        );
-
-        errors = await driver.waitForErrors();
-        expect(errors).toEqual([
-          [
-            'ERROR in src/component/Logo.vue:15:5',
-            "TS2322: Type '\"1\"' is not assignable to type 'number'.",
-            '    13 |',
-            '    14 | <script lang="ts">',
-            '  > 15 | let x: number = "1";',
-            '       |     ^',
-            '    16 | export default {',
-            '    17 |   inheritAttrs: false,',
-            '    18 |   customOptions: {}',
-          ].join('\n'),
-        ]);
-      }
     }
   );
 });

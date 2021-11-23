@@ -1,4 +1,4 @@
-/// src/component/LoginView.vue
+/// src/App.vue
 <template>
   <logged-in v-if="user" :user="user" @logout="logout"></logged-in>
   <login-form v-else @login="login"></login-form>
@@ -108,7 +108,7 @@ export default {
     }
   },
   computed: {
-    userName() {
+    userName: () => {
       const user: User = this.user;
 
       return user ? getUserName(user) : '';

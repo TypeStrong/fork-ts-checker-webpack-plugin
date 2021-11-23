@@ -171,7 +171,7 @@ function createControlledTypeScriptSystem(
   function getWriteFileSystem(path: string) {
     if (
       mode === 'write-references' ||
-      (mode === 'write-tsbuildinfo' && path.endsWith('.tsbuildinfo'))
+      (mode === 'write-tsbuildinfo' && (path.endsWith('.tsbuildinfo') || path.endsWith('.d.ts'))
     ) {
       return realFileSystem;
     }

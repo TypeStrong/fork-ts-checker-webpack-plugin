@@ -26,6 +26,7 @@ describe('TypeScript SolutionBuilder API', () => {
   it.each([
     { async: false, typescript: '~3.6.0', mode: 'readonly' },
     { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
+    { async: true, typescript: '~3.8.0', mode: 'write-dts' },
     { async: false, typescript: '~3.8.0', mode: 'write-references' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load([
@@ -133,6 +134,25 @@ describe('TypeScript SolutionBuilder API', () => {
         expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
         expect(await sandbox.exists('packages/client/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
+
+        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+
+        await sandbox.remove('packages/shared/lib');
+        await sandbox.remove('packages/client/lib');
+        break;
+
+      case 'write-dts':
+        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.d.ts')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.d.ts.map')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/index.d.ts')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/index.d.ts.map')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
         expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
 

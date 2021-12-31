@@ -64,7 +64,7 @@
     "glob": "^7.1.7",
     "memfs": "^3.2.2",
     "minimatch": "^3.0.4",
-    "schema-utils": "3.1.1",
+    "schema-utils": "^4.0.0",
     "semver": "^7.3.5",
     "tapable": "^2.0.0"
   },
@@ -102,7 +102,7 @@
     "jest": "^27.0.6",
     "jest-circus": "^27.0.6",
     "jest-environment-node": "^27.0.6",
-    "json-schema": "^0.3.0",
+    "json-schema": "^0.4.0",
     "karton": "^0.4.1",
     "lint-staged": "^11.1.2",
     "mock-fs": "^5.0.0",

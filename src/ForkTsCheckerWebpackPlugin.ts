@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 import { cosmiconfigSync } from 'cosmiconfig';
 import merge from 'deepmerge';
 import type { JSONSchema7 } from 'json-schema';
@@ -15,10 +17,12 @@ import { dependenciesPool, issuesPool } from './hooks/pluginPools';
 import { tapAfterCompileToAddDependencies } from './hooks/tapAfterCompileToAddDependencies';
 import { tapAfterEnvironmentToPatchWatching } from './hooks/tapAfterEnvironmentToPatchWatching';
 import { tapErrorToLogMessage } from './hooks/tapErrorToLogMessage';
-import { tapStartToConnectAndRunReporter } from './hooks/tapStartToConnectAndRunReporter';
-import { tapStopToDisconnectReporter } from './hooks/tapStopToDisconnectReporter';
-import { createTypeScriptReporterRpcClient } from './typescript-reporter/reporter/TypeScriptReporterRpcClient';
-import { assertTypeScriptSupport } from './typescript-reporter/TypeScriptSupport';
+import { tapStartToRunWorkers } from './hooks/tapStartToRunWorkers';
+import { tapStopToTerminateWorkers } from './hooks/tapStopToTerminateWorkers';
+import { assertTypeScriptSupport } from './typescript/TypeScriptSupport';
+import type { GetDependenciesWorker } from './typescript/worker/get-dependencies-worker';
+import type { GetIssuesWorker } from './typescript/worker/get-issues-worker';
+import { createRpcWorker } from './utils/rpc';
 
 class ForkTsCheckerWebpackPlugin {
   /**
@@ -61,19 +65,20 @@ class ForkTsCheckerWebpackPlugin {
     const state = createForkTsCheckerWebpackPluginState();
 
     assertTypeScriptSupport(configuration.typescript);
-    const issuesReporter = createTypeScriptReporterRpcClient(configuration.typescript);
-    const dependenciesReporter = createTypeScriptReporterRpcClient(configuration.typescript);
+    const getIssuesWorker = createRpcWorker<GetIssuesWorker>(
+      path.resolve(__dirname, './typescript/worker/get-issues-worker.js'),
+      configuration.typescript,
+      configuration.typescript.memoryLimit
+    );
+    const getDependenciesWorker = createRpcWorker<GetDependenciesWorker>(
+      path.resolve(__dirname, './typescript/worker/get-dependencies-worker.js'),
+      configuration.typescript
+    );
 
     tapAfterEnvironmentToPatchWatching(compiler, state);
-    tapStartToConnectAndRunReporter(
-      compiler,
-      issuesReporter,
-      dependenciesReporter,
-      configuration,
-      state
-    );
+    tapStartToRunWorkers(compiler, getIssuesWorker, getDependenciesWorker, configuration, state);
     tapAfterCompileToAddDependencies(compiler, configuration, state);
-    tapStopToDisconnectReporter(compiler, issuesReporter, dependenciesReporter, state);
+    tapStopToTerminateWorkers(compiler, getIssuesWorker, getDependenciesWorker, state);
     tapErrorToLogMessage(compiler, configuration);
   }
 }

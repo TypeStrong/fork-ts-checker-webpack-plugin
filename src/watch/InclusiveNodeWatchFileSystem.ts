@@ -5,8 +5,8 @@ import chokidar from 'chokidar';
 import minimatch from 'minimatch';
 import type { Compiler } from 'webpack';
 
+import { clearFilesChange, updateFilesChange } from '../files-change';
 import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
-import { clearFilesChange, updateFilesChange } from '../reporter';
 
 import type { WatchFileSystem } from './WatchFileSystem';
 

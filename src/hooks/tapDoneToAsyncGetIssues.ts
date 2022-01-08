@@ -4,6 +4,7 @@ import type webpack from 'webpack';
 import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
 import { createWebpackFormatter } from '../formatter/WebpackFormatter';
+import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { Issue } from '../issue';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
 import isPending from '../utils/async/isPending';
@@ -17,6 +18,7 @@ function tapDoneToAsyncGetIssues(
   state: ForkTsCheckerWebpackPluginState
 ) {
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
+  const { log, debug } = getInfrastructureLogger(compiler);
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', async (stats) => {
     if (stats.compilation.compiler !== compiler) {
@@ -24,7 +26,6 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    const reportPromise = state.issuesReportPromise;
     const issuesPromise = state.issuesPromise;
     let issues: Issue[] | undefined;
 
@@ -38,6 +39,7 @@ function tapDoneToAsyncGetIssues(
       }
 
       issues = await issuesPromise;
+      debug('Got issues from getIssuesWorker.', issues?.length);
     } catch (error) {
       hooks.error.call(error, stats.compilation);
       return;
@@ -45,11 +47,6 @@ function tapDoneToAsyncGetIssues(
 
     if (!issues) {
       // some error has been thrown or it was canceled
-      return;
-    }
-
-    if (reportPromise !== state.issuesReportPromise) {
-      // there is a newer report - ignore this one
       return;
     }
 
@@ -81,13 +78,12 @@ function tapDoneToAsyncGetIssues(
         }
       });
 
+      debug('Sending issues to the webpack-dev-server.');
       state.webpackDevServerDoneTap.fn(stats);
     }
 
     if (stats.startTime) {
-      configuration.logger.infrastructure.log(
-        `Time: ${Math.round(Date.now() - stats.startTime).toString()} ms`
-      );
+      log(`Time: ${Math.round(Date.now() - stats.startTime).toString()} ms`);
     }
   });
 }

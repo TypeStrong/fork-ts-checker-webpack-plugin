@@ -2,6 +2,7 @@ import type webpack from 'webpack';
 
 import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { Issue } from '../issue';
 import { IssueWebpackError } from '../issue/IssueWebpackError';
 
@@ -13,6 +14,7 @@ function tapAfterCompileToGetIssues(
   state: ForkTsCheckerWebpackPluginState
 ) {
   const hooks = getForkTsCheckerWebpackPluginHooks(compiler);
+  const { debug } = getInfrastructureLogger(compiler);
 
   compiler.hooks.afterCompile.tapPromise('ForkTsCheckerWebpackPlugin', async (compilation) => {
     if (compilation.compiler !== compiler) {
@@ -28,6 +30,8 @@ function tapAfterCompileToGetIssues(
       hooks.error.call(error, compilation);
       return;
     }
+
+    debug('Got issues from getIssuesWorker.', issues?.length);
 
     if (!issues) {
       // some error has been thrown or it was canceled

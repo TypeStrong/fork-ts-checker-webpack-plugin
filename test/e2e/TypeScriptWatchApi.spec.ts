@@ -216,7 +216,7 @@ describe('TypeScript Watch API', () => {
     { async: false, typescript: '~3.8.0', 'ts-loader': '^7.0.0' },
     { async: true, typescript: '~4.0.0', 'ts-loader': '^8.0.0' },
     { async: false, typescript: '~4.3.0', 'ts-loader': '^8.0.0' },
-  ])('reports semantic error for %p', async ({ async, ...dependencies }) => {
+  ])('reports semantic error for %p long', async ({ async, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { ...dependencies });
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);

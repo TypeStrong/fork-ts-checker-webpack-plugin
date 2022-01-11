@@ -29,5 +29,6 @@ module.exports = {
   ],
   infrastructureLogging: {
     level: 'log',
+    debug: /ForkTsCheckerWebpackPlugin/,
   },
 };

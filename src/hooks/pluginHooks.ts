@@ -1,8 +1,8 @@
 import { SyncHook, SyncWaterfallHook, AsyncSeriesWaterfallHook } from 'tapable';
 import type * as webpack from 'webpack';
 
+import type { FilesChange } from '../files-change';
 import type { Issue } from '../issue';
-import type { FilesChange } from '../reporter';
 
 const compilerHookMap = new WeakMap<
   webpack.Compiler | webpack.MultiCompiler,

@@ -1,7 +1,7 @@
 import type { FormatterOptions } from './formatter';
 import type { IssueOptions } from './issue/IssueOptions';
 import type LoggerOptions from './logger/LoggerOptions';
-import type { TypeScriptReporterOptions } from './typescript-reporter/TypeScriptReporterOptions';
+import type { TypeScriptReporterOptions } from './typescript/TypeScriptReporterOptions';
 
 interface ForkTsCheckerWebpackPluginOptions {
   async?: boolean;

@@ -2,7 +2,7 @@
 *.log
 
 # Package artifacts
-lib
+/lib
 
 # Package archive used by e2e tests
 fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz

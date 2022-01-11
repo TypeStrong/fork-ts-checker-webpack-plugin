@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import type webpack from 'webpack';
 
 import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
-import { RpcIpcMessagePortClosedError } from '../rpc/rpc-ipc/error/RpcIpcMessagePortClosedError';
+import { RpcExitError } from '../utils/rpc';
 
 import { getForkTsCheckerWebpackPluginHooks } from './pluginHooks';
 
@@ -15,7 +15,7 @@ function tapErrorToLogMessage(
   hooks.error.tap('ForkTsCheckerWebpackPlugin', (error) => {
     configuration.logger.issues.error(String(error));
 
-    if (error instanceof RpcIpcMessagePortClosedError) {
+    if (error instanceof RpcExitError) {
       if (error.signal === 'SIGINT') {
         configuration.logger.issues.error(
           chalk.red(

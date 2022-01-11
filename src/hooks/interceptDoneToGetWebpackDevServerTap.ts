@@ -2,12 +2,15 @@ import type webpack from 'webpack';
 
 import type { ForkTsCheckerWebpackPluginConfiguration } from '../ForkTsCheckerWebpackPluginConfiguration';
 import type { ForkTsCheckerWebpackPluginState } from '../ForkTsCheckerWebpackPluginState';
+import { getInfrastructureLogger } from '../infrastructure-logger';
 
 function interceptDoneToGetWebpackDevServerTap(
   compiler: webpack.Compiler,
   configuration: ForkTsCheckerWebpackPluginConfiguration,
   state: ForkTsCheckerWebpackPluginState
 ) {
+  const { debug } = getInfrastructureLogger(compiler);
+
   // inspired by https://github.com/ypresto/fork-ts-checker-async-overlay-webpack-plugin
   compiler.hooks.done.intercept({
     register: (tap) => {
@@ -16,6 +19,7 @@ function interceptDoneToGetWebpackDevServerTap(
         tap.type === 'sync' &&
         configuration.logger.devServer
       ) {
+        debug('Intercepting webpack-dev-server tap.');
         state.webpackDevServerDoneTap = tap;
       }
       return tap;

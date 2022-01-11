@@ -7,8 +7,8 @@ import type { IssueConfiguration } from './issue/IssueConfiguration';
 import { createIssueConfiguration } from './issue/IssueConfiguration';
 import type { LoggerConfiguration } from './logger/LoggerConfiguration';
 import { createLoggerConfiguration } from './logger/LoggerConfiguration';
-import type { TypeScriptReporterConfiguration } from './typescript-reporter/TypeScriptReporterConfiguration';
-import { createTypeScriptReporterConfiguration } from './typescript-reporter/TypeScriptReporterConfiguration';
+import type { TypeScriptReporterConfiguration } from './typescript/TypeScriptReporterConfiguration';
+import { createTypeScriptReporterConfiguration } from './typescript/TypeScriptReporterConfiguration';
 
 interface ForkTsCheckerWebpackPluginConfiguration {
   async: boolean;

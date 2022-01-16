@@ -55,8 +55,8 @@ function getDependenciesWorker(
       // handle circular dependencies
       continue;
     }
-    const childParsedConfiguration = parseConfig(childConfigFilePath, childConfigContext);
-    const childDependencies = getDependenciesWorker(childParsedConfiguration, childConfigContext, [
+    const childParsedConfig = parseConfig(childConfigFilePath, childConfigContext);
+    const childDependencies = getDependenciesWorker(childParsedConfig, childConfigContext, [
       ...processedConfigFiles,
       childConfigFilePath,
     ]);

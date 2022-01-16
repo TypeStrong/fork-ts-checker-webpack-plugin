@@ -1,6 +1,6 @@
 import type { FilesChange } from '../../files-change';
 import type { FilesMatch } from '../../files-match';
-import { exposeRpc } from '../../utils/rpc';
+import { exposeRpc } from '../../rpc';
 
 import { didConfigFileChanged, didRootFilesChanged, invalidateConfig } from './lib/config';
 import { getDependencies, invalidateDependencies } from './lib/dependencies';

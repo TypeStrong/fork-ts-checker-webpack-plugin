@@ -139,7 +139,7 @@ type IssueFilter = IssueMatch | IssuePredicate | (IssueMatch | IssuePredicate)[]
 
 | Name      | Type          | Default value | Description |
 | --------- | ------------- | ------------- | ----------- |
-| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
+| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](src/issue/issue-match.ts). If `function`, acts as a predicate where `issue` is an argument. |
 | `exclude` | `IssueFilter` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
 
 <details>

@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import type * as ts from 'typescript';
 
 import type { FilesMatch } from '../../../files-match';
-import forwardSlash from '../../../utils/path/forwardSlash';
+import { forwardSlash } from '../../../utils/path/forward-slash';
 
 import { memFileSystem } from './file-system/mem-file-system';
 import { passiveFileSystem } from './file-system/passive-file-system';

@@ -7,8 +7,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "resolveJsonModule": true,
     "baseUrl": "../"
   },
-  "include": ["../lib", "**/*.spec.ts"],
+  "include": ["../src", "**/*.spec.ts"],
   "exclude": ["node_modules"]
 }

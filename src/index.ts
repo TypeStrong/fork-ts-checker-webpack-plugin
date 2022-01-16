@@ -1,3 +1,3 @@
-import { ForkTsCheckerWebpackPlugin } from './ForkTsCheckerWebpackPlugin';
+import { ForkTsCheckerWebpackPlugin } from './plugin';
 
 export = ForkTsCheckerWebpackPlugin;

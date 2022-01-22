@@ -1,5 +1,5 @@
-import type { TypeScriptExtension } from '../../extension/TypeScriptExtension';
-import { createTypeScriptVueExtension } from '../../extension/vue/TypeScriptVueExtension';
+import type { TypeScriptExtension } from '../../extension/type-script-extension';
+import { createTypeScriptVueExtension } from '../../extension/vue/type-script-vue-extension';
 
 import { config } from './worker-config';
 

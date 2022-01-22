@@ -1,8 +1,5 @@
 import type * as webpack from 'webpack';
 
-import subtract from './utils/array/substract';
-import unique from './utils/array/unique';
-
 interface FilesChange {
   changedFiles?: string[];
   deletedFiles?: string[];
@@ -12,6 +9,12 @@ const compilerFilesChangeMap = new WeakMap<webpack.Compiler, FilesChange>();
 
 function getFilesChange(compiler: webpack.Compiler): FilesChange {
   return compilerFilesChangeMap.get(compiler) || { changedFiles: [], deletedFiles: [] };
+}
+
+function consumeFilesChange(compiler: webpack.Compiler): FilesChange {
+  const change = getFilesChange(compiler);
+  clearFilesChange(compiler);
+  return change;
 }
 
 function updateFilesChange(compiler: webpack.Compiler, change: FilesChange): void {
@@ -29,22 +32,31 @@ function clearFilesChange(compiler: webpack.Compiler): void {
  * @returns Files change that represents all subsequent changes as a one event
  */
 function aggregateFilesChanges(changes: FilesChange[]): FilesChange {
-  let changedFiles: string[] = [];
-  let deletedFiles: string[] = [];
+  const changedFilesSet = new Set<string>();
+  const deletedFilesSet = new Set<string>();
 
-  for (const change of changes) {
-    changedFiles = unique(
-      subtract(changedFiles, change.deletedFiles).concat(change.changedFiles || [])
-    );
-    deletedFiles = unique(
-      subtract(deletedFiles, change.changedFiles).concat(change.deletedFiles || [])
-    );
+  for (const { changedFiles = [], deletedFiles = [] } of changes) {
+    for (const changedFile of changedFiles) {
+      changedFilesSet.add(changedFile);
+      deletedFilesSet.delete(changedFile);
+    }
+    for (const deletedFile of deletedFiles) {
+      changedFilesSet.delete(deletedFile);
+      deletedFilesSet.add(deletedFile);
+    }
   }
 
   return {
-    changedFiles,
-    deletedFiles,
+    changedFiles: Array.from(changedFilesSet),
+    deletedFiles: Array.from(deletedFilesSet),
   };
 }
 
-export { FilesChange, getFilesChange, updateFilesChange, clearFilesChange, aggregateFilesChanges };
+export {
+  FilesChange,
+  getFilesChange,
+  consumeFilesChange,
+  updateFilesChange,
+  clearFilesChange,
+  aggregateFilesChanges,
+};

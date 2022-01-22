@@ -57,8 +57,8 @@ function getArtifactsWorker(
       // handle circular dependencies
       continue;
     }
-    const parsedConfiguration = parseConfig(configFile, path.dirname(configFile));
-    const childArtifacts = getArtifactsWorker(parsedConfiguration, configFileContext, [
+    const parsedConfig = parseConfig(configFile, path.dirname(configFile));
+    const childArtifacts = getArtifactsWorker(parsedConfig, configFileContext, [
       ...processedConfigFiles,
       configFile,
     ]);

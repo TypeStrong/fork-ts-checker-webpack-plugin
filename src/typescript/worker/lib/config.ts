@@ -4,8 +4,8 @@ import type * as ts from 'typescript';
 
 import type { FilesChange } from '../../../files-change';
 import type { Issue } from '../../../issue';
-import forwardSlash from '../../../utils/path/forwardSlash';
-import type { TypeScriptConfigurationOverwrite } from '../../TypeScriptConfigurationOverwrite';
+import { forwardSlash } from '../../../utils/path/forward-slash';
+import type { TypeScriptConfigOverwrite } from '../../type-script-config-overwrite';
 
 import { createIssuesFromDiagnostics } from './diagnostics';
 import { extensions } from './extensions';
@@ -32,7 +32,7 @@ for (const extension of extensions) {
 export function parseConfig(
   configFileName: string,
   configFileContext: string,
-  configOverwriteJSON: TypeScriptConfigurationOverwrite = {}
+  configOverwriteJSON: TypeScriptConfigOverwrite = {}
 ): ts.ParsedCommandLine {
   const configFilePath = forwardSlash(configFileName);
   const parsedConfigFileJSON = typescript.readConfigFile(

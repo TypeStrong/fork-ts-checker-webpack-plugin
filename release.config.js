@@ -32,8 +32,7 @@ module.exports = {
     [
       '@semantic-release/exec',
       {
-        prepareCmd:
-          "sed -i 's/{{VERSION}}/${nextRelease.version}/g' lib/ForkTsCheckerWebpackPlugin.js",
+        prepareCmd: "sed -i 's/{{VERSION}}/${nextRelease.version}/g' lib/plugin.js",
       },
     ],
   ],

@@ -4,7 +4,7 @@ module.exports = {
   testRunner: 'jest-circus/runner',
   rootDir: '.',
   moduleNameMapper: {
-    '^lib/(.*)$': '<rootDir>/../../lib/$1',
+    '^src/(.*)$': '<rootDir>/../../src/$1',
   },
   globals: {
     'ts-jest': {

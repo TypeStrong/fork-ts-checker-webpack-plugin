@@ -1,6 +1,6 @@
 import type webpack from 'webpack';
 
-interface InfrastructureLogger {
+export interface InfrastructureLogger {
   log(...args: unknown[]): void;
   debug(...args: unknown[]): void;
   error(...args: unknown[]): void;

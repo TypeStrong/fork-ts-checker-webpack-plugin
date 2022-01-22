@@ -1,6 +1,6 @@
 import type { FilesChange } from '../../files-change';
 import type { Issue } from '../../issue';
-import { exposeRpc } from '../../utils/rpc';
+import { exposeRpc } from '../../rpc';
 
 import { invalidateArtifacts, registerArtifacts } from './lib/artifacts';
 import {

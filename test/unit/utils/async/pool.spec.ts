@@ -1,4 +1,4 @@
-import { createPool } from 'lib/utils/async/pool';
+import { createPool } from 'src/utils/async/pool';
 
 function wait(timeout: number) {
   return new Promise((resolve) => setTimeout(resolve, timeout));

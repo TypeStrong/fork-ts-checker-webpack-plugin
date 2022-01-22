@@ -1,4 +1,4 @@
-import { getRpcWorkerData } from '../../../utils/rpc';
-import type { TypeScriptReporterConfiguration } from '../../TypeScriptReporterConfiguration';
+import { getRpcWorkerData } from '../../../rpc';
+import type { TypeScriptWorkerConfig } from '../../type-script-worker-config';
 
-export const config = getRpcWorkerData() as TypeScriptReporterConfiguration;
+export const config = getRpcWorkerData() as TypeScriptWorkerConfig;

@@ -31,7 +31,7 @@ function tapDoneToAsyncGetIssues(
     try {
       if (await isPending(issuesPromise)) {
         hooks.waiting.call(stats.compilation);
-        config.logger.issues.log(chalk.cyan('Issues checking in progress...'));
+        config.logger.log(chalk.cyan('Issues checking in progress...'));
       } else {
         // wait 10ms to log issues after webpack stats
         await wait(10);
@@ -59,9 +59,9 @@ function tapDoneToAsyncGetIssues(
 
     if (issues.length) {
       // follow webpack's approach - one process.write to stderr with all errors and warnings
-      config.logger.issues.error(issues.map((issue) => formatter(issue)).join('\n'));
+      config.logger.error(issues.map((issue) => formatter(issue)).join('\n'));
     } else {
-      config.logger.issues.log(chalk.green('No issues found.'));
+      config.logger.log(chalk.green('No issues found.'));
     }
 
     // report issues to webpack-dev-server, if it's listening

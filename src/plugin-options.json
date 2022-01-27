@@ -7,7 +7,7 @@
       "description": "When true, plugin will not block compilation to finish issues checking"
     },
     "typescript": {
-      "$ref": "#/definitions/TypeScriptReporterOptions"
+      "$ref": "#/definitions/TypeScriptOptions"
     },
     "formatter": {
       "$ref": "#/definitions/FormatterOptions"
@@ -16,7 +16,11 @@
       "$ref": "#/definitions/IssueOptions"
     },
     "logger": {
-      "$ref": "#/definitions/LoggerOptions"
+      "$ref": "#/definitions/Logger"
+    },
+    "devServer": {
+      "type": "boolean",
+      "description": "Enable reporting to Webpack Dev Server."
     }
   },
   "additionalProperties": false,
@@ -90,21 +94,10 @@
         }
       ]
     },
-    "LoggerType": {
-      "type": "string",
-      "enum": [
-        "console",
-        "webpack-infrastructure",
-        "silent"
-      ]
-    },
     "Logger": {
       "type": "object",
       "properties": {
         "error": {
-          "instanceof": "Function"
-        },
-        "info": {
           "instanceof": "Function"
         },
         "log": {
@@ -112,7 +105,7 @@
         }
       }
     },
-    "TypeScriptReporterOptions": {
+    "TypeScriptOptions": {
       "type": "object",
       "properties": {
         "memoryLimit": {
@@ -223,35 +216,6 @@
         },
         "exclude": {
           "$ref": "#/definitions/IssuePredicateOption"
-        }
-      }
-    },
-    "LoggerOptions": {
-      "type": "object",
-      "properties": {
-        "infrastructure": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/LoggerType"
-            },
-            {
-              "$ref": "#/definitions/Logger"
-            }
-          ]
-        },
-        "issues": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/LoggerType"
-            },
-            {
-              "$ref": "#/definitions/Logger"
-            }
-          ]
-        },
-        "devServer": {
-          "type": "boolean",
-          "description": "Enable reporting to Webpack Dev Server."
         }
       }
     }

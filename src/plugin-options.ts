@@ -1,6 +1,6 @@
 import type { FormatterOptions } from './formatter';
 import type { IssueOptions } from './issue/issue-options';
-import type LoggerOptions from './logger/logger-options';
+import type { Logger } from './logger';
 import type { TypeScriptWorkerOptions } from './typescript/type-script-worker-options';
 
 interface ForkTsCheckerWebpackPluginOptions {
@@ -8,7 +8,8 @@ interface ForkTsCheckerWebpackPluginOptions {
   typescript?: TypeScriptWorkerOptions;
   formatter?: FormatterOptions;
   issue?: IssueOptions;
-  logger?: LoggerOptions;
+  logger?: Logger;
+  devServer?: boolean;
 }
 
 export { ForkTsCheckerWebpackPluginOptions };

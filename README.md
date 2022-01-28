@@ -1,5 +1,6 @@
 <div align="center">
 
+<img alt="" width="300" src="./media/logo.svg" />
 <h1>Fork TS Checker Webpack Plugin</h1>
 <p>Webpack plugin that runs TypeScript type checker on a separate process.</p>
 

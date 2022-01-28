@@ -13,7 +13,7 @@ function assertTypeScriptVueExtensionSupport(config: TypeScriptVueExtensionConfi
     throw new Error(
       [
         `Could not initialize '${compilerName}'. When you use 'typescript.extensions.vue' option, make sure to install '${compilerName}' and that the version matches that of 'vue'.`,
-        `Error details: ${error.message}`,
+        `Error details: ${String(error)}`,
       ].join('\n')
     );
   }

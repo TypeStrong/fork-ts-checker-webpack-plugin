@@ -17,7 +17,7 @@ function createPluginHooks() {
     ]),
     waiting: new SyncHook<[webpack.Compilation]>(['compilation']),
     canceled: new SyncHook<[webpack.Compilation]>(['compilation']),
-    error: new SyncHook<[Error, webpack.Compilation]>(['error', 'compilation']),
+    error: new SyncHook<[unknown, webpack.Compilation]>(['error', 'compilation']),
     issues: new SyncWaterfallHook<[Issue[], webpack.Compilation | undefined], void>([
       'issues',
       'compilation',

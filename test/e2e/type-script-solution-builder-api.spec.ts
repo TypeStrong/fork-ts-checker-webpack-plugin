@@ -9,7 +9,7 @@ describe('TypeScript SolutionBuilder API', () => {
     { async: false, typescript: '~3.8.0', mode: 'readonly' },
     { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
     { async: false, typescript: '~4.0.0', mode: 'write-references' },
-    { async: true, typescript: '~4.3.0', mode: 'readonly' },
+    { async: true, typescript: '~4.3.0', mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
     await sandbox.install('yarn', { typescript });
@@ -104,31 +104,50 @@ describe('TypeScript SolutionBuilder API', () => {
         break;
 
       case 'write-tsbuildinfo':
-        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(false);
+        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
 
-        expect(await sandbox.read('packages/shared/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
 
-        await sandbox.remove('packages/shared/tsconfig.tsbuildinfo');
-        await sandbox.remove('packages/client/tsconfig.tsbuildinfo');
+        await sandbox.remove('packages/shared/lib');
+        await sandbox.remove('packages/client/lib');
+        break;
+
+      case 'write-dts':
+        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.d.ts')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.d.ts.map')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/index.d.ts')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/index.d.ts.map')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
+
+        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+
+        await sandbox.remove('packages/shared/lib');
+        await sandbox.remove('packages/client/lib');
         break;
 
       case 'write-references':
-        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
         expect(await sandbox.exists('packages/client/lib')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(true);
         expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(true);
 
-        expect(await sandbox.read('packages/shared/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
+        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
 
-        await sandbox.remove('packages/shared/tsconfig.tsbuildinfo');
-        await sandbox.remove('packages/client/tsconfig.tsbuildinfo');
         await sandbox.remove('packages/shared/lib');
         await sandbox.remove('packages/client/lib');
         break;

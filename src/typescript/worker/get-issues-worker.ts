@@ -33,10 +33,10 @@ const getIssuesWorker = async (
   watching: boolean
 ): Promise<Issue[]> => {
   system.invalidateCache();
+  invalidateDependencies();
 
   if (didConfigFileChanged({ changedFiles, deletedFiles })) {
     invalidateConfig();
-    invalidateDependencies();
     invalidateArtifacts();
     invalidateDiagnostics();
 
@@ -46,7 +46,6 @@ const getIssuesWorker = async (
 
     invalidateTsBuildInfo();
   } else if (didRootFilesChanged()) {
-    invalidateDependencies();
     invalidateArtifacts();
 
     invalidateWatchProgramRootFileNames();

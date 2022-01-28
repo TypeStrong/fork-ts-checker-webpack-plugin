@@ -70,7 +70,13 @@
   },
   "peerDependencies": {
     "typescript": ">3.6.0",
-    "webpack": "^5.11.0"
+    "webpack": "^5.11.0",
+    "vue-template-compiler": "*"
+  },
+  "peerDependenciesMeta": {
+    "vue-template-compiler": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^13.1.0",

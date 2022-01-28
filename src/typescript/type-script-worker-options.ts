@@ -8,7 +8,7 @@ type TypeScriptWorkerOptions = {
   configOverwrite?: TypeScriptConfigOverwrite;
   context?: string;
   build?: boolean;
-  mode?: 'readonly' | 'write-tsbuildinfo' | 'write-references';
+  mode?: 'readonly' | 'write-tsbuildinfo' | 'write-dts' | 'write-references';
   diagnosticOptions?: Partial<TypeScriptDiagnosticsOptions>;
   extensions?: {
     vue?: TypeScriptVueExtensionOptions;

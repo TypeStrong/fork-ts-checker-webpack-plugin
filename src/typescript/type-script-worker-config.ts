@@ -16,7 +16,7 @@ interface TypeScriptWorkerConfig {
   configOverwrite: TypeScriptConfigOverwrite;
   build: boolean;
   context: string;
-  mode: 'readonly' | 'write-tsbuildinfo' | 'write-references';
+  mode: 'readonly' | 'write-tsbuildinfo' | 'write-dts' | 'write-references';
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   extensions: {
     vue: TypeScriptVueExtensionConfig;

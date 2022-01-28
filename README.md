@@ -105,7 +105,7 @@ Options for the TypeScript checker (`typescript` option object).
 | `configOverwrite`    | `object`  | `{ compilerOptions: { skipLibCheck: true, sourceMap: false, inlineSourceMap: false, declarationMap: false } }` | This configuration will overwrite configuration from the `tsconfig.json` file. Supported fields are: `extends`, `compilerOptions`, `include`, `exclude`, `files`, and `references`. |
 | `context`            | `string`  | `dirname(configuration.configFile)`                                                                            | The base path for finding files specified in the `tsconfig.json`. Same as the `context` option from the [ts-loader](https://github.com/TypeStrong/ts-loader#context). Useful if you want to keep your `tsconfig.json` in an external package. Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `fork-ts-checker-webpack-plugin` and `tsc`. When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file referenced in option `configFile`.  |
 | `build`              | `boolean` | `false`                                                                                                        | The equivalent of the `--build` flag for the `tsc` command. |
-| `mode`               | `'readonly'` or `'write-tsbuildinfo'` or `'write-references'` | `'write-tsbuildinfo'`                                      | If you use the `babel-loader`, it's recommended to use `write-references` mode to improve initial compilation time. If you use `ts-loader`, it's recommended to use `write-tsbuildinfo` mode to not overwrite files emitted by the `ts-loader`. |
+| `mode`               | `'readonly'` or `'write-tsbuildinfo'` or `'write-dts'` or `'write-references'` | `'write-tsbuildinfo'`                                      | If you use the `babel-loader`, it's recommended to use `write-references` mode to improve initial compilation time. If you use `ts-loader`, it's recommended to use `write-tsbuildinfo` mode to not overwrite files emitted by the `ts-loader`. If you use `ts-loader` with `transpileOnly` flag set to `true`, use `'write-dts` to emit the type definition files. |
 | `diagnosticOptions`  | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform. |
 | `extensions`         | `object`  | `{}`                                                                                                           | See [TypeScript extensions options](#typescript-extensions-options). |
 | `profile`            | `boolean` | `false`                                                                                                        | Measures and prints timings related to the TypeScript performance. |
@@ -298,24 +298,37 @@ When we call this method with a [webpack compiler instance](https://webpack.js.o
 [tapable](https://github.com/webpack/tapable) hooks where you can pass in your callbacks.
 
 ```js
-const webpack = require('webpack');
+// ./src/webpack/MyWebpackPlugin.js
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-const compiler = webpack({
-  // ... webpack config
-});
+class MyWebpackPlugin {
+  apply(compiler) {
+    const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
 
-// optionally add the plugin to the compiler
-// **don't do this if already added through configuration**
-new ForkTsCheckerWebpackPlugin().apply(compiler);
+    // log some message on waiting
+    hooks.waiting.tap('MyPlugin', () => {
+      console.log('waiting for issues');
+    });
+    // don't show warnings
+    hooks.issues.tap('MyPlugin', (issues) => 
+      issues.filter((issue) => issue.severity === 'error')
+    );
+  }
+}
 
-// now get the plugin hooks from compiler
-const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+module.exports = MyWebpackPlugin;
 
-// say we want to show some message when plugin is waiting for issues results
-hooks.waiting.tap('yourListenerName', () => {
-  console.log('waiting for issues');
-});
+// webpack.config.js
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const MyWebpackPlugin = require('./src/webpack/MyWebpackPlugin');
+
+module.exports = {
+  /* ... */
+  plugins: [
+    new ForkTsCheckerWebpackPlugin(),
+    new MyWebpackPlugin()
+  ]
+};
 ```
 
 ## Typings
@@ -333,7 +346,7 @@ yarn add --dev @types/webpack
 
 ## Profiling types resolution
 
-Starting from TypeScript 4.1.0 (currently in beta), you can profile long type checks by
+Starting from TypeScript 4.1.0, you can profile long type checks by
 setting "generateTrace" compiler option. This is an instruction from [microsoft/TypeScript#40063](https://github.com/microsoft/TypeScript/pull/40063):
 
 1. Set "generateTrace": "{folderName}" in your `tsconfig.json`

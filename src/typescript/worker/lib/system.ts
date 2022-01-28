@@ -68,6 +68,9 @@ const ignoredPaths = ['/node_modules/.', '/.git', '/.#'];
 export const system: ControlledTypeScriptSystem = {
   ...typescript.sys,
   useCaseSensitiveFileNames: true,
+  realpath(path: string): string {
+    return getReadFileSystem(path).realPath(path);
+  },
   fileExists(path: string): boolean {
     const stats = getReadFileSystem(path).readStats(path);
 
@@ -278,8 +281,19 @@ function isArtifact(path: string) {
 }
 
 function getReadFileSystem(path: string) {
-  if (!isInitialRun && (mode === 'readonly' || mode === 'write-tsbuildinfo') && isArtifact(path)) {
-    return memFileSystem;
+  if ((mode === 'readonly' || mode === 'write-tsbuildinfo') && isArtifact(path)) {
+    if (isInitialRun && !memFileSystem.exists(path) && passiveFileSystem.exists(path)) {
+      // copy file to memory on initial run
+      const stats = passiveFileSystem.readStats(path);
+      if (stats?.isFile()) {
+        const content = passiveFileSystem.readFile(path);
+        if (content) {
+          memFileSystem.writeFile(path, content);
+          memFileSystem.updateTimes(path, stats.atime, stats.mtime);
+        }
+      }
+      return memFileSystem;
+    }
   }
 
   return passiveFileSystem;
@@ -288,7 +302,9 @@ function getReadFileSystem(path: string) {
 function getWriteFileSystem(path: string) {
   if (
     mode === 'write-references' ||
-    (mode === 'write-tsbuildinfo' && path.endsWith('.tsbuildinfo'))
+    (mode === 'write-tsbuildinfo' && path.endsWith('.tsbuildinfo')) ||
+    (mode === 'write-dts' &&
+      ['.tsbuildinfo', '.d.ts', '.d.ts.map'].some((suffix) => path.endsWith(suffix)))
   ) {
     return realFileSystem;
   }

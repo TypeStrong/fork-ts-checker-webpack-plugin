@@ -12,11 +12,11 @@ function tapErrorToLogMessage(
   const hooks = getPluginHooks(compiler);
 
   hooks.error.tap('ForkTsCheckerWebpackPlugin', (error) => {
-    config.logger.issues.error(String(error));
+    config.logger.error(String(error));
 
     if (error instanceof RpcExitError) {
       if (error.signal === 'SIGINT') {
-        config.logger.issues.error(
+        config.logger.error(
           chalk.red(
             'Issues checking service interrupted - If running in a docker container, this may be caused ' +
               "by the container running out of memory. If so, try increasing the container's memory limit " +
@@ -24,7 +24,7 @@ function tapErrorToLogMessage(
           )
         );
       } else {
-        config.logger.issues.error(
+        config.logger.error(
           chalk.red(
             'Issues checking service aborted - probably out of memory. ' +
               'Check the `memoryLimit` option in the ForkTsCheckerWebpackPlugin configuration.\n' +

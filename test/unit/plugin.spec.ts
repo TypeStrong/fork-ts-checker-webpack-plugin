@@ -20,10 +20,9 @@ describe('plugin', () => {
   it('accepts a custom logger', () => {
     const logger = {
       error: (message) => console.log(message),
-      info: (message) => console.log(message),
       log: (message) => console.log(message),
     };
 
-    expect(() => new ForkTsCheckerWebpackPlugin({ logger: { issues: logger } })).not.toThrowError();
+    expect(() => new ForkTsCheckerWebpackPlugin({ logger })).not.toThrowError();
   });
 });

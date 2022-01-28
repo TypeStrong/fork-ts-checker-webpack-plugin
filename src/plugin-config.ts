@@ -4,8 +4,7 @@ import type { FormatterConfig } from './formatter';
 import { createFormatterConfig } from './formatter';
 import type { IssueConfig } from './issue/issue-config';
 import { createIssueConfig } from './issue/issue-config';
-import type { LoggerConfig } from './logger/logger-config';
-import { createLoggerConfig } from './logger/logger-config';
+import type { Logger } from './logger';
 import type { ForkTsCheckerWebpackPluginOptions } from './plugin-options';
 import type { TypeScriptWorkerConfig } from './typescript/type-script-worker-config';
 import { createTypeScriptWorkerConfig } from './typescript/type-script-worker-config';
@@ -15,7 +14,8 @@ interface ForkTsCheckerWebpackPluginConfig {
   typescript: TypeScriptWorkerConfig;
   issue: IssueConfig;
   formatter: FormatterConfig;
-  logger: LoggerConfig;
+  logger: Logger;
+  devServer: boolean;
 }
 
 function createPluginConfig(
@@ -27,7 +27,8 @@ function createPluginConfig(
     typescript: createTypeScriptWorkerConfig(compiler, options.typescript),
     issue: createIssueConfig(compiler, options.issue),
     formatter: createFormatterConfig(options.formatter),
-    logger: createLoggerConfig(compiler, options.logger),
+    logger: options.logger || console,
+    devServer: options.devServer !== false,
   };
 }
 

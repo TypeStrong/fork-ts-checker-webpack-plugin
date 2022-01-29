@@ -2,10 +2,13 @@
 *.log
 
 # Package artifacts
-lib
+/lib
 
 # Package archive used by e2e tests
 fork-ts-checker-webpack-plugin-0.0.0-semantic-release.tgz
+
+# E2E tests lock file cache dir
+__locks__
 
 # Coverage directory used by tools like istanbul
 coverage

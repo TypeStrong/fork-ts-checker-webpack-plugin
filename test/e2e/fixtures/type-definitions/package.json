@@ -1,0 +1,10 @@
+{
+  "name": "type-definitions-fixture",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "~3.8.0",
+    "webpack": "^5.11.0"
+  }
+}

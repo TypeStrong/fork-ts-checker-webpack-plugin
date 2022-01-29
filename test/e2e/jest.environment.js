@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const NodeEnvironment = require('jest-environment-node');
 
 function printBlock(message) {
@@ -11,7 +12,7 @@ class E2EEnvironment extends NodeEnvironment {
     super(config);
   }
 
-  async handleTestEvent(event, state) {
+  async handleTestEvent(event) {
     switch (event.name) {
       case 'test_start':
         printBlock(`Test Start: ${event.test.name}`);

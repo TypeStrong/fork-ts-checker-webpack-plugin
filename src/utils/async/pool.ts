@@ -1,10 +1,10 @@
-// provide done callback because our promise chain is a little bit complicated
-type Task<T> = (done: () => void) => Promise<T>;
+type Task<T> = () => Promise<T>;
 
 interface Pool {
   submit<T>(task: Task<T>): Promise<T>;
   size: number;
   readonly pending: number;
+  readonly drained: Promise<void>;
 }
 
 function createPool(size: number): Pool {
@@ -16,30 +16,27 @@ function createPool(size: number): Pool {
         await Promise.race(pendingPromises).catch(() => undefined);
       }
 
-      let resolve: (result: T) => void;
-      let reject: (error: Error) => void;
-      const taskPromise = new Promise<T>((taskResolve, taskReject) => {
-        resolve = taskResolve;
-        reject = taskReject;
+      const taskPromise = task().finally(() => {
+        pendingPromises = pendingPromises.filter(
+          (pendingPromise) => pendingPromise !== taskPromise
+        );
       });
-
-      const donePromise = new Promise((doneResolve) => {
-        task(() => {
-          doneResolve(undefined);
-          pendingPromises = pendingPromises.filter(
-            (pendingPromise) => pendingPromise !== donePromise
-          );
-        })
-          .then(resolve)
-          .catch(reject);
-      });
-      pendingPromises.push(donePromise);
+      pendingPromises.push(taskPromise);
 
       return taskPromise;
     },
     size,
     get pending() {
       return pendingPromises.length;
+    },
+    get drained() {
+      // eslint-disable-next-line no-async-promise-executor
+      return new Promise<void>(async (resolve) => {
+        while (pendingPromises.length > 0) {
+          await Promise.race(pendingPromises).catch(() => undefined);
+        }
+        resolve(undefined);
+      });
     },
   };
 

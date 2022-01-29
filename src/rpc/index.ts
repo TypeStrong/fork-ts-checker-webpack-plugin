@@ -1,7 +1,5 @@
-export * from './RpcMessage';
-export * from './RpcProcedure';
-export * from './RpcClient';
-export * from './RpcHost';
-export * from './RpcService';
-export * from './RpcMessagePort';
-export * from './RpcMessageChannel';
+export { exposeRpc } from './expose-rpc';
+export { wrapRpc } from './wrap-rpc';
+export { createRpcWorker, getRpcWorkerData, RpcWorker } from './rpc-worker';
+export { RpcExitError } from './rpc-error';
+export { RpcRemoteMethod } from './types';

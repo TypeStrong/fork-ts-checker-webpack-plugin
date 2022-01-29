@@ -1,5 +1,6 @@
 <div align="center">
 
+<img alt="" width="300" src="./media/logo.svg" />
 <h1>Fork TS Checker Webpack Plugin</h1>
 <p>Webpack plugin that runs TypeScript type checker on a separate process.</p>
 
@@ -14,17 +15,18 @@
 
 ## Features
 
- * Speeds up [TypeScript](https://github.com/Microsoft/TypeScript) type checking and [ESLint](https://eslint.org/) linting (by moving each to a separate process) 🏎
+ * Speeds up [TypeScript](https://github.com/Microsoft/TypeScript) type checking (by moving it to a separate process) 🏎
  * Supports modern TypeScript features like [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) and [incremental mode](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#faster-subsequent-builds-with-the---incremental-flag) ✨
  * Supports [Vue Single File Component](https://vuejs.org/v2/guide/single-file-components.html) ✅ 
  * Displays nice error messages with the [code frame](https://babeljs.io/docs/en/next/babel-code-frame.html) formatter 🌈
 
 ## Installation
 
-This plugin requires minimum **Node.js 10**, **Webpack 4**, **TypeScript 2.7** and optionally **ESLint 6**
+This plugin requires **Node.js >=12.13.0+**, **Webpack ^5.11.0**, **TypeScript ^3.6.0**
 
-* If you depend on **Webpack 2**, **Webpack 3**, or **TSLint 4**, please use [version 3](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v3.1.1) of the plugin. 
-* If you depend on **TypeScript >= 2.1** and **< 2.7** or you can't update to **Node 10**, please use [version 4](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v4.1.4) of the plugin.
+* If you depend on **TypeScript 2.1 - 2.6.2**, please use [version 4](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v4.1.4) of the plugin.
+* If you depend on **Webpack 4**, **TypeScript 2.7 - 3.5.3** or **ESLint** feature, please use [version 6](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v6.2.6) of the plugin.
+
 ```sh
 # with npm
 npm install --save-dev fork-ts-checker-webpack-plugin
@@ -62,9 +64,8 @@ module.exports = {
 };
 ```
 
-> Examples how to configure it with [babel-loader](https://github.com/babel/babel-loader), [ts-loader](https://github.com/TypeStrong/ts-loader),
-> [eslint](https://github.com/eslint/eslint) and [Visual Studio Code](https://code.visualstudio.com/) are in the 
-> [**examples**](./examples) directory.
+> Examples how to configure it with [babel-loader](https://github.com/babel/babel-loader), [ts-loader](https://github.com/TypeStrong/ts-loader)
+> and [Visual Studio Code](https://code.visualstudio.com/) are in the [**examples**](./examples) directory.
 
 ## Modules resolution
 
@@ -74,57 +75,6 @@ It's very important to be aware that **this plugin uses [TypeScript](https://git
 > It's because of the performance - with TypeScript's module resolution we don't have to wait for webpack to compile files.
 >
 > To debug TypeScript's modules resolution, you can use `tsc --traceResolution` command.
-
-## ESLint
-
-If you'd like to use ESLint with the plugin, ensure you have the relevant dependencies installed:
-
-```sh
-# with npm
-npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-
-# with yarn
-yarn add --dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-```
-
-Then set up ESLint in the plugin. This is the minimal configuration:
-```js
-// webpack.config.js
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-
-module.exports = {
-  // ...the webpack configuration
-  plugins: [
-    new ForkTsCheckerWebpackPlugin({
-      eslint: {
-        files: './src/**/*.{ts,tsx,js,jsx}' // required - same as command `eslint ./src/**/*.{ts,tsx,js,jsx} --ext .ts,.tsx,.js,.jsx`
-      }
-    })
-  ]
-};
-```
-
-You should also have an ESLint configuration file in your root project directory. 
-Here is a sample `.eslintrc.js` configuration for a TypeScript project:
-
-```js
-module.exports = {
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2018,
-    sourceType: 'module',
-  },
-  extends: [
-    'plugin:@typescript-eslint/recommended'
-  ],
-  rules: {
-    // place to specify ESLint rules - can be used to overwrite rules specified from the extended configs
-    // e.g. "@typescript-eslint/explicit-function-return-type": "off",
-  }
-};
-```
-
-There's a [good explanation on setting up TypeScript ESLint support by Robert Cooper](https://dev.to/robertcoopercode/using-eslint-and-prettier-in-a-typescript-project-53jb).
 
 ## Options
 
@@ -136,14 +86,14 @@ you can place your configuration in the:
   
 Options passed to the plugin constructor will overwrite options from the cosmiconfig (using [deepmerge](https://github.com/TehShrike/deepmerge)).
 
-| Name              | Type                               | Default value                                                      | Description |
-| ----------------- | ---------------------------------- | ------------------------------------------------------------------ | ----------- |
-| `async`           | `boolean`                          | `compiler.options.mode === 'development'`                          | If `true`, reports issues **after** webpack's compilation is done. Thanks to that it doesn't block the compilation. Used only in the `watch` mode. |
-| `typescript`      | `object` or `boolean`              | `true`                                                             | If a `boolean`, it enables/disables TypeScript checker. If an `object`, see [TypeScript options](#typescript-options). |
-| `eslint`          | `object`                           | `undefined`                                                        | If `undefined`, it disables ESLint linter. If an `object`, see [ESLint options](#eslint-options). |
-| `issue`           | `object`                           | `{}`                                                               | See [Issues options](#issues-options). |
-| `formatter`       | `string` or `object` or `function` | `codeframe`                                                        | Available formatters are `basic`, `codeframe` and a custom `function`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
-| `logger`          | `object`              | `{ infrastructure: 'silent', issues: 'console', devServer: true }` | Available loggers are `silent`, `console`, and `webpack-infrastructure`. Infrastructure logger prints additional information, issue logger prints `issues` in the `async` mode. If `devServer` is set to `false`, errors will not be reported to Webpack Dev Server. |
+| Name              | Type                                 | Default value                             | Description |
+| ----------------- | ------------------------------------ | ----------------------------------------- | ----------- |
+| `async`           | `boolean`                            | `compiler.options.mode === 'development'` | If `true`, reports issues **after** webpack's compilation is done. Thanks to that it doesn't block the compilation. Used only in the `watch` mode. |
+| `typescript`      | `object`                             | `{}`                                      | See [TypeScript options](#typescript-options). |
+| `issue`           | `object`                             | `{}`                                      | See [Issues options](#issues-options). |
+| `formatter`       | `string` or `object` or `function`   | `codeframe`                               | Available formatters are `basic`, `codeframe` and a custom `function`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
+| `logger`          | `{ log: function, error: function }` | `console`                                 | Console-like object to print issues in `async` mode. |
+| `devServer`       | `boolean`                            | `true`                                    | If set to `false`, errors will not be reported to Webpack Dev Server. |
 
 ### TypeScript options
 
@@ -151,14 +101,13 @@ Options for the TypeScript checker (`typescript` option object).
 
 | Name                 | Type      | Default value                                                                                                  | Description |
 | -------------------- | --------- | -------------------------------------------------------------------------------------------------------------- | ----------- |
-| `enabled`            | `boolean` | `true`                                                                                                         | If `true`, it enables TypeScript checker. |
 | `memoryLimit`        | `number`  | `2048`                                                                                                         | Memory limit for the checker process in MB. If the process exits with the allocation failed error, try to increase this number. |
 | `configFile`         | `string`  | `'tsconfig.json'`                                                                                              | Path to the `tsconfig.json` file (path relative to the `compiler.options.context` or absolute path) |
 | `configOverwrite`    | `object`  | `{ compilerOptions: { skipLibCheck: true, sourceMap: false, inlineSourceMap: false, declarationMap: false } }` | This configuration will overwrite configuration from the `tsconfig.json` file. Supported fields are: `extends`, `compilerOptions`, `include`, `exclude`, `files`, and `references`. |
 | `context`            | `string`  | `dirname(configuration.configFile)`                                                                            | The base path for finding files specified in the `tsconfig.json`. Same as the `context` option from the [ts-loader](https://github.com/TypeStrong/ts-loader#context). Useful if you want to keep your `tsconfig.json` in an external package. Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `fork-ts-checker-webpack-plugin` and `tsc`. When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file referenced in option `configFile`.  |
 | `build`              | `boolean` | `false`                                                                                                        | The equivalent of the `--build` flag for the `tsc` command. |
 | `mode`               | `'readonly'` or `'write-tsbuildinfo'` or `'write-dts'` or `'write-references'` | `'write-tsbuildinfo'`                                      | If you use the `babel-loader`, it's recommended to use `write-references` mode to improve initial compilation time. If you use `ts-loader`, it's recommended to use `write-tsbuildinfo` mode to not overwrite files emitted by the `ts-loader`. If you use `ts-loader` with `transpileOnly` flag set to `true`, use `'write-dts` to emit the type definition files. |
-| `diagnosticOptions` | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform. |
+| `diagnosticOptions`  | `object`  | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform. |
 | `extensions`         | `object`  | `{}`                                                                                                           | See [TypeScript extensions options](#typescript-extensions-options). |
 | `profile`            | `boolean` | `false`                                                                                                        | Measures and prints timings related to the TypeScript performance. |
 | `typescriptPath`     | `string`  | `require.resolve('typescript')`                                                                                | If supplied this is a custom path where TypeScript can be found. |
@@ -173,17 +122,6 @@ Options for the TypeScript checker extensions (`typescript.extensions` option ob
 | `vue.enabled`        | `boolean`             | `false`                   | Same as the `vue` option |
 | `vue.compiler`       | `string`              | `'vue-template-compiler'` | The package name of the compiler that will be used to parse `.vue` files. You can use `'nativescript-vue-template-compiler'` if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue) | 
 
-### ESLint options
-
-Options for the ESLint linter (`eslint` option object).
-
-| Name                 | Type                   | Default value             | Description |
-| -------------------- | ---------------------- | ------------------------- | ----------- |
-| `enabled`            | `boolean`              | `false`                   | If `true`, it enables ESLint linter. If you set the `files` option, it will be `true` by default. |
-| `files`              | `string` or `string[]` | This value is required    | One or more [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)) to the files that should be linted. Works the same as the `eslint` command. |
-| `memoryLimit`        | `number`               | `2048`                    | Memory limit for the linter process in MB. If the process exits with the allocation failed error, try to increase this number. |
-| `options`            | `object`               | `{}`                      | [Options](https://eslint.org/docs/developer-guide/nodejs-api#cliengine) that can be used to initialize ESLint. |
-
 ### Issues options
 
 Options for the issues filtering (`issue` option object).
@@ -191,7 +129,6 @@ I could write some plain text explanation of these options but I think code will
 
 ```typescript
 interface Issue {
-  origin: 'typescript' | 'eslint';
   severity: 'error' | 'warning';
   code: string;
   file?: string;
@@ -204,13 +141,13 @@ type IssueFilter = IssueMatch | IssuePredicate | (IssueMatch | IssuePredicate)[]
 
 | Name      | Type          | Default value | Description |
 | --------- | ------------- | ------------- | ----------- |
-| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](./src/issue/IssueMatch.ts). If `function`, acts as a predicate where `issue` is an argument. |
+| `include` | `IssueFilter` | `undefined`   | If `object`, defines issue properties that should be [matched](src/issue/issue-match.ts). If `function`, acts as a predicate where `issue` is an argument. |
 | `exclude` | `IssueFilter` | `undefined`   | Same as `include` but issues that match this predicate will be excluded. |
 
 <details>
 <summary>Expand example</summary>
 
-Include issues from the `src` directory, exclude eslint issues from `.spec.ts` files:
+Include issues from the `src` directory, exclude issues from `.spec.ts` files:
 
 ```js
 module.exports = {
@@ -222,7 +159,7 @@ module.exports = {
           { file: '**/src/**/*' }
         ],
         exclude: [
-          { origin: 'eslint', file: '**/*.spec.ts' }
+          { file: '**/*.spec.ts' }
         ]
       }
     })

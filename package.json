@@ -3,14 +3,14 @@
   "version": "0.0.0-semantic-release",
   "description": "Runs typescript type checker and linter on separate process.",
   "keywords": [
-    "fast",
-    "fork",
-    "linter",
     "webpack",
     "plugin",
-    "ts-loader",
     "typescript",
-    "webpack"
+    "typecheck",
+    "ts-loader",
+    "webpack",
+    "fork",
+    "fast"
   ],
   "bugs": {
     "url": "https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues"
@@ -38,13 +38,8 @@
     "test:e2e": "npm pack && cross-env jest --config=test/e2e/jest.config.js --ci -i -b",
     "precommit": "cross-env lint-staged && yarn build && yarn test:unit",
     "commit": "cross-env git-cz",
-    "semantic-release": "semantic-release"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && yarn build && yarn test:unit",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
+    "semantic-release": "semantic-release",
+    "prepare": "husky install"
   },
   "commitlint": {
     "extends": [
@@ -60,79 +55,72 @@
     }
   },
   "dependencies": {
-    "@babel/code-frame": "^7.8.3",
-    "@types/json-schema": "^7.0.5",
-    "chalk": "^4.1.0",
-    "chokidar": "^3.4.2",
-    "cosmiconfig": "^6.0.0",
+    "@babel/code-frame": "^7.16.7",
+    "chalk": "^4.1.2",
+    "chokidar": "^3.5.3",
+    "cosmiconfig": "^7.0.1",
     "deepmerge": "^4.2.2",
-    "fs-extra": "^9.0.0",
-    "glob": "^7.1.6",
-    "memfs": "^3.1.2",
+    "fs-extra": "^10.0.0",
+    "memfs": "^3.4.1",
     "minimatch": "^3.0.4",
-    "schema-utils": "2.7.0",
-    "semver": "^7.3.2",
-    "tapable": "^1.0.0"
+    "schema-utils": "4.0.0",
+    "semver": "^7.3.5",
+    "tapable": "^2.2.1"
   },
   "peerDependencies": {
-    "eslint": ">= 6",
-    "typescript": ">= 2.7",
-    "webpack": ">= 4",
+    "typescript": ">3.6.0",
+    "webpack": "^5.11.0",
     "vue-template-compiler": "*"
   },
   "peerDependenciesMeta": {
-    "eslint": {
-      "optional": true
-    },
     "vue-template-compiler": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^11.0.0",
+    "@commitlint/config-conventional": "^16.0.0",
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/exec": "^5.0.0",
-    "@semantic-release/github": "^7.1.1",
-    "@semantic-release/npm": "^7.0.6",
-    "@semantic-release/release-notes-generator": "^9.0.1",
-    "@types/babel__code-frame": "^7.0.2",
+    "@semantic-release/github": "^7.2.3",
+    "@semantic-release/npm": "^7.1.3",
+    "@semantic-release/release-notes-generator": "^9.0.3",
+    "@types/babel__code-frame": "^7.0.3",
     "@types/cross-spawn": "^6.0.2",
-    "@types/eslint": "^7.2.4",
-    "@types/fs-extra": "^9.0.2",
-    "@types/jest": "^26.0.14",
-    "@types/minimatch": "^3.0.1",
-    "@types/mock-fs": "^4.13.0",
-    "@types/node": "^14.11.10",
-    "@types/rimraf": "^3.0.0",
-    "@types/semver": "^7.3.4",
-    "@types/webpack": "^4.41.22",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "commitlint": "^11.0.0",
-    "cross-env": "^7.0.2",
-    "cross-spawn": "^7.0.3",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.13.0",
+    "@types/fs-extra": "^9.0.13",
+    "@types/jest": "^27.4.0",
+    "@types/json-schema": "^7.0.9",
+    "@types/minimatch": "^3.0.5",
+    "@types/mock-fs": "^4.13.1",
+    "@types/node": "^16.4.13",
+    "@types/rimraf": "^3.0.2",
+    "@types/semver": "^7.3.9",
+    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@typescript-eslint/parser": "^5.10.1",
+    "commitlint": "^16.1.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.8.0",
+    "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "git-cz": "^4.7.1",
-    "husky": "^4.3.0",
-    "jest": "^26.5.3",
-    "jest-circus": "^26.5.3",
-    "jest-environment-node": "^26.5.2",
-    "lint-staged": "^10.4.2",
-    "mock-fs": "^4.13.0",
-    "prettier": "^2.1.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "git-cz": "^4.8.0",
+    "husky": "^7.0.4",
+    "jest": "^27.4.7",
+    "jest-circus": "^27.4.6",
+    "jest-environment-node": "^27.4.6",
+    "json-schema": "^0.3.0",
+    "karton": "^0.4.1",
+    "lint-staged": "^11.1.2",
+    "mock-fs": "^5.1.2",
+    "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
-    "semantic-release": "^17.2.1",
+    "semantic-release": "^17.4.4",
     "strip-ansi": "^6.0.0",
-    "tree-kill": "^1.2.2",
-    "ts-jest": "^26.4.1",
-    "typescript": "^3.8.3",
-    "webpack": "^4.42.1"
+    "ts-jest": "^27.1.3",
+    "typescript": "^4.5.5",
+    "webpack": "^5.67.0"
   },
   "engines": {
-    "node": ">=10",
+    "node": ">=12.13.0",
     "yarn": ">=1.0.0"
   }
 }

@@ -10,7 +10,6 @@ export interface InfrastructureLogger {
 
 export function getInfrastructureLogger(compiler: webpack.Compiler): InfrastructureLogger {
   const logger = compiler.getInfrastructureLogger('ForkTsCheckerWebpackPlugin');
-  console.log(compiler.infrastructureLogger);
 
   return {
     log: logger.log.bind(logger),

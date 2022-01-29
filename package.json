@@ -107,7 +107,7 @@
     "jest": "^27.4.7",
     "jest-circus": "^27.4.6",
     "jest-environment-node": "^27.4.6",
-    "json-schema": "^0.3.0",
+    "json-schema": "^0.4.0",
     "karton": "^0.4.1",
     "lint-staged": "^11.1.2",
     "mock-fs": "^5.1.2",

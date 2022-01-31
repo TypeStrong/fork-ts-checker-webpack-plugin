@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import type webpack from 'webpack';
 
+import { statsFormatter } from '../formatter/stats-formatter';
 import { createWebpackFormatter } from '../formatter/webpack-formatter';
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { Issue } from '../issue';
@@ -17,7 +18,7 @@ function tapDoneToAsyncGetIssues(
   state: ForkTsCheckerWebpackPluginState
 ) {
   const hooks = getPluginHooks(compiler);
-  const { log, debug } = getInfrastructureLogger(compiler);
+  const { debug } = getInfrastructureLogger(compiler);
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', async (stats) => {
     if (stats.compilation.compiler !== compiler) {
@@ -31,7 +32,7 @@ function tapDoneToAsyncGetIssues(
     try {
       if (await isPending(issuesPromise)) {
         hooks.waiting.call(stats.compilation);
-        config.logger.log(chalk.cyan('Issues checking in progress...'));
+        config.logger.log(chalk.cyan('Type-checking in progress...'));
       } else {
         // wait 10ms to log issues after webpack stats
         await wait(10);
@@ -60,8 +61,11 @@ function tapDoneToAsyncGetIssues(
     if (issues.length) {
       // follow webpack's approach - one process.write to stderr with all errors and warnings
       config.logger.error(issues.map((issue) => formatter(issue)).join('\n'));
+
+      // print stats of the compilation
+      config.logger.log(statsFormatter(issues, stats));
     } else {
-      config.logger.log(chalk.green('No issues found.'));
+      config.logger.log(chalk.green('No errors found.'));
     }
 
     // report issues to webpack-dev-server, if it's listening
@@ -79,10 +83,6 @@ function tapDoneToAsyncGetIssues(
 
       debug('Sending issues to the webpack-dev-server.');
       state.webpackDevServerDoneTap.fn(stats);
-    }
-
-    if (stats.startTime) {
-      log(`Time: ${Math.round(Date.now() - stats.startTime).toString()} ms`);
     }
   });
 }

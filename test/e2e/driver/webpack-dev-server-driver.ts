@@ -57,7 +57,7 @@ function createWebpackDevServerDriver(
     process.stdout.on('data', (data) => {
       const content = stripAnsi(data.toString());
 
-      if (async && content.includes('No issues found.')) {
+      if (async && content.includes('No errors found.')) {
         noErrorsListener.resolve();
       }
 

@@ -70,7 +70,7 @@ module.exports = {
 ## Modules resolution
 
 It's very important to be aware that **this plugin uses [TypeScript](https://github.com/Microsoft/TypeScript)'s, not
-[webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly. 
+[webpack](https://github.com/webpack/webpack)'s modules resolution**. It means that you have to setup `tsconfig.json` correctly.
 
 > It's because of the performance - with TypeScript's module resolution we don't have to wait for webpack to compile files.
 >
@@ -83,7 +83,7 @@ you can place your configuration in the:
  * `"fork-ts-checker"` field in the `package.json`
  * `.fork-ts-checkerrc` file in JSON or YAML format
  * `fork-ts-checker.config.js` file exporting a JS object
-  
+
 Options passed to the plugin constructor will overwrite options from the cosmiconfig (using [deepmerge](https://github.com/TehShrike/deepmerge)).
 
 | Name         | Type                                 | Default value                             | Description                                                                                                                                                                                                                              |
@@ -92,7 +92,7 @@ Options passed to the plugin constructor will overwrite options from the cosmico
 | `typescript` | `object`                             | `{}`                                      | See [TypeScript options](#typescript-options).                                                                                                                                                                                           |
 | `issue`      | `object`                             | `{}`                                      | See [Issues options](#issues-options).                                                                                                                                                                                                   |
 | `formatter`  | `string` or `object` or `function`   | `codeframe`                               | Available formatters are `basic`, `codeframe` and a custom `function`. To [configure](https://babeljs.io/docs/en/babel-code-frame#options) `codeframe` formatter, pass object: `{ type: 'codeframe', options: { <coderame options> } }`. |
-| `logger`     | `{ log: function, error: function }` | `console`                                 | Console-like object to print issues in `async` mode.                                                                                                                                                                                     |
+| `logger`     | `{ log: function, error: function }` or `webpack-infrastructure` | `console`                                 | Console-like object to print issues in `async` mode.                                                                                                                                                                                     |
 | `devServer`  | `boolean`                            | `true`                                    | If set to `false`, errors will not be reported to Webpack Dev Server.                                                                                                                                                                    |
 
 ### TypeScript options
@@ -120,7 +120,7 @@ Options for the TypeScript checker extensions (`typescript.extensions` option ob
 |----------------|-----------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `vue`          | `object` or `boolean` | `false`                   | If `true`, it enables Vue [Single File Component](https://vuejs.org/v2/guide/single-file-components.html) support.                                                                                               |
 | `vue.enabled`  | `boolean`             | `false`                   | Same as the `vue` option                                                                                                                                                                                         |
-| `vue.compiler` | `string`              | `'vue-template-compiler'` | The package name of the compiler that will be used to parse `.vue` files. You can use `'nativescript-vue-template-compiler'` if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue) | 
+| `vue.compiler` | `string`              | `'vue-template-compiler'` | The package name of the compiler that will be used to parse `.vue` files. You can use `'nativescript-vue-template-compiler'` if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue) |
 
 ### Issues options
 
@@ -184,11 +184,11 @@ To enable Vue.js support, follow these steps:
 ```sh
 # with npm
 npm install --save vue vue-class-component
-npm install --save-dev vue-loader ts-loader css-loader vue-template-compiler 
+npm install --save-dev vue-loader ts-loader css-loader vue-template-compiler
 
 # with yarn
 yarn add vue vue-class-component
-yarn add --dev vue-loader ts-loader css-loader vue-template-compiler 
+yarn add --dev vue-loader ts-loader css-loader vue-template-compiler
 ```
 
 2. Add `tsconfig.json` configuration:
@@ -311,7 +311,7 @@ class MyWebpackPlugin {
       console.log('waiting for issues');
     });
     // don't show warnings
-    hooks.issues.tap('MyPlugin', (issues) => 
+    hooks.issues.tap('MyPlugin', (issues) =>
       issues.filter((issue) => issue.severity === 'error')
     );
   }
@@ -335,7 +335,7 @@ module.exports = {
 ## Typings
 
 To use the plugin typings, you have to install `@types/webpack`. It's not included by default to not collide with your
-existing typings (`@types/webpack` imports `@types/node`). [It's an old TypeScript issue](https://github.com/microsoft/TypeScript/issues/18588), 
+existing typings (`@types/webpack` imports `@types/node`). [It's an old TypeScript issue](https://github.com/microsoft/TypeScript/issues/18588),
 the alternative is to set `skipLibCheck: true` in the `compilerOptions` 😉
 ```sh
 # with npm
@@ -351,7 +351,7 @@ Starting from TypeScript 4.1.0, you can profile long type checks by
 setting "generateTrace" compiler option. This is an instruction from [microsoft/TypeScript#40063](https://github.com/microsoft/TypeScript/pull/40063):
 
 1. Set "generateTrace": "{folderName}" in your `tsconfig.json`
-2. Look in the resulting folder. If you used build mode, there will be a `legend.json` telling you what went where. 
+2. Look in the resulting folder. If you used build mode, there will be a `legend.json` telling you what went where.
    Otherwise, there will be `trace.json` file and `types.json` files.
 3. Navigate to [edge://tracing](edge://tracing) or [chrome://tracing](chrome://tracing) and load `trace.json`
 4. Expand Process 1 with the little triangle in the left sidebar
@@ -361,7 +361,7 @@ setting "generateTrace" compiler option. This is an instruction from [microsoft/
 
 
 ## Related projects
- 
+
  * [`ts-loader`](https://github.com/TypeStrong/ts-loader) - TypeScript loader for webpack.
  * [`babel-loader`](https://github.com/babel/babel-loader) - Alternative TypeScript loader for webpack.
  * [`fork-ts-checker-notifier-webpack-plugin`](https://github.com/johnnyreilly/fork-ts-checker-notifier-webpack-plugin) - Notifies about build status using system notifications (similar to the [webpack-notifier](https://github.com/Turbo87/webpack-notifier)).

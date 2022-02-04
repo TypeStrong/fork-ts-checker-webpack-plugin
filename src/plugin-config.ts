@@ -2,6 +2,7 @@ import type webpack from 'webpack';
 
 import type { FormatterConfig } from './formatter';
 import { createFormatterConfig } from './formatter';
+import { getInfrastructureLogger } from './infrastructure-logger';
 import type { IssueConfig } from './issue/issue-config';
 import { createIssueConfig } from './issue/issue-config';
 import type { Logger } from './logger';
@@ -27,7 +28,17 @@ function createPluginConfig(
     typescript: createTypeScriptWorkerConfig(compiler, options.typescript),
     issue: createIssueConfig(compiler, options.issue),
     formatter: createFormatterConfig(options.formatter),
-    logger: options.logger || console,
+    logger:
+      options.logger === 'webpack-infrastructure'
+        ? (() => {
+            const { info, error } = getInfrastructureLogger(compiler);
+
+            return {
+              log: info,
+              error,
+            };
+          })()
+        : options.logger || console,
     devServer: options.devServer !== false,
   };
 }

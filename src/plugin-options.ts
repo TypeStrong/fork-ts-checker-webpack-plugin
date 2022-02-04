@@ -8,7 +8,7 @@ interface ForkTsCheckerWebpackPluginOptions {
   typescript?: TypeScriptWorkerOptions;
   formatter?: FormatterOptions;
   issue?: IssueOptions;
-  logger?: Logger;
+  logger?: Logger | 'webpack-infrastructure';
   devServer?: boolean;
 }
 

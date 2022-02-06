@@ -5,11 +5,12 @@ import { exposeRpc } from '../../rpc';
 import { invalidateArtifacts, registerArtifacts } from './lib/artifacts';
 import {
   didConfigFileChanged,
+  didDependenciesProbablyChanged,
   didRootFilesChanged,
   getParseConfigIssues,
   invalidateConfig,
 } from './lib/config';
-import { invalidateDependencies } from './lib/dependencies';
+import { getDependencies, invalidateDependencies } from './lib/dependencies';
 import { getIssues, invalidateDiagnostics } from './lib/diagnostics';
 import {
   disablePerformanceIfNeeded,
@@ -28,15 +29,12 @@ import { dumpTracingLegendIfNeeded } from './lib/tracing';
 import { invalidateTsBuildInfo } from './lib/tsbuildinfo';
 import { config } from './lib/worker-config';
 
-const getIssuesWorker = async (
-  { changedFiles = [], deletedFiles = [] }: FilesChange,
-  watching: boolean
-): Promise<Issue[]> => {
+const getIssuesWorker = async (change: FilesChange, watching: boolean): Promise<Issue[]> => {
   system.invalidateCache();
-  invalidateDependencies();
 
-  if (didConfigFileChanged({ changedFiles, deletedFiles })) {
+  if (didConfigFileChanged(change)) {
     invalidateConfig();
+    invalidateDependencies();
     invalidateArtifacts();
     invalidateDiagnostics();
 
@@ -45,11 +43,15 @@ const getIssuesWorker = async (
     invalidateSolutionBuilder(true);
 
     invalidateTsBuildInfo();
-  } else if (didRootFilesChanged()) {
+  } else if (didDependenciesProbablyChanged(getDependencies(), change)) {
+    invalidateConfig();
+    invalidateDependencies();
     invalidateArtifacts();
 
-    invalidateWatchProgramRootFileNames();
-    invalidateSolutionBuilder();
+    if (didRootFilesChanged()) {
+      invalidateWatchProgramRootFileNames();
+      invalidateSolutionBuilder();
+    }
   }
 
   registerArtifacts();
@@ -71,11 +73,11 @@ const getIssuesWorker = async (
   }
 
   // simulate file system events
-  changedFiles.forEach((changedFile) => {
+  change.changedFiles?.forEach((changedFile) => {
     system?.invokeFileChanged(changedFile);
   });
-  deletedFiles.forEach((removedFile) => {
-    system?.invokeFileDeleted(removedFile);
+  change.deletedFiles?.forEach((deletedFile) => {
+    system?.invokeFileDeleted(deletedFile);
   });
 
   // wait for all queued events to be processed

@@ -3,6 +3,7 @@ import * as path from 'path';
 import type * as ts from 'typescript';
 
 import type { FilesChange } from '../../../files-change';
+import type { FilesMatch } from '../../../files-match';
 import type { Issue } from '../../../issue';
 import { forwardSlash } from '../../../utils/path/forward-slash';
 import type { TypeScriptConfigOverwrite } from '../../type-script-config-overwrite';
@@ -169,6 +170,20 @@ export function didConfigFileChanged({ changedFiles = [], deletedFiles = [] }: F
   return [...changedFiles, ...deletedFiles]
     .map((file) => path.normalize(file))
     .includes(path.normalize(config.configFile));
+}
+
+export function didDependenciesProbablyChanged(
+  dependencies: FilesMatch,
+  { changedFiles = [], deletedFiles = [] }: FilesChange
+) {
+  const didSomeDependencyHasBeenAdded = changedFiles.some(
+    (changeFile) => !dependencies.files.includes(changeFile)
+  );
+  const didSomeDependencyHasBeenDeleted = deletedFiles.some((deletedFile) =>
+    dependencies.files.includes(deletedFile)
+  );
+
+  return didSomeDependencyHasBeenAdded || didSomeDependencyHasBeenDeleted;
 }
 
 export function didRootFilesChanged() {

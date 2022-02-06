@@ -129,6 +129,11 @@ describe('TypeScript SolutionBuilder API', () => {
         expect(await sandbox.exists('packages/client/lib/index.d.ts.map')).toEqual(true);
         expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
         expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
+        expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts')).toEqual(true);
+        expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts.map')).toEqual(
+          true
+        );
+        expect(await sandbox.exists('packages/client/lib/nested/additional.js')).toEqual(false);
 
         expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
         expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');

@@ -412,4 +412,91 @@ describe('TypeScript Watch API', () => {
       new Error('Exceeded time on waiting for errors to appear.')
     );
   });
+
+  it.each([{ async: false }, { async: true }])(
+    'saves .d.ts files in watch mode with %p',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch(
+        'webpack.config.js',
+        'async: false,',
+        `async: ${JSON.stringify(async)}, typescript: { mode: 'write-dts' },`
+      );
+
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
+
+      // first compilation is successful
+      await driver.waitForNoErrors();
+
+      // then we add a new file
+      await sandbox.write(
+        'src/model/Organization.ts',
+        [
+          'interface Organization {',
+          '  id: number;',
+          '  name: string;',
+          '}',
+          '',
+          'export { Organization }',
+        ].join('\n')
+      );
+
+      // this should not introduce an error - file is not used
+      await driver.waitForNoErrors();
+
+      // add organization name to the getUserName function
+      await sandbox.patch(
+        'src/model/User.ts',
+        'return [user.firstName, user.lastName]',
+        'return [user.firstName, user.lastName, user.organization.name]'
+      );
+
+      expect(await driver.waitForErrors()).toEqual([
+        [
+          'ERROR in ./src/model/User.ts 12:47-59',
+          "TS2339: Property 'organization' does not exist on type 'User'.",
+          '    10 |',
+          '    11 | function getUserName(user: User): string {',
+          "  > 12 |   return [user.firstName, user.lastName, user.organization.name].filter((name) => name !== undefined).join(' ');",
+          '       |                                               ^^^^^^^^^^^^',
+          '    13 | }',
+          '    14 |',
+          '    15 | export { User, getUserName };',
+        ].join('\n'),
+      ]);
+
+      // fix the error
+      await sandbox.patch(
+        'src/model/User.ts',
+        "import { Role } from './Role';",
+        ["import { Role } from './Role';", "import { Organization } from './Organization';"].join(
+          '\n'
+        )
+      );
+      await sandbox.patch(
+        'src/model/User.ts',
+        '  role: Role;',
+        ['  role: Role;', '  organization: Organization;'].join('\n')
+      );
+
+      // there should be no errors
+      await driver.waitForNoErrors();
+
+      // check if .d.ts files has been created
+      expect(await sandbox.exists('dist')).toEqual(true);
+      expect(await sandbox.exists('dist/index.d.ts')).toEqual(true);
+      expect(await sandbox.exists('dist/index.js')).toEqual(false);
+      expect(await sandbox.exists('dist/index.js.map')).toEqual(false);
+      expect(await sandbox.exists('dist/authenticate.d.ts')).toEqual(true);
+      expect(await sandbox.exists('dist/model/User.d.ts')).toEqual(true);
+      expect(await sandbox.exists('dist/model/Role.d.ts')).toEqual(true);
+      expect(await sandbox.exists('dist/model/Organization.d.ts')).toEqual(true);
+
+      await sandbox.remove('dist');
+    }
+  );
 });

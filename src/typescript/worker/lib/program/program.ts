@@ -2,6 +2,7 @@ import type * as ts from 'typescript';
 
 import { getConfigFilePathFromProgram, getParsedConfig } from '../config';
 import { updateDiagnostics, getDiagnosticsOfProgram } from '../diagnostics';
+import { emitDtsIfNeeded } from '../emit';
 import { createCompilerHost } from '../host/compiler-host';
 import { typescript } from '../typescript';
 
@@ -24,6 +25,7 @@ export function useProgram() {
   }
 
   updateDiagnostics(getConfigFilePathFromProgram(program), getDiagnosticsOfProgram(program));
+  emitDtsIfNeeded(program);
 }
 
 export function invalidateProgram(withHost = false) {

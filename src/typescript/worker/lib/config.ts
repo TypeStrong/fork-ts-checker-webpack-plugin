@@ -29,28 +29,83 @@ for (const extension of extensions) {
   }
 }
 
+function getUserProvidedConfigOverwrite(): TypeScriptConfigOverwrite {
+  return config.configOverwrite || {};
+}
+
+function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
+  const baseCompilerOptionsOverwrite = {
+    skipLibCheck: true,
+    sourceMap: false,
+    inlineSourceMap: false,
+  };
+
+  switch (config.mode) {
+    case 'write-dts':
+      return {
+        compilerOptions: {
+          ...baseCompilerOptionsOverwrite,
+          declaration: true,
+          emitDeclarationOnly: true,
+          noEmit: false,
+        },
+      };
+    case 'write-tsbuildinfo':
+    case 'write-references':
+      return {
+        compilerOptions: {
+          ...baseCompilerOptionsOverwrite,
+          declaration: true,
+          emitDeclarationOnly: false,
+          noEmit: false,
+        },
+      };
+  }
+
+  return {
+    compilerOptions: baseCompilerOptionsOverwrite,
+  };
+}
+
+function applyConfigOverwrite(
+  baseConfig: TypeScriptConfigOverwrite,
+  ...overwriteConfigs: TypeScriptConfigOverwrite[]
+): TypeScriptConfigOverwrite {
+  let config = baseConfig;
+
+  for (const overwriteConfig of overwriteConfigs) {
+    config = {
+      ...(config || {}),
+      ...(overwriteConfig || {}),
+      compilerOptions: {
+        ...(config?.compilerOptions || {}),
+        ...(overwriteConfig?.compilerOptions || {}),
+      },
+    };
+  }
+
+  return config;
+}
+
 export function parseConfig(
   configFileName: string,
-  configFileContext: string,
-  configOverwriteJSON: TypeScriptConfigOverwrite = {}
+  configFileContext: string
 ): ts.ParsedCommandLine {
   const configFilePath = forwardSlash(configFileName);
-  const parsedConfigFileJSON = typescript.readConfigFile(
+
+  const { config: baseConfig, error: readConfigError } = typescript.readConfigFile(
     configFilePath,
     parseConfigFileHost.readFile
   );
 
-  const overwrittenConfigFileJSON = {
-    ...(parsedConfigFileJSON.config || {}),
-    ...configOverwriteJSON,
-    compilerOptions: {
-      ...((parsedConfigFileJSON.config || {}).compilerOptions || {}),
-      ...(configOverwriteJSON.compilerOptions || {}),
-    },
-  };
+  const overwrittenConfig = applyConfigOverwrite(
+    baseConfig || {},
+    getImplicitConfigOverwrite(),
+    getUserProvidedConfigOverwrite()
+  );
 
   const parsedConfigFile = typescript.parseJsonConfigFileContent(
-    overwrittenConfigFileJSON,
+    overwrittenConfig,
     parseConfigFileHost,
     configFileContext
   );
@@ -61,7 +116,7 @@ export function parseConfig(
       ...parsedConfigFile.options,
       configFilePath: configFilePath,
     },
-    errors: parsedConfigFileJSON.error ? [parsedConfigFileJSON.error] : parsedConfigFile.errors,
+    errors: readConfigError ? [readConfigError] : parsedConfigFile.errors,
   };
 }
 
@@ -79,36 +134,8 @@ export function getParseConfigIssues(): Issue[] {
 
 export function getParsedConfig(force = false) {
   if (!parsedConfig || force) {
-    parseConfigDiagnostics = [];
-
-    parsedConfig = parseConfig(config.configFile, config.context, config.configOverwrite);
-
-    const configFilePath = forwardSlash(config.configFile);
-    const parsedConfigFileJSON = typescript.readConfigFile(
-      configFilePath,
-      parseConfigFileHost.readFile
-    );
-    const overwrittenConfigFileJSON = {
-      ...(parsedConfigFileJSON.config || {}),
-      ...config.configOverwrite,
-      compilerOptions: {
-        ...((parsedConfigFileJSON.config || {}).compilerOptions || {}),
-        ...(config.configOverwrite.compilerOptions || {}),
-      },
-    };
-    parsedConfig = typescript.parseJsonConfigFileContent(
-      overwrittenConfigFileJSON,
-      parseConfigFileHost,
-      config.context
-    );
-    parsedConfig.options.configFilePath = configFilePath;
-    parsedConfig.errors = parsedConfigFileJSON.error
-      ? [parsedConfigFileJSON.error]
-      : parsedConfig.errors;
-
-    if (parsedConfig.errors) {
-      parseConfigDiagnostics.push(...parsedConfig.errors);
-    }
+    parsedConfig = parseConfig(config.configFile, config.context);
+    parseConfigDiagnostics = parsedConfig.errors || [];
   }
 
   return parsedConfig;

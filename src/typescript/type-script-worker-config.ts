@@ -1,6 +1,5 @@
 import path from 'path';
 
-import semver from 'semver';
 import type webpack from 'webpack';
 
 import type { TypeScriptVueExtensionConfig } from './extension/vue/type-script-vue-extension-config';
@@ -16,7 +15,7 @@ interface TypeScriptWorkerConfig {
   configOverwrite: TypeScriptConfigOverwrite;
   build: boolean;
   context: string;
-  mode: 'readonly' | 'write-tsbuildinfo' | 'write-dts' | 'write-references';
+  mode: 'readonly' | 'write-dts' | 'write-tsbuildinfo' | 'write-references';
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   extensions: {
     vue: TypeScriptVueExtensionConfig;
@@ -44,31 +43,15 @@ function createTypeScriptWorkerConfig(
 
   const typescriptPath = optionsAsObject.typescriptPath || require.resolve('typescript');
 
-  const defaultCompilerOptions: Record<string, unknown> = {
-    skipLibCheck: true,
-    sourceMap: false,
-    inlineSourceMap: false,
-  };
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  if (semver.gte(require(typescriptPath).version, '2.9.0')) {
-    defaultCompilerOptions.declarationMap = false;
-  }
-
   return {
     enabled: options !== false,
     memoryLimit: 2048,
     build: false,
-    mode: 'write-tsbuildinfo',
+    mode: optionsAsObject.build ? 'write-tsbuildinfo' : 'readonly',
     profile: false,
     ...optionsAsObject,
     configFile: configFile,
-    configOverwrite: {
-      ...(optionsAsObject.configOverwrite || {}),
-      compilerOptions: {
-        ...defaultCompilerOptions,
-        ...((optionsAsObject.configOverwrite || {}).compilerOptions || {}),
-      },
-    },
+    configOverwrite: optionsAsObject.configOverwrite || {},
     context: optionsAsObject.context || path.dirname(configFile),
     extensions: {
       vue: createTypeScriptVueExtensionConfig(

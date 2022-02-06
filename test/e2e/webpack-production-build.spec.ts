@@ -22,8 +22,44 @@ describe('Webpack Production Build', () => {
       const errors = extractWebpackErrors(result);
 
       expect(errors).toEqual([]);
+
+      // check if files has been created
+      expect(await sandbox.exists('dist')).toEqual(true);
+      expect(await sandbox.exists('dist/index.d.ts')).toEqual(false);
+      expect(await sandbox.exists('dist/index.js')).toEqual(true);
+      expect(await sandbox.exists('dist/authenticate.d.ts')).toEqual(false);
+      expect(await sandbox.exists('dist/model/User.d.ts')).toEqual(false);
+      expect(await sandbox.exists('dist/model/Role.d.ts')).toEqual(false);
+
+      await sandbox.remove('dist');
     }
   );
+
+  it('generates .d.ts files in write-dts mode', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', { webpack: '^5.11.0' });
+
+    await sandbox.patch(
+      'webpack.config.js',
+      'async: false,',
+      'async: false, typescript: { mode: "write-dts" },'
+    );
+
+    const result = await sandbox.exec('yarn webpack --mode=production');
+    const errors = extractWebpackErrors(result);
+
+    expect(errors).toEqual([]);
+
+    // check if files has been created
+    expect(await sandbox.exists('dist')).toEqual(true);
+    expect(await sandbox.exists('dist/index.d.ts')).toEqual(true);
+    expect(await sandbox.exists('dist/index.js')).toEqual(true);
+    expect(await sandbox.exists('dist/authenticate.d.ts')).toEqual(true);
+    expect(await sandbox.exists('dist/model/User.d.ts')).toEqual(true);
+    expect(await sandbox.exists('dist/model/Role.d.ts')).toEqual(true);
+
+    await sandbox.remove('dist');
+  });
 
   it.each([{ webpack: '5.11.0' }, { webpack: '^5.11.0' }])(
     'exits with error on the project error with %p',

@@ -3,6 +3,7 @@ import type * as ts from 'typescript';
 import { getConfigFilePathFromBuilderProgram, getParsedConfig } from '../config';
 import { getDependencies } from '../dependencies';
 import { updateDiagnostics, getDiagnosticsOfProgram } from '../diagnostics';
+import { emitDtsIfNeeded } from '../emit';
 import { createWatchCompilerHost } from '../host/watch-compiler-host';
 import { startTracingIfNeeded, stopTracingIfNeeded } from '../tracing';
 import { emitTsBuildInfoIfNeeded } from '../tsbuildinfo';
@@ -49,6 +50,7 @@ export function useWatchProgram() {
           getConfigFilePathFromBuilderProgram(builderProgram),
           getDiagnosticsOfProgram(builderProgram)
         );
+        emitDtsIfNeeded(builderProgram);
         emitTsBuildInfoIfNeeded(builderProgram);
         stopTracingIfNeeded(builderProgram);
       }

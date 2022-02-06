@@ -13,17 +13,10 @@ describe('typescript/type-scripts-worker-config', () => {
     enabled: true,
     memoryLimit: 2048,
     configFile: path.normalize(path.resolve(context, 'tsconfig.json')),
-    configOverwrite: {
-      compilerOptions: {
-        skipLibCheck: true,
-        sourceMap: false,
-        inlineSourceMap: false,
-        declarationMap: false,
-      },
-    },
+    configOverwrite: {},
     context: path.normalize(path.dirname(path.resolve(context, 'tsconfig.json'))),
     build: false,
-    mode: 'write-tsbuildinfo',
+    mode: 'readonly',
     diagnosticOptions: {
       semantic: true,
       syntactic: false,
@@ -72,7 +65,7 @@ describe('typescript/type-scripts-worker-config', () => {
         configFile: path.normalize(path.resolve(context, 'tsconfig.another.json')),
       },
     ],
-    [{ build: true }, { ...configuration, build: true }],
+    [{ build: true }, { ...configuration, build: true, mode: 'write-tsbuildinfo' }],
     [{ mode: 'readonly' }, { ...configuration, mode: 'readonly' }],
     [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
     [{ mode: 'write-dts' }, { ...configuration, mode: 'write-dts' }],
@@ -83,10 +76,6 @@ describe('typescript/type-scripts-worker-config', () => {
         ...configuration,
         configOverwrite: {
           compilerOptions: {
-            skipLibCheck: true,
-            sourceMap: false,
-            inlineSourceMap: false,
-            declarationMap: false,
             strict: true,
           },
           include: ['src'],

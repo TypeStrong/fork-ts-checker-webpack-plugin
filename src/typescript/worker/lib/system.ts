@@ -161,7 +161,7 @@ export const system: ControlledTypeScriptSystem = {
     isInitialRun = false;
   },
   invokeFileCreated(path: string) {
-    const normalizedPath = realFileSystem.normalizePath(path);
+    const normalizedPath = normalizeAndResolvePath(path);
 
     invokeFileWatchers(path, typescript.FileWatcherEventKind.Created);
     invokeDirectoryWatchers(normalizedPath);
@@ -169,7 +169,7 @@ export const system: ControlledTypeScriptSystem = {
     deletedFiles.set(normalizedPath, false);
   },
   invokeFileChanged(path: string) {
-    const normalizedPath = realFileSystem.normalizePath(path);
+    const normalizedPath = normalizeAndResolvePath(path);
 
     if (deletedFiles.get(normalizedPath) || !fileWatcherCallbacksMap.has(normalizedPath)) {
       invokeFileWatchers(path, typescript.FileWatcherEventKind.Created);
@@ -181,7 +181,7 @@ export const system: ControlledTypeScriptSystem = {
     }
   },
   invokeFileDeleted(path: string) {
-    const normalizedPath = realFileSystem.normalizePath(path);
+    const normalizedPath = normalizeAndResolvePath(path);
 
     if (!deletedFiles.get(normalizedPath)) {
       invokeFileWatchers(path, typescript.FileWatcherEventKind.Deleted);
@@ -205,8 +205,7 @@ function createWatcher<TCallback>(
   path: string,
   callback: TCallback
 ) {
-  const normalizedPath = realFileSystem.normalizePath(path);
-
+  const normalizedPath = normalizeAndResolvePath(path);
   const watchers = watchersMap.get(normalizedPath) || [];
   const nextWatchers = [...watchers, callback];
   watchersMap.set(normalizedPath, nextWatchers);
@@ -226,7 +225,7 @@ function createWatcher<TCallback>(
 }
 
 function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
-  const normalizedPath = realFileSystem.normalizePath(path);
+  const normalizedPath = normalizeAndResolvePath(path);
   if (normalizedPath.endsWith('.js')) {
     // trigger relevant .d.ts file watcher - handles the case, when we have webpack watcher
     // that points to a symlinked package
@@ -243,7 +242,7 @@ function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
 }
 
 function invokeDirectoryWatchers(path: string) {
-  const normalizedPath = realFileSystem.normalizePath(path);
+  const normalizedPath = normalizeAndResolvePath(path);
   const directory = dirname(normalizedPath);
 
   if (ignoredPaths.some((ignoredPath) => forwardSlash(normalizedPath).includes(ignoredPath))) {
@@ -270,6 +269,16 @@ function invokeDirectoryWatchers(path: string) {
       }
     }
   );
+}
+
+function normalizeAndResolvePath(path: string) {
+  let normalizedPath = realFileSystem.normalizePath(path);
+  try {
+    normalizedPath = realFileSystem.realPath(normalizedPath);
+  } catch (error) {
+    // ignore error - maybe file doesn't exist
+  }
+  return normalizedPath;
 }
 
 function isArtifact(path: string) {

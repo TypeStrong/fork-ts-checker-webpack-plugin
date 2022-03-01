@@ -89,7 +89,7 @@ describe('TypeScript Context Option', () => {
     const errors = await driver.waitForErrors();
     expect(errors).toEqual([
       [
-        'ERROR in ../src/model/User.ts 11:16-25',
+        'ERROR in ../src/model/User.ts:11:16',
         "TS2339: Property 'firstName' does not exist on type 'User'.",
         '     9 |',
         '    10 | function getUserName(user: User): string {',
@@ -100,7 +100,7 @@ describe('TypeScript Context Option', () => {
         '    14 | export { User, getUserName };',
       ].join('\n'),
       [
-        'ERROR in ../src/model/User.ts 11:32-40',
+        'ERROR in ../src/model/User.ts:11:32',
         "TS2339: Property 'lastName' does not exist on type 'User'.",
         '     9 |',
         '    10 | function getUserName(user: User): string {',

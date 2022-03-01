@@ -19,7 +19,7 @@ class IssueWebpackError extends webpack.WebpackError {
       this.file = relativeToContext(issue.file, process.cwd());
 
       if (issue.location) {
-        this.file += ` ${chalk.green.bold(formatIssueLocation(issue.location))}`;
+        this.file += `:${chalk.green.bold(formatIssueLocation(issue.location))}`;
       }
     }
 

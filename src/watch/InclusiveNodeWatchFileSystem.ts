@@ -7,6 +7,8 @@ import { clearFilesChange, updateFilesChange } from '../reporter';
 import minimatch from 'minimatch';
 
 const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
+// we ignore package.json file because of https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/674
+const BUILTIN_IGNORED_FILES = ['package.json'];
 
 function createIsIgnored(
   ignored: WatchFileSystemOptions['ignored'] | undefined,
@@ -31,6 +33,9 @@ function createIsIgnored(
   );
   ignoredFunctions.push((path: string) =>
     BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
+  );
+  ignoredFunctions.push((path: string) =>
+    BUILTIN_IGNORED_FILES.some((ignoredFile) => path.endsWith(`/${ignoredFile}`))
   );
 
   return function isIgnored(path: string) {

@@ -31,7 +31,7 @@ export function startTracingIfNeeded(compilerOptions: ts.CompilerOptions) {
   }
 }
 
-export function stopTracingIfNeeded(program: ts.BuilderProgram) {
+export function stopTracingIfNeeded(program: ts.Program | ts.BuilderProgram) {
   const compilerOptions = program.getCompilerOptions();
 
   if (

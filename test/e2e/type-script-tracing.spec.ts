@@ -4,9 +4,13 @@ import { extractWebpackErrors } from './driver/webpack-errors-extractor';
 
 describe('TypeScript Tracing', () => {
   it.each([
+    { build: false, typescript: '~4.3.0' },
     { build: true, typescript: '~4.3.0' },
+    { build: false, typescript: '~4.4.0' },
     { build: true, typescript: '~4.4.0' },
+    { build: false, typescript: '~4.5.0' },
     { build: true, typescript: '~4.5.0' },
+    { build: false, typescript: '~4.6.0' },
     { build: true, typescript: '~4.6.0' },
   ])('can generate trace files for %p', async ({ build, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));

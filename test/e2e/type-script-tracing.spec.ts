@@ -6,10 +6,6 @@ describe('TypeScript Tracing', () => {
   it.each([
     { build: false, typescript: '~4.3.0' },
     { build: true, typescript: '~4.3.0' },
-    { build: false, typescript: '~4.4.0' },
-    { build: true, typescript: '~4.4.0' },
-    { build: false, typescript: '~4.5.0' },
-    { build: true, typescript: '~4.5.0' },
     { build: false, typescript: '~4.6.0' },
     { build: true, typescript: '~4.6.0' },
   ])('can generate trace files for %p', async ({ build, ...dependencies }) => {

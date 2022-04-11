@@ -4,37 +4,44 @@ import { getConfigFilePathFromCompilerOptions } from './config';
 import { typescript } from './typescript';
 import { config } from './worker-config';
 
-// write this type as it's available only starting from TypeScript 4.1.0
+// these types are internal in TypeScript, so reproduce them here
+type TracingMode = 'project' | 'build' | 'server';
 interface Tracing {
-  startTracing(configFilePath: string, traceDirPath: string, isBuildMode: boolean): void;
-  stopTracing(typeCatalog: unknown): void;
-  dumpLegend(): void;
+  startTracing?: (tracingMode: TracingMode, traceDir: string, configFilePath?: string) => void;
+
+  tracing?: {
+    stopTracing(): void;
+    dumpLegend(): void;
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tracing: Tracing | undefined = (typescript as any).tracing;
+const traceableTypescript: Tracing = typescript as any;
 
 export function startTracingIfNeeded(compilerOptions: ts.CompilerOptions) {
-  if (compilerOptions.generateTrace && tracing) {
-    tracing.startTracing(
-      getConfigFilePathFromCompilerOptions(compilerOptions),
-      compilerOptions.generateTrace as string,
-      config.build
+  if (
+    typeof compilerOptions.generateTrace === 'string' &&
+    typeof traceableTypescript.startTracing === 'function'
+  ) {
+    traceableTypescript.startTracing(
+      config.build ? 'build' : 'project',
+      compilerOptions.generateTrace,
+      getConfigFilePathFromCompilerOptions(compilerOptions)
     );
   }
 }
 
-export function stopTracingIfNeeded(program: ts.BuilderProgram) {
+export function stopTracingIfNeeded(program: ts.Program | ts.BuilderProgram) {
   const compilerOptions = program.getCompilerOptions();
 
-  if (compilerOptions.generateTrace && tracing) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tracing.stopTracing((program.getProgram() as any).getTypeCatalog());
+  if (
+    typeof compilerOptions.generateTrace === 'string' &&
+    typeof traceableTypescript.tracing?.stopTracing === 'function'
+  ) {
+    traceableTypescript.tracing.stopTracing();
   }
 }
 
 export function dumpTracingLegendIfNeeded() {
-  if (tracing) {
-    tracing.dumpLegend();
-  }
+  traceableTypescript.tracing?.dumpLegend();
 }

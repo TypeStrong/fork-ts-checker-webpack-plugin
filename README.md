@@ -347,10 +347,10 @@ yarn add --dev @types/webpack
 
 ## Profiling types resolution
 
-Starting from TypeScript 4.1.0, you can profile long type checks by
+When using TypeScript 4.3.0 or newer you can profile long type checks by
 setting "generateTrace" compiler option. This is an instruction from [microsoft/TypeScript#40063](https://github.com/microsoft/TypeScript/pull/40063):
 
-1. Set "generateTrace": "{folderName}" in your `tsconfig.json`
+1. Set "generateTrace": "{folderName}" in your `tsconfig.json` (under `compilerOptions`)
 2. Look in the resulting folder. If you used build mode, there will be a `legend.json` telling you what went where.
    Otherwise, there will be `trace.json` file and `types.json` files.
 3. Navigate to [edge://tracing](edge://tracing) or [chrome://tracing](chrome://tracing) and load `trace.json`

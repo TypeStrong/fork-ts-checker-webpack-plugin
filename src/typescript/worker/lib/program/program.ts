@@ -4,6 +4,7 @@ import { getConfigFilePathFromProgram, getParsedConfig } from '../config';
 import { updateDiagnostics, getDiagnosticsOfProgram } from '../diagnostics';
 import { emitDtsIfNeeded } from '../emit';
 import { createCompilerHost } from '../host/compiler-host';
+import { startTracingIfNeeded, stopTracingIfNeeded } from '../tracing';
 import { typescript } from '../typescript';
 
 let compilerHost: ts.CompilerHost | undefined;
@@ -16,6 +17,7 @@ export function useProgram() {
     compilerHost = createCompilerHost(parsedConfig);
   }
   if (!program) {
+    startTracingIfNeeded(parsedConfig.options);
     program = typescript.createProgram({
       rootNames: parsedConfig.fileNames,
       options: parsedConfig.options,
@@ -26,6 +28,7 @@ export function useProgram() {
 
   updateDiagnostics(getConfigFilePathFromProgram(program), getDiagnosticsOfProgram(program));
   emitDtsIfNeeded(program);
+  stopTracingIfNeeded(program);
 }
 
 export function invalidateProgram(withHost = false) {

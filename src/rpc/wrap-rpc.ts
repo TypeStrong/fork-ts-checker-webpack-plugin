@@ -1,5 +1,6 @@
 import type { ChildProcess } from 'child_process';
-import * as process from 'process';
+
+import { createControlledPromise } from '../utils/async/controlled-promise';
 
 import { RpcExitError } from './rpc-error';
 import type { RpcRemoteMethod, RpcMessage } from './types';
@@ -17,61 +18,71 @@ export function wrapRpc<T extends (...args: any[]) => any>(
 
     const id = uuid();
 
-    const resultPromise = new Promise((resolve, reject) => {
-      const handleMessage = (message: RpcMessage) => {
-        if (message.id === id) {
-          if (message.type === 'resolve') {
-            resolve(message.value);
-            unsubscribe();
-          } else if (message.type === 'reject') {
-            reject(message.error);
-            unsubscribe();
-          }
+    // create promises
+    const {
+      promise: resultPromise,
+      resolve: resolveResult,
+      reject: rejectResult,
+    } = createControlledPromise<T>();
+    const {
+      promise: sendPromise,
+      resolve: resolveSend,
+      reject: rejectSend,
+    } = createControlledPromise<void>();
+
+    const handleMessage = (message: RpcMessage) => {
+      if (message?.id === id) {
+        if (message.type === 'resolve') {
+          // assume the contract is respected
+          resolveResult(message.value as T);
+          removeHandlers();
+        } else if (message.type === 'reject') {
+          rejectResult(message.error);
+          removeHandlers();
         }
-      };
-      const handleClose = (code: string | number | null, signal: string | null) => {
-        reject(
-          new RpcExitError(
-            code
-              ? `Process ${process.pid} exited with code "${code}" [${signal}]`
-              : `Process ${process.pid} exited [${signal}].`,
-            code,
-            signal
-          )
-        );
-        unsubscribe();
-      };
-
-      const subscribe = () => {
-        childProcess.on('message', handleMessage);
-        childProcess.on('close', handleClose);
-      };
-      const unsubscribe = () => {
-        childProcess.off('message', handleMessage);
-        childProcess.off('exit', handleClose);
-      };
-
-      subscribe();
-    });
-
-    await new Promise<void>((resolve, reject) => {
-      childProcess.send(
-        {
-          type: 'call',
-          id,
-          args,
-        },
-        (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(undefined);
-          }
-        }
+      }
+    };
+    const handleClose = (code: string | number | null, signal: string | null) => {
+      rejectResult(
+        new RpcExitError(
+          code
+            ? `Process ${childProcess.pid} exited with code ${code}` +
+              (signal ? ` [${signal}]` : '')
+            : `Process ${childProcess.pid} exited` + (signal ? ` [${signal}]` : ''),
+          code,
+          signal
+        )
       );
-    });
+      removeHandlers();
+    };
 
-    return resultPromise;
+    // to prevent event handler leaks
+    const removeHandlers = () => {
+      childProcess.off('message', handleMessage);
+      childProcess.off('close', handleClose);
+    };
+
+    // add event listeners
+    childProcess.on('message', handleMessage);
+    childProcess.on('close', handleClose);
+    // send call message
+    childProcess.send(
+      {
+        type: 'call',
+        id,
+        args,
+      },
+      (error) => {
+        if (error) {
+          rejectSend(error);
+          removeHandlers();
+        } else {
+          resolveSend(undefined);
+        }
+      }
+    );
+
+    return sendPromise.then(() => resultPromise);
   }) as RpcRemoteMethod<T>;
 }
 

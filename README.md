@@ -359,6 +359,10 @@ setting "generateTrace" compiler option. This is an instruction from [microsoft/
 6. Open `types.json` in an editor
 7. When you see a type ID in the tracing output, go-to-line {id} to find data about that type
 
+## Enabling incremental mode
+
+You must both set "incremental": true in your `tsconfig.json` (under `compilerOptions`) and also specify mode: 'write-references' in `ForkTsCheckerWebpackPlugin` settings.
+
 
 ## Related projects
 

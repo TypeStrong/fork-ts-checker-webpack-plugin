@@ -35,10 +35,14 @@ function createIsIgnored(
     excluded.some((excludedPath) => path.startsWith(excludedPath))
   );
   ignoredFunctions.push((path: string) =>
-    BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
+    BUILTIN_IGNORED_DIRS.some(
+      (ignoredDir) => path.includes(`/${ignoredDir}/`) || path.includes(`\\${ignoredDir}\\`)
+    )
   );
   ignoredFunctions.push((path: string) =>
-    BUILTIN_IGNORED_FILES.some((ignoredFile) => path.endsWith(`/${ignoredFile}`))
+    BUILTIN_IGNORED_FILES.some(
+      (ignoredFile) => path.endsWith(`/${ignoredFile}`) || path.endsWith(`\\${ignoredFile}`)
+    )
   );
 
   return function isIgnored(path: string) {

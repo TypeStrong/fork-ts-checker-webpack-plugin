@@ -12,8 +12,6 @@ import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 import type { WatchFileSystem } from './watch-file-system';
 
 const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
-// we ignore package.json file because of https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/674
-const BUILTIN_IGNORED_FILES = ['package.json'];
 
 function createIsIgnored(
   ignored: string | RegExp | (string | RegExp)[] | undefined,
@@ -35,10 +33,9 @@ function createIsIgnored(
     excluded.some((excludedPath) => path.startsWith(excludedPath))
   );
   ignoredFunctions.push((path: string) =>
-    BUILTIN_IGNORED_DIRS.some((ignoredDir) => path.includes(`/${ignoredDir}/`))
-  );
-  ignoredFunctions.push((path: string) =>
-    BUILTIN_IGNORED_FILES.some((ignoredFile) => path.endsWith(`/${ignoredFile}`))
+    BUILTIN_IGNORED_DIRS.some(
+      (ignoredDir) => path.includes(`/${ignoredDir}/`) || path.includes(`\\${ignoredDir}\\`)
+    )
   );
 
   return function isIgnored(path: string) {

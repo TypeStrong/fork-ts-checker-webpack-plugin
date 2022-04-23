@@ -5,10 +5,26 @@ interface FilesChange {
   deletedFiles?: string[];
 }
 
+// we ignore package.json file because of https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/674
+const IGNORED_FILES = ['package.json'];
+
+const isIgnoredFile = (file: string) =>
+  IGNORED_FILES.some(
+    (ignoredFile) => file.endsWith(`/${ignoredFile}`) || file.endsWith(`\\${ignoredFile}`)
+  );
+
 const compilerFilesChangeMap = new WeakMap<webpack.Compiler, FilesChange>();
 
 function getFilesChange(compiler: webpack.Compiler): FilesChange {
-  return compilerFilesChangeMap.get(compiler) || { changedFiles: [], deletedFiles: [] };
+  const { changedFiles = [], deletedFiles = [] } = compilerFilesChangeMap.get(compiler) || {
+    changedFiles: [],
+    deletedFiles: [],
+  };
+
+  return {
+    changedFiles: changedFiles.filter((changedFile) => !isIgnoredFile(changedFile)),
+    deletedFiles: deletedFiles.filter((deletedFile) => !isIgnoredFile(deletedFile)),
+  };
 }
 
 function consumeFilesChange(compiler: webpack.Compiler): FilesChange {

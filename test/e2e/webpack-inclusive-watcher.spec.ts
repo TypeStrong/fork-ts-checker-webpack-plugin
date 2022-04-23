@@ -30,17 +30,19 @@ describe('Webpack Inclusive Watcher', () => {
       const baseDriver = createProcessDriver(process);
       const webpackDriver = createWebpackDevServerDriver(process, async);
 
-      // first compilation is successful
       await webpackDriver.waitForNoErrors();
 
       // update nested package.json file
       await sandbox.patch('package/package.json', '"1.0.0"', '"1.0.1"');
 
+      // wait for 5 seconds and fail if there is Debug Failure. in the console output
       await expect(() =>
         baseDriver.waitForStderrIncludes('Error: Debug Failure.', 5000)
       ).rejects.toEqual(
         new Error('Exceeded time on waiting for "Error: Debug Failure." to appear in the stderr.')
       );
+
+      await webpackDriver.waitForNoErrors();
     }
   );
 });

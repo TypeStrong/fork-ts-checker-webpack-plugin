@@ -1,0 +1,23 @@
+/// package/package.json
+{
+  "name": "typescript-nested-project",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "files": [
+    "./index.js"
+  ]
+}
+
+/// package/index.d.ts
+export declare function sayHello(who: string): string;
+
+/// package/index.js
+"use strict";
+exports.__esModule = true;
+exports.sayHello = void 0;
+function sayHello(who) {
+    return 'Hello ' + who + '!';
+}
+exports.sayHello = sayHello;

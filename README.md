@@ -334,19 +334,6 @@ module.exports = {
 };
 ```
 
-## Typings
-
-To use the plugin typings, you have to install `@types/webpack`. It's not included by default to not collide with your
-existing typings (`@types/webpack` imports `@types/node`). [It's an old TypeScript issue](https://github.com/microsoft/TypeScript/issues/18588),
-the alternative is to set `skipLibCheck: true` in the `compilerOptions` 😉
-```sh
-# with npm
-npm install --save-dev @types/webpack
-
-# with yarn
-yarn add --dev @types/webpack
-```
-
 ## Profiling types resolution
 
 When using TypeScript 4.3.0 or newer you can profile long type checks by

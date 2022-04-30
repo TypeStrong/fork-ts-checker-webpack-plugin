@@ -15,7 +15,7 @@ function createWebpackFormatter(formatter: Formatter): Formatter {
     const severity = issue.severity.toUpperCase();
 
     if (issue.file) {
-      let location = chalk.whiteBright.bold(relativeToContext(issue.file, process.cwd()));
+      let location = chalk.bold(relativeToContext(issue.file, process.cwd()));
       if (issue.location) {
         location += ` ${chalk.green.bold(formatIssueLocation(issue.location))}`;
       }

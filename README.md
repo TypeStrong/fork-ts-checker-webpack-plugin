@@ -54,7 +54,7 @@ module.exports = {
       {
         test: /\.tsx?$/,
         loader: 'ts-loader',
-        // for ts-loader < 9.3.0 you have to add transpileOnly: true option
+        // add transpileOnly option if you use ts-loader < 9.3.0 
         // options: {
         //   transpileOnly: true
         // }
@@ -242,7 +242,7 @@ module.exports = {
         exclude: /node_modules/,
         options: {
           appendTsSuffixTo: [/\.vue$/],
-          // add transpileOnly if you use ts-loader < 9.3.0 
+          // add transpileOnly option if you use ts-loader < 9.3.0 
           // transpileOnly: true
         }
       },

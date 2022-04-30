@@ -54,11 +54,10 @@ module.exports = {
       {
         test: /\.tsx?$/,
         loader: 'ts-loader',
-        exclude: /node_modules/,
-        options: {
-          // disable type checker - we will use it in fork plugin
-          transpileOnly: true
-        }
+        // add transpileOnly option if you use ts-loader < 9.3.0 
+        // options: {
+        //   transpileOnly: true
+        // }
       }
     ]
   },
@@ -243,7 +242,8 @@ module.exports = {
         exclude: /node_modules/,
         options: {
           appendTsSuffixTo: [/\.vue$/],
-          transpileOnly: true
+          // add transpileOnly option if you use ts-loader < 9.3.0 
+          // transpileOnly: true
         }
       },
       {

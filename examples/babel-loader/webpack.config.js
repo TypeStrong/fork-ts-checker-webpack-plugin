@@ -10,7 +10,6 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        exclude: /node_modules/,
         loader: 'babel-loader',
       },
     ],
@@ -22,7 +21,7 @@ module.exports = {
           semantic: true,
           syntactic: true,
         },
-        mode: "write-references",
+        mode: 'write-references',
       },
     }),
   ],

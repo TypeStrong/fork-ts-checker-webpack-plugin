@@ -17,7 +17,7 @@ function createWebpackFormatter(formatter: Formatter): Formatter {
     if (issue.file) {
       let location = chalk.bold(relativeToContext(issue.file, process.cwd()));
       if (issue.location) {
-        location += ` ${chalk.green.bold(formatIssueLocation(issue.location))}`;
+        location += `:${chalk.green.bold(formatIssueLocation(issue.location))}`;
       }
 
       return [`${color(severity)} in ${location}`, formatter(issue), ''].join(os.EOL);

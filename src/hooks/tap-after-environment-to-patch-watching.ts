@@ -4,10 +4,12 @@ import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 import { InclusiveNodeWatchFileSystem } from '../watch/inclusive-node-watch-file-system';
 import type { WatchFileSystem } from '../watch/watch-file-system';
+import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 
 function tapAfterEnvironmentToPatchWatching(
   compiler: webpack.Compiler,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
+  config: ForkTsCheckerWebpackPluginConfig
 ) {
   const { debug } = getInfrastructureLogger(compiler);
 
@@ -20,7 +22,8 @@ function tapAfterEnvironmentToPatchWatching(
         // we use some internals here
         watchFileSystem as WatchFileSystem,
         compiler,
-        state
+        state,
+        config
       );
     } else {
       debug('No watch file system found - plugin may not work correctly.');

@@ -10,11 +10,11 @@ import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 
 import type { WatchFileSystem } from './watch-file-system';
-
-const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
+import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 
 function createIsIgnored(
   ignored: string | RegExp | (string | RegExp)[] | undefined,
+  configIgnored: ForkTsCheckerWebpackPluginConfig['ignored'],
   excluded: string[]
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
@@ -33,7 +33,7 @@ function createIsIgnored(
     excluded.some((excludedPath) => path.startsWith(excludedPath))
   );
   ignoredFunctions.push((path: string) =>
-    BUILTIN_IGNORED_DIRS.some(
+    configIgnored.some(
       (ignoredDir) => path.includes(`/${ignoredDir}/`) || path.includes(`\\${ignoredDir}\\`)
     )
   );
@@ -55,7 +55,8 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
   constructor(
     private watchFileSystem: WatchFileSystem,
     private compiler: Compiler,
-    private pluginState: ForkTsCheckerWebpackPluginState
+    private pluginState: ForkTsCheckerWebpackPluginState,
+    private config: ForkTsCheckerWebpackPluginConfig
   ) {
     this.dirsWatchers = new Map();
     this.deletedFiles = new Set();
@@ -75,6 +76,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     clearFilesChange(this.compiler);
     const isIgnored = createIsIgnored(
       options?.ignored,
+      this.config.ignored,
       this.pluginState.lastDependencies?.excluded || []
     );
 

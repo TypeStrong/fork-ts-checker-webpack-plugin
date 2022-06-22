@@ -73,7 +73,7 @@ class ForkTsCheckerWebpackPlugin {
       config.typescript
     );
 
-    tapAfterEnvironmentToPatchWatching(compiler, state);
+    tapAfterEnvironmentToPatchWatching(compiler, state, config);
     tapStartToRunWorkers(compiler, getIssuesWorker, getDependenciesWorker, config, state);
     tapAfterCompileToAddDependencies(compiler, config, state);
     tapStopToTerminateWorkers(compiler, getIssuesWorker, getDependenciesWorker, state);

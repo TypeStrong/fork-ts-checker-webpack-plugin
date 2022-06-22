@@ -17,6 +17,7 @@ interface ForkTsCheckerWebpackPluginConfig {
   formatter: FormatterConfig;
   logger: Logger;
   devServer: boolean;
+  ignored: string[];
 }
 
 function createPluginConfig(
@@ -40,6 +41,7 @@ function createPluginConfig(
           })()
         : options.logger || console,
     devServer: options.devServer !== false,
+    ignored: options.ignored || ['node_modules', '.git', '.yarn', '.pnp'],
   };
 }
 

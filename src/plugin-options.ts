@@ -10,6 +10,7 @@ interface ForkTsCheckerWebpackPluginOptions {
   issue?: IssueOptions;
   logger?: Logger | 'webpack-infrastructure';
   devServer?: boolean;
+  ignored?: string[];
 }
 
 export { ForkTsCheckerWebpackPluginOptions };

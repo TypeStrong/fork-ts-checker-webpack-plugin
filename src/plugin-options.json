@@ -21,6 +21,13 @@
     "devServer": {
       "type": "boolean",
       "description": "Enable reporting to Webpack Dev Server."
+    },
+    "ignored": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Enabled to ignore directories."
     }
   },
   "additionalProperties": false,

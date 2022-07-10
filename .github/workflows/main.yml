@@ -1,5 +1,7 @@
 name: CI/CD
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -86,9 +88,11 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GH_PERSONAL_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+      deployments: write
     needs: [build, test]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta')
     steps:
@@ -110,3 +114,6 @@ jobs:
 
       - name: Release
         run: yarn semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -11,7 +11,7 @@ import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 
 import type { WatchFileSystem } from './watch-file-system';
 
-const BUILTIN_IGNORED_DIRS = ['node_modules', '.git', '.yarn', '.pnp'];
+const BUILTIN_IGNORED_DIRS = ['.git'];
 
 function createIsIgnored(
   ignored: string | RegExp | (string | RegExp)[] | undefined,

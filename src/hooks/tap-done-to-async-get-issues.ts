@@ -39,7 +39,6 @@ function tapDoneToAsyncGetIssues(
       }
 
       issues = await issuesPromise;
-      debug('Got issues from getIssuesWorker.', issues?.length);
     } catch (error) {
       hooks.error.call(error, stats.compilation);
       return;
@@ -51,6 +50,8 @@ function tapDoneToAsyncGetIssues(
     ) {
       return;
     }
+
+    debug(`Got ${issues?.length || 0} issues from getIssuesWorker.`);
 
     // filter list of issues by provided issue predicate
     issues = issues.filter(config.issue.predicate);

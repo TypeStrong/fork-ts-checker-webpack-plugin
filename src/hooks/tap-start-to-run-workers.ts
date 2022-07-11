@@ -1,7 +1,8 @@
+import { AbortController } from 'node-abort-controller';
 import type * as webpack from 'webpack';
 
 import type { FilesChange } from '../files-change';
-import { consumeFilesChange } from '../files-change';
+import { aggregateFilesChanges, consumeFilesChange } from '../files-change';
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 import { getPluginHooks } from '../plugin-hooks';
@@ -59,49 +60,91 @@ function tapStartToRunWorkers(
       return;
     }
 
+    // get current iteration number
     const iteration = ++state.iteration;
 
-    let change: FilesChange = {};
+    // abort previous iteration
+    if (state.abortController) {
+      debug(`Aborting iteration ${iteration - 1}.`);
+      state.abortController.abort();
+    }
+
+    // create new abort controller for the new iteration
+    const abortController = new AbortController();
+    state.abortController = abortController;
+
+    let filesChange: FilesChange = {};
 
     if (state.watching) {
-      change = consumeFilesChange(compiler);
+      filesChange = consumeFilesChange(compiler);
       log(
         [
           'Calling reporter service for incremental check.',
-          `  Changed files: ${JSON.stringify(change.changedFiles)}`,
-          `  Deleted files: ${JSON.stringify(change.deletedFiles)}`,
+          `  Changed files: ${JSON.stringify(filesChange.changedFiles)}`,
+          `  Deleted files: ${JSON.stringify(filesChange.deletedFiles)}`,
         ].join('\n')
       );
     } else {
       log('Calling reporter service for single check.');
     }
 
-    change = await hooks.start.promise(change, compilation);
+    filesChange = await hooks.start.promise(filesChange, compilation);
+    let aggregatedFilesChange = filesChange;
+    if (state.aggregatedFilesChange) {
+      aggregatedFilesChange = aggregateFilesChanges([aggregatedFilesChange, filesChange]);
+      debug(
+        [
+          `Aggregating with previous files change, iteration ${iteration}.`,
+          `  Changed files: ${JSON.stringify(aggregatedFilesChange.changedFiles)}`,
+          `  Deleted files: ${JSON.stringify(aggregatedFilesChange.deletedFiles)}`,
+        ].join('\n')
+      );
+    }
+    state.aggregatedFilesChange = aggregatedFilesChange;
 
-    debug(`Submitting the getIssuesWorker to the pool, iteration ${iteration}.`);
-    state.issuesPromise = issuesPool.submit(async () => {
-      try {
-        debug(`Running the getIssuesWorker, iteration ${iteration}.`);
-        return await getIssuesWorker(change, state.watching);
-      } catch (error) {
-        hooks.error.call(error, compilation);
-        return undefined;
-      } finally {
-        debug(`The getIssuesWorker finished its job, iteration ${iteration}.`);
-      }
-    });
+    // submit one at a time for a single compiler
+    state.issuesPromise = (state.issuesPromise || Promise.resolve())
+      // resolve to undefined on error
+      .catch(() => undefined)
+      .then(() => {
+        // early return
+        if (abortController.signal.aborted) {
+          return undefined;
+        }
+
+        debug(`Submitting the getIssuesWorker to the pool, iteration ${iteration}.`);
+        return issuesPool.submit(async () => {
+          try {
+            debug(`Running the getIssuesWorker, iteration ${iteration}.`);
+            const issues = await getIssuesWorker(aggregatedFilesChange, state.watching);
+            if (state.aggregatedFilesChange === aggregatedFilesChange) {
+              state.aggregatedFilesChange = undefined;
+            }
+            if (state.abortController === abortController) {
+              state.abortController = undefined;
+            }
+            return issues;
+          } catch (error) {
+            hooks.error.call(error, compilation);
+            return undefined;
+          } finally {
+            debug(`The getIssuesWorker finished its job, iteration ${iteration}.`);
+          }
+        }, abortController.signal);
+      });
+
     debug(`Submitting the getDependenciesWorker to the pool, iteration ${iteration}.`);
     state.dependenciesPromise = dependenciesPool.submit(async () => {
       try {
         debug(`Running the getDependenciesWorker, iteration ${iteration}.`);
-        return await getDependenciesWorker(change);
+        return await getDependenciesWorker(filesChange);
       } catch (error) {
         hooks.error.call(error, compilation);
         return undefined;
       } finally {
         debug(`The getDependenciesWorker finished its job, iteration ${iteration}.`);
       }
-    });
+    }); // don't pass abortController.signal because getDependencies() is blocking
   });
 }
 

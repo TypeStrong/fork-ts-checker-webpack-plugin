@@ -45,8 +45,10 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    if (!issues) {
-      // some error has been thrown or it was canceled
+    if (
+      !issues || // some error has been thrown
+      state.issuesPromise !== issuesPromise // we have a new request - don't show results for the old one
+    ) {
       return;
     }
 

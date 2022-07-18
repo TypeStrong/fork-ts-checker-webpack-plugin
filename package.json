@@ -63,14 +63,15 @@
     "fs-extra": "^10.0.0",
     "memfs": "^3.4.1",
     "minimatch": "^3.0.4",
+    "node-abort-controller": "^3.0.1",
     "schema-utils": "^3.1.1",
     "semver": "^7.3.5",
     "tapable": "^2.2.1"
   },
   "peerDependencies": {
     "typescript": ">3.6.0",
-    "webpack": "^5.11.0",
-    "vue-template-compiler": "*"
+    "vue-template-compiler": "*",
+    "webpack": "^5.11.0"
   },
   "peerDependenciesMeta": {
     "vue-template-compiler": {

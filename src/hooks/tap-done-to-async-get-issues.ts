@@ -39,16 +39,19 @@ function tapDoneToAsyncGetIssues(
       }
 
       issues = await issuesPromise;
-      debug('Got issues from getIssuesWorker.', issues?.length);
     } catch (error) {
       hooks.error.call(error, stats.compilation);
       return;
     }
 
-    if (!issues) {
-      // some error has been thrown or it was canceled
+    if (
+      !issues || // some error has been thrown
+      state.issuesPromise !== issuesPromise // we have a new request - don't show results for the old one
+    ) {
       return;
     }
+
+    debug(`Got ${issues?.length || 0} issues from getIssuesWorker.`);
 
     // filter list of issues by provided issue predicate
     issues = issues.filter(config.issue.predicate);

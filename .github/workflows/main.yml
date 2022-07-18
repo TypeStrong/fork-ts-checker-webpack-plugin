@@ -18,7 +18,7 @@ jobs:
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - name: Yarn cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -58,7 +58,7 @@ jobs:
       run: echo "::set-output name=dir::$(yarn cache dir)"
 
     - name: Yarn cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ steps.yarn-cache.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -66,7 +66,7 @@ jobs:
           ${{ runner.os }}-yarn-
 
     - name: Locks cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: test/e2e/__locks__
         key: ${{ runner.os }}-locks

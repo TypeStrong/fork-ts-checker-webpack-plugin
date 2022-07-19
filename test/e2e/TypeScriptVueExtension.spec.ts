@@ -29,8 +29,16 @@ describe('TypeScript Vue Extension', () => {
       typescript: '^3.8.0',
       tsloader: '^7.0.0',
       vueloader: '^15.8.3',
-      vue: '^2.6.11',
+      vue: '2.6.14',
       compiler: 'vue-template-compiler',
+    },
+    {
+      async: false,
+      typescript: '^3.8.0',
+      tsloader: '^7.0.0',
+      vueloader: '^15.10.0',
+      vue: '^2.7.0',
+      compiler: '@vue/compiler-sfc',
     },
     {
       async: true,
@@ -60,8 +68,9 @@ describe('TypeScript Vue Extension', () => {
         }),
         await readFixture(join(__dirname, 'fixtures/implementation/typescript-vue.fixture')),
       ]);
-
-      if (vue === '^2.6.11') {
+      const isVue2 = vue === '^2.7.0' || vue === '2.6.14';
+      const vueBlankLine = isVue2 ? '' : ' ';
+      if (isVue2) {
         await sandbox.write(
           'src/vue-shim.d.ts',
           [
@@ -98,7 +107,7 @@ describe('TypeScript Vue Extension', () => {
           'ERROR in src/component/LoggedIn.vue:27:21',
           "TS2304: Cannot find name 'getUserName'.",
           '    25 |       const user: User = this.user;',
-          '    26 | ',
+          '    26 |' + vueBlankLine,
           "  > 27 |       return user ? getUserName(user) : '';",
           '       |                     ^^^^^^^^^^^',
           '    28 |     }',
@@ -126,7 +135,7 @@ describe('TypeScript Vue Extension', () => {
           'ERROR in src/component/LoggedIn.vue:27:29',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
           '    25 |       const user: User = this.user;',
-          '    26 | ',
+          '    26 |' + vueBlankLine,
           "  > 27 |       return user ? `${user.firstName} ${user.lastName}` : '';",
           '       |                             ^^^^^^^^^',
           '    28 |     }',
@@ -136,7 +145,7 @@ describe('TypeScript Vue Extension', () => {
         [
           'ERROR in src/model/User.ts:11:16',
           "TS2339: Property 'firstName' does not exist on type 'User'.",
-          '     9 | ',
+          '     9 |' + vueBlankLine,
           '    10 | function getUserName(user: User): string {',
           '  > 11 |   return [user.firstName, user.lastName]',
           '       |                ^^^^^^^^^',

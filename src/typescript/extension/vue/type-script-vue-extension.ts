@@ -1,4 +1,5 @@
 import fs from 'fs-extra';
+import * as semver from 'semver';
 
 import type { TypeScriptEmbeddedSource } from '../type-script-embedded-extension';
 import { createTypeScriptEmbeddedExtension } from '../type-script-embedded-extension';
@@ -7,6 +8,7 @@ import type { TypeScriptExtension } from '../type-script-extension';
 import type { TypeScriptVueExtensionConfig } from './type-script-vue-extension-config';
 import type { VueTemplateCompilerV2 } from './types/vue-template-compiler';
 import type { VueTemplateCompilerV3 } from './types/vue__compiler-sfc';
+import type { VueTemplateCompilerV2dot7 } from './types/vue__complier-sfc-2_7';
 
 interface GenericScriptSFCBlock {
   content: string;
@@ -27,11 +29,20 @@ function createTypeScriptVueExtension(config: TypeScriptVueExtensionConfig): Typ
   ): compiler is VueTemplateCompilerV2 {
     return typeof (compiler as VueTemplateCompilerV2).parseComponent === 'function';
   }
+  function isVueTemplateCompilerV2dot7(
+    compiler: VueTemplateCompilerV3 | VueTemplateCompilerV2dot7
+  ): compiler is VueTemplateCompilerV2dot7 {
+    // eslint-disable-next-line node/no-missing-require,@typescript-eslint/no-var-requires
+    const vueSfcVersion = require('@vue/compiler-sfc/package.json').version;
+    return semver.gt(vueSfcVersion, '2.7.0') && semver.lt(vueSfcVersion, '3.0.0');
+  }
 
-  function isVueTemplateCompilerV3(
-    compiler: VueTemplateCompilerV2 | VueTemplateCompilerV3
-  ): compiler is VueTemplateCompilerV3 {
-    return typeof (compiler as VueTemplateCompilerV3).parse === 'function';
+  function isVueTemplateCompilerV2dot7OrV3(
+    compiler: VueTemplateCompilerV2 | VueTemplateCompilerV3 | VueTemplateCompilerV2dot7
+  ): compiler is VueTemplateCompilerV3 | VueTemplateCompilerV2dot7 {
+    return (
+      typeof (compiler as VueTemplateCompilerV3 | VueTemplateCompilerV2dot7).parse === 'function'
+    );
   }
 
   function getExtensionByLang(
@@ -107,21 +118,27 @@ function createTypeScriptVueExtension(config: TypeScriptVueExtensionConfig): Typ
       });
 
       script = parsed.script;
-    } else if (isVueTemplateCompilerV3(compiler)) {
-      const parsed = compiler.parse(vueSourceText);
+    } else if (isVueTemplateCompilerV2dot7OrV3(compiler)) {
+      if (isVueTemplateCompilerV2dot7(compiler)) {
+        const parsed = compiler.parse({ source: vueSourceText });
+        if (parsed.script) {
+          script = parsed.script;
+        }
+      } else {
+        const parsed = compiler.parse(vueSourceText);
+        if (parsed.descriptor && parsed.descriptor.script) {
+          const scriptV3 = parsed.descriptor.script;
 
-      if (parsed.descriptor && parsed.descriptor.script) {
-        const scriptV3 = parsed.descriptor.script;
-
-        // map newer version of SFCScriptBlock to the generic one
-        script = {
-          content: scriptV3.content,
-          attrs: scriptV3.attrs,
-          start: scriptV3.loc.start.offset,
-          end: scriptV3.loc.end.offset,
-          lang: scriptV3.lang,
-          src: scriptV3.src,
-        };
+          // map newer version of SFCScriptBlock to the generic one
+          script = {
+            content: scriptV3.content,
+            attrs: scriptV3.attrs,
+            start: scriptV3.loc.start.offset,
+            end: scriptV3.loc.end.offset,
+            lang: scriptV3.lang,
+            src: scriptV3.src,
+          };
+        }
       }
     } else {
       throw new Error(

@@ -1239,9 +1239,9 @@ for-in@^1.0.2:
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
-"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/c3/557jfkkd6f5d6b35tv7zy36m0000gn/T/fork-ts-checker-tmp-UworBN/fork-ts-checker-webpack-plugin-0.7349417527.tgz":
+"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-HHVimW/fork-ts-checker-webpack-plugin-0.7118685241.tgz":
   version "0.0.0-semantic-release"
-  resolved "file:../../../../../../../var/folders/c3/557jfkkd6f5d6b35tv7zy36m0000gn/T/fork-ts-checker-tmp-UworBN/fork-ts-checker-webpack-plugin-0.7349417527.tgz#8ad5200a6ac3a8cc184443e34ce89d760b5f2144"
+  resolved "file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-HHVimW/fork-ts-checker-webpack-plugin-0.7118685241.tgz#d01f850b956028c223b738ba3ff1909241a9b3d2"
   dependencies:
     "@babel/code-frame" "^7.8.3"
     "@types/json-schema" "^7.0.5"

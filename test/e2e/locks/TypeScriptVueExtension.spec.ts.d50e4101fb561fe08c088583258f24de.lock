@@ -1702,9 +1702,9 @@ for-in@^1.0.2:
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
-"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-A3Pbxd/fork-ts-checker-webpack-plugin-0.7392465769.tgz":
+"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-GMRiTK/fork-ts-checker-webpack-plugin-0.5005706637.tgz":
   version "0.0.0-semantic-release"
-  resolved "file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-A3Pbxd/fork-ts-checker-webpack-plugin-0.7392465769.tgz#888661b82e299dc30d03d8b5f7ca96a81897f04f"
+  resolved "file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-GMRiTK/fork-ts-checker-webpack-plugin-0.5005706637.tgz#d01f850b956028c223b738ba3ff1909241a9b3d2"
   dependencies:
     "@babel/code-frame" "^7.8.3"
     "@types/json-schema" "^7.0.5"

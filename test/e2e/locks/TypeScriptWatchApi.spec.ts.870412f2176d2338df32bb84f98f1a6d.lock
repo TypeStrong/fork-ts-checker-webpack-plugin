@@ -1511,9 +1511,9 @@ for-in@^1.0.2:
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
-"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/pj/fsllpv2x7r9bjmxj_1nrtn200000gn/T/fork-ts-checker-tmp-qO7xi7/fork-ts-checker-webpack-plugin-0.2921084613.tgz":
+"fork-ts-checker-webpack-plugin@file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-UCobpt/fork-ts-checker-webpack-plugin-0.7701197211.tgz":
   version "0.0.0-semantic-release"
-  resolved "file:../../../../../../../var/folders/pj/fsllpv2x7r9bjmxj_1nrtn200000gn/T/fork-ts-checker-tmp-qO7xi7/fork-ts-checker-webpack-plugin-0.2921084613.tgz#8aca6ac6fae7ca61efa4976803b8255a728280aa"
+  resolved "file:../../../../../../../var/folders/jd/sng2gfjj4h128jrc7m51p52r0000gn/T/fork-ts-checker-tmp-UCobpt/fork-ts-checker-webpack-plugin-0.7701197211.tgz#d01f850b956028c223b738ba3ff1909241a9b3d2"
   dependencies:
     "@babel/code-frame" "^7.8.3"
     "@types/json-schema" "^7.0.5"
@@ -1522,6 +1522,7 @@ for-in@^1.0.2:
     cosmiconfig "^6.0.0"
     deepmerge "^4.2.2"
     fs-extra "^9.0.0"
+    glob "^7.1.6"
     memfs "^3.1.2"
     minimatch "^3.0.4"
     schema-utils "2.7.0"
@@ -1642,6 +1643,18 @@ glob@^7.0.3, glob@^7.1.3, glob@^7.1.4:
     inflight "^1.0.4"
     inherits "2"
     minimatch "^3.0.4"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+
+glob@^7.1.6:
+  version "7.2.3"
+  resolved "https://registry.npmjs.org/glob/-/glob-7.2.3.tgz#b8df0fb802bbfa8e89bd1d938b4e16578ed44f2b"
+  integrity sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^3.1.1"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
@@ -2422,6 +2435,13 @@ minimatch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
   integrity sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==
+  dependencies:
+    brace-expansion "^1.1.7"
+
+minimatch@^3.1.1:
+  version "3.1.2"
+  resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz#19cd194bfd3e428f049a70817c038d89ab4be35b"
+  integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
   dependencies:
     brace-expansion "^1.1.7"
 

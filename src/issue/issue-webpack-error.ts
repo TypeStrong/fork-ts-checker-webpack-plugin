@@ -1,7 +1,7 @@
 import path from 'path';
 
 import chalk from 'chalk';
-import webpack from 'webpack';
+import * as webpack from 'webpack';
 
 import type { FormatterPathType } from '../formatter';
 import { forwardSlash } from '../utils/path/forward-slash';

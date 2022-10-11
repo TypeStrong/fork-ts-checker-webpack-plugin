@@ -1,4 +1,4 @@
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import { createIssuePredicateFromIssueMatch } from './issue-match';
 import type { IssuePredicateOption, IssueOptions } from './issue-options';

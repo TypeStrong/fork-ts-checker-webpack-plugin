@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'events';
 
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 // watchpack v1 and v2 internal interface
 interface Watchpack extends EventEmitter {

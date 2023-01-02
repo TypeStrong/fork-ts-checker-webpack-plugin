@@ -87,7 +87,7 @@ We are aware of an [issue with Vue and the incremental API](https://github.com/T
 
 The plugin supports webpack 2, 3, 4 and 5 alpha and TypeScript 2.1+ alongside tslint 4+.
 
-See also: https://blog.johnnyreilly.com/2019/03/the-big-one-point-oh.html
+See also: https://johnnyreilly.com/2019/03/06/fork-ts-checker-webpack-plugin-v1
 
 ## v1.0.0-alpha.10
 

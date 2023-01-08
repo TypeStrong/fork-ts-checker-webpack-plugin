@@ -44,7 +44,11 @@ function tapAfterCompileToGetIssues(
     issues = hooks.issues.call(issues, compilation);
 
     issues.forEach((issue) => {
-      const error = new IssueWebpackError(config.formatter(issue), issue);
+      const error = new IssueWebpackError(
+        config.formatter.format(issue),
+        config.formatter.pathType,
+        issue
+      );
 
       if (issue.severity === 'warning') {
         compilation.warnings.push(error);

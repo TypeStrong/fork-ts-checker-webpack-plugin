@@ -59,7 +59,7 @@ function tapDoneToAsyncGetIssues(
     // modify list of issues in the plugin hooks
     issues = hooks.issues.call(issues, stats.compilation);
 
-    const formatter = createWebpackFormatter(config.formatter);
+    const formatter = createWebpackFormatter(config.formatter.format, config.formatter.pathType);
 
     if (issues.length) {
       // follow webpack's approach - one process.write to stderr with all errors and warnings
@@ -75,7 +75,11 @@ function tapDoneToAsyncGetIssues(
     // skip reporting if there are no issues, to avoid an extra hot reload
     if (issues.length && state.webpackDevServerDoneTap) {
       issues.forEach((issue) => {
-        const error = new IssueWebpackError(config.formatter(issue), issue);
+        const error = new IssueWebpackError(
+          config.formatter.format(issue),
+          config.formatter.pathType,
+          issue
+        );
 
         if (issue.severity === 'warning') {
           stats.compilation.warnings.push(error);

@@ -34,6 +34,9 @@
         "type": {
           "$ref": "#/definitions/FormatterType"
         },
+        "pathType": {
+          "$ref": "#/definitions/FormatterPathType"
+        },
         "options": {
           "type": "object",
           "additionalProperties": true
@@ -44,6 +47,10 @@
     "FormatterType": {
       "type": "string",
       "enum": ["basic", "codeframe"]
+    },
+    "FormatterPathType": {
+      "type": "string",
+      "enum": ["relative", "absolute"]
     },
     "IssueMatch": {
       "type": "object",

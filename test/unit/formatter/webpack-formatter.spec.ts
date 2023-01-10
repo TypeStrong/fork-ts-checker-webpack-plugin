@@ -5,6 +5,8 @@ import type { Formatter } from 'src/formatter';
 import { createBasicFormatter, createWebpackFormatter } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { forwardSlash } from '../../../lib/utils/path/forward-slash';
+
 describe('formatter/webpack-formatter', () => {
   const issue: Issue = {
     severity: 'error',
@@ -23,29 +25,32 @@ describe('formatter/webpack-formatter', () => {
     },
   };
 
-  let formatter: Formatter;
+  let relativeFormatter: Formatter;
+  let absoluteFormatter: Formatter;
 
   beforeEach(() => {
-    formatter = createWebpackFormatter(createBasicFormatter());
+    relativeFormatter = createWebpackFormatter(createBasicFormatter(), 'relative');
+    absoluteFormatter = createWebpackFormatter(createBasicFormatter(), 'absolute');
   });
 
-  it('decorates existing formatter', () => {
-    expect(formatter(issue)).toContain('TS123: Some issue content');
+  it('decorates existing relativeFormatter', () => {
+    expect(relativeFormatter(issue)).toContain('TS123: Some issue content');
   });
 
   it('formats issue severity', () => {
-    expect(formatter({ ...issue, severity: 'error' })).toContain('ERROR');
-    expect(formatter({ ...issue, severity: 'warning' })).toContain('WARNING');
+    expect(relativeFormatter({ ...issue, severity: 'error' })).toContain('ERROR');
+    expect(relativeFormatter({ ...issue, severity: 'warning' })).toContain('WARNING');
   });
 
   it('formats issue file', () => {
-    expect(formatter(issue)).toContain(`./some/file.ts`);
+    expect(relativeFormatter(issue)).toContain(`./some/file.ts`);
+    expect(absoluteFormatter(issue)).toContain(forwardSlash(`${process.cwd()}/some/file.ts`));
   });
 
   it('formats location', () => {
-    expect(formatter(issue)).toContain(':1:7');
+    expect(relativeFormatter(issue)).toContain(':1:7');
     expect(
-      formatter({
+      relativeFormatter({
         ...issue,
         location: { start: { line: 1, column: 7 }, end: { line: 10, column: 16 } },
       })
@@ -53,7 +58,7 @@ describe('formatter/webpack-formatter', () => {
   });
 
   it('formats issue header like webpack', () => {
-    expect(formatter(issue)).toEqual(
+    expect(relativeFormatter(issue)).toEqual(
       [`ERROR in ./some/file.ts:1:7`, 'TS123: Some issue content', ''].join(os.EOL)
     );
   });

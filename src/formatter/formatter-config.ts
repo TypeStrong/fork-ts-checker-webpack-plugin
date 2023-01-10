@@ -1,13 +1,19 @@
 import { createBasicFormatter } from './basic-formatter';
 import { createCodeFrameFormatter } from './code-frame-formatter';
-import type { Formatter } from './formatter';
+import type { Formatter, FormatterPathType } from './formatter';
 import type { CodeframeFormatterOptions, FormatterOptions } from './formatter-options';
 
-type FormatterConfig = Formatter;
+type FormatterConfig = {
+  format: Formatter;
+  pathType: FormatterPathType;
+};
 
 function createFormatterConfig(options: FormatterOptions | undefined): FormatterConfig {
   if (typeof options === 'function') {
-    return options;
+    return {
+      format: options,
+      pathType: 'relative',
+    };
   }
 
   const type = options
@@ -15,9 +21,14 @@ function createFormatterConfig(options: FormatterOptions | undefined): Formatter
       ? options.type || 'codeframe'
       : options
     : 'codeframe';
+  const pathType =
+    options && typeof options === 'object' ? options.pathType || 'relative' : 'relative';
 
   if (!type || type === 'basic') {
-    return createBasicFormatter();
+    return {
+      format: createBasicFormatter(),
+      pathType,
+    };
   }
 
   if (type === 'codeframe') {
@@ -25,7 +36,11 @@ function createFormatterConfig(options: FormatterOptions | undefined): Formatter
       options && typeof options === 'object'
         ? (options as CodeframeFormatterOptions).options || {}
         : {};
-    return createCodeFrameFormatter(config);
+
+    return {
+      format: createCodeFrameFormatter(config),
+      pathType,
+    };
   }
 
   throw new Error(

@@ -63,16 +63,24 @@ describe('formatter/formatter-config', () => {
   ].join(os.EOL);
 
   it.each([
-    [undefined, CODEFRAME_FORMATTER_OUTPUT],
-    ['basic', BASIC_FORMATTER_OUTPUT],
-    [customFormatter, CUSTOM_FORMATTER_OUTPUT],
-    ['codeframe', CODEFRAME_FORMATTER_OUTPUT],
-    [{ type: 'basic' }, BASIC_FORMATTER_OUTPUT],
-    [{ type: 'codeframe' }, CODEFRAME_FORMATTER_OUTPUT],
-    [{ type: 'codeframe', options: { linesBelow: 1 } }, CUSTOM_CODEFRAME_FORMATTER_OUTPUT],
-  ])('creates configuration from options', (options, expectedFormat) => {
+    [undefined, CODEFRAME_FORMATTER_OUTPUT, 'relative'],
+    ['basic', BASIC_FORMATTER_OUTPUT, 'relative'],
+    [customFormatter, CUSTOM_FORMATTER_OUTPUT, 'relative'],
+    ['codeframe', CODEFRAME_FORMATTER_OUTPUT, 'relative'],
+    [{ type: 'basic' }, BASIC_FORMATTER_OUTPUT, 'relative'],
+    [{ type: 'codeframe' }, CODEFRAME_FORMATTER_OUTPUT, 'relative'],
+    [
+      { type: 'codeframe', options: { linesBelow: 1 } },
+      CUSTOM_CODEFRAME_FORMATTER_OUTPUT,
+      'relative',
+    ],
+    [{ type: 'basic', pathType: 'relative' }, BASIC_FORMATTER_OUTPUT, 'relative'],
+    [{ type: 'basic', pathType: 'absolute' }, BASIC_FORMATTER_OUTPUT, 'absolute'],
+    [{ type: 'codeframe', pathType: 'absolute' }, CODEFRAME_FORMATTER_OUTPUT, 'absolute'],
+  ])('creates configuration from options', (options, expectedFormat, expectedPathType) => {
     const formatter = createFormatterConfig(options as FormatterOptions);
 
-    expect(formatter(issue)).toEqual(expectedFormat);
+    expect(formatter.format(issue)).toEqual(expectedFormat);
+    expect(formatter.pathType).toEqual(expectedPathType);
   });
 });

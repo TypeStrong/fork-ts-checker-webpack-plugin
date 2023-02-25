@@ -19,7 +19,6 @@
 
  * Speeds up [TypeScript](https://github.com/Microsoft/TypeScript) type checking (by moving it to a separate process) 🏎
  * Supports modern TypeScript features like [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) and [incremental mode](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#faster-subsequent-builds-with-the---incremental-flag) ✨
- * Supports [Vue Single File Component](https://vuejs.org/v2/guide/single-file-components.html) ✅ 
  * Displays nice error messages with the [code frame](https://babeljs.io/docs/en/next/babel-code-frame.html) formatter 🌈
 
 ## Installation
@@ -28,6 +27,7 @@ This plugin requires **Node.js >=12.13.0+**, **Webpack ^5.11.0**, **TypeScript ^
 
 * If you depend on **TypeScript 2.1 - 2.6.2**, please use [version 4](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v4.1.4) of the plugin.
 * If you depend on **Webpack 4**, **TypeScript 2.7 - 3.5.3** or **ESLint** feature, please use [version 6](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v6.2.6) of the plugin.
+* If you need Vue.js support (even though it's buggy), please use [version 7](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v7.3.0) of ths plugin
 
 ```sh
 # with npm
@@ -115,19 +115,8 @@ Options for the TypeScript checker (`typescript` option object).
 | `build`             | `boolean`                                                                      | `false`                                                                                                        | The equivalent of the `--build` flag for the `tsc` command.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `mode`              | `'readonly'` or `'write-dts'` or `'write-tsbuildinfo'` or `'write-references'` | `build === true ? 'write-tsbuildinfo' ? 'readonly'`                                                            | Use `readonly` if you don't want to write anything on the disk, `write-dts` to write only `.d.ts` files, `write-tsbuildinfo` to write only `.tsbuildinfo` files, `write-references` to write both `.js` and `.d.ts` files of project references (last 2 modes requires `build: true`).                                                                                                                                                                                                                                                                                         |
 | `diagnosticOptions` | `object`                                                                       | `{ syntactic: false, semantic: true, declaration: false, global: false }`                                      | Settings to select which diagnostics do we want to perform.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `extensions`        | `object`                                                                       | `{}`                                                                                                           | See [TypeScript extensions options](#typescript-extensions-options).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `profile`           | `boolean`                                                                      | `false`                                                                                                        | Measures and prints timings related to the TypeScript performance.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `typescriptPath`    | `string`                                                                       | `require.resolve('typescript')`                                                                                | If supplied this is a custom path where TypeScript can be found.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-
-#### TypeScript extensions options
-
-Options for the TypeScript checker extensions (`typescript.extensions` option object).
-
-| Name           | Type                  | Default value             | Description                                                                                                                                                                                                      |
-|----------------|-----------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `vue`          | `object` or `boolean` | `false`                   | If `true`, it enables Vue [Single File Component](https://vuejs.org/v2/guide/single-file-components.html) support.                                                                                               |
-| `vue.enabled`  | `boolean`             | `false`                   | Same as the `vue` option                                                                                                                                                                                         |
-| `vue.compiler` | `string`              | `'vue-template-compiler'` | The package name of the compiler that will be used to parse `.vue` files. You can use `'nativescript-vue-template-compiler'` if you use [nativescript-vue](https://github.com/nativescript-vue/nativescript-vue) |
 
 ### Issues options
 
@@ -173,120 +162,6 @@ module.exports = {
   ]
 };
 ```
-
-</details>
-
-## Vue.js
-
-⚠️ There are additional **constraints** regarding Vue.js Single File Component support: ⚠️
- * It requires **TypeScript >= 3.8.0** (it's a limitation of the `transpileOnly` mode from `ts-loader`)
- * It doesn't work with the `build` mode (project references)
-
-To enable Vue.js support, follow these steps:
-
-<details>
-<summary>Expand Vue.js set up instruction</summary>
-
-1. Ensure you have all required packages installed:
-```sh
-# with npm
-npm install --save vue vue-class-component
-npm install --save-dev vue-loader ts-loader css-loader vue-template-compiler
-
-# with yarn
-yarn add vue vue-class-component
-yarn add --dev vue-loader ts-loader css-loader vue-template-compiler
-```
-
-2. Add `tsconfig.json` configuration:
-```json
-{
-  "compilerOptions": {
-    "experimentalDecorators": true,
-    "jsx": "preserve",
-    "target": "ES5",
-    "lib": ["ES6", "DOM"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "~/*": ["src/*"]
-    },
-    "sourceMap": true,
-    "importsNotUsedAsValues": "preserve"
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.vue"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
-}
-```
-
-3. Add `webpack.config.js` configuration:
-```js
-const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-
-module.exports = {
-  entry: './src/index.ts',
-  output: {
-    filename: 'index.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
-  module: {
-    rules: [
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader'
-      },
-      {
-        test: /\.ts$/,
-        loader: 'ts-loader',
-        exclude: /node_modules/,
-        options: {
-          appendTsSuffixTo: [/\.vue$/],
-          // add transpileOnly option if you use ts-loader < 9.3.0 
-          // transpileOnly: true
-        }
-      },
-      {
-        test: /\.css$/,
-        loader: 'css-loader'
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.ts', '.js', '.vue', '.json'],
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      '~': path.resolve(__dirname, './src'),
-    }
-  },
-  plugins: [
-    new VueLoaderPlugin(),
-    new ForkTsCheckerWebpackPlugin({
-      typescript: {
-        extensions: {
-          vue: true
-        }
-      }
-    })
-  ]
-};
-```
-
-4. Add `src/types/vue.d.ts` file to shim `.vue` modules:
-```typescript
-declare module "*.vue" {
-  import Vue from "vue";
-  export default Vue;
-}
-```
-
-5. If you are working in VSCode, you can get the [Vetur](https://marketplace.visualstudio.com/items?itemName=octref.vetur) extension to complete the developer workflow.
 
 </details>
 

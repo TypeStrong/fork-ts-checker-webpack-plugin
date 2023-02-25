@@ -159,14 +159,6 @@
             }
           }
         },
-        "extensions": {
-          "type": "object",
-          "properties": {
-            "vue": {
-              "$ref": "#/definitions/TypeScriptVueExtensionOptions"
-            }
-          }
-        },
         "profile": {
           "type": "boolean",
           "description": "Measures and prints timings related to the TypeScript performance."
@@ -176,27 +168,6 @@
           "description": "If supplied this is a custom path where TypeScript can be found."
         }
       }
-    },
-    "TypeScriptVueExtensionOptions": {
-      "oneOf": [
-        {
-          "type": "boolean",
-          "description": "Enable TypeScript Vue extension."
-        },
-        {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "Enable TypeScript Vue extension."
-            },
-            "compiler": {
-              "type": "string",
-              "description": "Custom vue-template-compiler package"
-            }
-          }
-        }
-      ]
     },
     "FormatterOptions": {
       "oneOf": [

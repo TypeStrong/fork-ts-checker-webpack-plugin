@@ -6,7 +6,6 @@ import type webpack from 'webpack';
 
 describe('typescript/type-scripts-worker-config', () => {
   let compiler: webpack.Compiler;
-  let createTypeScriptVueExtensionConfig: jest.Mock;
   const context = '/webpack/context';
 
   const configuration: TypeScriptWorkerConfig = {
@@ -23,12 +22,6 @@ describe('typescript/type-scripts-worker-config', () => {
       declaration: false,
       global: false,
     },
-    extensions: {
-      vue: {
-        enabled: false,
-        compiler: 'vue-template-compiler',
-      },
-    },
     profile: false,
     typescriptPath: require.resolve('typescript'),
   };
@@ -39,13 +32,6 @@ describe('typescript/type-scripts-worker-config', () => {
         context,
       },
     } as webpack.Compiler;
-    createTypeScriptVueExtensionConfig = jest.fn(() => ({
-      enabled: false,
-      compiler: 'vue-template-compiler',
-    }));
-    jest.setMock('src/typescript/extension/vue/type-script-vue-extension-config', {
-      createTypeScriptVueExtensionConfig,
-    });
   });
   afterEach(() => {
     jest.resetModules();
@@ -98,24 +84,5 @@ describe('typescript/type-scripts-worker-config', () => {
     const config = createTypeScriptWorkerConfig(compiler, options as TypeScriptWorkerOptions);
 
     expect(config).toEqual(expectedConfig);
-  });
-
-  it('passes vue options to the vue extension', async () => {
-    createTypeScriptVueExtensionConfig.mockImplementation(() => 'returned from vue extension');
-    const { createTypeScriptWorkerConfig } = await import(
-      'src/typescript/type-script-worker-config'
-    );
-
-    const vueOptions = {
-      enabled: true,
-      compiler: 'test-compiler',
-    };
-
-    const config = createTypeScriptWorkerConfig(compiler, {
-      extensions: { vue: vueOptions },
-    });
-
-    expect(createTypeScriptVueExtensionConfig).toHaveBeenCalledWith(vueOptions);
-    expect(config.extensions.vue).toEqual('returned from vue extension');
   });
 });

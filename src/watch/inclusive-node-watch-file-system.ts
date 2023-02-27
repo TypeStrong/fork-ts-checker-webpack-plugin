@@ -1,4 +1,4 @@
-import { extname } from 'path';
+import { extname, relative, isAbsolute } from 'path';
 
 import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';
@@ -8,6 +8,7 @@ import type { Compiler } from 'webpack';
 import { clearFilesChange, updateFilesChange } from '../files-change';
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
+import { isInsideAnotherPath } from '../utils/path/is-inside-another-path';
 
 import type { WatchFileSystem } from './watch-file-system';
 
@@ -30,7 +31,7 @@ function createIsIgnored(
     }
   });
   ignoredFunctions.push((path: string) =>
-    excluded.some((excludedPath) => path.startsWith(excludedPath))
+    excluded.some((excludedPath) => isInsideAnotherPath(excludedPath, path))
   );
   ignoredFunctions.push((path: string) =>
     BUILTIN_IGNORED_DIRS.some(

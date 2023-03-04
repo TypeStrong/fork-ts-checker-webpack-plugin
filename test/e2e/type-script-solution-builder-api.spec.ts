@@ -6,9 +6,9 @@ import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: '~3.8.0', mode: 'readonly' },
-    { async: true, typescript: '~3.8.0', mode: 'write-tsbuildinfo' },
-    { async: false, typescript: '~4.0.0', mode: 'write-references' },
+    { async: false, typescript: '~4.3.0', mode: 'readonly' },
+    { async: true, typescript: '~4.5.0', mode: 'write-tsbuildinfo' },
+    { async: false, typescript: '~4.7.0', mode: 'write-references' },
     { async: true, typescript: '~4.3.0', mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));

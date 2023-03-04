@@ -27,7 +27,7 @@ This plugin requires **Node.js >=12.13.0+**, **Webpack ^5.11.0**, **TypeScript ^
 
 * If you depend on **TypeScript 2.1 - 2.6.2**, please use [version 4](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v4.1.4) of the plugin.
 * If you depend on **Webpack 4**, **TypeScript 2.7 - 3.5.3** or **ESLint** feature, please use [version 6](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v6.2.6) of the plugin.
-* If you need Vue.js support (even though it's buggy), please use [version 7](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v7.3.0) of ths plugin
+* If you need Vue.js support, please use [version 6](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v6.5.2) of ths plugin
 
 ```sh
 # with npm

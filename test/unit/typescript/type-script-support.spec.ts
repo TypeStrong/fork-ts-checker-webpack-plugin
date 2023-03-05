@@ -21,12 +21,6 @@ describe('typescript/type-script-support', () => {
         syntactic: false,
       },
       enabled: true,
-      extensions: {
-        vue: {
-          enabled: false,
-          compiler: 'vue-template-compiler',
-        },
-      },
       memoryLimit: 2048,
       profile: false,
       typescriptPath: require.resolve('typescript'),

@@ -1,6 +1,5 @@
 import type * as ts from 'typescript';
 
-import { extensions } from '../extensions';
 import { system } from '../system';
 import { typescript } from '../typescript';
 
@@ -21,7 +20,7 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
     parsedConfig.projectReferences
   );
 
-  let controlledWatchCompilerHost: ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram> = {
+  return {
     ...baseWatchCompilerHost,
     createProgram(
       rootNames: ReadonlyArray<string> | undefined,
@@ -31,12 +30,6 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
       configFileParsingDiagnostics?: ReadonlyArray<ts.Diagnostic>,
       projectReferences?: ReadonlyArray<ts.ProjectReference> | undefined
     ): TProgram {
-      extensions.forEach((extension) => {
-        if (compilerHost && extension.extendCompilerHost) {
-          compilerHost = extension.extendCompilerHost(compilerHost, parsedConfig);
-        }
-      });
-
       return baseWatchCompilerHost.createProgram(
         rootNames,
         options,
@@ -64,15 +57,4 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
     getDirectories: system.getDirectories,
     realpath: system.realpath,
   };
-
-  extensions.forEach((extension) => {
-    if (extension.extendWatchCompilerHost) {
-      controlledWatchCompilerHost = extension.extendWatchCompilerHost<
-        TProgram,
-        ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram>
-      >(controlledWatchCompilerHost, parsedConfig);
-    }
-  });
-
-  return controlledWatchCompilerHost;
 }

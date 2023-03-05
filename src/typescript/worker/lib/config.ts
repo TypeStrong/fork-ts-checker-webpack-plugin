@@ -9,7 +9,6 @@ import { forwardSlash } from '../../../utils/path/forward-slash';
 import type { TypeScriptConfigOverwrite } from '../../type-script-config-overwrite';
 
 import { createIssuesFromDiagnostics } from './diagnostics';
-import { extensions } from './extensions';
 import { system } from './system';
 import { typescript } from './typescript';
 import { config } from './worker-config';
@@ -18,17 +17,12 @@ let parsedConfig: ts.ParsedCommandLine | undefined;
 let parseConfigDiagnostics: ts.Diagnostic[] = [];
 
 // initialize ParseConfigFileHost
-let parseConfigFileHost: ts.ParseConfigFileHost = {
+const parseConfigFileHost: ts.ParseConfigFileHost = {
   ...system,
   onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
     parseConfigDiagnostics.push(diagnostic);
   },
 };
-for (const extension of extensions) {
-  if (extension.extendParseConfigFileHost) {
-    parseConfigFileHost = extension.extendParseConfigFileHost(parseConfigFileHost);
-  }
-}
 
 function getUserProvidedConfigOverwrite(): TypeScriptConfigOverwrite {
   return config.configOverwrite || {};

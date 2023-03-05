@@ -5,7 +5,6 @@ import type * as ts from 'typescript';
 import type { FilesMatch } from '../../../files-match';
 
 import { getParsedConfig, parseConfig } from './config';
-import { extensions } from './extensions';
 import { typescript } from './typescript';
 import { config } from './worker-config';
 
@@ -16,12 +15,6 @@ export function getDependencies(force = false): FilesMatch {
     const parsedConfig = getParsedConfig();
 
     dependencies = getDependenciesWorker(parsedConfig, config.context);
-
-    for (const extension of extensions) {
-      if (extension.extendDependencies) {
-        dependencies = extension.extendDependencies(dependencies);
-      }
-    }
   }
 
   return dependencies;

@@ -3,7 +3,6 @@ import os from 'os';
 import fs from 'fs-extra';
 import * as semver from 'semver';
 
-import { assertTypeScriptVueExtensionSupport } from './extension/vue/type-script-vue-extension-support';
 import type { TypeScriptWorkerConfig } from './type-script-worker-config';
 
 function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
@@ -49,10 +48,6 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
         '  - wrong `typescript.configFile` path in the plugin configuration (should be a relative or absolute path)',
       ].join(os.EOL)
     );
-  }
-
-  if (config.extensions.vue.enabled) {
-    assertTypeScriptVueExtensionSupport(config.extensions.vue);
   }
 }
 

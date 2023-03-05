@@ -2,10 +2,9 @@ import type * as ts from 'typescript';
 import { Performance } from '../../profile/Performance';
 
 interface TypeScriptPerformance {
-  enable(): void;
-  disable(): void;
-  mark(name: string): void;
-  measure(name: string, startMark?: string, endMark?: string): void;
+  enable?(): void;
+  disable?(): void;
+  forEachMeasure?(callback: (measureName: string, duration: number) => void): void;
 }
 
 function getTypeScriptPerformance(typescript: typeof ts): TypeScriptPerformance | undefined {
@@ -20,27 +19,17 @@ function connectTypeScriptPerformance(
   const typeScriptPerformance = getTypeScriptPerformance(typescript);
 
   if (typeScriptPerformance) {
-    const { mark, measure } = typeScriptPerformance;
     const { enable, disable } = performance;
-
-    typeScriptPerformance.mark = (name) => {
-      mark(name);
-      performance.mark(name);
-    };
-    typeScriptPerformance.measure = (name, startMark, endMark) => {
-      measure(name, startMark, endMark);
-      performance.measure(name, startMark, endMark);
-    };
 
     return {
       ...performance,
       enable() {
         enable();
-        typeScriptPerformance.enable();
+        typeScriptPerformance.enable?.();
       },
       disable() {
         disable();
-        typeScriptPerformance.disable();
+        typeScriptPerformance.disable?.();
       },
     };
   } else {

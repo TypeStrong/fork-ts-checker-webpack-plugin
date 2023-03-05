@@ -5,7 +5,6 @@ import type * as ts from 'typescript';
 import type { Issue, IssueLocation } from '../../../issue';
 import { deduplicateAndSortIssues } from '../../../issue';
 
-import { extensions } from './extensions';
 import { typescript } from './typescript';
 import { config } from './worker-config';
 
@@ -85,15 +84,7 @@ function createIssueFromDiagnostic(diagnostic: ts.Diagnostic): Issue {
 }
 
 export function createIssuesFromDiagnostics(diagnostics: ts.Diagnostic[]): Issue[] {
-  let issues = deduplicateAndSortIssues(
+  return deduplicateAndSortIssues(
     diagnostics.map((diagnostic) => createIssueFromDiagnostic(diagnostic))
   );
-
-  extensions.forEach((extension) => {
-    if (extension.extendIssues) {
-      issues = extension.extendIssues(issues);
-    }
-  });
-
-  return issues;
 }

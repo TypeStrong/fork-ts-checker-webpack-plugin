@@ -1,6 +1,5 @@
 import type * as ts from 'typescript';
 
-import { extensions } from '../extensions';
 import { system } from '../system';
 import { typescript } from '../typescript';
 
@@ -23,7 +22,7 @@ export function createWatchSolutionBuilderHost<TProgram extends ts.BuilderProgra
     afterProgramCreate
   );
 
-  let controlledWatchSolutionBuilderHost: ts.SolutionBuilderWithWatchHost<TProgram> = {
+  return {
     ...controlledWatchCompilerHost,
     reportDiagnostic(diagnostic: ts.Diagnostic): void {
       if (reportDiagnostic) {
@@ -70,15 +69,4 @@ export function createWatchSolutionBuilderHost<TProgram extends ts.BuilderProgra
       );
     },
   };
-
-  extensions.forEach((extension) => {
-    if (extension.extendWatchSolutionBuilderHost) {
-      controlledWatchSolutionBuilderHost = extension.extendWatchSolutionBuilderHost<
-        TProgram,
-        ts.SolutionBuilderWithWatchHost<TProgram>
-      >(controlledWatchSolutionBuilderHost, parsedConfig);
-    }
-  });
-
-  return controlledWatchSolutionBuilderHost;
 }

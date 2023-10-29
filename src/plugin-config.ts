@@ -1,4 +1,4 @@
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import type { FormatterConfig } from './formatter';
 import { createFormatterConfig } from './formatter';

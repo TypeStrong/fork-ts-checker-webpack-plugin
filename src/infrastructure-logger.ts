@@ -1,4 +1,4 @@
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 export interface InfrastructureLogger {
   log(...args: unknown[]): void;

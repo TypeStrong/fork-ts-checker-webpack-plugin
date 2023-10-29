@@ -30,20 +30,32 @@ export function invalidateDiagnostics(): void {
 
 export function getDiagnosticsOfProgram(program: ts.Program | ts.BuilderProgram): ts.Diagnostic[] {
   const programDiagnostics: ts.Diagnostic[] = [];
-
-  if (config.diagnosticOptions.syntactic) {
-    programDiagnostics.push(...program.getSyntacticDiagnostics());
+  try {
+    if (config.diagnosticOptions.syntactic) {
+      programDiagnostics.push(...program.getSyntacticDiagnostics());
+    }
+    if (config.diagnosticOptions.global) {
+      programDiagnostics.push(...program.getGlobalDiagnostics());
+    }
+    if (config.diagnosticOptions.semantic) {
+      programDiagnostics.push(...program.getSemanticDiagnostics());
+    }
+    if (config.diagnosticOptions.declaration) {
+      programDiagnostics.push(...program.getDeclarationDiagnostics());
+    }
+  } catch (e) {
+    if (e instanceof Error) {
+      programDiagnostics.push({
+        code: 1,
+        category: 1,
+        messageText: `TSC compiler crashed: ${e.message}
+${e.stack}`,
+        file: undefined,
+        start: undefined,
+        length: undefined,
+      });
+    }
   }
-  if (config.diagnosticOptions.global) {
-    programDiagnostics.push(...program.getGlobalDiagnostics());
-  }
-  if (config.diagnosticOptions.semantic) {
-    programDiagnostics.push(...program.getSemanticDiagnostics());
-  }
-  if (config.diagnosticOptions.declaration) {
-    programDiagnostics.push(...program.getDeclarationDiagnostics());
-  }
-
   return programDiagnostics;
 }
 

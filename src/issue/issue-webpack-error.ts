@@ -1,6 +1,5 @@
 import path from 'path';
 
-import chalk from 'chalk';
 import * as webpack from 'webpack';
 
 import type { FormatterPathType } from '../formatter';
@@ -26,7 +25,7 @@ class IssueWebpackError extends webpack.WebpackError {
           : relativeToContext(issue.file, process.cwd());
 
       if (issue.location) {
-        this.file += `:${chalk.green.bold(formatIssueLocation(issue.location))}`;
+        this.file += `:${formatIssueLocation(issue.location)}`;
       }
     }
 

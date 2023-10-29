@@ -2,7 +2,7 @@ import path from 'path';
 
 import type { TypeScriptWorkerConfig } from 'src/typescript/type-script-worker-config';
 import type { TypeScriptWorkerOptions } from 'src/typescript/type-script-worker-options';
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 describe('typescript/type-scripts-worker-config', () => {
   let compiler: webpack.Compiler;

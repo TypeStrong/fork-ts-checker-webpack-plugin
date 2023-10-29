@@ -4,7 +4,7 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import merge from 'deepmerge';
 import type { JSONSchema7 } from 'json-schema';
 import { validate } from 'schema-utils';
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import { tapAfterCompileToAddDependencies } from './hooks/tap-after-compile-to-add-dependencies';
 import { tapAfterEnvironmentToPatchWatching } from './hooks/tap-after-environment-to-patch-watching';

@@ -1,6 +1,6 @@
 import path from 'path';
 
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import type { TypeScriptConfigOverwrite } from './type-script-config-overwrite';
 import type { TypeScriptDiagnosticsOptions } from './type-script-diagnostics-options';

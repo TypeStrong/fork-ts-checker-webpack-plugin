@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import { statsFormatter } from '../formatter/stats-formatter';
 import { createWebpackFormatter } from '../formatter/webpack-formatter';

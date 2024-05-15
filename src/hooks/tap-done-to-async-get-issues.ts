@@ -68,7 +68,7 @@ function tapDoneToAsyncGetIssues(
       // print stats of the compilation
       config.logger.log(statsFormatter(issues, stats));
     } else {
-      config.logger.log(chalk.green('No errors found.'));
+      config.logger.log(chalk.green('No typescript errors found.'));
     }
 
     // report issues to webpack-dev-server, if it's listening

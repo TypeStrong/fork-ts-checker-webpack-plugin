@@ -36,6 +36,9 @@ npm install --save-dev fork-ts-checker-webpack-plugin
 
 # with yarn
 yarn add --dev fork-ts-checker-webpack-plugin
+
+# with pnpm
+pnpm add -D fork-ts-checker-webpack-plugin
 ```
 
 The minimal webpack config (with [ts-loader](https://github.com/TypeStrong/ts-loader))

@@ -5,6 +5,8 @@ import type { FormatterOptions } from 'src/formatter';
 import { createFormatterConfig } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { stripAnsi } from './strip-ansi';
+
 describe('formatter/formatter-config', () => {
   beforeEach(() => {
     mockFs({
@@ -79,8 +81,9 @@ describe('formatter/formatter-config', () => {
     [{ type: 'codeframe', pathType: 'absolute' }, CODEFRAME_FORMATTER_OUTPUT, 'absolute'],
   ])('creates configuration from options', (options, expectedFormat, expectedPathType) => {
     const formatter = createFormatterConfig(options as FormatterOptions);
+    const format = stripAnsi(formatter.format(issue));
 
-    expect(formatter.format(issue)).toEqual(expectedFormat);
+    expect(format).toEqual(expectedFormat);
     expect(formatter.pathType).toEqual(expectedPathType);
   });
 });

@@ -8,7 +8,7 @@ describe('Webpack Node Api', () => {
       await sandbox.load(path.join(__dirname, 'fixtures/webpack-node-api'));
       await sandbox.install('yarn', { ...dependencies });
 
-      const result = await sandbox.exec('node ./webpack-node-api.js');
+      const result = await sandbox.exec('yarn node ./webpack-node-api.js');
       expect(result).toContain('Compiled successfully twice.');
     }
   );

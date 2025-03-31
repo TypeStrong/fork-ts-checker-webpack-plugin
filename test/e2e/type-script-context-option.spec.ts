@@ -1,4 +1,3 @@
-import os from 'os';
 import path from 'path';
 
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
@@ -64,14 +63,9 @@ describe('TypeScript Context Option', () => {
     await sandbox.write('foo/.gitignore', '');
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn(
-        `../node_modules/.bin/webpack${
-          os.platform() === 'win32' ? '.cmd' : ''
-        } serve --mode=development --config=../webpack.config.js`,
-        {
-          cwd: path.join(sandbox.context, 'foo'),
-        }
-      ),
+      sandbox.spawn(`yarn webpack serve --mode=development --config=../webpack.config.js`, {
+        cwd: path.join(sandbox.context, 'foo'),
+      }),
       async
     );
 

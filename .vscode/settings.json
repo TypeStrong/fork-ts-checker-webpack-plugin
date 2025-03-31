@@ -4,5 +4,17 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
+  ],
+  "jest.virtualFolders": [
+    {
+      "name": "test/e2e",
+      "jestCommandLine": "npm pack && yarn jest --config=test/e2e/jest.config.js --ci -i -b",
+      "runMode": "on-demand"
+    },
+    {
+      "name": "test/unit",
+      "jestCommandLine": "yarn jest --config=test/unit/jest.config.js",
+      "runMode": "on-demand"
+    }
   ]
 }

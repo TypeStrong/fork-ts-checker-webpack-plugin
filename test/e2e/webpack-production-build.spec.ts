@@ -5,7 +5,7 @@ import stripAnsi from 'strip-ansi';
 import { extractWebpackErrors } from './driver/webpack-errors-extractor';
 
 describe('Webpack Production Build', () => {
-  it.each([{ webpack: '5.11.0' }, { webpack: '^5.11.0' }])(
+  it.each([{ webpack: '5.54.0' }, { webpack: '^5.54.0' }])(
     'compiles the project successfully with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
@@ -37,7 +37,7 @@ describe('Webpack Production Build', () => {
 
   it('generates .d.ts files in write-dts mode', async () => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { webpack: '^5.11.0' });
+    await sandbox.install('yarn', { webpack: '^5.54.0' });
 
     await sandbox.patch(
       'webpack.config.js',
@@ -61,7 +61,7 @@ describe('Webpack Production Build', () => {
     await sandbox.remove('dist');
   });
 
-  it.each([{ webpack: '5.11.0' }, { webpack: '^5.11.0' }])(
+  it.each([{ webpack: '5.54.0' }, { webpack: '^5.54.0' }])(
     'exits with error on the project error with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));

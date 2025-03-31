@@ -7,7 +7,6 @@ import type { TypeScriptDiagnosticsOptions } from './type-script-diagnostics-opt
 import type { TypeScriptWorkerOptions } from './type-script-worker-options';
 
 interface TypeScriptWorkerConfig {
-  enabled: boolean;
   memoryLimit: number;
   configFile: string;
   configOverwrite: TypeScriptConfigOverwrite;
@@ -23,8 +22,7 @@ function createTypeScriptWorkerConfig(
   compiler: webpack.Compiler,
   options: TypeScriptWorkerOptions | undefined
 ): TypeScriptWorkerConfig {
-  let configFile =
-    typeof options === 'object' ? options.configFile || 'tsconfig.json' : 'tsconfig.json';
+  let configFile = options?.configFile || 'tsconfig.json';
 
   // ensure that `configFile` is an absolute normalized path
   configFile = path.normalize(
@@ -39,7 +37,6 @@ function createTypeScriptWorkerConfig(
   const typescriptPath = optionsAsObject.typescriptPath || require.resolve('typescript');
 
   return {
-    enabled: options !== false,
     memoryLimit: 2048,
     build: false,
     mode: optionsAsObject.build ? 'write-tsbuildinfo' : 'readonly',

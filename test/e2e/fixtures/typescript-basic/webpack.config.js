@@ -6,6 +6,7 @@ module.exports = {
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
+    hashFunction: 'xxhash64', // @see https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported
   },
   module: {
     rules: [

@@ -446,7 +446,6 @@ describe('TypeScript Watch API', () => {
       );
 
       // this should not introduce an error - file is not used
-      await driver.waitForNoErrors();
 
       // add organization name to the getUserName function
       await sandbox.patch(

@@ -8,7 +8,7 @@ interface Watchpack extends EventEmitter {
   _onRemove(item: string, file: string, type?: string): void;
 }
 
-type Watch = webpack.Compiler['watchFileSystem']['watch'];
+type Watch = NonNullable<webpack.Compiler['watchFileSystem']>['watch'];
 
 interface WatchFileSystem {
   watcher?: Watchpack;

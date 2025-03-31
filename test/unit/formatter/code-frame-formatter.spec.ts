@@ -4,6 +4,8 @@ import mockFs from 'mock-fs';
 import { createCodeFrameFormatter } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { stripAnsi } from './strip-ansi';
+
 describe('formatter/code-frame-formatter', () => {
   beforeEach(() => {
     mockFs({
@@ -103,7 +105,7 @@ describe('formatter/code-frame-formatter', () => {
       linesAbove: 1,
       linesBelow: 1,
     });
-    const formatted = formatter(issue);
+    const formatted = stripAnsi(formatter(issue));
 
     expect(formatted).toEqual(expectedFormatted);
   });

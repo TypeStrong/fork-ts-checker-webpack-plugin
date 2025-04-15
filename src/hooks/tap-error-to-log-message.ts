@@ -37,6 +37,8 @@ function tapErrorToLogMessage(
           )
         );
       }
+      // Ensure webpack exits instead of continuing compilation despite issues checking prematurely exiting
+      throw error;
     }
   });
 }

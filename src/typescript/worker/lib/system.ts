@@ -114,6 +114,10 @@ export const system: ControlledTypeScriptSystem = {
       .map((dirent) => dirent.name);
   },
   getModifiedTime(path: string): Date | undefined {
+    if (typeof path !== "string") {
+      return undefined;
+    }
+
     const stats = getReadFileSystem(path).readStats(path);
 
     if (stats) {

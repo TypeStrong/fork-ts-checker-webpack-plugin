@@ -1660,15 +1660,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/fs-extra@npm:^9.0.13":
-  version: 9.0.13
-  resolution: "@types/fs-extra@npm:9.0.13"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/576d4e9d382393316ed815c593f7f5c157408ec5e184521d077fcb15d514b5a985245f153ef52142b9b976cb9bd8f801850d51238153ebd0dc9e96b7a7548588
-  languageName: node
-  linkType: hard
-
 "@types/glob@npm:*":
   version: 8.1.0
   resolution: "@types/glob@npm:8.1.0"
@@ -4496,7 +4487,6 @@ __metadata:
     "@semantic-release/release-notes-generator": "npm:^9.0.3"
     "@types/babel__code-frame": "npm:^7.0.3"
     "@types/cross-spawn": "npm:^6.0.2"
-    "@types/fs-extra": "npm:^9.0.13"
     "@types/jest": "npm:^27.4.0"
     "@types/json-schema": "npm:^7.0.9"
     "@types/minimatch": "npm:^3.0.5"
@@ -4516,7 +4506,6 @@ __metadata:
     eslint-plugin-import: "npm:^2.25.4"
     eslint-plugin-node: "npm:^11.1.0"
     eslint-plugin-prettier: "npm:^4.0.0"
-    fs-extra: "npm:^10.0.0"
     git-cz: "npm:^4.8.0"
     husky: "npm:^7.0.4"
     jest: "npm:^27.4.7"

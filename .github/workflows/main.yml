@@ -53,7 +53,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lib
           path: lib
@@ -86,7 +86,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lib
           path: lib

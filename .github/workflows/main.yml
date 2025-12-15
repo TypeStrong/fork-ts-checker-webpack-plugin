@@ -44,7 +44,7 @@ jobs:
           cache: 'yarn'
 
       - name: Locks cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: test/e2e/__locks__
           key: ${{ runner.os }}-locks

@@ -51,7 +51,7 @@ describe('wrapRpc', () => {
     childProcessMock.connected = false;
     const wrapped = wrapRpc(childProcessMock);
     await expect(wrapped()).rejects.toEqual(
-      new Error("Process 1234 doesn't have open IPC channels")
+      new Error("Process 1234 doesn't have open IPC channels"),
     );
     expect(eventHandlers).toEqual({});
   });
@@ -65,7 +65,7 @@ describe('wrapRpc', () => {
         id: expect.any(String),
         args: ['foo', 1234],
       },
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(eventHandlers).toEqual({
       message: [expect.any(Function)],
@@ -135,7 +135,7 @@ describe('wrapRpc', () => {
 
   it('rejects on send error', async () => {
     (childProcessMock.send as jest.Mock).mockImplementation((message, callback) =>
-      callback(new Error('cannot send'))
+      callback(new Error('cannot send')),
     );
     const wrapped = wrapRpc<() => void>(childProcessMock);
 

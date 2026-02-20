@@ -21,7 +21,7 @@ function tapStartToRunWorkers(
   getIssuesWorker: RpcWorker<GetIssuesWorker>,
   getDependenciesWorker: RpcWorker<GetDependenciesWorker>,
   config: ForkTsCheckerWebpackPluginConfig,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
 ) {
   const hooks = getPluginHooks(compiler);
   const { log, debug } = getInfrastructureLogger(compiler);
@@ -82,7 +82,7 @@ function tapStartToRunWorkers(
           'Calling reporter service for incremental check.',
           `  Changed files: ${JSON.stringify(filesChange.changedFiles)}`,
           `  Deleted files: ${JSON.stringify(filesChange.deletedFiles)}`,
-        ].join('\n')
+        ].join('\n'),
       );
     } else {
       log('Calling reporter service for single check.');
@@ -97,7 +97,7 @@ function tapStartToRunWorkers(
           `Aggregating with previous files change, iteration ${iteration}.`,
           `  Changed files: ${JSON.stringify(aggregatedFilesChange.changedFiles)}`,
           `  Deleted files: ${JSON.stringify(aggregatedFilesChange.deletedFiles)}`,
-        ].join('\n')
+        ].join('\n'),
       );
     }
     state.aggregatedFilesChange = aggregatedFilesChange;

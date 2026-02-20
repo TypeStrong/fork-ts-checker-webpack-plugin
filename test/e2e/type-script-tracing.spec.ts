@@ -16,12 +16,12 @@ describe('TypeScript Tracing', () => {
     await sandbox.patch(
       'tsconfig.json',
       '"outDir": "./dist"',
-      '"outDir": "./dist",\n"generateTrace": "./traces"'
+      '"outDir": "./dist",\n"generateTrace": "./traces"',
     );
 
     await sandbox.write(
       'fork-ts-checker.config.js',
-      `module.exports = ${JSON.stringify({ typescript: { build } })};`
+      `module.exports = ${JSON.stringify({ typescript: { build } })};`,
     );
 
     const webpackResult = await sandbox.exec('yarn webpack --mode=development');
@@ -34,7 +34,7 @@ describe('TypeScript Tracing', () => {
       expect.arrayContaining([
         expect.objectContaining({ name: expect.stringMatching(/types.*\.json/) }),
         expect.objectContaining({ name: expect.stringMatching(/trace.*\.json/) }),
-      ])
+      ]),
     );
   });
 });

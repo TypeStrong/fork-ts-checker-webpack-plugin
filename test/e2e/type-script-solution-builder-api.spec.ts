@@ -20,7 +20,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
-      async
+      async,
     );
     let errors: string[];
 
@@ -50,7 +50,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
     await sandbox.patch(
       'packages/shared/src/intersect.ts',
       'return arrayA.filter((item) => arrayB.includes(item));',
-      'return arrayA.filter((item) => item && arrayB);'
+      'return arrayA.filter((item) => item && arrayB);',
     );
 
     // this compilation should contain semantic error in the client project
@@ -76,7 +76,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
     await sandbox.patch(
       'packages/client/src/index.ts',
       'const intersection = intersect(arrayA, arrayB);',
-      'const intersection = intersect(arrayA, arrayB[0]);'
+      'const intersection = intersect(arrayA, arrayB[0]);',
     );
 
     // this compilation should be successful
@@ -89,7 +89,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
       [
         "import { intersect, subtract } from '@project-references-fixture/shared';",
         "import { x } from './nested/additional';",
-      ].join('\n')
+      ].join('\n'),
     );
 
     // this compilation should be successful
@@ -133,7 +133,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
         expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
         expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts')).toEqual(true);
         expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts.map')).toEqual(
-          true
+          true,
         );
         expect(await sandbox.exists('packages/client/lib/nested/additional.js')).toEqual(false);
 

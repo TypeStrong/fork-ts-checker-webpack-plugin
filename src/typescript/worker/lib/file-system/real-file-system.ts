@@ -86,7 +86,7 @@ function readFile(path: string, encoding?: string): string | undefined {
     if (stats && stats.isFile()) {
       readFileCache.set(
         normalizedPath,
-        fs.readFileSync(normalizedPath, { encoding: encoding as BufferEncoding }).toString()
+        fs.readFileSync(normalizedPath, { encoding: encoding as BufferEncoding }).toString(),
       );
     } else {
       readFileCache.set(normalizedPath, undefined);

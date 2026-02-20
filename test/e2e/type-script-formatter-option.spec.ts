@@ -19,12 +19,12 @@ describe('TypeScript Formatter Option', () => {
           '      formatter: (issue) => {',
           '        return `It is the custom issue statement - ${issue.code}: ${issue.message}`',
           '      },',
-        ].join('\n')
+        ].join('\n'),
       );
 
       const driver = createWebpackDevServerDriver(
         sandbox.spawn('yarn webpack serve --mode=development'),
-        async
+        async,
       );
 
       // first compilation is successful
@@ -34,7 +34,7 @@ describe('TypeScript Formatter Option', () => {
       await sandbox.patch(
         'src/model/User.ts',
         ['  firstName?: string;', '  lastName?: string;'].join('\n'),
-        ''
+        '',
       );
 
       // we should receive 2 semantic errors
@@ -49,6 +49,6 @@ describe('TypeScript Formatter Option', () => {
           "It is the custom issue statement - TS2339: Property 'lastName' does not exist on type 'User'.",
         ].join('\n'),
       ]);
-    }
+    },
   );
 });

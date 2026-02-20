@@ -66,11 +66,11 @@ class ForkTsCheckerWebpackPlugin {
     const getIssuesWorker = createRpcWorker<GetIssuesWorker>(
       path.resolve(__dirname, './typescript/worker/get-issues-worker.js'),
       config.typescript,
-      config.typescript.memoryLimit
+      config.typescript.memoryLimit,
     );
     const getDependenciesWorker = createRpcWorker<GetDependenciesWorker>(
       path.resolve(__dirname, './typescript/worker/get-dependencies-worker.js'),
-      config.typescript
+      config.typescript,
     );
 
     tapAfterEnvironmentToPatchWatching(compiler, state);

@@ -44,7 +44,7 @@ function createFormatterConfig(options: FormatterOptions | undefined): Formatter
   }
 
   throw new Error(
-    `Unknown "${type}" formatter. Available types are: "basic", "codeframe" or a custom function.`
+    `Unknown "${type}" formatter. Available types are: "basic", "codeframe" or a custom function.`,
   );
 }
 

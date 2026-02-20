@@ -29,7 +29,7 @@ type ForkTsCheckerWebpackPluginHooks = ReturnType<typeof createPluginHooks>;
 
 function forwardPluginHooks(
   source: ForkTsCheckerWebpackPluginHooks,
-  target: ForkTsCheckerWebpackPluginHooks
+  target: ForkTsCheckerWebpackPluginHooks,
 ) {
   source.start.tapPromise('ForkTsCheckerWebpackPlugin', target.start.promise);
   source.waiting.tap('ForkTsCheckerWebpackPlugin', target.waiting.call);

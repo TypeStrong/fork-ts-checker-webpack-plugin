@@ -53,13 +53,13 @@ describe('formatter/webpack-formatter', () => {
       relativeFormatter({
         ...issue,
         location: { start: { line: 1, column: 7 }, end: { line: 10, column: 16 } },
-      })
+      }),
     ).toContain(':1:7');
   });
 
   it('formats issue header like webpack', () => {
     expect(relativeFormatter(issue)).toEqual(
-      [`ERROR in ./some/file.ts:1:7`, 'TS123: Some issue content', ''].join(os.EOL)
+      [`ERROR in ./some/file.ts:1:7`, 'TS123: Some issue content', ''].join(os.EOL),
     );
   });
 });

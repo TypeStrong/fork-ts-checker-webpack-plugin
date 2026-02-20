@@ -55,7 +55,7 @@ function deduplicateAndSortIssues(issues: Issue[]) {
   const sortedIssues = issues.filter(isIssue).sort(compareIssues);
 
   return sortedIssues.filter(
-    (issue, index) => index === 0 || !equalsIssues(issue, sortedIssues[index - 1])
+    (issue, index) => index === 0 || !equalsIssues(issue, sortedIssues[index - 1]),
   );
 }
 

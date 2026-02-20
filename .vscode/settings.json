@@ -16,5 +16,7 @@
       "jestCommandLine": "yarn jest --config=test/unit/jest.config.js",
       "runMode": "on-demand"
     }
-  ]
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTypescriptForTsServer": true
 }

@@ -97,6 +97,6 @@ function createIssueFromDiagnostic(diagnostic: ts.Diagnostic): Issue {
 
 export function createIssuesFromDiagnostics(diagnostics: ts.Diagnostic[]): Issue[] {
   return deduplicateAndSortIssues(
-    diagnostics.map((diagnostic) => createIssueFromDiagnostic(diagnostic))
+    diagnostics.map((diagnostic) => createIssueFromDiagnostic(diagnostic)),
   );
 }

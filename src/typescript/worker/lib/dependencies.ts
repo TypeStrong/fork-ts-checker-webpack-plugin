@@ -27,7 +27,7 @@ export function invalidateDependencies() {
 function getDependenciesWorker(
   parsedConfig: ts.ParsedCommandLine,
   configFileContext: string,
-  processedConfigFiles: string[] = []
+  processedConfigFiles: string[] = [],
 ): FilesMatch {
   const files = new Set<string>(parsedConfig.fileNames);
   const configFilePath = parsedConfig.options.configFilePath;
@@ -37,8 +37,8 @@ function getDependenciesWorker(
   const dirs = new Set(Object.keys(parsedConfig.wildcardDirectories || {}));
   const excluded = new Set<string>(
     (parsedConfig.raw?.exclude || []).map((filePath: string) =>
-      path.resolve(configFileContext, filePath)
-    )
+      path.resolve(configFileContext, filePath),
+    ),
   );
 
   for (const projectReference of parsedConfig.projectReferences || []) {

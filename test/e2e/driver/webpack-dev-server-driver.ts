@@ -36,7 +36,7 @@ function createQueuedAsyncListener<T = void>(active = false): QueuedAsyncListene
 function createWebpackDevServerDriver(
   process: ChildProcess,
   async: boolean,
-  defaultTimeout = 30000
+  defaultTimeout = 30000,
 ): WebpackDevServerDriver {
   let errorsListener = createQueuedAsyncListener<string[]>();
   let noErrorsListener = createQueuedAsyncListener<void>();

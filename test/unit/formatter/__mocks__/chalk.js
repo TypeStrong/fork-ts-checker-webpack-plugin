@@ -94,5 +94,6 @@ chalk.stderr = new Chalk();
 chalk.Instance = Chalk;
 
 // mimic chalk export style
+/* global module */
 chalk.default = chalk;
 module.exports = chalk;

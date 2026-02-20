@@ -20,7 +20,7 @@ function createWebpackFormatter(formatter: Formatter, pathType: FormatterPathTyp
       let location = chalk.bold(
         pathType === 'absolute'
           ? forwardSlash(path.resolve(issue.file))
-          : relativeToContext(issue.file, process.cwd())
+          : relativeToContext(issue.file, process.cwd()),
       );
       if (issue.location) {
         location += `:${chalk.green.bold(formatIssueLocation(issue.location))}`;

@@ -18,7 +18,7 @@ type RpcWorker<T extends RpcMethod = RpcMethod> = RpcWorkerBase & RpcRemoteMetho
 function createRpcWorker<T extends RpcMethod>(
   modulePath: string,
   data: unknown,
-  memoryLimit?: number
+  memoryLimit?: number,
 ): RpcWorker<T> {
   const options: ForkOptions = {
     env: {

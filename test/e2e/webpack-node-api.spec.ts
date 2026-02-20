@@ -10,6 +10,6 @@ describe('Webpack Node Api', () => {
 
       const result = await sandbox.exec('yarn node ./webpack-node-api.js');
       expect(result).toContain('Compiled successfully twice.');
-    }
+    },
   );
 });

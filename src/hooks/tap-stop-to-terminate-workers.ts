@@ -8,7 +8,7 @@ function tapStopToTerminateWorkers(
   compiler: webpack.Compiler,
   getIssuesWorker: RpcWorker,
   getDependenciesWorker: RpcWorker,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
 ) {
   const { debug } = getInfrastructureLogger(compiler);
 

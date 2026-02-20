@@ -21,7 +21,7 @@ describe('TypeScript Context Option', () => {
         '        configFile: path.resolve(__dirname, "build/tsconfig.json"),',
         '        context: __dirname,',
         '      },',
-      ].join('\n')
+      ].join('\n'),
     );
 
     // update sandbox to use context option
@@ -43,12 +43,12 @@ describe('TypeScript Context Option', () => {
         },
         include: ['./src'],
         exclude: ['node_modules'],
-      })
+      }),
     );
     await sandbox.patch(
       'webpack.config.js',
       "entry: './src/index.ts',",
-      ["entry: './src/index.ts',", 'context: path.resolve(__dirname),'].join('\n')
+      ["entry: './src/index.ts',", 'context: path.resolve(__dirname),'].join('\n'),
     );
     await sandbox.patch(
       'webpack.config.js',
@@ -57,7 +57,7 @@ describe('TypeScript Context Option', () => {
         '          transpileOnly: true,',
         '          configFile: path.resolve(__dirname, "build/tsconfig.json"),',
         '          context: __dirname,',
-      ].join('\n')
+      ].join('\n'),
     );
     // create additional directory for cwd test
     await sandbox.write('foo/.gitignore', '');
@@ -66,7 +66,7 @@ describe('TypeScript Context Option', () => {
       sandbox.spawn(`yarn webpack serve --mode=development --config=../webpack.config.js`, {
         cwd: path.join(sandbox.context, 'foo'),
       }),
-      async
+      async,
     );
 
     // first compilation is successful
@@ -76,7 +76,7 @@ describe('TypeScript Context Option', () => {
     await sandbox.patch(
       'src/model/User.ts',
       ['  firstName?: string;', '  lastName?: string;'].join('\n'),
-      ''
+      '',
     );
 
     // we should receive 2 semantic errors

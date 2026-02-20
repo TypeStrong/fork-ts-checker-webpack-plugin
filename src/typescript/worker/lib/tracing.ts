@@ -26,7 +26,7 @@ export function startTracingIfNeeded(compilerOptions: ts.CompilerOptions) {
     traceableTypescript.startTracing(
       config.build ? 'build' : 'project',
       compilerOptions.generateTrace,
-      getConfigFilePathFromCompilerOptions(compilerOptions)
+      getConfigFilePathFromCompilerOptions(compilerOptions),
     );
   }
 }

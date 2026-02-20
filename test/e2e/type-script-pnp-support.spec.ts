@@ -16,7 +16,7 @@ describe('TypeScript PnP Support', () => {
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
-      async
+      async,
     );
     let errors: string[];
 
@@ -27,7 +27,7 @@ describe('TypeScript PnP Support', () => {
     await sandbox.patch(
       'src/model/User.ts',
       ['  firstName?: string;', '  lastName?: string;'].join('\n'),
-      ''
+      '',
     );
 
     // we should receive 2 semantic errors
@@ -61,7 +61,7 @@ describe('TypeScript PnP Support', () => {
     await sandbox.patch(
       'src/model/User.ts',
       "  return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
-      '  return user.email;'
+      '  return user.email;',
     );
 
     await driver.waitForNoErrors();
@@ -81,7 +81,7 @@ describe('TypeScript PnP Support', () => {
         "    2 | import { getUserName } from './model/User';",
         '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
-      ].join('\n')
+      ].join('\n'),
     );
 
     // re-create deleted module
@@ -111,7 +111,7 @@ describe('TypeScript PnP Support', () => {
         '}',
         '',
         'export { login, logout };',
-      ].join('\n')
+      ].join('\n'),
     );
 
     // we should receive again 3 semantic errors

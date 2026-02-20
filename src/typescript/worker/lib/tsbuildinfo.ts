@@ -20,7 +20,10 @@ export function invalidateTsBuildInfo() {
     if (tsBuildInfoPath) {
       try {
         system.deleteFile(tsBuildInfoPath);
-      } catch (error) {
+      } catch (
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _error
+      ) {
         // silent
       }
     }
@@ -69,7 +72,7 @@ export function getTsBuildInfoEmitPath(compilerOptions: ts.CompilerOptions) {
       ? compilerOptions.rootDir
         ? path.resolve(
             compilerOptions.outDir,
-            path.relative(compilerOptions.rootDir, configFileExtensionLess)
+            path.relative(compilerOptions.rootDir, configFileExtensionLess),
           )
         : path.resolve(compilerOptions.outDir, path.basename(configFileExtensionLess))
       : configFileExtensionLess;
@@ -79,6 +82,6 @@ export function getTsBuildInfoEmitPath(compilerOptions: ts.CompilerOptions) {
 
 function isIncrementalEnabled(compilerOptions: ts.CompilerOptions) {
   return Boolean(
-    (compilerOptions.incremental || compilerOptions.composite) && !compilerOptions.outFile
+    (compilerOptions.incremental || compilerOptions.composite) && !compilerOptions.outFile,
   );
 }

@@ -7,7 +7,7 @@ import type { WatchFileSystem } from '../watch/watch-file-system';
 
 function tapAfterEnvironmentToPatchWatching(
   compiler: webpack.Compiler,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
 ) {
   const { debug } = getInfrastructureLogger(compiler);
 
@@ -20,7 +20,7 @@ function tapAfterEnvironmentToPatchWatching(
         // we use some internals here
         watchFileSystem as WatchFileSystem,
         compiler,
-        state
+        state,
       );
     } else {
       debug('No watch file system found - plugin may not work correctly.');

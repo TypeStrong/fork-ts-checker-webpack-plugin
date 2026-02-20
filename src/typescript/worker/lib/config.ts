@@ -84,25 +84,25 @@ function applyConfigOverwrite(
 
 export function parseConfig(
   configFileName: string,
-  configFileContext: string
+  configFileContext: string,
 ): ts.ParsedCommandLine {
   const configFilePath = forwardSlash(configFileName);
 
   const { config: baseConfig, error: readConfigError } = typescript.readConfigFile(
     configFilePath,
-    parseConfigFileHost.readFile
+    parseConfigFileHost.readFile,
   );
 
   const overwrittenConfig = applyConfigOverwrite(
     baseConfig || {},
     getImplicitConfigOverwrite(),
-    getUserProvidedConfigOverwrite()
+    getUserProvidedConfigOverwrite(),
   );
 
   const parsedConfigFile = typescript.parseJsonConfigFileContent(
     overwrittenConfig,
     parseConfigFileHost,
-    configFileContext
+    configFileContext,
   );
 
   return {
@@ -168,13 +168,13 @@ export function didConfigFileChanged({ changedFiles = [], deletedFiles = [] }: F
 
 export function didDependenciesProbablyChanged(
   dependencies: FilesMatch,
-  { changedFiles = [], deletedFiles = [] }: FilesChange
+  { changedFiles = [], deletedFiles = [] }: FilesChange,
 ) {
   const didSomeDependencyHasBeenAdded = changedFiles.some(
-    (changeFile) => !dependencies.files.includes(changeFile)
+    (changeFile) => !dependencies.files.includes(changeFile),
   );
   const didSomeDependencyHasBeenDeleted = deletedFiles.some((deletedFile) =>
-    dependencies.files.includes(deletedFile)
+    dependencies.files.includes(deletedFile),
   );
 
   return didSomeDependencyHasBeenAdded || didSomeDependencyHasBeenDeleted;

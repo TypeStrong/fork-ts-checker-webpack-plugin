@@ -14,7 +14,7 @@ describe('TypeScript Watch API', () => {
 
       const driver = createWebpackDevServerDriver(
         sandbox.spawn('yarn webpack serve --mode=development'),
-        async
+        async,
       );
       let errors: string[];
 
@@ -25,7 +25,7 @@ describe('TypeScript Watch API', () => {
       await sandbox.patch(
         'src/model/Role.ts',
         "type Role = 'admin' | 'client' | 'provider';",
-        "type Role = 'client' | 'provider';"
+        "type Role = 'client' | 'provider';",
       );
 
       // we should receive only one semantic error
@@ -60,7 +60,7 @@ describe('TypeScript Watch API', () => {
           '  } else {',
           '    console.log(`Logged in as ${getUserName(user)}`);',
           '  }',
-        ].join('\n')
+        ].join('\n'),
       );
 
       await driver.waitForNoErrors();
@@ -70,7 +70,7 @@ describe('TypeScript Watch API', () => {
 
       // filter-out ts-loader related errors
       errors = (await driver.waitForErrors()).filter(
-        (error) => !error.includes('Module build failed') && !error.includes('Module not found')
+        (error) => !error.includes('Module build failed') && !error.includes('Module not found'),
       );
       expect(errors).toEqual([
         [
@@ -87,7 +87,7 @@ describe('TypeScript Watch API', () => {
       // re-create deleted module
       await sandbox.write(
         'src/model/Role.ts',
-        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
+        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n'),
       );
 
       // we should receive again the one semantic error but now for "provider" role
@@ -105,7 +105,7 @@ describe('TypeScript Watch API', () => {
           '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
         ].join('\n'),
       ]);
-    }
+    },
   );
 
   it.each([{ async: false }, { async: true }])(
@@ -117,7 +117,7 @@ describe('TypeScript Watch API', () => {
 
       const driver = createWebpackDevServerDriver(
         sandbox.spawn('yarn webpack serve --mode=development'),
-        async
+        async,
       );
       let errors: string[];
 
@@ -128,7 +128,7 @@ describe('TypeScript Watch API', () => {
       await sandbox.patch(
         'src/model/Role.ts',
         "type Role = 'admin' | 'client' | 'provider';",
-        "type Role = 'client' | 'provider';"
+        "type Role = 'client' | 'provider';",
       );
 
       // we should receive only one semantic error
@@ -163,7 +163,7 @@ describe('TypeScript Watch API', () => {
           '  } else {',
           '    console.log(`Logged in as ${getUserName(user)}`);',
           '  }',
-        ].join('\n')
+        ].join('\n'),
       );
 
       await driver.waitForNoErrors();
@@ -173,7 +173,7 @@ describe('TypeScript Watch API', () => {
 
       // filter-out ts-loader related errors
       errors = (await driver.waitForErrors()).filter(
-        (error) => !error.includes('Module build failed') && !error.includes('Module not found')
+        (error) => !error.includes('Module build failed') && !error.includes('Module not found'),
       );
       expect(errors).toEqual([
         [
@@ -190,7 +190,7 @@ describe('TypeScript Watch API', () => {
       // re-create deleted module
       await sandbox.write(
         'src/model/Role.ts',
-        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
+        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n'),
       );
 
       // we should receive again the one semantic error but now for "provider" role
@@ -208,7 +208,7 @@ describe('TypeScript Watch API', () => {
           '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
         ].join('\n'),
       ]);
-    }
+    },
   );
 
   it.each([
@@ -223,7 +223,7 @@ describe('TypeScript Watch API', () => {
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
-      async
+      async,
     );
     let errors: string[];
 
@@ -234,7 +234,7 @@ describe('TypeScript Watch API', () => {
     await sandbox.patch(
       'src/model/User.ts',
       ['  firstName?: string;', '  lastName?: string;'].join('\n'),
-      ''
+      '',
     );
 
     // we should receive 2 semantic errors
@@ -268,7 +268,7 @@ describe('TypeScript Watch API', () => {
     await sandbox.patch(
       'src/model/User.ts',
       "  return [user.firstName, user.lastName].filter((name) => name !== undefined).join(' ');",
-      '  return user.email;'
+      '  return user.email;',
     );
 
     await driver.waitForNoErrors();
@@ -288,7 +288,7 @@ describe('TypeScript Watch API', () => {
         "    2 | import { getUserName } from './model/User';",
         '    3 |',
         "    4 | const emailInput = document.getElementById('email');",
-      ].join('\n')
+      ].join('\n'),
     );
 
     // re-create deleted module
@@ -318,7 +318,7 @@ describe('TypeScript Watch API', () => {
         '}',
         '',
         'export { login, logout };',
-      ].join('\n')
+      ].join('\n'),
     );
 
     // we should receive again 3 semantic errors
@@ -377,19 +377,19 @@ describe('TypeScript Watch API', () => {
         "  return path.normalize(input).replace(/\\\\+/g, '/');",
         '}',
         'module.exports = {',
-      ].join('\n')
+      ].join('\n'),
     );
     await sandbox.patch(
       'webpack.config.js',
       "  entry: './src/index.ts',",
       ["  entry: './src/index.ts',", '  watchOptions: {', `    ignored: ${ignored}`, '  },'].join(
-        '\n'
-      )
+        '\n',
+      ),
     );
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
-      async
+      async,
     );
 
     // first compilation is successful
@@ -399,17 +399,17 @@ describe('TypeScript Watch API', () => {
     await sandbox.patch(
       'src/model/User.ts',
       ['  firstName?: string;', '  lastName?: string;'].join('\n'),
-      ''
+      '',
     );
     // then we add a new file in this directory
     await sandbox.write('src/model/Group.ts', '// TODO: to implement');
 
     // there should be no re-build
     await expect(driver.waitForNoErrors(3000)).rejects.toEqual(
-      new Error('Exceeded time on waiting for no errors message to appear.')
+      new Error('Exceeded time on waiting for no errors message to appear.'),
     );
     await expect(driver.waitForErrors(3000)).rejects.toEqual(
-      new Error('Exceeded time on waiting for errors to appear.')
+      new Error('Exceeded time on waiting for errors to appear.'),
     );
   });
 
@@ -421,12 +421,12 @@ describe('TypeScript Watch API', () => {
       await sandbox.patch(
         'webpack.config.js',
         'async: false,',
-        `async: ${JSON.stringify(async)}, typescript: { mode: 'write-dts' },`
+        `async: ${JSON.stringify(async)}, typescript: { mode: 'write-dts' },`,
       );
 
       const driver = createWebpackDevServerDriver(
         sandbox.spawn('yarn webpack serve --mode=development'),
-        async
+        async,
       );
 
       // first compilation is successful
@@ -442,7 +442,7 @@ describe('TypeScript Watch API', () => {
           '}',
           '',
           'export { Organization }',
-        ].join('\n')
+        ].join('\n'),
       );
 
       // this should not introduce an error - file is not used
@@ -451,7 +451,7 @@ describe('TypeScript Watch API', () => {
       await sandbox.patch(
         'src/model/User.ts',
         'return [user.firstName, user.lastName]',
-        'return [user.firstName, user.lastName, user.organization.name]'
+        'return [user.firstName, user.lastName, user.organization.name]',
       );
 
       expect(await driver.waitForErrors()).toEqual([
@@ -473,13 +473,13 @@ describe('TypeScript Watch API', () => {
         'src/model/User.ts',
         "import { Role } from './Role';",
         ["import { Role } from './Role';", "import { Organization } from './Organization';"].join(
-          '\n'
-        )
+          '\n',
+        ),
       );
       await sandbox.patch(
         'src/model/User.ts',
         '  role: Role;',
-        ['  role: Role;', '  organization: Organization;'].join('\n')
+        ['  role: Role;', '  organization: Organization;'].join('\n'),
       );
 
       // there should be no errors
@@ -496,6 +496,6 @@ describe('TypeScript Watch API', () => {
       expect(await sandbox.exists('dist/model/Organization.d.ts')).toEqual(true);
 
       await sandbox.remove('dist');
-    }
+    },
   );
 });

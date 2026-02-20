@@ -8,7 +8,7 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
   createProgram?: ts.CreateProgram<TProgram>,
   reportDiagnostic?: ts.DiagnosticReporter,
   reportWatchStatus?: ts.WatchStatusReporter,
-  afterProgramCreate?: (program: TProgram) => void
+  afterProgramCreate?: (program: TProgram) => void,
 ): ts.WatchCompilerHostOfFilesAndCompilerOptions<TProgram> {
   const baseWatchCompilerHost = typescript.createWatchCompilerHost(
     parsedConfig.fileNames,
@@ -17,7 +17,7 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
     createProgram,
     reportDiagnostic,
     reportWatchStatus,
-    parsedConfig.projectReferences
+    parsedConfig.projectReferences,
   );
 
   return {
@@ -28,7 +28,7 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
       compilerHost?: ts.CompilerHost,
       oldProgram?: TProgram,
       configFileParsingDiagnostics?: ReadonlyArray<ts.Diagnostic>,
-      projectReferences?: ReadonlyArray<ts.ProjectReference> | undefined
+      projectReferences?: ReadonlyArray<ts.ProjectReference> | undefined,
     ): TProgram {
       return baseWatchCompilerHost.createProgram(
         rootNames,
@@ -36,7 +36,7 @@ export function createWatchCompilerHost<TProgram extends ts.BuilderProgram>(
         compilerHost,
         oldProgram,
         configFileParsingDiagnostics,
-        projectReferences
+        projectReferences,
       );
     },
     afterProgramCreate(program) {

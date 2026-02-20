@@ -9,15 +9,18 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
   let typescriptVersion: string | undefined;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     typescriptVersion = require(config.typescriptPath).version;
-  } catch (error) {
+  } catch (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _error
+  ) {
     // silent catch
   }
 
   if (!typescriptVersion) {
     throw new Error(
-      'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.'
+      'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.',
     );
   }
 
@@ -26,7 +29,7 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
       [
         `ForkTsCheckerWebpackPlugin cannot use the current typescript version of ${typescriptVersion}.`,
         'The minimum required version is 3.6.0.',
-      ].join(os.EOL)
+      ].join(os.EOL),
     );
   }
   if (config.build && semver.lt(typescriptVersion, '3.8.0')) {
@@ -34,7 +37,7 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
       [
         `ForkTsCheckerWebpackPlugin doesn't support build option for the current typescript version of ${typescriptVersion}.`,
         'The minimum required version is 3.8.0.',
-      ].join(os.EOL)
+      ].join(os.EOL),
     );
   }
 
@@ -46,7 +49,7 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
         `Possible errors:`,
         '  - wrong `context` directory in webpack configuration (if `configFile` is not set or is a relative path in the fork plugin configuration)',
         '  - wrong `typescript.configFile` path in the plugin configuration (should be a relative or absolute path)',
-      ].join(os.EOL)
+      ].join(os.EOL),
     );
   }
 }

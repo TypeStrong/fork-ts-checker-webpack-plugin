@@ -7,7 +7,7 @@ import type { RpcRemoteMethod, RpcMessage } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function wrapRpc<T extends (...args: any[]) => any>(
-  childProcess: ChildProcess
+  childProcess: ChildProcess,
 ): RpcRemoteMethod<T> {
   return (async (...args: unknown[]): Promise<unknown> => {
     if (!childProcess.send) {
@@ -47,11 +47,11 @@ export function wrapRpc<T extends (...args: any[]) => any>(
         new RpcExitError(
           code
             ? `Process ${childProcess.pid} exited with code ${code}` +
-              (signal ? ` [${signal}]` : '')
+                (signal ? ` [${signal}]` : '')
             : `Process ${childProcess.pid} exited` + (signal ? ` [${signal}]` : ''),
           code,
-          signal
-        )
+          signal,
+        ),
       );
       removeHandlers();
     };
@@ -79,7 +79,7 @@ export function wrapRpc<T extends (...args: any[]) => any>(
         } else {
           resolveSend(undefined);
         }
-      }
+      },
     );
 
     return sendPromise.then(() => resultPromise);

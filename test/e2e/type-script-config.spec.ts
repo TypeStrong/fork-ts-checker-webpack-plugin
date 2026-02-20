@@ -18,7 +18,7 @@ describe('TypeScript Config', () => {
 
       const driver = createWebpackDevServerDriver(
         sandbox.spawn('yarn webpack serve --mode=development'),
-        async
+        async,
       );
 
       // first compilation is successful
@@ -34,7 +34,7 @@ describe('TypeScript Config', () => {
       await sandbox.patch('tsconfig.json', '"lib": ["ES6"],', '"lib": ["DOM", "ES6"]');
 
       await driver.waitForNoErrors();
-    }
+    },
   );
 
   it.each([
@@ -51,12 +51,12 @@ describe('TypeScript Config', () => {
 
     await sandbox.write(
       'fork-ts-checker.config.js',
-      'module.exports = { typescript: { configOverwrite: { compilerOptions: { target: "ES3", lib: ["ES3"] } } } };'
+      'module.exports = { typescript: { configOverwrite: { compilerOptions: { target: "ES3", lib: ["ES3"] } } } };',
     );
 
     driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
-      false
+      false,
     );
     errors = await driver.waitForErrors();
     expect(errors.length).toBeGreaterThan(0);
@@ -64,12 +64,12 @@ describe('TypeScript Config', () => {
 
     await sandbox.write(
       'fork-ts-checker.config.js',
-      'module.exports = { typescript: { configOverwrite: { include: [] } } };'
+      'module.exports = { typescript: { configOverwrite: { include: [] } } };',
     );
 
     driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
-      false
+      false,
     );
     errors = await driver.waitForErrors();
     expect(errors.length).toBeGreaterThan(0);

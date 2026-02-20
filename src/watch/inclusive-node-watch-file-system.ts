@@ -1,8 +1,8 @@
-import { extname, relative, isAbsolute } from 'path';
+import { extname } from 'path';
 
 import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 import type { Compiler } from 'webpack';
 
 import { clearFilesChange, updateFilesChange } from '../files-change';
@@ -16,7 +16,7 @@ const BUILTIN_IGNORED_DIRS = ['.git'];
 
 function createIsIgnored(
   ignored: string | RegExp | (string | RegExp)[] | undefined,
-  excluded: string[]
+  excluded: string[],
 ): (path: string) => boolean {
   const ignoredPatterns = ignored ? (Array.isArray(ignored) ? ignored : [ignored]) : [];
   const ignoredFunctions = ignoredPatterns.map((pattern) => {
@@ -31,12 +31,12 @@ function createIsIgnored(
     }
   });
   ignoredFunctions.push((path: string) =>
-    excluded.some((excludedPath) => isInsideAnotherPath(excludedPath, path))
+    excluded.some((excludedPath) => isInsideAnotherPath(excludedPath, path)),
   );
   ignoredFunctions.push((path: string) =>
     BUILTIN_IGNORED_DIRS.some(
-      (ignoredDir) => path.includes(`/${ignoredDir}/`) || path.includes(`\\${ignoredDir}\\`)
-    )
+      (ignoredDir) => path.includes(`/${ignoredDir}/`) || path.includes(`\\${ignoredDir}\\`),
+    ),
   );
 
   return function isIgnored(path: string) {
@@ -56,7 +56,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
   constructor(
     private watchFileSystem: WatchFileSystem,
     private compiler: Compiler,
-    private pluginState: ForkTsCheckerWebpackPluginState
+    private pluginState: ForkTsCheckerWebpackPluginState,
   ) {
     this.dirsWatchers = new Map();
     this.deletedFiles = new Set();
@@ -69,14 +69,14 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     startTime,
     options,
     callback,
-    callbackUndelayed
+    callbackUndelayed,
   ) => {
     const { debug } = getInfrastructureLogger(this.compiler);
 
     clearFilesChange(this.compiler);
     const isIgnored = createIsIgnored(
       options?.ignored,
-      this.pluginState.lastDependencies?.excluded || []
+      this.pluginState.lastDependencies?.excluded || [],
     );
 
     // use standard watch file system for files and missing
@@ -87,7 +87,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
       startTime,
       options,
       callback,
-      callbackUndelayed
+      callbackUndelayed,
     );
 
     this.watcher?.on('change', (file: string) => {
@@ -127,7 +127,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     const nextDirs = Array.from(this.pluginState.lastDependencies?.dirs || []);
     const dirsToUnwatch = prevDirs.filter((prevDir) => !nextDirs.includes(prevDir));
     const dirsToWatch = nextDirs.filter(
-      (nextDir) => !prevDirs.includes(nextDir) && !isIgnored(nextDir)
+      (nextDir) => !prevDirs.includes(nextDir) && !isIgnored(nextDir),
     );
 
     // update dirs watcher

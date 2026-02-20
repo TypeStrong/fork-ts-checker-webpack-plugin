@@ -6,7 +6,7 @@ describe('plugin', () => {
     (options) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(() => new ForkTsCheckerWebpackPlugin(options as any)).toThrowError();
-    }
+    },
   );
 
   it('exposes current version', () => {

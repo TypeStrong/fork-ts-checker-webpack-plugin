@@ -15,7 +15,7 @@ describe('Webpack Production Build', () => {
       await sandbox.patch(
         'webpack.config.js',
         ['    new ForkTsCheckerWebpackPlugin({', '      async: false,', '    }),'].join('\n'),
-        ['    new ForkTsCheckerWebpackPlugin(),'].join('\n')
+        ['    new ForkTsCheckerWebpackPlugin(),'].join('\n'),
       );
 
       const result = await sandbox.exec('yarn webpack --mode=production');
@@ -32,7 +32,7 @@ describe('Webpack Production Build', () => {
       expect(await sandbox.exists('dist/model/Role.d.ts')).toEqual(false);
 
       await sandbox.remove('dist');
-    }
+    },
   );
 
   it('generates .d.ts files in write-dts mode', async () => {
@@ -42,7 +42,7 @@ describe('Webpack Production Build', () => {
     await sandbox.patch(
       'webpack.config.js',
       'async: false,',
-      'async: false, typescript: { mode: "write-dts" },'
+      'async: false, typescript: { mode: "write-dts" },',
     );
 
     const result = await sandbox.exec('yarn webpack --mode=production');
@@ -71,7 +71,7 @@ describe('Webpack Production Build', () => {
       await sandbox.patch(
         'webpack.config.js',
         ['    new ForkTsCheckerWebpackPlugin({', '      async: false,', '    }),'].join('\n'),
-        ['    new ForkTsCheckerWebpackPlugin(),'].join('\n')
+        ['    new ForkTsCheckerWebpackPlugin(),'].join('\n'),
       );
 
       // introduce an error in the project
@@ -106,6 +106,6 @@ describe('Webpack Production Build', () => {
           "    5 | const passwordInput = document.getElementById('password');",
         ].join('\n'),
       ]);
-    }
+    },
   );
 });

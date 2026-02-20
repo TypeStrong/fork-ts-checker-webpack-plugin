@@ -11,13 +11,13 @@ interface IssueConfig {
 
 function createIssuePredicateFromOption(
   context: string,
-  option: IssuePredicateOption
+  option: IssuePredicateOption,
 ): IssuePredicate {
   if (Array.isArray(option)) {
     return composeIssuePredicates(
       option.map((option) =>
-        typeof option === 'function' ? option : createIssuePredicateFromIssueMatch(context, option)
-      )
+        typeof option === 'function' ? option : createIssuePredicateFromIssueMatch(context, option),
+      ),
     );
   }
 
@@ -28,7 +28,7 @@ function createIssuePredicateFromOption(
 
 function createIssueConfig(
   compiler: webpack.Compiler,
-  options: IssueOptions | undefined
+  options: IssueOptions | undefined,
 ): IssueConfig {
   const context = compiler.options.context || process.cwd();
 

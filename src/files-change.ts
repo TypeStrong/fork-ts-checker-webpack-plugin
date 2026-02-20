@@ -10,7 +10,7 @@ const IGNORED_FILES = ['package.json'];
 
 const isIgnoredFile = (file: string) =>
   IGNORED_FILES.some(
-    (ignoredFile) => file.endsWith(`/${ignoredFile}`) || file.endsWith(`\\${ignoredFile}`)
+    (ignoredFile) => file.endsWith(`/${ignoredFile}`) || file.endsWith(`\\${ignoredFile}`),
   );
 
 const compilerFilesChangeMap = new WeakMap<webpack.Compiler, FilesChange>();

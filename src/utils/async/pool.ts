@@ -25,7 +25,7 @@ function createPool(size: number): Pool {
 
       const taskPromise = task(signal).finally(() => {
         pendingPromises = pendingPromises.filter(
-          (pendingPromise) => pendingPromise !== taskPromise
+          (pendingPromise) => pendingPromise !== taskPromise,
         );
       });
       pendingPromises.push(taskPromise);

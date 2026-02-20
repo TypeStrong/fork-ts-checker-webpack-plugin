@@ -12,7 +12,11 @@ import { formatIssueLocation } from './issue-location';
 class IssueWebpackError extends webpack.WebpackError {
   readonly hideStack = true;
 
-  constructor(message: string, pathType: FormatterPathType, readonly issue: Issue) {
+  constructor(
+    message: string,
+    pathType: FormatterPathType,
+    readonly issue: Issue,
+  ) {
     super(message);
 
     // to display issue location using `loc` property, webpack requires `error.module` which

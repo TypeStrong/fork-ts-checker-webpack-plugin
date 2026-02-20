@@ -32,7 +32,7 @@ describe('typescript/type-script-support', () => {
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
     expect(() => assertTypeScriptSupport(configuration)).toThrowError(
-      'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.'
+      'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.',
     );
   });
 
@@ -45,7 +45,7 @@ describe('typescript/type-script-support', () => {
       [
         `ForkTsCheckerWebpackPlugin cannot use the current typescript version of 3.5.9.`,
         'The minimum required version is 3.6.0.',
-      ].join(os.EOL)
+      ].join(os.EOL),
     );
   });
 
@@ -71,7 +71,7 @@ describe('typescript/type-script-support', () => {
         `Possible errors:`,
         '  - wrong `context` directory in webpack configuration (if `configFile` is not set or is a relative path in the fork plugin configuration)',
         '  - wrong `typescript.configFile` path in the plugin configuration (should be a relative or absolute path)',
-      ].join(os.EOL)
+      ].join(os.EOL),
     );
   });
 });

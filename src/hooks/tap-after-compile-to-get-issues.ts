@@ -10,7 +10,7 @@ import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 function tapAfterCompileToGetIssues(
   compiler: webpack.Compiler,
   config: ForkTsCheckerWebpackPluginConfig,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
 ) {
   const hooks = getPluginHooks(compiler);
   const { debug } = getInfrastructureLogger(compiler);
@@ -21,7 +21,7 @@ function tapAfterCompileToGetIssues(
       return;
     }
 
-    let issues: Issue[] | undefined = [];
+    let issues: Issue[] | undefined;
 
     try {
       issues = await state.issuesPromise;
@@ -41,13 +41,13 @@ function tapAfterCompileToGetIssues(
     issues = issues.filter(config.issue.predicate);
 
     // modify list of issues in the plugin hooks
-    issues = hooks.issues.call(issues, compilation);
+    hooks.issues.call(issues, compilation);
 
     issues.forEach((issue) => {
       const error = new IssueWebpackError(
         config.formatter.format(issue),
         config.formatter.pathType,
-        issue
+        issue,
       );
 
       if (issue.severity === 'warning') {

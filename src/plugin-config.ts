@@ -21,7 +21,7 @@ interface ForkTsCheckerWebpackPluginConfig {
 
 function createPluginConfig(
   compiler: webpack.Compiler,
-  options: ForkTsCheckerWebpackPluginOptions = {}
+  options: ForkTsCheckerWebpackPluginOptions = {},
 ): ForkTsCheckerWebpackPluginConfig {
   return {
     async: options.async === undefined ? compiler.options.mode === 'development' : options.async,

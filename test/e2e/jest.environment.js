@@ -1,5 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const NodeEnvironment = require('jest-environment-node');
+/* global module, process, require */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const NodeEnvironment = require('jest-environment-node').default;
 
 function printBlock(message) {
   process.stdout.write('┏━' + '━'.repeat(message.length) + '━┓\n');

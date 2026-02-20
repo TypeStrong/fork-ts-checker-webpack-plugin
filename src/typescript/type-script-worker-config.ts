@@ -20,7 +20,7 @@ interface TypeScriptWorkerConfig {
 
 function createTypeScriptWorkerConfig(
   compiler: webpack.Compiler,
-  options: TypeScriptWorkerOptions | undefined
+  options: TypeScriptWorkerOptions | undefined,
 ): TypeScriptWorkerConfig {
   let configFile = options?.configFile || 'tsconfig.json';
 
@@ -28,7 +28,7 @@ function createTypeScriptWorkerConfig(
   configFile = path.normalize(
     path.isAbsolute(configFile)
       ? configFile
-      : path.resolve(compiler.options.context || process.cwd(), configFile)
+      : path.resolve(compiler.options.context || process.cwd(), configFile),
   );
 
   const optionsAsObject: Exclude<TypeScriptWorkerOptions, boolean> =

@@ -7,7 +7,7 @@ import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 function interceptDoneToGetDevServerTap(
   compiler: webpack.Compiler,
   config: ForkTsCheckerWebpackPluginConfig,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
 ) {
   const { debug } = getInfrastructureLogger(compiler);
 

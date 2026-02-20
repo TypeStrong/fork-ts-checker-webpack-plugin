@@ -1,4 +1,3 @@
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
 import type { Dirent, Stats } from 'fs';
 
 /**

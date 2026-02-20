@@ -22,7 +22,7 @@ describe('Webpack Inclusive Watcher', () => {
           'import { sayHello } from "../package";',
           '',
           "sayHello('World');",
-        ].join('\n')
+        ].join('\n'),
       );
 
       // start webpack dev server
@@ -37,12 +37,12 @@ describe('Webpack Inclusive Watcher', () => {
 
       // wait for 5 seconds and fail if there is Debug Failure. in the console output
       await expect(() =>
-        baseDriver.waitForStderrIncludes('Error: Debug Failure.', 5000)
+        baseDriver.waitForStderrIncludes('Error: Debug Failure.', 5000),
       ).rejects.toEqual(
-        new Error('Exceeded time on waiting for "Error: Debug Failure." to appear in the stderr.')
+        new Error('Exceeded time on waiting for "Error: Debug Failure." to appear in the stderr.'),
       );
 
       await webpackDriver.waitForNoErrors();
-    }
+    },
   );
 });

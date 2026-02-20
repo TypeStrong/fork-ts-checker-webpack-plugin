@@ -25,7 +25,7 @@ export function useSolutionBuilder() {
         host,
         oldProgram,
         configFileParsingDiagnostics,
-        projectReferences
+        projectReferences,
       ) => {
         if (compilerOptions) {
           startTracingIfNeeded(compilerOptions);
@@ -36,7 +36,7 @@ export function useSolutionBuilder() {
           host,
           oldProgram,
           configFileParsingDiagnostics,
-          projectReferences
+          projectReferences,
         );
       },
       undefined,
@@ -46,18 +46,18 @@ export function useSolutionBuilder() {
       (builderProgram) => {
         updateDiagnostics(
           getConfigFilePathFromBuilderProgram(builderProgram),
-          getDiagnosticsOfProgram(builderProgram)
+          getDiagnosticsOfProgram(builderProgram),
         );
         emitTsBuildInfoIfNeeded(builderProgram);
         stopTracingIfNeeded(builderProgram);
-      }
+      },
     );
   }
   if (!solutionBuilder) {
     solutionBuilder = typescript.createSolutionBuilderWithWatch(
       solutionBuilderHost,
       [config.configFile],
-      { watch: true }
+      { watch: true },
     );
     solutionBuilder.build();
   }

@@ -15,7 +15,7 @@ import { wait } from '../utils/async/wait';
 function tapDoneToAsyncGetIssues(
   compiler: webpack.Compiler,
   config: ForkTsCheckerWebpackPluginConfig,
-  state: ForkTsCheckerWebpackPluginState
+  state: ForkTsCheckerWebpackPluginState,
 ) {
   const hooks = getPluginHooks(compiler);
   const { debug } = getInfrastructureLogger(compiler);
@@ -57,7 +57,7 @@ function tapDoneToAsyncGetIssues(
     issues = issues.filter(config.issue.predicate);
 
     // modify list of issues in the plugin hooks
-    issues = hooks.issues.call(issues, stats.compilation);
+    hooks.issues.call(issues, stats.compilation);
 
     const formatter = createWebpackFormatter(config.formatter.format, config.formatter.pathType);
 
@@ -78,7 +78,7 @@ function tapDoneToAsyncGetIssues(
         const error = new IssueWebpackError(
           config.formatter.format(issue),
           config.formatter.pathType,
-          issue
+          issue,
         );
 
         if (issue.severity === 'warning') {

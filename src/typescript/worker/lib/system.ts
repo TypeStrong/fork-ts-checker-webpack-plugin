@@ -24,13 +24,13 @@ export interface ControlledTypeScriptSystem extends ts.System {
     path: string,
     callback: ts.FileWatcherCallback,
     pollingInterval?: number,
-    options?: ts.WatchOptions
+    options?: ts.WatchOptions,
   ): ts.FileWatcher;
   watchDirectory(
     path: string,
     callback: ts.DirectoryWatcherCallback,
     recursive?: boolean,
-    options?: ts.WatchOptions
+    options?: ts.WatchOptions,
   ): ts.FileWatcher;
   getModifiedTime(path: string): Date | undefined;
   setModifiedTime(path: string, time: Date): void;
@@ -109,7 +109,7 @@ export const system: ControlledTypeScriptSystem = {
       .filter(
         (dirent) =>
           dirent.isDirectory() ||
-          (dirent.isSymbolicLink() && system.directoryExists(join(path, dirent.name)))
+          (dirent.isSymbolicLink() && system.directoryExists(join(path, dirent.name))),
       )
       .map((dirent) => dirent.name);
   },
@@ -132,12 +132,12 @@ export const system: ControlledTypeScriptSystem = {
   watchDirectory(
     path: string,
     callback: ts.DirectoryWatcherCallback,
-    recursive = false
+    recursive = false,
   ): ts.FileWatcher {
     return createWatcher(
       recursive ? recursiveDirectoryWatcherCallbacksMap : directoryWatcherCallbacksMap,
       path,
-      callback
+      callback,
     );
   },
   // use immediate instead of timeout to avoid waiting 250ms for batching files changes
@@ -203,7 +203,7 @@ export const system: ControlledTypeScriptSystem = {
 function createWatcher<TCallback>(
   watchersMap: Map<string, TCallback[]>,
   path: string,
-  callback: TCallback
+  callback: TCallback,
 ) {
   const normalizedPath = normalizeAndResolvePath(path);
   const watchers = watchersMap.get(normalizedPath) || [];
@@ -236,7 +236,7 @@ function invokeFileWatchers(path: string, event: ts.FileWatcherEventKind) {
   if (fileWatcherCallbacks) {
     // typescript expects normalized paths with posix forward slash
     fileWatcherCallbacks.forEach((fileWatcherCallback) =>
-      fileWatcherCallback(forwardSlash(normalizedPath), event)
+      fileWatcherCallback(forwardSlash(normalizedPath), event),
     );
   }
 }
@@ -252,7 +252,7 @@ function invokeDirectoryWatchers(path: string) {
   const directoryWatcherCallbacks = directoryWatcherCallbacksMap.get(directory);
   if (directoryWatcherCallbacks) {
     directoryWatcherCallbacks.forEach((directoryWatcherCallback) =>
-      directoryWatcherCallback(forwardSlash(normalizedPath))
+      directoryWatcherCallback(forwardSlash(normalizedPath)),
     );
   }
 
@@ -264,10 +264,10 @@ function invokeDirectoryWatchers(path: string) {
           forwardSlash(directory)[watchedDirectory.length] === '/')
       ) {
         recursiveDirectoryWatcherCallbacks.forEach((recursiveDirectoryWatcherCallback) =>
-          recursiveDirectoryWatcherCallback(forwardSlash(normalizedPath))
+          recursiveDirectoryWatcherCallback(forwardSlash(normalizedPath)),
         );
       }
-    }
+    },
   );
 }
 
@@ -275,7 +275,10 @@ function normalizeAndResolvePath(path: string) {
   let normalizedPath = realFileSystem.normalizePath(path);
   try {
     normalizedPath = realFileSystem.realPath(normalizedPath);
-  } catch (error) {
+  } catch (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _error
+  ) {
     // ignore error - maybe file doesn't exist
   }
   return normalizedPath;

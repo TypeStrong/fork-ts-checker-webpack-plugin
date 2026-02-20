@@ -29,7 +29,7 @@ export function useWatchProgram() {
         host,
         oldProgram,
         configFileParsingDiagnostics,
-        projectReferences
+        projectReferences,
       ) => {
         if (compilerOptions) {
           startTracingIfNeeded(compilerOptions);
@@ -40,7 +40,7 @@ export function useWatchProgram() {
           host,
           oldProgram,
           configFileParsingDiagnostics,
-          projectReferences
+          projectReferences,
         );
       },
       undefined,
@@ -48,12 +48,12 @@ export function useWatchProgram() {
       (builderProgram) => {
         updateDiagnostics(
           getConfigFilePathFromBuilderProgram(builderProgram),
-          getDiagnosticsOfProgram(builderProgram)
+          getDiagnosticsOfProgram(builderProgram),
         );
         emitDtsIfNeeded(builderProgram);
         emitTsBuildInfoIfNeeded(builderProgram);
         stopTracingIfNeeded(builderProgram);
-      }
+      },
     );
     watchProgram = undefined;
   }

@@ -33,7 +33,7 @@ export function registerArtifacts() {
 function getArtifactsWorker(
   parsedConfig: ts.ParsedCommandLine,
   configFileContext: string,
-  processedConfigFiles: string[] = []
+  processedConfigFiles: string[] = [],
 ): FilesMatch {
   const files = new Set<string>();
   const dirs = new Set<string>();

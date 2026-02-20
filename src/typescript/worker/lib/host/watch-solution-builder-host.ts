@@ -12,14 +12,14 @@ export function createWatchSolutionBuilderHost<TProgram extends ts.BuilderProgra
   reportWatchStatus?: ts.WatchStatusReporter,
   reportSolutionBuilderStatus?: (diagnostic: ts.Diagnostic) => void,
   afterProgramCreate?: (program: TProgram) => void,
-  afterProgramEmitAndDiagnostics?: (program: TProgram) => void
+  afterProgramEmitAndDiagnostics?: (program: TProgram) => void,
 ): ts.SolutionBuilderWithWatchHost<TProgram> {
   const controlledWatchCompilerHost = createWatchCompilerHost(
     parsedConfig,
     createProgram,
     reportDiagnostic,
     reportWatchStatus,
-    afterProgramCreate
+    afterProgramCreate,
   );
 
   return {
@@ -65,7 +65,7 @@ export function createWatchSolutionBuilderHost<TProgram extends ts.BuilderProgra
               reportDiagnostic(diagnostic);
             }
           },
-        }
+        },
       );
     },
   };

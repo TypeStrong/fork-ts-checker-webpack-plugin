@@ -2,7 +2,7 @@ import { extname, relative, isAbsolute } from 'path';
 
 import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 import type { Compiler } from 'webpack';
 
 import { clearFilesChange, updateFilesChange } from '../files-change';

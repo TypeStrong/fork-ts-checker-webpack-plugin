@@ -2902,7 +2902,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^4.0.0, chalk@npm:^4.1.0, chalk@npm:^4.1.2":
+"chalk@npm:^4.0.0, chalk@npm:^4.1.0":
   version: 4.1.2
   resolution: "chalk@npm:4.1.2"
   dependencies:
@@ -4506,7 +4506,6 @@ __metadata:
     "@types/semver": "npm:^7.3.9"
     "@typescript-eslint/eslint-plugin": "npm:^5.10.1"
     "@typescript-eslint/parser": "npm:^5.10.1"
-    chalk: "npm:^4.1.2"
     chokidar: "npm:^4.0.1"
     commitlint: "npm:^16.1.0"
     cosmiconfig: "npm:^8.2.0"
@@ -4529,6 +4528,7 @@ __metadata:
     minimatch: "npm:^3.0.4"
     mock-fs: "npm:^5.1.2"
     node-abort-controller: "npm:^3.0.1"
+    picocolors: "npm:^1.1.1"
     prettier: "npm:^2.5.1"
     rimraf: "npm:^3.0.2"
     schema-utils: "npm:^3.1.1"

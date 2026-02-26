@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import pc from 'picocolors';
 import type * as webpack from 'webpack';
 
 import { statsFormatter } from '../formatter/stats-formatter';
@@ -32,7 +32,7 @@ function tapDoneToAsyncGetIssues(
     try {
       if (await isPending(issuesPromise)) {
         hooks.waiting.call(stats.compilation);
-        config.logger.log(chalk.cyan('Type-checking in progress...'));
+        config.logger.log(pc.cyan('Type-checking in progress...'));
       } else {
         // wait 10ms to log issues after webpack stats
         await wait(10);
@@ -68,7 +68,7 @@ function tapDoneToAsyncGetIssues(
       // print stats of the compilation
       config.logger.log(statsFormatter(issues, stats));
     } else {
-      config.logger.log(chalk.green('No typescript errors found.'));
+      config.logger.log(pc.green('No typescript errors found.'));
     }
 
     // report issues to webpack-dev-server, if it's listening

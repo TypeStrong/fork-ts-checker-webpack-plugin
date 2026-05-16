@@ -64,7 +64,7 @@
     "memfs": "^3.4.1",
     "minimatch": "^3.0.4",
     "node-abort-controller": "^3.0.1",
-    "schema-utils": "^3.1.1",
+    "schema-utils": "^4.3.3",
     "semver": "^7.3.5",
     "tapable": "^2.2.1"
   },

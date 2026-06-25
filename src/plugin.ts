@@ -41,8 +41,16 @@ class ForkTsCheckerWebpackPlugin {
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
   constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {
-    const explorerSync = cosmiconfigSync('fork-ts-checker');
-    const { config: externalOptions } = explorerSync.search() || {};
+    let externalOptions = {};
+    try {
+      const explorerSync = cosmiconfigSync('fork-ts-checker');
+      const result = explorerSync.search();
+      if (result) {
+        externalOptions = result.config;
+      }
+    } catch (err) {
+      console.warn('[ForkTsCheckerWebpackPlugin] Could not parse external configuration file:', err);
+    }
 
     // first validate options directly passed to the constructor
     const config = { name: 'ForkTsCheckerWebpackPlugin' };

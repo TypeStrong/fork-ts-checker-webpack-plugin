@@ -25,21 +25,17 @@ describe('TypeScript Context Option', () => {
     );
 
     // update sandbox to use context option
-    await sandbox.remove('tsconfig.json');
     await sandbox.write(
       'build/tsconfig.json',
       JSON.stringify({
         compilerOptions: {
-          target: 'es5',
+          target: 'es2015',
           module: 'commonjs',
           lib: ['ES6', 'DOM'],
-          moduleResolution: 'node',
           esModuleInterop: true,
           skipLibCheck: true,
           skipDefaultLibCheck: true,
           strict: true,
-          baseUrl: './src',
-          outDir: './dist',
         },
         include: ['./src'],
         exclude: ['node_modules'],
@@ -50,22 +46,26 @@ describe('TypeScript Context Option', () => {
       "entry: './src/index.ts',",
       ["entry: './src/index.ts',", 'context: path.resolve(__dirname),'].join('\n')
     );
-    await sandbox.patch(
-      'webpack.config.js',
-      '          transpileOnly: true,',
-      [
-        '          transpileOnly: true,',
-        '          configFile: path.resolve(__dirname, "build/tsconfig.json"),',
-        '          context: __dirname,',
-      ].join('\n')
+    // ts-loader v10 has no `context` option - it always resolves paths against the
+    // config file's directory - so it gets its own root tsconfig.json
+    await sandbox.write(
+      'tsconfig.json',
+      JSON.stringify({
+        extends: './build/tsconfig.json',
+        compilerOptions: { rootDir: './src', outDir: './dist' },
+        include: ['./src'],
+      })
     );
     // create additional directory for cwd test
     await sandbox.write('foo/.gitignore', '');
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn(`yarn webpack serve --mode=development --config=../webpack.config.js`, {
-        cwd: path.join(sandbox.context, 'foo'),
-      }),
+      sandbox.spawn(
+        `node ../node_modules/webpack-cli/bin/cli.js serve --mode=development --config=../webpack.config.js`,
+        {
+          cwd: path.join(sandbox.context, 'foo'),
+        }
+      ),
       async
     );
 

@@ -26,6 +26,7 @@
 This plugin requires **Node.js >=22.12.0**, **Webpack ^5.11.0**, **TypeScript >=7.1.0** (until TypeScript 7.1 has a stable release, that means `typescript@beta`)
 
 It type checks with TypeScript's native API (`typescript/sync`), so it pairs with [ts-loader v10](https://github.com/TypeStrong/ts-loader), which is built on the same API.
+TypeScript's native compiler resolves modules from the file system itself, so [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp) isn't supported - use `nodeLinker: node-modules`.
 
 * If you depend on **TypeScript 3.6 - 6.x**, please use [version 9](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v9.1.0) of the plugin.
 * If you depend on **TypeScript 2.1 - 2.6.2**, please use [version 4](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/tree/v4.1.4) of the plugin.

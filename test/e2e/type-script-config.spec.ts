@@ -70,6 +70,38 @@ describe('TypeScript Config', () => {
     }
   );
 
+  it.each([{ async: true }, { async: false }])(
+    'watches include patterns that use ${configDir} for %p',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await sandbox.patch(
+        'tsconfig.json',
+        '"include": ["./src"]',
+        '"include": ["${configDir}/src"]'
+      );
+
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
+
+      // first compilation is successful
+      await driver.waitForNoErrors();
+
+      // a new file that webpack doesn't import is only found through the watched include
+      await sandbox.write('src/added.ts', 'export const added: number = "not a number";');
+
+      const errors = await driver.waitForErrors();
+      expect(errors.join('\n')).toContain('TS2322');
+
+      await sandbox.remove('src/added.ts');
+
+      await driver.waitForNoErrors();
+    }
+  );
+
   it.each([{ typescript: '7.1.0-beta' }])(
     'reports errors because of the misconfiguration',
     async (dependencies) => {

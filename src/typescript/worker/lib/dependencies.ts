@@ -54,10 +54,26 @@ export function resolveProjectReferencePath(referencePath: string): string {
 }
 
 /**
+ * Resolves an `include`/`exclude` entry. The parsed config keeps the
+ * `${configDir}` template as is, which TypeScript replaces with the directory
+ * of the config file being compiled.
+ */
+function resolveConfigPattern(pattern: string, configFilePath: string, configFileContext: string) {
+  return path.resolve(
+    configFileContext,
+    pattern.split('${configDir}').join(path.dirname(configFilePath))
+  );
+}
+
+/**
  * The native API doesn't expose `wildcardDirectories`, so derive the directories
  * to watch from the static prefix of each `include` pattern.
  */
-function getIncludeDirectories(parsedConfig: ParsedCommandLine, configFileContext: string) {
+function getIncludeDirectories(
+  parsedConfig: ParsedCommandLine,
+  configFilePath: string,
+  configFileContext: string
+) {
   const raw = (parsedConfig.raw || {}) as { include?: unknown; files?: unknown };
   const include = Array.isArray(raw.include)
     ? raw.include.filter((pattern): pattern is string => typeof pattern === 'string')
@@ -66,12 +82,14 @@ function getIncludeDirectories(parsedConfig: ParsedCommandLine, configFileContex
     : ['**/*'];
 
   return include.map((pattern) => {
-    const segments = pattern.split(/[\\/]/);
+    const resolvedPattern = resolveConfigPattern(pattern, configFilePath, configFileContext);
+    const segments = resolvedPattern.split(/[\\/]/);
     const firstWildcard = segments.findIndex((segment) => /[*?]/.test(segment));
     const staticPart = (firstWildcard === -1 ? segments : segments.slice(0, firstWildcard)).join(
       '/'
     );
-    const directory = path.resolve(configFileContext, staticPart);
+    // `resolvedPattern` is absolute - resolve against its root to keep the drive on Windows
+    const directory = path.resolve(path.parse(resolvedPattern).root, staticPart);
 
     // a pattern without a wildcard can point to a file
     return firstWildcard === -1 && path.extname(directory) ? path.dirname(directory) : directory;
@@ -144,12 +162,12 @@ function getDependenciesWorker(
       : getExtendedConfigFiles(parsedConfig.raw, configFilePath, configFileContext);
   extendedConfigFiles.forEach((file) => files.add(file));
 
-  const dirs = new Set(getIncludeDirectories(parsedConfig, configFileContext));
+  const dirs = new Set(getIncludeDirectories(parsedConfig, configFilePath, configFileContext));
   const rawExclude = (parsedConfig.raw as { exclude?: unknown } | undefined)?.exclude;
   const excluded = new Set<string>(
-    (Array.isArray(rawExclude) ? rawExclude : []).map((filePath: string) =>
-      path.resolve(configFileContext, filePath)
-    )
+    (Array.isArray(rawExclude) ? rawExclude : [])
+      .filter((pattern): pattern is string => typeof pattern === 'string')
+      .map((pattern) => resolveConfigPattern(pattern, configFilePath, configFileContext))
   );
 
   for (const projectReference of parsedConfig.projectReferences || []) {

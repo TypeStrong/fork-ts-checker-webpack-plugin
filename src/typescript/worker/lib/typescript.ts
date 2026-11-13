@@ -10,11 +10,29 @@ import {
 
 import { config } from './worker-config';
 
+/** Picks the file a `require` of an `exports` entry resolves to, through nested conditions. */
+function resolveExportTarget(target: unknown): string | undefined {
+  if (typeof target === 'string') {
+    return target;
+  }
+  if (Array.isArray(target)) {
+    return target.map(resolveExportTarget).find((file) => file !== undefined);
+  }
+  if (typeof target === 'object' && target !== null) {
+    const conditions = target as Record<string, unknown>;
+    for (const condition of ['require', 'node', 'default']) {
+      const file = resolveExportTarget(conditions[condition]);
+      if (file !== undefined) {
+        return file;
+      }
+    }
+  }
+  return undefined;
+}
+
 function resolveExport(packageDirectory: string, subpath: string): string {
   const packageJson = readTypeScriptPackageJson(packageDirectory);
-  const target = packageJson.exports?.[subpath];
-  const file =
-    typeof target === 'string' ? target : target?.require ?? target?.node ?? target?.default;
+  const file = resolveExportTarget(packageJson.exports?.[subpath]);
 
   if (typeof file !== 'string') {
     throw new Error(

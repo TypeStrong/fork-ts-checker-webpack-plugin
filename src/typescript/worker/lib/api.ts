@@ -23,6 +23,12 @@ const outputs = new Map<string, string>();
 // .tsbuildinfo mtime, so reporting "now" would make every input look older
 const outputTimes = new Map<string, Date>();
 const outputDirectories = new Set<string>();
+// symlinked directory -> real directory, cleared before each build in case of relinks
+const realDirectories = new Map<string, string>();
+
+export function clearRealDirectories() {
+  realDirectories.clear();
+}
 
 function isWrittenToDisk(fileName: string): boolean {
   switch (config.mode) {
@@ -58,7 +64,6 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
   // Outputs are keyed by their real path, but the compiler can also look them up
   // through a symlink - typically a workspace package in node_modules whose
   // `types` point at another project's in-memory .d.ts files.
-  const realDirectories = new Map<string, string>();
   const toOutputPath = (fileName: string): string => {
     if (outputs.has(fileName) || outputDirectories.has(fileName)) {
       return fileName;
@@ -183,6 +188,7 @@ export function closeApi() {
   outputs.clear();
   outputTimes.clear();
   outputDirectories.clear();
+  realDirectories.clear();
   if (api) {
     try {
       api.close();

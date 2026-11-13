@@ -15,6 +15,13 @@ describe('typescript/type-script-package', () => {
     expect(getTypeScriptVersion(typescriptPath)).toEqual(version);
   });
 
+  it('skips package.json files that are not TypeScript', () => {
+    // this repo's own package.json sits above node_modules/typescript
+    const wrongPath = path.join(process.cwd(), 'node_modules', 'does-not-exist', 'index.js');
+
+    expect(getTypeScriptVersion(wrongPath)).toBeUndefined();
+  });
+
   it('returns undefined when there is no package', () => {
     expect(getTypeScriptVersion(path.parse(process.cwd()).root)).toBeUndefined();
   });

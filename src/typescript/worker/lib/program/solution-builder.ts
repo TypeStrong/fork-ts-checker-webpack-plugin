@@ -1,6 +1,6 @@
 import type { BuildOrchestrator, OverrideCompilerOptions } from 'typescript/sync';
 
-import { createBuildOrchestrator } from '../api';
+import { clearRealDirectories, createBuildOrchestrator } from '../api';
 import { updateDiagnostics } from '../diagnostics';
 import { config } from '../worker-config';
 
@@ -47,7 +47,9 @@ export function useSolutionBuilder() {
     });
   }
 
-  // the orchestrator checks the file system for changes itself
+  // the orchestrator checks the file system for changes itself, but a
+  // `yarn install` can relink workspace packages between builds
+  clearRealDirectories();
   const result = solutionBuilder.build();
   updateDiagnostics(config.configFile, result.diagnostics || []);
 }

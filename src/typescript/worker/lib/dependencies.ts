@@ -55,14 +55,19 @@ export function resolveProjectReferencePath(referencePath: string): string {
 
 /**
  * Resolves an `include`/`exclude` entry. The parsed config keeps the
- * `${configDir}` template as is, which TypeScript replaces with the directory
- * of the config file being compiled.
+ * `${configDir}` template as is. TypeScript replaces it with the directory the
+ * config is parsed against - the `context` option for the root config.
  */
-function resolveConfigPattern(pattern: string, configFilePath: string, configFileContext: string) {
-  return path.resolve(
-    configFileContext,
-    pattern.split('${configDir}').join(path.dirname(configFilePath))
-  );
+function resolveConfigPattern(pattern: string, configFileContext: string) {
+  return path.resolve(configFileContext, pattern.split('${configDir}').join(configFileContext));
+}
+
+function isDirectory(directory: string) {
+  try {
+    return fs.statSync(directory).isDirectory();
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
@@ -82,7 +87,7 @@ function getIncludeDirectories(
     : ['**/*'];
 
   return include.map((pattern) => {
-    const resolvedPattern = resolveConfigPattern(pattern, configFilePath, configFileContext);
+    const resolvedPattern = resolveConfigPattern(pattern, configFileContext);
     const segments = resolvedPattern.split(/[\\/]/);
     const firstWildcard = segments.findIndex((segment) => /[*?]/.test(segment));
     const staticPart = (firstWildcard === -1 ? segments : segments.slice(0, firstWildcard)).join(
@@ -92,7 +97,9 @@ function getIncludeDirectories(
     const directory = path.resolve(path.parse(resolvedPattern).root, staticPart);
 
     // a pattern without a wildcard can point to a file
-    return firstWildcard === -1 && path.extname(directory) ? path.dirname(directory) : directory;
+    return firstWildcard === -1 && path.extname(directory) && !isDirectory(directory)
+      ? path.dirname(directory)
+      : directory;
   });
 }
 
@@ -167,7 +174,7 @@ function getDependenciesWorker(
   const excluded = new Set<string>(
     (Array.isArray(rawExclude) ? rawExclude : [])
       .filter((pattern): pattern is string => typeof pattern === 'string')
-      .map((pattern) => resolveConfigPattern(pattern, configFilePath, configFileContext))
+      .map((pattern) => resolveConfigPattern(pattern, configFileContext))
   );
 
   for (const projectReference of parsedConfig.projectReferences || []) {

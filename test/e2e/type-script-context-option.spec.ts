@@ -106,7 +106,7 @@ describe('TypeScript Context Option', () => {
   });
 
   it.each([{ async: true }, { async: false }])(
-    'resolves extends against context for %p',
+    'resolves extends and ${configDir} against context for %p',
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
       await sandbox.install('yarn', {});
@@ -138,7 +138,8 @@ describe('TypeScript Context Option', () => {
             skipLibCheck: true,
             strict: true,
           },
-          include: ['./src'],
+          // `${configDir}` is the context too
+          include: ['${configDir}/src'],
         })
       );
 
@@ -160,6 +161,12 @@ describe('TypeScript Context Option', () => {
       await sandbox.patch('tsconfig.base.json', '"ES2015"', '"DOM"');
 
       await driver.waitForNoErrors();
+
+      // a new file that webpack doesn't import is only found through the watched include
+      await sandbox.write('src/added.ts', 'export const added: number = "not a number";');
+
+      const addedErrors = await driver.waitForErrors();
+      expect(addedErrors.join('\n')).toContain('TS2322');
     }
   );
 });

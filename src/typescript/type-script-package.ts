@@ -7,6 +7,20 @@ import * as path from 'path';
  * directory itself. TypeScript 7 has no `main`, and its entry points are only
  * reachable through the `exports` map, so locate the package.json ourselves.
  */
+/**
+ * Skips unrelated package.json files on the way up, such as the user's project
+ * when `typescriptPath` is wrong. A package exposing `./sync` also counts, so a
+ * TypeScript build published under another name still works.
+ */
+function isTypeScriptPackage(directory: string): boolean {
+  try {
+    const packageJson = readTypeScriptPackageJson(directory);
+    return packageJson.name === 'typescript' || packageJson.exports?.['./sync'] !== undefined;
+  } catch (error) {
+    return false;
+  }
+}
+
 export function findTypeScriptPackageDirectory(typescriptPath: string): string {
   let directory =
     fs.existsSync(typescriptPath) && fs.statSync(typescriptPath).isDirectory()
@@ -14,7 +28,7 @@ export function findTypeScriptPackageDirectory(typescriptPath: string): string {
       : path.dirname(typescriptPath);
 
   while (true) {
-    if (fs.existsSync(path.join(directory, 'package.json'))) {
+    if (isTypeScriptPackage(directory)) {
       return directory;
     }
     const parent = path.dirname(directory);

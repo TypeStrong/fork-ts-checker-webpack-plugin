@@ -67,6 +67,9 @@ const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
     } else {
       useProgram(change);
     }
+
+    // the timings come from the compiler process too
+    printPerformanceMeasuresIfNeeded();
   } catch (error) {
     // the compiler process may have died - start from scratch on the next run
     resetProgram();
@@ -80,11 +83,7 @@ const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
   }
 
   // retrieve all collected diagnostics as normalized issues
-  const issues = getIssues();
-
-  printPerformanceMeasuresIfNeeded();
-
-  return issues;
+  return getIssues();
 };
 
 exposeRpc(getIssuesWorker);

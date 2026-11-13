@@ -19,6 +19,9 @@ type CreateBuildOrchestrator = (
 let api: API | undefined;
 // outputs that `mode` says must not reach the disk, keyed by forward-slashed path
 const outputs = new Map<string, string>();
+// when each output was written: the up-to-date check compares inputs with the
+// .tsbuildinfo mtime, so reporting "now" would make every input look older
+const outputTimes = new Map<string, Date>();
 const outputDirectories = new Set<string>();
 
 function isWrittenToDisk(fileName: string): boolean {
@@ -88,6 +91,7 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
         return serverFS.useOS;
       }
       outputs.set(fileName, content);
+      outputTimes.set(fileName, new Date());
       for (let dir = path.posix.dirname(fileName); !outputDirectories.has(dir); ) {
         outputDirectories.add(dir);
         const parent = path.posix.dirname(dir);
@@ -106,10 +110,15 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
       if (isHidden(fileName)) {
         return undefined;
       }
-      const content = outputs.get(toOutputPath(fileName));
+      const outputPath = toOutputPath(fileName);
+      const content = outputs.get(outputPath);
       return content === undefined
         ? serverFS.useOS
-        : { mode: 0o100644, size: Buffer.byteLength(content), mtime: new Date() };
+        : {
+            mode: 0o100644,
+            size: Buffer.byteLength(content),
+            mtime: outputTimes.get(outputPath) ?? new Date(),
+          };
     },
     // never delete anything this mode doesn't write, like the user's real build output
     removeFile: (fileName) => {
@@ -118,6 +127,7 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
         return serverFS.useOS;
       }
       outputs.delete(fileName);
+      outputTimes.delete(fileName);
       return serverFS.noop;
     },
     getAccessibleEntries: serverFS.useOS,
@@ -171,6 +181,7 @@ export function closeApiOnExit() {
 
 export function closeApi() {
   outputs.clear();
+  outputTimes.clear();
   outputDirectories.clear();
   if (api) {
     try {

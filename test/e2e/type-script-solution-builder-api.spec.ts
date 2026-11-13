@@ -166,4 +166,24 @@ describe('TypeScript SolutionBuilder API', () => {
         break;
     }
   });
+  it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    await sandbox.install('yarn', {});
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // `Array.prototype.includes` comes with ES2016, so this breaks the shared package.
+    // The edit creates a new build orchestrator, which must not treat the
+    // in-memory .tsbuildinfo files as newer than the change.
+    await sandbox.patch('tsconfig.base.json', '"es2016"', '"es2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain("Property 'includes' does not exist");
+  });
 });

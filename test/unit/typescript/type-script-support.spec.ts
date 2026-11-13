@@ -27,7 +27,7 @@ describe('typescript/type-script-support', () => {
   });
 
   it('throws error if typescript is not installed', async () => {
-    jest.setMock('typescript', undefined);
+    jest.setMock('src/typescript/type-script-package', { getTypeScriptVersion: () => undefined });
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
@@ -39,7 +39,7 @@ describe('typescript/type-script-support', () => {
   it.each(['3.6.0', '5.9.3', '6.0.2', '7.0.0'])(
     'throws error if typescript version %s is lower than 7.1.0-beta',
     async (version) => {
-      jest.setMock('typescript', { version });
+      jest.setMock('src/typescript/type-script-package', { getTypeScriptVersion: () => version });
 
       const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
@@ -56,7 +56,7 @@ describe('typescript/type-script-support', () => {
   it.each(['7.1.0-beta', '7.1.0-dev.20261113.1', '7.1.0', '7.2.0'])(
     "doesn't throw error if typescript version is %s",
     async (version) => {
-      jest.setMock('typescript', { version });
+      jest.setMock('src/typescript/type-script-package', { getTypeScriptVersion: () => version });
       jest.setMock('fs', { existsSync: () => true });
 
       const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
@@ -66,7 +66,7 @@ describe('typescript/type-script-support', () => {
   );
 
   it('throws error if there is no tsconfig.json file', async () => {
-    jest.setMock('typescript', { version: '7.1.0' });
+    jest.setMock('src/typescript/type-script-package', { getTypeScriptVersion: () => '7.1.0' });
     jest.setMock('fs', { existsSync: () => false });
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');

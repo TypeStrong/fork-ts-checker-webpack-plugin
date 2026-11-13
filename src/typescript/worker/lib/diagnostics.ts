@@ -44,24 +44,21 @@ export function createCrashDiagnostic(error: unknown): Diagnostic {
 }
 
 export function getDiagnosticsOfProgram(program: Program): Diagnostic[] {
+  // errors aren't caught here: the worker reports them and resets the compiler
   const programDiagnostics: Diagnostic[] = [];
-  try {
-    // compiler options diagnostics (e.g. a removed `target`)
-    programDiagnostics.push(...program.getProgramDiagnostics());
-    if (config.diagnosticOptions.syntactic) {
-      programDiagnostics.push(...program.getSyntacticDiagnostics());
-    }
-    if (config.diagnosticOptions.global) {
-      programDiagnostics.push(...program.getGlobalDiagnostics());
-    }
-    if (config.diagnosticOptions.semantic) {
-      programDiagnostics.push(...program.getSemanticDiagnostics());
-    }
-    if (config.diagnosticOptions.declaration) {
-      programDiagnostics.push(...program.getDeclarationDiagnostics());
-    }
-  } catch (error) {
-    programDiagnostics.push(createCrashDiagnostic(error));
+  // compiler options diagnostics (e.g. a removed `target`)
+  programDiagnostics.push(...program.getProgramDiagnostics());
+  if (config.diagnosticOptions.syntactic) {
+    programDiagnostics.push(...program.getSyntacticDiagnostics());
+  }
+  if (config.diagnosticOptions.global) {
+    programDiagnostics.push(...program.getGlobalDiagnostics());
+  }
+  if (config.diagnosticOptions.semantic) {
+    programDiagnostics.push(...program.getSemanticDiagnostics());
+  }
+  if (config.diagnosticOptions.declaration) {
+    programDiagnostics.push(...program.getDeclarationDiagnostics());
   }
   return programDiagnostics;
 }

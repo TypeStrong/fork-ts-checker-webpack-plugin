@@ -1,8 +1,11 @@
+import * as fs from 'fs';
 import * as path from 'path';
 
 import type {
   CreateSnapshotParams,
+  Diagnostic,
   FileNotifications,
+  Program,
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
@@ -58,6 +61,30 @@ function updateSnapshot(params: CreateSnapshotParams): Snapshot {
   return nextSnapshot;
 }
 
+/**
+ * Writes the program's .d.ts files, skipping unchanged ones: the program re-emits
+ * every file each time, and rewriting them all would trigger more watch events.
+ */
+function emitDeclarations(program: Program): readonly Diagnostic[] {
+  // `configOverwrite` can turn `emitDeclarationOnly` off, so don't rely on it
+  const { diagnostics, outputFiles } = program.emitToString(typescriptSync.EmitOnly.OnlyDts);
+
+  for (const [fileName, { text }] of outputFiles) {
+    let previousText: string | undefined;
+    try {
+      previousText = fs.readFileSync(fileName, 'utf8');
+    } catch (error) {
+      // not written yet
+    }
+    if (previousText !== text) {
+      fs.mkdirSync(path.dirname(fileName), { recursive: true });
+      fs.writeFileSync(fileName, text);
+    }
+  }
+
+  return diagnostics;
+}
+
 export function useProgram(change: FilesChange) {
   const fileNotifications = getFileNotifications(change);
 
@@ -89,8 +116,7 @@ export function useProgram(change: FilesChange) {
   const diagnostics = getDiagnosticsOfProgram(program);
   // `configOverwrite` can turn `declaration` off, as with `tsc`
   if (config.mode === 'write-dts' && getParsedConfig().options.declaration) {
-    // `configOverwrite` can also turn `emitDeclarationOnly` off, so don't rely on it
-    diagnostics.push(...program.emit(typescriptSync.EmitOnly.OnlyDts).diagnostics);
+    diagnostics.push(...emitDeclarations(program));
   }
 
   updateDiagnostics(config.configFile, diagnostics);

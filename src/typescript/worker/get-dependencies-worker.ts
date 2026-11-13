@@ -2,7 +2,7 @@ import type { FilesChange } from '../../files-change';
 import type { FilesMatch } from '../../files-match';
 import { exposeRpc } from '../../rpc';
 
-import { closeApiOnExit } from './lib/api';
+import { closeApi, closeApiOnExit } from './lib/api';
 import {
   didConfigFileChanged,
   didDependenciesProbablyChanged,
@@ -13,15 +13,24 @@ import { getConfigFiles, getDependencies, invalidateDependencies } from './lib/d
 closeApiOnExit();
 
 const getDependenciesWorker = (change: FilesChange): FilesMatch => {
-  if (
-    didConfigFileChanged(change, getConfigFiles()) ||
-    didDependenciesProbablyChanged(getDependencies(), change)
-  ) {
+  try {
+    if (
+      didConfigFileChanged(change, getConfigFiles()) ||
+      didDependenciesProbablyChanged(getDependencies(), change)
+    ) {
+      invalidateConfig();
+      invalidateDependencies();
+    }
+
+    return getDependencies();
+  } catch (error) {
+    // the compiler process may have died - start from scratch on the next call
+    closeApi();
     invalidateConfig();
     invalidateDependencies();
-  }
 
-  return getDependencies();
+    throw error;
+  }
 };
 
 exposeRpc(getDependenciesWorker);

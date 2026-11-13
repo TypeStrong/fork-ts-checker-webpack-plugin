@@ -128,7 +128,11 @@ function getDependenciesWorker(
 ): FilesMatch {
   const files = new Set<string>(parsedConfig.fileNames);
   files.add(configFilePath);
-  getExtendedConfigFiles(parsedConfig.raw, configFilePath).forEach((file) => files.add(file));
+  const extendedConfigFiles =
+    configFilePath === config.configFile
+      ? getConfigFiles().slice(1)
+      : getExtendedConfigFiles(parsedConfig.raw, configFilePath);
+  extendedConfigFiles.forEach((file) => files.add(file));
 
   const dirs = new Set(getIncludeDirectories(parsedConfig, configFileContext));
   const rawExclude = (parsedConfig.raw as { exclude?: unknown } | undefined)?.exclude;

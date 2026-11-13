@@ -3,19 +3,13 @@ import os from 'os';
 import fs from 'fs';
 import * as semver from 'semver';
 
+import { getTypeScriptVersion } from './type-script-package';
 import type { TypeScriptWorkerConfig } from './type-script-worker-config';
 
 const MINIMUM_TYPESCRIPT_VERSION = '7.1.0-beta';
 
 function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
-  let typescriptVersion: string | undefined;
-
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    typescriptVersion = require(config.typescriptPath).version;
-  } catch (error) {
-    // silent catch
-  }
+  const typescriptVersion = getTypeScriptVersion(config.typescriptPath);
 
   if (!typescriptVersion) {
     throw new Error(

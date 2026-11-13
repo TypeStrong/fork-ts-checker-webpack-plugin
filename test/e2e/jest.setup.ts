@@ -13,6 +13,10 @@ declare global {
   }
 }
 
+// When run through `yarn test:e2e`, sandboxes install with the project's Yarn (berry),
+// whose default Plug'n'Play linker TypeScript's native compiler can't resolve through.
+process.env.YARN_NODE_LINKER = 'node-modules';
+
 beforeAll(async () => {
   const forkTsCheckerWebpackPluginTar = await packLocalPackage(path.resolve(__dirname, '../../'));
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

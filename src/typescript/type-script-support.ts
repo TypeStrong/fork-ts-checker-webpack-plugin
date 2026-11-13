@@ -5,6 +5,8 @@ import * as semver from 'semver';
 
 import type { TypeScriptWorkerConfig } from './type-script-worker-config';
 
+const MINIMUM_TYPESCRIPT_VERSION = '7.1.0-beta';
+
 function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
   let typescriptVersion: string | undefined;
 
@@ -21,19 +23,12 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
     );
   }
 
-  if (semver.lt(typescriptVersion, '3.6.0')) {
+  if (semver.lt(typescriptVersion, MINIMUM_TYPESCRIPT_VERSION)) {
     throw new Error(
       [
         `ForkTsCheckerWebpackPlugin cannot use the current typescript version of ${typescriptVersion}.`,
-        'The minimum required version is 3.6.0.',
-      ].join(os.EOL)
-    );
-  }
-  if (config.build && semver.lt(typescriptVersion, '3.8.0')) {
-    throw new Error(
-      [
-        `ForkTsCheckerWebpackPlugin doesn't support build option for the current typescript version of ${typescriptVersion}.`,
-        'The minimum required version is 3.8.0.',
+        `The minimum required version is ${MINIMUM_TYPESCRIPT_VERSION}.`,
+        'Use fork-ts-checker-webpack-plugin@9 for older TypeScript versions.',
       ].join(os.EOL)
     );
   }

@@ -1,39 +1,110 @@
-import type * as ts from 'typescript';
+import * as path from 'path';
 
-import { getConfigFilePathFromProgram, getParsedConfig } from '../config';
+import type {
+  CreateSnapshotParams,
+  FileNotifications,
+  Snapshot,
+  SyntheticProjectId,
+} from 'typescript/sync';
+
+import type { FilesChange } from '../../../../files-change';
+import { getApi } from '../api';
+import { getParsedConfig } from '../config';
 import { updateDiagnostics, getDiagnosticsOfProgram } from '../diagnostics';
-import { emitDtsIfNeeded } from '../emit';
-import { createCompilerHost } from '../host/compiler-host';
-import { startTracingIfNeeded, stopTracingIfNeeded } from '../tracing';
-import { typescript } from '../typescript';
+import { config } from '../worker-config';
 
-let compilerHost: ts.CompilerHost | undefined;
-let program: ts.Program | undefined;
+let snapshot: Snapshot | undefined;
+let programId: SyntheticProjectId | undefined;
+let shouldReconfigureProgram = false;
+let didConfigChange = false;
 
-export function useProgram() {
+function getProgramParams() {
   const parsedConfig = getParsedConfig();
 
-  if (!compilerHost) {
-    compilerHost = createCompilerHost(parsedConfig);
-  }
-  if (!program) {
-    startTracingIfNeeded(parsedConfig.options);
-    program = typescript.createProgram({
-      rootNames: parsedConfig.fileNames,
-      options: parsedConfig.options,
+  return {
+    rootFiles: parsedConfig.fileNames,
+    compilerOptions: parsedConfig.options,
+    options: {
       projectReferences: parsedConfig.projectReferences,
-      host: compilerHost,
-    });
-  }
-
-  updateDiagnostics(getConfigFilePathFromProgram(program), getDiagnosticsOfProgram(program));
-  emitDtsIfNeeded(program);
-  stopTracingIfNeeded(program);
+    },
+  };
 }
 
-export function invalidateProgram(withHost = false) {
-  if (withHost) {
-    compilerHost = undefined;
+function getFileNotifications({
+  changedFiles = [],
+  deletedFiles = [],
+}: FilesChange): FileNotifications | undefined {
+  if (changedFiles.length === 0 && deletedFiles.length === 0) {
+    return undefined;
   }
-  program = undefined;
+
+  // webpack's watcher doesn't distinguish created from changed files
+  return {
+    changed: changedFiles.map((file) => path.resolve(file)),
+    deleted: deletedFiles.map((file) => path.resolve(file)),
+  };
+}
+
+function updateSnapshot(params: CreateSnapshotParams): Snapshot {
+  const previousSnapshot = snapshot;
+  // each snapshot must be derived from the previous one to keep the API's cache
+  const nextSnapshot = previousSnapshot
+    ? previousSnapshot.update(params)
+    : getApi().createSnapshot(params);
+  previousSnapshot?.dispose();
+  snapshot = nextSnapshot;
+
+  return nextSnapshot;
+}
+
+export function useProgram(change: FilesChange) {
+  const fileNotifications = getFileNotifications(change);
+
+  if (programId === undefined) {
+    const nextSnapshot = updateSnapshot({ createPrograms: [getProgramParams()] });
+    programId = nextSnapshot.operation.createdPrograms![0].id;
+  } else {
+    updateSnapshot({
+      // a config change can affect how any file is read, so start afresh
+      fileNotifications: didConfigChange ? { invalidateAll: true } : fileNotifications,
+      // reconfigure in place: `removePrograms` + `createPrograms` in a single
+      // update crashes the 7.1 beta compiler process
+      reconfigurePrograms:
+        shouldReconfigureProgram || didConfigChange
+          ? [{ id: programId, ...getProgramParams() }]
+          : undefined,
+      // without it, a synthetic program keeps the old contents of changed files
+      ensurePrograms: true,
+    });
+  }
+  shouldReconfigureProgram = false;
+  didConfigChange = false;
+
+  const program = snapshot!.getProgram(programId);
+  if (!program) {
+    throw new Error('TypeScript program is missing from the snapshot.');
+  }
+
+  updateDiagnostics(config.configFile, getDiagnosticsOfProgram(program));
+
+  if (config.mode === 'write-dts') {
+    // `emitDeclarationOnly` is forced by the implicit config overwrite
+    program.emit();
+  }
+}
+
+export function invalidateProgram() {
+  didConfigChange = true;
+}
+
+export function invalidateProgramRootFileNames() {
+  shouldReconfigureProgram = true;
+}
+
+/** Forgets the program without talking to the compiler, which may be gone. */
+export function resetProgram() {
+  snapshot = undefined;
+  programId = undefined;
+  shouldReconfigureProgram = false;
+  didConfigChange = false;
 }

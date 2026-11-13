@@ -11,11 +11,14 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'yarn'
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Lint
+        run: yarn lint && yarn format:check
 
       - name: Build project
         run: yarn build
@@ -31,7 +34,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        node: [18, 20]
+        node: [22, 24, 26]
         os: [ubuntu-latest, macos-latest, windows-latest]
       fail-fast: false
     steps:
@@ -47,7 +50,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: test/e2e/__locks__
-          key: ${{ runner.os }}-locks
+          key: ${{ runner.os }}-locks-ts7
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -79,7 +82,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'yarn'
 
       - name: Install dependencies

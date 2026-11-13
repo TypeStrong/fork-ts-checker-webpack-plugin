@@ -36,30 +36,37 @@ describe('typescript/type-script-support', () => {
     );
   });
 
-  it('throws error if typescript version is lower then 3.6.0', async () => {
-    jest.setMock('typescript', { version: '3.5.9' });
+  it.each(['3.6.0', '5.9.3', '6.0.2', '7.0.0'])(
+    'throws error if typescript version %s is lower than 7.1.0-beta',
+    async (version) => {
+      jest.setMock('typescript', { version });
 
-    const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
+      const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
-    expect(() => assertTypeScriptSupport(configuration)).toThrowError(
-      [
-        `ForkTsCheckerWebpackPlugin cannot use the current typescript version of 3.5.9.`,
-        'The minimum required version is 3.6.0.',
-      ].join(os.EOL)
-    );
-  });
+      expect(() => assertTypeScriptSupport(configuration)).toThrowError(
+        [
+          `ForkTsCheckerWebpackPlugin cannot use the current typescript version of ${version}.`,
+          'The minimum required version is 7.1.0-beta.',
+          'Use fork-ts-checker-webpack-plugin@9 for older TypeScript versions.',
+        ].join(os.EOL)
+      );
+    }
+  );
 
-  it("doesn't throw error if typescript version is greater or equal 3.6.0", async () => {
-    jest.setMock('typescript', { version: '3.6.0' });
-    jest.setMock('fs-extra', { existsSync: () => true });
+  it.each(['7.1.0-beta', '7.1.0-dev.20261113.1', '7.1.0', '7.2.0'])(
+    "doesn't throw error if typescript version is %s",
+    async (version) => {
+      jest.setMock('typescript', { version });
+      jest.setMock('fs-extra', { existsSync: () => true });
 
-    const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
+      const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
-    expect(() => assertTypeScriptSupport(configuration)).not.toThrowError();
-  });
+      expect(() => assertTypeScriptSupport(configuration)).not.toThrowError();
+    }
+  );
 
   it('throws error if there is no tsconfig.json file', async () => {
-    jest.setMock('typescript', { version: '3.8.0' });
+    jest.setMock('typescript', { version: '7.1.0' });
     jest.setMock('fs-extra', { existsSync: () => false });
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');

@@ -37,4 +37,5 @@ afterAll(async () => {
   await global.sandbox.cleanup();
 });
 
-jest.retryTimes(3);
+// retry flaky e2e tests on CI only, so local failures show up straight away
+jest.retryTimes(process.env.CI ? 3 : 0);

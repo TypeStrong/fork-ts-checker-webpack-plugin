@@ -1,0 +1,53 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "import",
+    "unicorn",
+    "oxc",
+    "node"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "ignorePatterns": [
+    "lib/**",
+    "test/e2e/fixtures/**"
+  ],
+  "rules": {
+    "typescript/unbound-method": "off",
+    "typescript/consistent-type-imports": "error",
+    "import/no-cycle": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "args": "after-used",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "none",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "typescript/no-floating-promises": "off",
+    "unicorn/no-useless-fallback-in-spread": "off",
+    "unicorn/no-new-array": "off"
+  },
+  "env": {
+    "builtin": true,
+    "node": true,
+    "jest": true
+  },
+  "overrides": [
+    {
+      "files": [
+        "test/**"
+      ],
+      "rules": {
+        "typescript/no-useless-default-assignment": "off"
+      }
+    }
+  ]
+}

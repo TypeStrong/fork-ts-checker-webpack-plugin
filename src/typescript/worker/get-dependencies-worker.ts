@@ -2,17 +2,17 @@ import type { FilesChange } from '../../files-change';
 import type { FilesMatch } from '../../files-match';
 import { exposeRpc } from '../../rpc';
 
+import { closeApiOnExit } from './lib/api';
 import {
   didConfigFileChanged,
   didDependenciesProbablyChanged,
   invalidateConfig,
 } from './lib/config';
 import { getDependencies, invalidateDependencies } from './lib/dependencies';
-import { system } from './lib/system';
+
+closeApiOnExit();
 
 const getDependenciesWorker = (change: FilesChange): FilesMatch => {
-  system.invalidateCache();
-
   if (didConfigFileChanged(change) || didDependenciesProbablyChanged(getDependencies(), change)) {
     invalidateConfig();
     invalidateDependencies();

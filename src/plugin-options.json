@@ -117,7 +117,7 @@
       "properties": {
         "memoryLimit": {
           "type": "number",
-          "description": "Memory limit for TypeScript reporter process."
+          "description": "Memory limit for TypeScript reporter process. Type checking itself runs in TypeScript's native compiler process, which this limit does not apply to."
         },
         "configFile": {
           "type": "string",
@@ -161,11 +161,11 @@
         },
         "profile": {
           "type": "boolean",
-          "description": "Measures and prints timings related to the TypeScript performance."
+          "description": "Measures and prints timings of the requests made to TypeScript's native compiler."
         },
         "typescriptPath": {
           "type": "string",
-          "description": "If supplied this is a custom path where TypeScript can be found."
+          "description": "If supplied this is a custom path where TypeScript (7.1 or newer) can be found."
         }
       }
     },

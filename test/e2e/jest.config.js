@@ -1,5 +1,7 @@
 module.exports = {
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.tsx?$': ['@swc/jest', { jsc: { target: 'es2022' }, module: { type: 'commonjs' } }],
+  },
   testEnvironment: './jest.environment.js',
   testRunner: 'jest-circus/runner',
   testTimeout: 300000,
@@ -8,10 +10,5 @@ module.exports = {
   rootDir: '.',
   moduleNameMapper: {
     '^lib/(.*)$': '<rootDir>/../../lib/$1',
-  },
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.json',
-    },
   },
 };

@@ -1,17 +1,15 @@
 import path from 'path';
 
-import semver from 'semver';
-
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 
 // This test is failing everywhere. It is not clear what the problem is.
 // I marked it as skipped to unblock the CI.
 describe.skip('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: '~4.3.0', mode: 'readonly' },
-    { async: true, typescript: '~4.5.0', mode: 'write-tsbuildinfo' },
-    { async: false, typescript: '~4.7.0', mode: 'write-references' },
-    { async: true, typescript: '~4.3.0', mode: 'write-dts' },
+    { async: false, typescript: '7.1.0-beta', mode: 'readonly' },
+    { async: true, typescript: '7.1.0-beta', mode: 'write-tsbuildinfo' },
+    { async: false, typescript: '7.1.0-beta', mode: 'write-references' },
+    { async: true, typescript: '7.1.0-beta', mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
     await sandbox.install('yarn', { typescript });
@@ -59,9 +57,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
       [
         'ERROR in ./packages/client/src/index.ts:4:42',
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
-        semver.satisfies(semver.minVersion(typescript), '>=4.0.0')
-          ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."
-          : "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
+        "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'.",
         '    2 |',
         '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
         '  > 4 |   const intersection = intersect(arrayA, arrayB);',

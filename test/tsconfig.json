@@ -1,15 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "lib": ["ES6"],
-    "moduleResolution": "node",
+    "target": "ES2022",
+    "module": "preserve",
+    "strict": false,
+    "lib": ["ES2022"],
+    "types": ["node", "jest"],
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
     "resolveJsonModule": true,
-    "baseUrl": "../"
+    "noEmit": true,
+    "paths": {
+      "src/*": ["../src/*"],
+      "lib/*": ["../lib/*"]
+    }
   },
-  "include": ["../src", "**/*.spec.ts"],
-  "exclude": ["node_modules"]
+  "include": ["../src", "**/*.spec.ts", "**/*.ts"],
+  "exclude": ["node_modules", "e2e/fixtures"]
 }

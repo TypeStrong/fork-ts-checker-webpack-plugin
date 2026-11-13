@@ -116,7 +116,7 @@ function tapStartToRunWorkers(
         return issuesPool.submit(async () => {
           try {
             debug(`Running the getIssuesWorker, iteration ${iteration}.`);
-            const issues = await getIssuesWorker(aggregatedFilesChange, state.watching);
+            const issues = await getIssuesWorker(aggregatedFilesChange);
             if (state.aggregatedFilesChange === aggregatedFilesChange) {
               state.aggregatedFilesChange = undefined;
             }

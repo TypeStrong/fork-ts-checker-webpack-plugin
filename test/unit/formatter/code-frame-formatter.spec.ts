@@ -1,29 +1,27 @@
 import * as os from 'os';
 
-import mockFs from 'mock-fs';
 import { createCodeFrameFormatter } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { mockFiles } from './mock-files';
 import { stripAnsi } from './strip-ansi';
 
 describe('formatter/code-frame-formatter', () => {
   beforeEach(() => {
-    mockFs({
-      src: {
-        'index.ts': [
-          'const foo: number = "1";',
-          'const bar = 1;',
-          '',
-          'function baz() {',
-          '  console.log(baz);',
-          '}',
-        ].join('\n'),
-      },
+    mockFiles({
+      'src/index.ts': [
+        'const foo: number = "1";',
+        'const bar = 1;',
+        '',
+        'function baz() {',
+        '  console.log(baz);',
+        '}',
+      ].join('\n'),
     });
   });
 
   afterEach(() => {
-    mockFs.restore();
+    jest.restoreAllMocks();
   });
 
   it.each([

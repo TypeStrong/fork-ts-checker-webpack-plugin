@@ -10,7 +10,7 @@ describe('Webpack Inclusive Watcher', () => {
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-package'));
-      await sandbox.install('yarn', { typescript: '4.6.3' });
+      await sandbox.install('yarn', { typescript: '7.1.0-beta' });
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       // add import to typescript-nested-project project

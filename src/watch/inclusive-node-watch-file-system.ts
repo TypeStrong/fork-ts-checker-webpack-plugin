@@ -1,4 +1,4 @@
-import { extname, relative, isAbsolute } from 'path';
+import { extname } from 'path';
 
 import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';

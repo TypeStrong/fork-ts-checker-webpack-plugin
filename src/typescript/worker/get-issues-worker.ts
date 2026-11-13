@@ -2,60 +2,57 @@ import type { FilesChange } from '../../files-change';
 import type { Issue } from '../../issue';
 import { exposeRpc } from '../../rpc';
 
-import { invalidateArtifacts, registerArtifacts } from './lib/artifacts';
+import { closeApi, closeApiOnExit } from './lib/api';
 import {
   didConfigFileChanged,
   didDependenciesProbablyChanged,
   didRootFilesChanged,
   getParseConfigIssues,
+  getParsedConfig,
   invalidateConfig,
 } from './lib/config';
 import { getDependencies, invalidateDependencies } from './lib/dependencies';
-import { getIssues, invalidateDiagnostics } from './lib/diagnostics';
 import {
-  disablePerformanceIfNeeded,
-  enablePerformanceIfNeeded,
-  printPerformanceMeasuresIfNeeded,
-} from './lib/performance';
-import { invalidateProgram, useProgram } from './lib/program/program';
-import { invalidateSolutionBuilder, useSolutionBuilder } from './lib/program/solution-builder';
+  createCrashDiagnostic,
+  createIssuesFromDiagnostics,
+  getIssues,
+  invalidateDiagnostics,
+} from './lib/diagnostics';
+import { printPerformanceMeasuresIfNeeded, resetPerformanceIfNeeded } from './lib/performance';
 import {
-  invalidateWatchProgram,
-  invalidateWatchProgramRootFileNames,
-  useWatchProgram,
-} from './lib/program/watch-program';
-import { system } from './lib/system';
-import { dumpTracingLegendIfNeeded } from './lib/tracing';
-import { invalidateTsBuildInfo } from './lib/tsbuildinfo';
+  invalidateProgram,
+  invalidateProgramRootFileNames,
+  resetProgram,
+  useProgram,
+} from './lib/program/program';
+import {
+  invalidateSolutionBuilder,
+  resetSolutionBuilder,
+  useSolutionBuilder,
+} from './lib/program/solution-builder';
 import { config } from './lib/worker-config';
 
-const getIssuesWorker = async (change: FilesChange, watching: boolean): Promise<Issue[]> => {
-  system.invalidateCache();
+closeApiOnExit();
 
+const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
   if (didConfigFileChanged(change)) {
     invalidateConfig();
     invalidateDependencies();
-    invalidateArtifacts();
     invalidateDiagnostics();
 
-    invalidateProgram(true);
-    invalidateWatchProgram(true);
-    invalidateSolutionBuilder(true);
-
-    invalidateTsBuildInfo();
+    invalidateProgram();
+    invalidateSolutionBuilder();
   } else if (didDependenciesProbablyChanged(getDependencies(), change)) {
+    const previousRootFiles = getParsedConfig().fileNames;
     invalidateConfig();
     invalidateDependencies();
-    invalidateArtifacts();
 
-    if (didRootFilesChanged()) {
-      invalidateWatchProgramRootFileNames();
-      invalidateSolutionBuilder();
+    if (didRootFilesChanged(previousRootFiles)) {
+      invalidateProgramRootFileNames();
     }
   }
 
-  registerArtifacts();
-  enablePerformanceIfNeeded();
+  resetPerformanceIfNeeded();
 
   const parseConfigIssues = getParseConfigIssues();
   if (parseConfigIssues.length) {
@@ -63,32 +60,29 @@ const getIssuesWorker = async (change: FilesChange, watching: boolean): Promise<
     return parseConfigIssues;
   }
 
-  // use proper implementation based on the config
-  if (config.build) {
-    useSolutionBuilder();
-  } else if (watching) {
-    useWatchProgram();
-  } else {
-    useProgram();
+  try {
+    // use proper implementation based on the config
+    if (config.build) {
+      useSolutionBuilder();
+    } else {
+      useProgram(change);
+    }
+  } catch (error) {
+    // the compiler process may have died - start from scratch on the next run
+    resetProgram();
+    resetSolutionBuilder();
+    closeApi();
+    invalidateConfig();
+    invalidateDependencies();
+    invalidateDiagnostics();
+
+    return createIssuesFromDiagnostics([createCrashDiagnostic(error)]);
   }
-
-  // simulate file system events
-  change.changedFiles?.forEach((changedFile) => {
-    system?.invokeFileChanged(changedFile);
-  });
-  change.deletedFiles?.forEach((deletedFile) => {
-    system?.invokeFileDeleted(deletedFile);
-  });
-
-  // wait for all queued events to be processed
-  await system.waitForQueued();
 
   // retrieve all collected diagnostics as normalized issues
   const issues = getIssues();
 
-  dumpTracingLegendIfNeeded();
   printPerformanceMeasuresIfNeeded();
-  disablePerformanceIfNeeded();
 
   return issues;
 };

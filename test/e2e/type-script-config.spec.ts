@@ -7,8 +7,6 @@ describe('TypeScript Config', () => {
   it.each([
     { async: true, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
     { async: false, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
-    { async: true, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
-    { async: false, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
   ])(
     'change in the tsconfig.json affects compilation for %p',
     async ({ async, ...dependencies }) => {
@@ -37,42 +35,75 @@ describe('TypeScript Config', () => {
     }
   );
 
-  it.each([
-    { typescript: '7.1.0-beta' },
-    { typescript: '7.1.0-beta' },
-    { typescript: '7.1.0-beta' },
-    { typescript: '7.1.0-beta' },
-  ])('reports errors because of the misconfiguration', async (dependencies) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { ...dependencies });
+  it.each([{ async: true }, { async: false }])(
+    'change in an extended tsconfig affects compilation for %p',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      // move the options to a base config, extended without the `.json` extension
+      await sandbox.write(
+        'tsconfig.base.json',
+        JSON.stringify({ compilerOptions: { lib: ['ES6', 'DOM'] } }, null, 2)
+      );
+      await sandbox.patch('tsconfig.json', '"lib": ["ES6", "DOM"],', '');
+      await sandbox.patch('tsconfig.json', '{', '{\n  "extends": "./tsconfig.base",');
 
-    let driver: WebpackDevServerDriver;
-    let errors: string[];
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
 
-    await sandbox.write(
-      'fork-ts-checker.config.js',
-      'module.exports = { typescript: { configOverwrite: { compilerOptions: { target: "ES3", lib: ["ES3"] } } } };'
-    );
+      // first compilation is successful
+      await driver.waitForNoErrors();
 
-    driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      false
-    );
-    errors = await driver.waitForErrors();
-    expect(errors.length).toBeGreaterThan(0);
-    await sandbox.kill(driver.process);
+      // change available libraries in the extended config
+      await sandbox.patch('tsconfig.base.json', '"DOM"', '"ES2015"');
 
-    await sandbox.write(
-      'fork-ts-checker.config.js',
-      'module.exports = { typescript: { configOverwrite: { include: [] } } };'
-    );
+      const errors = await driver.waitForErrors();
+      expect(errors.length).toBeGreaterThan(0);
 
-    driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      false
-    );
-    errors = await driver.waitForErrors();
-    expect(errors.length).toBeGreaterThan(0);
-    await sandbox.kill(driver.process);
-  });
+      // revert the change
+      await sandbox.patch('tsconfig.base.json', '"ES2015"', '"DOM"');
+
+      await driver.waitForNoErrors();
+    }
+  );
+
+  it.each([{ typescript: '7.1.0-beta' }])(
+    'reports errors because of the misconfiguration',
+    async (dependencies) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', { ...dependencies });
+
+      let driver: WebpackDevServerDriver;
+      let errors: string[];
+
+      await sandbox.write(
+        'fork-ts-checker.config.js',
+        'module.exports = { typescript: { configOverwrite: { compilerOptions: { target: "ES3", lib: ["ES3"] } } } };'
+      );
+
+      driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        false
+      );
+      errors = await driver.waitForErrors();
+      expect(errors.length).toBeGreaterThan(0);
+      await sandbox.kill(driver.process);
+
+      await sandbox.write(
+        'fork-ts-checker.config.js',
+        'module.exports = { typescript: { configOverwrite: { include: [] } } };'
+      );
+
+      driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        false
+      );
+      errors = await driver.waitForErrors();
+      expect(errors.length).toBeGreaterThan(0);
+      await sandbox.kill(driver.process);
+    }
+  );
 });

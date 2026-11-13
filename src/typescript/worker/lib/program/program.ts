@@ -11,6 +11,7 @@ import type { FilesChange } from '../../../../files-change';
 import { getApi } from '../api';
 import { getParsedConfig } from '../config';
 import { updateDiagnostics, getDiagnosticsOfProgram } from '../diagnostics';
+import { typescriptSync } from '../typescript';
 import { config } from '../worker-config';
 
 let snapshot: Snapshot | undefined;
@@ -85,12 +86,14 @@ export function useProgram(change: FilesChange) {
     throw new Error('TypeScript program is missing from the snapshot.');
   }
 
-  updateDiagnostics(config.configFile, getDiagnosticsOfProgram(program));
-
-  if (config.mode === 'write-dts') {
-    // `emitDeclarationOnly` is forced by the implicit config overwrite
-    program.emit();
+  const diagnostics = getDiagnosticsOfProgram(program);
+  // `configOverwrite` can turn `declaration` off, as with `tsc`
+  if (config.mode === 'write-dts' && getParsedConfig().options.declaration) {
+    // `configOverwrite` can also turn `emitDeclarationOnly` off, so don't rely on it
+    diagnostics.push(...program.emit(typescriptSync.EmitOnly.OnlyDts).diagnostics);
   }
+
+  updateDiagnostics(config.configFile, diagnostics);
 }
 
 export function invalidateProgram() {

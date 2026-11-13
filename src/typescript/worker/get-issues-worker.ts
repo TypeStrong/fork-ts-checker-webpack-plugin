@@ -11,7 +11,7 @@ import {
   getParsedConfig,
   invalidateConfig,
 } from './lib/config';
-import { getDependencies, invalidateDependencies } from './lib/dependencies';
+import { getConfigFiles, getDependencies, invalidateDependencies } from './lib/dependencies';
 import {
   createCrashDiagnostic,
   createIssuesFromDiagnostics,
@@ -35,32 +35,32 @@ import { config } from './lib/worker-config';
 closeApiOnExit();
 
 const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
-  if (didConfigFileChanged(change)) {
-    invalidateConfig();
-    invalidateDependencies();
-    invalidateDiagnostics();
-
-    invalidateProgram();
-    invalidateSolutionBuilder();
-  } else if (didDependenciesProbablyChanged(getDependencies(), change)) {
-    const previousRootFiles = getParsedConfig().fileNames;
-    invalidateConfig();
-    invalidateDependencies();
-
-    if (didRootFilesChanged(previousRootFiles)) {
-      invalidateProgramRootFileNames();
-    }
-  }
-
-  resetPerformanceIfNeeded();
-
-  const parseConfigIssues = getParseConfigIssues();
-  if (parseConfigIssues.length) {
-    // report config parse issues and exit
-    return parseConfigIssues;
-  }
-
   try {
+    if (didConfigFileChanged(change, getConfigFiles())) {
+      invalidateConfig();
+      invalidateDependencies();
+      invalidateDiagnostics();
+
+      invalidateProgram();
+      invalidateSolutionBuilder();
+    } else if (didDependenciesProbablyChanged(getDependencies(), change)) {
+      const previousRootFiles = getParsedConfig().fileNames;
+      invalidateConfig();
+      invalidateDependencies();
+
+      if (didRootFilesChanged(previousRootFiles)) {
+        invalidateProgramRootFileNames();
+      }
+    }
+
+    resetPerformanceIfNeeded();
+
+    const parseConfigIssues = getParseConfigIssues();
+    if (parseConfigIssues.length) {
+      // report config parse issues and exit
+      return parseConfigIssues;
+    }
+
     // use proper implementation based on the config
     if (config.build) {
       useSolutionBuilder();

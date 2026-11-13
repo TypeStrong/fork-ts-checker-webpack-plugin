@@ -6,8 +6,6 @@ describe('TypeScript Context Option', () => {
   it.each([
     { async: true, typescript: '7.1.0-beta' },
     { async: false, typescript: '7.1.0-beta' },
-    { async: true, typescript: '7.1.0-beta' },
-    { async: false, typescript: '7.1.0-beta' },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { typescript });

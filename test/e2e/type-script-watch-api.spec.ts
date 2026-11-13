@@ -212,8 +212,6 @@ describe('TypeScript Watch API', () => {
   it.each([
     { async: true, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
     { async: false, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
-    { async: true, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
-    { async: false, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
   ])('reports semantic error for %p long', async ({ async, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { ...dependencies });

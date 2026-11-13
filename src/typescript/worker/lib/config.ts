@@ -128,10 +128,13 @@ export function invalidateConfig() {
   parseConfigDiagnostics = [];
 }
 
-export function didConfigFileChanged({ changedFiles = [], deletedFiles = [] }: FilesChange) {
+export function didConfigFileChanged(
+  { changedFiles = [], deletedFiles = [] }: FilesChange,
+  configFiles: readonly string[]
+) {
   return [...changedFiles, ...deletedFiles]
     .map((file) => path.normalize(file))
-    .includes(path.normalize(config.configFile));
+    .some((file) => configFiles.includes(file));
 }
 
 export function didDependenciesProbablyChanged(

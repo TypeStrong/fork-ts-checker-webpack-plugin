@@ -5,12 +5,14 @@ import type { ParsedCommandLine } from 'typescript/sync';
 
 import type { FilesMatch } from '../../../files-match';
 
+import { getApi } from './api';
 import { getParsedConfig, parseConfig } from './config';
 import { config } from './worker-config';
 
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.tsbuildinfo'];
 
 let dependencies: FilesMatch | undefined;
+let configFiles: string[] | undefined;
 
 export function getDependencies(force = false): FilesMatch {
   if (!dependencies || force) {
@@ -22,8 +24,21 @@ export function getDependencies(force = false): FilesMatch {
   return dependencies;
 }
 
+/** The root config file and every local config file it extends. */
+export function getConfigFiles(): string[] {
+  if (!configFiles) {
+    configFiles = [
+      config.configFile,
+      ...getExtendedConfigFiles(getParsedConfig().raw, config.configFile),
+    ].map((file) => path.normalize(file));
+  }
+
+  return configFiles;
+}
+
 export function invalidateDependencies() {
   dependencies = undefined;
+  configFiles = undefined;
 }
 
 /** A project reference's `path` can be either a tsconfig file or its directory. */
@@ -63,15 +78,46 @@ function getIncludeDirectories(parsedConfig: ParsedCommandLine, configFileContex
   });
 }
 
-function getExtendedConfigFiles(parsedConfig: ParsedCommandLine, configFileContext: string) {
-  const raw = (parsedConfig.raw || {}) as { extends?: unknown };
-  const extendsList = Array.isArray(raw.extends) ? raw.extends : [raw.extends];
+/** Mirrors how TypeScript resolves a relative or absolute `extends` path. */
+function resolveExtendsPath(extendsPath: string, configFilePath: string): string {
+  const resolved = path.resolve(path.dirname(configFilePath), extendsPath);
+
+  return fs.existsSync(resolved) || resolved.endsWith('.json') ? resolved : `${resolved}.json`;
+}
+
+/** The chain of config files that `configFilePath` extends, without the file itself. */
+function getExtendedConfigFiles(
+  raw: unknown,
+  configFilePath: string,
+  visited = new Set<string>([configFilePath])
+): string[] {
+  const extendsValue = (raw as { extends?: unknown } | undefined)?.extends;
+  const extendsList = Array.isArray(extendsValue) ? extendsValue : [extendsValue];
+  const extendedConfigFiles: string[] = [];
 
   // package-based `extends` live in node_modules, which we don't watch
-  return extendsList
-    .filter((extendsPath): extendsPath is string => typeof extendsPath === 'string')
-    .filter((extendsPath) => extendsPath.startsWith('.') || path.isAbsolute(extendsPath))
-    .map((extendsPath) => path.resolve(configFileContext, extendsPath));
+  for (const extendsPath of extendsList) {
+    if (
+      typeof extendsPath !== 'string' ||
+      !(extendsPath.startsWith('.') || path.isAbsolute(extendsPath))
+    ) {
+      continue;
+    }
+    const extendedConfigFile = resolveExtendsPath(extendsPath, configFilePath);
+    if (visited.has(extendedConfigFile)) {
+      continue;
+    }
+    visited.add(extendedConfigFile);
+    extendedConfigFiles.push(extendedConfigFile);
+
+    // follow the chain - a missing or invalid file is reported by the compiler
+    const { config: extendedConfig } = getApi().readConfigFile(extendedConfigFile);
+    extendedConfigFiles.push(
+      ...getExtendedConfigFiles(extendedConfig, extendedConfigFile, visited)
+    );
+  }
+
+  return extendedConfigFiles;
 }
 
 function getDependenciesWorker(
@@ -82,7 +128,7 @@ function getDependenciesWorker(
 ): FilesMatch {
   const files = new Set<string>(parsedConfig.fileNames);
   files.add(configFilePath);
-  getExtendedConfigFiles(parsedConfig, configFileContext).forEach((file) => files.add(file));
+  getExtendedConfigFiles(parsedConfig.raw, configFilePath).forEach((file) => files.add(file));
 
   const dirs = new Set(getIncludeDirectories(parsedConfig, configFileContext));
   const rawExclude = (parsedConfig.raw as { exclude?: unknown } | undefined)?.exclude;

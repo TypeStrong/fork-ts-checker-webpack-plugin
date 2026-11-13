@@ -8,12 +8,15 @@ import {
   didDependenciesProbablyChanged,
   invalidateConfig,
 } from './lib/config';
-import { getDependencies, invalidateDependencies } from './lib/dependencies';
+import { getConfigFiles, getDependencies, invalidateDependencies } from './lib/dependencies';
 
 closeApiOnExit();
 
 const getDependenciesWorker = (change: FilesChange): FilesMatch => {
-  if (didConfigFileChanged(change) || didDependenciesProbablyChanged(getDependencies(), change)) {
+  if (
+    didConfigFileChanged(change, getConfigFiles()) ||
+    didDependenciesProbablyChanged(getDependencies(), change)
+  ) {
     invalidateConfig();
     invalidateDependencies();
   }

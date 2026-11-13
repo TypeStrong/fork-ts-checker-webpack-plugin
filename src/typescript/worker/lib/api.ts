@@ -163,7 +163,8 @@ export function closeApiOnExit() {
   for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     process.once(signal, () => {
       closeApi();
-      process.exit();
+      // the listener is gone, so this re-raises with the default behaviour
+      process.kill(process.pid, signal);
     });
   }
 }

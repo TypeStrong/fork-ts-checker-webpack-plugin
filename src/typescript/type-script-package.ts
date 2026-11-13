@@ -25,15 +25,14 @@ export function findTypeScriptPackageDirectory(typescriptPath: string): string {
   }
 }
 
+export function readTypeScriptPackageJson(packageDirectory: string) {
+  return JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
+}
+
 /** The version of the TypeScript package that `typescriptPath` points into, if any. */
 export function getTypeScriptVersion(typescriptPath: string): string | undefined {
   try {
-    const packageJson = JSON.parse(
-      fs.readFileSync(
-        path.join(findTypeScriptPackageDirectory(typescriptPath), 'package.json'),
-        'utf8'
-      )
-    );
+    const packageJson = readTypeScriptPackageJson(findTypeScriptPackageDirectory(typescriptPath));
 
     return typeof packageJson.version === 'string' ? packageJson.version : undefined;
   } catch (error) {

@@ -104,4 +104,62 @@ describe('TypeScript Context Option', () => {
       ].join('\n'),
     ]);
   });
+
+  it.each([{ async: true }, { async: false }])(
+    'resolves extends against context for %p',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch(
+        'webpack.config.js',
+        '      async: false,',
+        [
+          `      async: ${JSON.stringify(async)},`,
+          '      typescript: {',
+          '        enabled: true,',
+          '        configFile: path.resolve(__dirname, "build/tsconfig.json"),',
+          '        context: __dirname,',
+          '      },',
+        ].join('\n')
+      );
+      // with `context`, TypeScript resolves `extends` against it, not the config's directory
+      await sandbox.write(
+        'tsconfig.base.json',
+        JSON.stringify({ compilerOptions: { lib: ['ES6', 'DOM'] } }, null, 2)
+      );
+      await sandbox.write(
+        'build/tsconfig.json',
+        JSON.stringify({
+          extends: './tsconfig.base.json',
+          compilerOptions: {
+            target: 'es2015',
+            module: 'commonjs',
+            esModuleInterop: true,
+            skipLibCheck: true,
+            strict: true,
+          },
+          include: ['./src'],
+        })
+      );
+
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
+
+      // first compilation is successful
+      await driver.waitForNoErrors();
+
+      // change available libraries in the extended config
+      await sandbox.patch('tsconfig.base.json', '"DOM"', '"ES2015"');
+
+      const errors = await driver.waitForErrors();
+      expect(errors.length).toBeGreaterThan(0);
+
+      // revert the change
+      await sandbox.patch('tsconfig.base.json', '"ES2015"', '"DOM"');
+
+      await driver.waitForNoErrors();
+    }
+  );
 });

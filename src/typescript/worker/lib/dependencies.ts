@@ -29,7 +29,7 @@ export function getConfigFiles(): string[] {
   if (!configFiles) {
     configFiles = [
       config.configFile,
-      ...getExtendedConfigFiles(getParsedConfig().raw, config.configFile),
+      ...getExtendedConfigFiles(getParsedConfig().raw, config.configFile, config.context),
     ].map((file) => path.normalize(file));
   }
 
@@ -79,16 +79,21 @@ function getIncludeDirectories(parsedConfig: ParsedCommandLine, configFileContex
 }
 
 /** Mirrors how TypeScript resolves a relative or absolute `extends` path. */
-function resolveExtendsPath(extendsPath: string, configFilePath: string): string {
-  const resolved = path.resolve(path.dirname(configFilePath), extendsPath);
+function resolveExtendsPath(extendsPath: string, baseDirectory: string): string {
+  const resolved = path.resolve(baseDirectory, extendsPath);
 
   return fs.existsSync(resolved) || resolved.endsWith('.json') ? resolved : `${resolved}.json`;
 }
 
-/** The chain of config files that `configFilePath` extends, without the file itself. */
+/**
+ * The chain of config files that `configFilePath` extends, without the file itself.
+ * `baseDirectory` is the directory the config was parsed against - the `context`
+ * option for the root config, which TypeScript also resolves `extends` against.
+ */
 function getExtendedConfigFiles(
   raw: unknown,
   configFilePath: string,
+  baseDirectory: string,
   visited = new Set<string>([configFilePath])
 ): string[] {
   const extendsValue = (raw as { extends?: unknown } | undefined)?.extends;
@@ -103,7 +108,7 @@ function getExtendedConfigFiles(
     ) {
       continue;
     }
-    const extendedConfigFile = resolveExtendsPath(extendsPath, configFilePath);
+    const extendedConfigFile = resolveExtendsPath(extendsPath, baseDirectory);
     if (visited.has(extendedConfigFile)) {
       continue;
     }
@@ -113,7 +118,12 @@ function getExtendedConfigFiles(
     // follow the chain - a missing or invalid file is reported by the compiler
     const { config: extendedConfig } = getApi().readConfigFile(extendedConfigFile);
     extendedConfigFiles.push(
-      ...getExtendedConfigFiles(extendedConfig, extendedConfigFile, visited)
+      ...getExtendedConfigFiles(
+        extendedConfig,
+        extendedConfigFile,
+        path.dirname(extendedConfigFile),
+        visited
+      )
     );
   }
 
@@ -131,7 +141,7 @@ function getDependenciesWorker(
   const extendedConfigFiles =
     configFilePath === config.configFile
       ? getConfigFiles().slice(1)
-      : getExtendedConfigFiles(parsedConfig.raw, configFilePath);
+      : getExtendedConfigFiles(parsedConfig.raw, configFilePath, configFileContext);
   extendedConfigFiles.forEach((file) => files.add(file));
 
   const dirs = new Set(getIncludeDirectories(parsedConfig, configFileContext));

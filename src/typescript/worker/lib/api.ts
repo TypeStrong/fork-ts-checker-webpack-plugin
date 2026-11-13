@@ -1,7 +1,10 @@
+import * as fs from 'fs';
 import * as path from 'path';
 
 import type { FileSystemCallbacks } from 'typescript/fs';
 import type { API, BuildOrchestrator, BuildOrchestratorOptions } from 'typescript/sync';
+
+import { forwardSlash } from '../../../utils/path/forward-slash';
 
 import { typescriptFs, typescriptSync } from './typescript';
 import { config } from './worker-config';
@@ -49,6 +52,35 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
   const isHidden = (fileName: string) =>
     fileName.endsWith('.tsbuildinfo') && !outputs.has(fileName) && !writtenToDisk.has(fileName);
 
+  // Outputs are keyed by their real path, but the compiler can also look them up
+  // through a symlink - typically a workspace package in node_modules whose
+  // `types` point at another project's in-memory .d.ts files.
+  const realDirectories = new Map<string, string>();
+  const toOutputPath = (fileName: string): string => {
+    if (outputs.has(fileName) || outputDirectories.has(fileName)) {
+      return fileName;
+    }
+    if (outputs.size === 0 || !fileName.includes('/node_modules/')) {
+      return fileName;
+    }
+    let directory = path.posix.dirname(fileName);
+    const rest = [path.posix.basename(fileName)];
+    while (!realDirectories.has(directory) && !fs.existsSync(directory)) {
+      const parent = path.posix.dirname(directory);
+      if (parent === directory) {
+        return fileName;
+      }
+      rest.unshift(path.posix.basename(directory));
+      directory = parent;
+    }
+    let realDirectory = realDirectories.get(directory);
+    if (realDirectory === undefined) {
+      realDirectory = forwardSlash(fs.realpathSync(directory));
+      realDirectories.set(directory, realDirectory);
+    }
+    return path.posix.join(realDirectory, ...rest);
+  };
+
   return {
     writeFile(fileName, content) {
       if (isWrittenToDisk(fileName)) {
@@ -65,15 +97,16 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
       return serverFS.noop;
     },
     readFile: (fileName) =>
-      isHidden(fileName) ? undefined : outputs.get(fileName) ?? serverFS.useOS,
+      isHidden(fileName) ? undefined : outputs.get(toOutputPath(fileName)) ?? serverFS.useOS,
     fileExists: (fileName) =>
-      isHidden(fileName) ? false : outputs.has(fileName) || serverFS.useOS,
-    directoryExists: (directoryName) => outputDirectories.has(directoryName) || serverFS.useOS,
+      isHidden(fileName) ? false : outputs.has(toOutputPath(fileName)) || serverFS.useOS,
+    directoryExists: (directoryName) =>
+      outputDirectories.has(toOutputPath(directoryName)) || serverFS.useOS,
     stat: (fileName) => {
       if (isHidden(fileName)) {
         return undefined;
       }
-      const content = outputs.get(fileName);
+      const content = outputs.get(toOutputPath(fileName));
       return content === undefined
         ? serverFS.useOS
         : { mode: 0o100644, size: Buffer.byteLength(content), mtime: new Date() };
@@ -88,7 +121,12 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
       return serverFS.noop;
     },
     getAccessibleEntries: serverFS.useOS,
-    realpath: serverFS.useOS,
+    realpath: (fileName) => {
+      const outputPath = toOutputPath(fileName);
+      return outputs.has(outputPath) || outputDirectories.has(outputPath)
+        ? outputPath
+        : serverFS.useOS;
+    },
   };
 }
 

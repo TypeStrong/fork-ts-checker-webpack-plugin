@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "commonjs",
-    "lib": ["es2015", "scripthost"],
+    "lib": ["es2016", "dom"],
     "esModuleInterop": true,
     "importHelpers": false,
     "skipLibCheck": true,

@@ -6,7 +6,8 @@
     "esModuleInterop": true,
     "skipLibCheck": false,
     "skipDefaultLibCheck": false,
-    "strict": true
+    "strict": true,
+    "types": ["node"]
   },
   "include": ["./"],
   "exclude": ["node_modules"]

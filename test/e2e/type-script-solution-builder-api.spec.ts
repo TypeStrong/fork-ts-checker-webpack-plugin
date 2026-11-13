@@ -2,9 +2,7 @@ import path from 'path';
 
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 
-// This test is failing everywhere. It is not clear what the problem is.
-// I marked it as skipped to unblock the CI.
-describe.skip('TypeScript SolutionBuilder API', () => {
+describe('TypeScript SolutionBuilder API', () => {
   it.each([
     { async: false, typescript: '7.1.0-beta', mode: 'readonly' },
     { async: true, typescript: '7.1.0-beta', mode: 'write-tsbuildinfo' },
@@ -28,10 +26,22 @@ describe.skip('TypeScript SolutionBuilder API', () => {
     // create semantic error in shared package
     await sandbox.patch('packages/shared/src/intersect.ts', 'arrayB: T[] = []', 'arrayB: T');
 
-    // this compilation should contain semantic error in the shared project
-    // (there is also an error in the client project but as its dependency is not built, it will not be processed)
+    // this compilation should contain semantic errors in both projects - like `tsc --build`
+    // since TypeScript 5.6, the client project is checked even though its dependency has errors
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
+      [
+        'ERROR in ./packages/client/src/index.ts:4:42',
+        "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
+        "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'.",
+        '    2 |',
+        '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
+        '  > 4 |   const intersection = intersect(arrayA, arrayB);',
+        '      |                                          ^^^^^^',
+        '    5 |   const difference = subtract(arrayA, arrayB);',
+        '    6 |',
+        '    7 |   return {',
+      ].join('\n'),
       [
         'ERROR in ./packages/shared/src/intersect.ts:2:41',
         "TS2339: Property 'includes' does not exist on type 'T'.",

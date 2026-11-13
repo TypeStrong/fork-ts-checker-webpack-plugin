@@ -1,14 +1,9 @@
 {
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "jest.virtualFolders": [
     {
       "name": "test/e2e",
-      "jestCommandLine": "npm pack && yarn jest --config=test/e2e/jest.config.js --ci -i -b",
+      "jestCommandLine": "yarn build && yarn test:e2e",
       "runMode": "on-demand"
     },
     {

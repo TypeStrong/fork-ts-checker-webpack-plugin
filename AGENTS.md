@@ -71,8 +71,8 @@ These were found against `7.1.0-beta`. Re-check them on newer TypeScript version
 
 - `ParsedCommandLine` has no `wildcardDirectories` and no list of extended files. Derive both yourself.
 - `raw.include` already contains `include` patterns inherited through `extends`.
-- `${configDir}` is kept literally in `raw.include` and `raw.exclude`. Replace it with the directory of the config being compiled.
-- With `{ configDirectory }`, the root config's relative `extends` resolves against that directory (the `context` option), not the tsconfig's own directory.
+- `${configDir}` is kept literally in `raw.include` and `raw.exclude`. Replace it with the directory the config was parsed against, as the compiler does: `context` for the root config.
+- With `{ configDirectory }`, the root config's relative `extends` and `${configDir}` both resolve against that directory (the `context` option), not the tsconfig's own directory.
 
 **Other**
 

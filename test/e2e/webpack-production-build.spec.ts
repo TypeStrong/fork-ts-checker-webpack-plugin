@@ -1,6 +1,6 @@
 import path from 'path';
 
-import stripAnsi from 'strip-ansi';
+import { stripVTControlCharacters as stripAnsi } from 'util';
 
 import { extractWebpackErrors } from './driver/webpack-errors-extractor';
 

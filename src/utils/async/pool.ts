@@ -1,5 +1,3 @@
-import type { AbortSignal } from 'node-abort-controller';
-
 import { AbortError } from './abort-error';
 
 type Task<T> = (signal?: AbortSignal) => Promise<T>;

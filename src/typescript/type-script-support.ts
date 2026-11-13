@@ -1,6 +1,6 @@
 import os from 'os';
 
-import fs from 'fs-extra';
+import fs from 'fs';
 import * as semver from 'semver';
 
 import type { TypeScriptWorkerConfig } from './type-script-worker-config';

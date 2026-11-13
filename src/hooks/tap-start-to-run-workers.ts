@@ -1,4 +1,3 @@
-import { AbortController } from 'node-abort-controller';
 import type * as webpack from 'webpack';
 
 import type { FilesChange } from '../files-change';

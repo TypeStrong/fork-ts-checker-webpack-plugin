@@ -57,7 +57,7 @@ describe('typescript/type-script-support', () => {
     "doesn't throw error if typescript version is %s",
     async (version) => {
       jest.setMock('typescript', { version });
-      jest.setMock('fs-extra', { existsSync: () => true });
+      jest.setMock('fs', { existsSync: () => true });
 
       const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
@@ -67,7 +67,7 @@ describe('typescript/type-script-support', () => {
 
   it('throws error if there is no tsconfig.json file', async () => {
     jest.setMock('typescript', { version: '7.1.0' });
-    jest.setMock('fs-extra', { existsSync: () => false });
+    jest.setMock('fs', { existsSync: () => false });
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 

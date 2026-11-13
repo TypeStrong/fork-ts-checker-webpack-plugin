@@ -1,7 +1,7 @@
 import os from 'os';
 
 import { codeFrameColumns } from '@babel/code-frame';
-import fs from 'fs-extra';
+import fs from 'fs';
 
 import { createBasicFormatter } from './basic-formatter';
 import type { Formatter } from './formatter';

@@ -1,18 +1,15 @@
-import path from 'path';
-
 import type { WebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject } from './project';
 
 describe('TypeScript Config', () => {
   it.each([
-    { async: true, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
-    { async: false, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
+    { async: true, typescript: TYPESCRIPT_VERSION, 'ts-loader': TS_LOADER_VERSION },
+    { async: false, typescript: TYPESCRIPT_VERSION, 'ts-loader': TS_LOADER_VERSION },
   ])(
     'change in the tsconfig.json affects compilation for %p',
     async ({ async, ...dependencies }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { ...dependencies });
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await loadProject('typescript-basic', { async, dependencies });
 
       const driver = createWebpackDevServerDriver(
         sandbox.spawn('yarn webpack serve --mode=development'),
@@ -38,9 +35,7 @@ describe('TypeScript Config', () => {
   it.each([{ async: true }, { async: false }])(
     'change in an extended tsconfig affects compilation for %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await loadProject('typescript-basic', { async });
       // move the options to a base config, extended without the `.json` extension
       await sandbox.write(
         'tsconfig.base.json',
@@ -71,8 +66,7 @@ describe('TypeScript Config', () => {
   );
 
   it('follows an extensionless extends to the file when a directory has the same name', async () => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', {});
+    await loadProject('typescript-basic');
     await sandbox.write(
       'tsconfig.base.json',
       JSON.stringify({ compilerOptions: { lib: ['ES6', 'DOM'] } }, null, 2)
@@ -105,9 +99,7 @@ describe('TypeScript Config', () => {
   it.each([{ async: true }, { async: false }])(
     'watches include patterns that use ${configDir} for %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await loadProject('typescript-basic', { async });
       await sandbox.patch(
         'tsconfig.json',
         '"include": ["./src"]',
@@ -137,8 +129,7 @@ describe('TypeScript Config', () => {
   it.each([{ mode: 'write-references' }, { mode: 'write-tsbuildinfo' }])(
     'falls back to readonly without the build option for %p',
     async ({ mode }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
+      await loadProject('typescript-basic');
       // with `outDir` and no `rootDir`, a program that emits reports TS5011
       await sandbox.write(
         'tsconfig.checker.json',
@@ -173,11 +164,10 @@ describe('TypeScript Config', () => {
     }
   );
 
-  it.each([{ typescript: '7.1.0-beta' }])(
+  it.each([{ typescript: TYPESCRIPT_VERSION }])(
     'reports errors because of the misconfiguration',
     async (dependencies) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { ...dependencies });
+      await loadProject('typescript-basic', { dependencies });
 
       let driver: WebpackDevServerDriver;
       let errors: string[];

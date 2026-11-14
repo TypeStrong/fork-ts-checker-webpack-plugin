@@ -1,16 +1,14 @@
-import path from 'path';
-
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TYPESCRIPT_VERSION, loadProject } from './project';
 
 describe('TypeScript Formatter Option', () => {
   it.each([
-    { async: true, typescript: '7.1.0-beta' },
-    { async: false, typescript: '7.1.0-beta' },
+    { async: true, typescript: TYPESCRIPT_VERSION },
+    { async: false, typescript: TYPESCRIPT_VERSION },
   ])(
     'uses the custom formatter to format the error message for %p',
     async ({ async, typescript }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { typescript });
+      await loadProject('typescript-basic', { dependencies: { typescript } });
       await sandbox.patch(
         'webpack.config.js',
         '      async: false,',

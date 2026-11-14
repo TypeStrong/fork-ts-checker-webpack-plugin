@@ -1,14 +1,14 @@
 import path from 'path';
 
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TYPESCRIPT_VERSION, loadProject } from './project';
 
 describe('TypeScript Context Option', () => {
   it.each([
-    { async: true, typescript: '7.1.0-beta' },
-    { async: false, typescript: '7.1.0-beta' },
+    { async: true, typescript: TYPESCRIPT_VERSION },
+    { async: false, typescript: TYPESCRIPT_VERSION },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { typescript });
+    await loadProject('typescript-basic', { dependencies: { typescript } });
     await sandbox.patch(
       'webpack.config.js',
       '      async: false,',
@@ -108,8 +108,7 @@ describe('TypeScript Context Option', () => {
   it.each([{ async: true }, { async: false }])(
     'resolves extends and ${configDir} against context for %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
+      await loadProject('typescript-basic');
       await sandbox.patch(
         'webpack.config.js',
         '      async: false,',

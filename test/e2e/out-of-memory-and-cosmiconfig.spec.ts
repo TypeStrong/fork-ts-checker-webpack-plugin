@@ -1,14 +1,12 @@
-import path from 'path';
-
 import { createProcessDriver } from 'karton';
+
+import { loadProject } from './project';
 
 describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
   it.each([{ async: false }, { async: true }])(
     'handles out of memory for %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await loadProject('typescript-basic', { async });
 
       await sandbox.write(
         'fork-ts-checker.config.js',

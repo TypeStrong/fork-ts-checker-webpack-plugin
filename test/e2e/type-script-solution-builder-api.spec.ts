@@ -1,17 +1,16 @@
 import path from 'path';
 
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TYPESCRIPT_VERSION, loadProject } from './project';
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: '7.1.0-beta', mode: 'readonly' },
-    { async: true, typescript: '7.1.0-beta', mode: 'write-tsbuildinfo' },
-    { async: false, typescript: '7.1.0-beta', mode: 'write-references' },
-    { async: true, typescript: '7.1.0-beta', mode: 'write-dts' },
+    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'readonly' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-tsbuildinfo' },
+    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'write-references' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
-    await sandbox.install('yarn', { typescript });
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+    await loadProject('typescript-monorepo', { async, dependencies: { typescript } });
     await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
 
     const driver = createWebpackDevServerDriver(
@@ -167,8 +166,7 @@ describe('TypeScript SolutionBuilder API', () => {
     }
   });
   it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
-    await sandbox.install('yarn', {});
+    await loadProject('typescript-monorepo');
 
     const driver = createWebpackDevServerDriver(
       sandbox.spawn('yarn webpack serve --mode=development'),
@@ -224,8 +222,7 @@ describe('TypeScript SolutionBuilder API', () => {
   });
 
   it('watches a directory added to the include of a referenced project', async () => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
-    await sandbox.install('yarn', {});
+    await loadProject('typescript-monorepo');
     await sandbox.write('packages/shared/extra/README.md', 'not included yet');
 
     const driver = createWebpackDevServerDriver(

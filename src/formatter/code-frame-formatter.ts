@@ -15,7 +15,15 @@ function createCodeFrameFormatter(options?: BabelCodeFrameOptions): Formatter {
 
     let frame = '';
     if (source && issue.location) {
-      frame = codeFrameColumns(source, issue.location, {
+      // issue columns are 1-based, @babel/code-frame 8 expects 0-based columns
+      const { start, end } = issue.location;
+      const location = {
+        start: { line: start.line, column: start.column - 1 },
+        // custom issues may come without an end position
+        end: end && { line: end.line, column: end.column - 1 },
+      };
+
+      frame = codeFrameColumns(source, location, {
         highlightCode: true,
         ...(options || {}),
       })

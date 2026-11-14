@@ -87,7 +87,7 @@
     "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.3.9",
     "commitlint": "^21.2.4",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "git-cz": "^4.8.0",
     "husky": "^9.1.7",
     "jest": "^30.5.2",

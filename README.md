@@ -98,6 +98,10 @@ you can place your configuration in the:
  * `"fork-ts-checker"` field in the `package.json`
  * `.fork-ts-checkerrc` file in JSON or YAML format
  * `fork-ts-checker.config.js` file exporting a JS object
+ * `fork-ts-checker.config.ts` file exporting a JS object
+
+A `fork-ts-checker.config.ts` file is loaded with Node.js's built-in type stripping, not with the `typescript` package.
+Type annotations, interfaces and `import type` work, but syntax that needs transforming, such as `enum` and `namespace`, does not.
 
 Options passed to the plugin constructor will overwrite options from the cosmiconfig (objects are merged deeply and arrays are concatenated).
 

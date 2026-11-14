@@ -37,6 +37,23 @@ describe('plugin', () => {
     }
   });
 
+  it('reads the default export of a configuration file', () => {
+    const cwd = process.cwd();
+    const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'fork-ts-checker-')));
+    try {
+      fs.writeFileSync(
+        path.join(root, 'fork-ts-checker.config.ts'),
+        'export default { async: true };\n'
+      );
+      process.chdir(root);
+
+      expect(() => new ForkTsCheckerWebpackPlugin()).not.toThrow();
+    } finally {
+      process.chdir(cwd);
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('accepts a custom logger', () => {
     const logger = {
       error: (message) => console.log(message),

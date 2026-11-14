@@ -43,7 +43,12 @@ class ForkTsCheckerWebpackPlugin {
   constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {
     // look in the parent directories too, as a monorepo keeps its config at the root
     const explorerSync = cosmiconfigSync('fork-ts-checker', { searchStrategy: 'global' });
-    const { config: externalOptions } = explorerSync.search() || {};
+    const { config: loadedOptions } = explorerSync.search() || {};
+    // a config file that is an ES module (`export default`) is loaded as its namespace
+    const externalOptions =
+      loadedOptions?.__esModule && 'default' in loadedOptions
+        ? loadedOptions.default
+        : loadedOptions;
 
     // first validate options directly passed to the constructor
     const config = { name: 'ForkTsCheckerWebpackPlugin' };

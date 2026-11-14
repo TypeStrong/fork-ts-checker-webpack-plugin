@@ -6,7 +6,7 @@ import { getInfrastructureLogger } from '../infrastructure-logger';
 
 import type { TypeScriptConfigOverwrite } from './type-script-config-overwrite';
 import type { TypeScriptDiagnosticsOptions } from './type-script-diagnostics-options';
-import type { TypeScriptWorkerOptions } from './type-script-worker-options';
+import type { TypeScriptWorkerMode, TypeScriptWorkerOptions } from './type-script-worker-options';
 
 interface TypeScriptWorkerConfig {
   memoryLimit: number;
@@ -14,7 +14,7 @@ interface TypeScriptWorkerConfig {
   configOverwrite: TypeScriptConfigOverwrite;
   build: boolean;
   context: string;
-  mode: 'readonly' | 'write-dts' | 'write-tsbuildinfo' | 'write-references';
+  mode: TypeScriptWorkerMode;
   diagnosticOptions: TypeScriptDiagnosticsOptions;
   profile: boolean;
   typescriptPath: string;

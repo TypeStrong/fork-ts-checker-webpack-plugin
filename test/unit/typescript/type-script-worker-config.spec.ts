@@ -1,6 +1,8 @@
 import path from 'path';
 
 import type { TypeScriptWorkerConfig } from 'src/typescript/type-script-worker-config';
+import schema from 'src/plugin-options.json';
+import { TYPESCRIPT_WORKER_MODES } from 'src/typescript/type-script-worker-options';
 import type { TypeScriptWorkerOptions } from 'src/typescript/type-script-worker-options';
 import type * as webpack from 'webpack';
 
@@ -111,4 +113,10 @@ describe('typescript/type-scripts-worker-config', () => {
       );
     }
   );
+
+  it('accepts the same modes in the options schema and in the types', () => {
+    expect(schema.definitions.TypeScriptOptions.properties.mode.enum).toEqual([
+      ...TYPESCRIPT_WORKER_MODES,
+    ]);
+  });
 });

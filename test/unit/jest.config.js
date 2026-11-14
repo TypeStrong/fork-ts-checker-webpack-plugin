@@ -7,7 +7,8 @@ const esmOnlyPackages = ['chokidar', 'readdirp'].join('|');
 module.exports = {
   transform: {
     '^.+\\.tsx?$': swc,
-    [`/node_modules/(${esmOnlyPackages})/.+\\.js$`]: swc,
+    // Jest converts `/` for Windows in transformIgnorePatterns, but not in transform keys.
+    [`[\\\\/]node_modules[\\\\/](${esmOnlyPackages})[\\\\/].+\\.js$`]: swc,
   },
   transformIgnorePatterns: [`/node_modules/(?!(${esmOnlyPackages})/)`],
   testEnvironment: 'node',

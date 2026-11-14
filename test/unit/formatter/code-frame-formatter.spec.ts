@@ -3,21 +3,13 @@ import * as os from 'os';
 import { createCodeFrameFormatter } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { ISSUE, SOURCE_FILES } from './fixtures';
 import { mockFiles } from './mock-files';
 import { stripAnsi } from './strip-ansi';
 
 describe('formatter/code-frame-formatter', () => {
   beforeEach(() => {
-    mockFiles({
-      'src/index.ts': [
-        'const foo: number = "1";',
-        'const bar = 1;',
-        '',
-        'function baz() {',
-        '  console.log(baz);',
-        '}',
-      ].join('\n'),
-    });
+    mockFiles(SOURCE_FILES);
   });
 
   afterEach(() => {
@@ -26,22 +18,7 @@ describe('formatter/code-frame-formatter', () => {
 
   it.each([
     [
-      {
-        severity: 'error',
-        code: 'TS2322',
-        message: `Type '"1"' is not assignable to type 'number'.`,
-        file: 'src/index.ts',
-        location: {
-          start: {
-            line: 1,
-            column: 7,
-          },
-          end: {
-            line: 1,
-            column: 10,
-          },
-        },
-      },
+      ISSUE,
       [
         `TS2322: Type '"1"' is not assignable to type 'number'.`,
         '  > 1 | const foo: number = "1";',

@@ -4,43 +4,18 @@ import type { FormatterOptions } from 'src/formatter';
 import { createFormatterConfig } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { ISSUE as issue, SOURCE_FILES } from './fixtures';
 import { mockFiles } from './mock-files';
 import { stripAnsi } from './strip-ansi';
 
 describe('formatter/formatter-config', () => {
   beforeEach(() => {
-    mockFiles({
-      'src/index.ts': [
-        'const foo: number = "1";',
-        'const bar = 1;',
-        '',
-        'function baz() {',
-        '  console.log(baz);',
-        '}',
-      ].join('\n'),
-    });
+    mockFiles(SOURCE_FILES);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
-
-  const issue: Issue = {
-    severity: 'error',
-    code: 'TS2322',
-    message: `Type '"1"' is not assignable to type 'number'.`,
-    file: 'src/index.ts',
-    location: {
-      start: {
-        line: 1,
-        column: 7,
-      },
-      end: {
-        line: 1,
-        column: 10,
-      },
-    },
-  };
 
   const customFormatter = (issue: Issue) =>
     `${issue.code}: ${issue.message} at line ${issue.location.start.line}`;

@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
-import { TYPESCRIPT_VERSION, loadProject } from './project';
+import { TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
 describe('TypeScript Context Option', () => {
   it.each([
@@ -142,10 +142,7 @@ describe('TypeScript Context Option', () => {
         })
       );
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();

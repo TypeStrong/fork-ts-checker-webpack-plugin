@@ -1,6 +1,6 @@
 import type { WebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
-import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject } from './project';
+import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
 describe('TypeScript Config', () => {
   it.each([
@@ -11,10 +11,7 @@ describe('TypeScript Config', () => {
     async ({ async, ...dependencies }) => {
       await loadProject('typescript-basic', { async, dependencies });
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();
@@ -44,10 +41,7 @@ describe('TypeScript Config', () => {
       await sandbox.patch('tsconfig.json', '"lib": ["ES6", "DOM"],', '');
       await sandbox.patch('tsconfig.json', '{', '{\n  "extends": "./tsconfig.base",');
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();
@@ -76,10 +70,7 @@ describe('TypeScript Config', () => {
     await sandbox.patch('tsconfig.json', '"lib": ["ES6", "DOM"],', '');
     await sandbox.patch('tsconfig.json', '{', '{\n  "extends": "./tsconfig.base",');
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      false
-    );
+    const driver = startDevServer(false);
 
     // first compilation is successful
     await driver.waitForNoErrors();
@@ -106,10 +97,7 @@ describe('TypeScript Config', () => {
         '"include": ["${configDir}/src"]'
       );
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();
@@ -177,10 +165,7 @@ describe('TypeScript Config', () => {
         'module.exports = { typescript: { configOverwrite: { compilerOptions: { target: "ES3", lib: ["ES3"] } } } };'
       );
 
-      driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        false
-      );
+      driver = startDevServer(false);
       errors = await driver.waitForErrors();
       expect(errors.length).toBeGreaterThan(0);
       await sandbox.kill(driver.process);
@@ -190,10 +175,7 @@ describe('TypeScript Config', () => {
         'module.exports = { typescript: { configOverwrite: { include: [] } } };'
       );
 
-      driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        false
-      );
+      driver = startDevServer(false);
       errors = await driver.waitForErrors();
       expect(errors.length).toBeGreaterThan(0);
       await sandbox.kill(driver.process);

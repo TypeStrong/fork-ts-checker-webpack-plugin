@@ -1,7 +1,33 @@
 import path from 'path';
 
-import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
-import { TYPESCRIPT_VERSION, loadProject } from './project';
+import { TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
+
+const inPackages = (...files: string[]) =>
+  ['shared', 'client'].flatMap((name) => files.map((file) => `packages/${name}/${file}`));
+
+// what each mode leaves on disk after a build
+const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
+  readonly: {
+    written: [],
+    notWritten: inPackages('tsconfig.tsbuildinfo', 'lib'),
+  },
+  'write-tsbuildinfo': {
+    written: inPackages('lib/tsconfig.tsbuildinfo'),
+    notWritten: inPackages('lib/index.js'),
+  },
+  'write-dts': {
+    written: [
+      ...inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.d.ts', 'lib/index.d.ts.map'),
+      'packages/client/lib/nested/additional.d.ts',
+      'packages/client/lib/nested/additional.d.ts.map',
+    ],
+    notWritten: [...inPackages('lib/index.js'), 'packages/client/lib/nested/additional.js'],
+  },
+  'write-references': {
+    written: inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.js'),
+    notWritten: [],
+  },
+};
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
@@ -13,10 +39,7 @@ describe('TypeScript SolutionBuilder API', () => {
     await loadProject('typescript-monorepo', { async, dependencies: { typescript } });
     await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      async
-    );
+    const driver = startDevServer(async);
     let errors: string[];
 
     // initial compilation should be successful
@@ -102,76 +125,22 @@ describe('TypeScript SolutionBuilder API', () => {
     // close webpack-dev-server
     await sandbox.kill(driver.process);
 
-    switch (mode) {
-      case 'readonly':
-        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(false);
-        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(false);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(false);
-        break;
-
-      case 'write-tsbuildinfo':
-        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
-
-        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-
-        await sandbox.remove('packages/shared/lib');
-        await sandbox.remove('packages/client/lib');
-        break;
-
-      case 'write-dts':
-        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.d.ts')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.d.ts.map')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/index.d.ts')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/index.d.ts.map')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts.map')).toEqual(
-          true
-        );
-        expect(await sandbox.exists('packages/client/lib/nested/additional.js')).toEqual(false);
-
-        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-
-        await sandbox.remove('packages/shared/lib');
-        await sandbox.remove('packages/client/lib');
-        break;
-
-      case 'write-references':
-        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(true);
-
-        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-
-        await sandbox.remove('packages/shared/lib');
-        await sandbox.remove('packages/client/lib');
-        break;
+    const { written, notWritten } = OUTPUTS[mode];
+    for (const file of written) {
+      expect([file, await sandbox.exists(file)]).toEqual([file, true]);
+    }
+    for (const file of notWritten) {
+      expect([file, await sandbox.exists(file)]).toEqual([file, false]);
+    }
+    for (const file of written.filter((file) => file.endsWith('.tsbuildinfo'))) {
+      expect(await sandbox.read(file)).not.toEqual('');
     }
   });
+
   it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
     await loadProject('typescript-monorepo');
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      false
-    );
+    const driver = startDevServer(false);
 
     // initial compilation should be successful
     await driver.waitForNoErrors();
@@ -206,10 +175,7 @@ describe('TypeScript SolutionBuilder API', () => {
     );
     await sandbox.install('yarn', {});
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      false
-    );
+    const driver = startDevServer(false);
 
     // initial compilation should be successful
     await driver.waitForNoErrors();
@@ -225,10 +191,7 @@ describe('TypeScript SolutionBuilder API', () => {
     await loadProject('typescript-monorepo');
     await sandbox.write('packages/shared/extra/README.md', 'not included yet');
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      false
-    );
+    const driver = startDevServer(false);
 
     // initial compilation should be successful
     await driver.waitForNoErrors();

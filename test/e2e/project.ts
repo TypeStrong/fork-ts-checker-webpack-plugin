@@ -1,5 +1,7 @@
 import path from 'path';
 
+import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+
 /**
  * The versions the tests install over the ones in the fixtures. The fixtures'
  * package.json files pin the same versions, so update both together.
@@ -27,4 +29,12 @@ export async function loadProject(
   if (async !== undefined) {
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
   }
+}
+
+/** Starts webpack-dev-server in the sandbox and returns a driver that reads its output. */
+export function startDevServer(async: boolean) {
+  return createWebpackDevServerDriver(
+    sandbox.spawn('yarn webpack serve --mode=development'),
+    async
+  );
 }

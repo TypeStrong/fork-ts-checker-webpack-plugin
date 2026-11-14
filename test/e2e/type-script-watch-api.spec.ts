@@ -1,5 +1,4 @@
-import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
-import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject } from './project';
+import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
 describe('TypeScript Watch API', () => {
   it.each([{ async: false }, { async: true }])(
@@ -7,10 +6,7 @@ describe('TypeScript Watch API', () => {
     async ({ async }) => {
       await loadProject('typescript-basic', { async });
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
       let errors: string[];
 
       // first compilation is successful
@@ -109,10 +105,7 @@ describe('TypeScript Watch API', () => {
   ])('reports semantic error for %p long', async ({ async, ...dependencies }) => {
     await loadProject('typescript-basic', { async, dependencies });
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      async
-    );
+    const driver = startDevServer(async);
     let errors: string[];
 
     // first compilation is successful
@@ -271,10 +264,7 @@ describe('TypeScript Watch API', () => {
       )
     );
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
-      async
-    );
+    const driver = startDevServer(async);
 
     // first compilation is successful
     await driver.waitForNoErrors();
@@ -307,10 +297,7 @@ describe('TypeScript Watch API', () => {
         `async: ${JSON.stringify(async)}, typescript: { mode: 'write-dts' },`
       );
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();

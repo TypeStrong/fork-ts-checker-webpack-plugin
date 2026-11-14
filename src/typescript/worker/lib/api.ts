@@ -172,16 +172,15 @@ export function createBuildOrchestrator(
   return create.call(api, rootNames, options);
 }
 
-/** The native compiler runs in its own process, which must not outlive the worker. */
+/**
+ * The native compiler runs in its own process, which must not outlive the worker.
+ * Signals are deliberately left alone: the compiler exits by itself once the
+ * worker's end of the pipe closes, and a signal handler couldn't run while the
+ * worker is blocked in a synchronous compiler call, so the plugin's SIGTERM
+ * wouldn't stop a busy worker.
+ */
 export function closeApiOnExit() {
   process.on('exit', closeApi);
-  for (const signal of ['SIGTERM', 'SIGINT'] as const) {
-    process.once(signal, () => {
-      closeApi();
-      // the listener is gone, so this re-raises with the default behaviour
-      process.kill(process.pid, signal);
-    });
-  }
 }
 
 export function closeApi() {

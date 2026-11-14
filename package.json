@@ -60,7 +60,6 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.16.7",
-    "chokidar": "^4.0.3",
     "cosmiconfig": "^9.0.2",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.7",
@@ -87,6 +86,7 @@
     "@types/node": "^22",
     "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.3.9",
+    "chokidar": "^4.0.3",
     "commitlint": "^21.2.4",
     "cross-env": "^7.0.3",
     "git-cz": "^4.8.0",

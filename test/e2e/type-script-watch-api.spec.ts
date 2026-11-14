@@ -287,6 +287,43 @@ describe('TypeScript Watch API', () => {
     );
   });
 
+  it('notices a file deleted in the run that leaves the tsconfig.json without inputs', async () => {
+    await loadProject('typescript-basic');
+    // check a directory that webpack doesn't bundle, so only the plugin reports on it
+    await sandbox.patch('tsconfig.json', '"rootDir": "./src"', '"rootDir": "."');
+    await sandbox.patch('tsconfig.json', '"include": ["./src"]', '"include": ["./types"]');
+    await sandbox.write('types/a.ts', 'export const a = 1;\n');
+
+    const driver = startDevServer(false);
+    let errors: string[];
+
+    // first compilation is successful
+    await driver.waitForNoErrors();
+
+    // delete the only input - the config can't be parsed any more
+    await sandbox.remove('types/a.ts');
+
+    errors = await driver.waitForErrors();
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('TS18003: No inputs were found in config file');
+
+    // a new input makes the config valid again, but it imports the deleted file
+    await sandbox.write('types/b.ts', "import { a } from './a';\n\nexport const b = a;\n");
+
+    errors = await driver.waitForErrors();
+    expect(errors).toEqual([
+      [
+        'ERROR in ./types/b.ts:1:19',
+        "TS2307: Cannot find module './a' or its corresponding type declarations.",
+        "  > 1 | import { a } from './a';",
+        '      |                   ^^^^^',
+        '    2 |',
+        '    3 | export const b = a;',
+        '    4 |',
+      ].join('\n'),
+    ]);
+  });
+
   it.each([{ async: false }, { async: true }])(
     'saves .d.ts files in watch mode with %p',
     async ({ async }) => {

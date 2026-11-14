@@ -58,6 +58,10 @@ const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
 
     const parseConfigIssues = getParseConfigIssues();
     if (parseConfigIssues.length) {
+      // the program never sees this run's file changes, so it has to start afresh
+      // once the config can be parsed again
+      invalidateProgram();
+
       // report config parse issues and exit
       return parseConfigIssues;
     }

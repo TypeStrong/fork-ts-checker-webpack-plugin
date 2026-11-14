@@ -125,8 +125,8 @@ export function getParseConfigIssues(): Issue[] {
   return issues;
 }
 
-export function getParsedConfig(force = false) {
-  if (!parsedConfig || force) {
+export function getParsedConfig() {
+  if (!parsedConfig) {
     parsedConfig = parseConfig(config.configFile, config.context);
     parseConfigDiagnostics = parsedConfig.errors || [];
   }

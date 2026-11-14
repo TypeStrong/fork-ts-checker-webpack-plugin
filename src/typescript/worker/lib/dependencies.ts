@@ -45,7 +45,7 @@ export function invalidateDependencies() {
 }
 
 /** A project reference's `path` can be either a tsconfig file or its directory. */
-export function resolveProjectReferencePath(referencePath: string): string {
+function resolveProjectReferencePath(referencePath: string): string {
   // a missing reference is reported by the compiler
   return isDirectory(referencePath) ? path.join(referencePath, 'tsconfig.json') : referencePath;
 }

@@ -187,6 +187,42 @@ describe('TypeScript SolutionBuilder API', () => {
     expect(errors.join('\n')).toContain("Property 'includes' does not exist");
   });
 
+  it('rechecks projects after a change to a tsconfig extended from a workspace package', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    // a shared config package, linked into node_modules like any other workspace
+    await sandbox.write(
+      'packages/tsconfig/package.json',
+      JSON.stringify({ name: '@project-references-fixture/tsconfig', version: '1.0.0' })
+    );
+    await sandbox.write(
+      'packages/tsconfig/base.json',
+      JSON.stringify({
+        extends: '../../tsconfig.base.json',
+        compilerOptions: { lib: ['es2016', 'dom'] },
+      })
+    );
+    await sandbox.patch(
+      'packages/shared/tsconfig.json',
+      '"extends": "../../tsconfig.base.json"',
+      '"extends": "@project-references-fixture/tsconfig/base.json"'
+    );
+    await sandbox.install('yarn', {});
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // `Array.prototype.includes` comes with ES2016, so this breaks the shared package
+    await sandbox.patch('packages/tsconfig/base.json', '"es2016"', '"es2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain("Property 'includes' does not exist");
+  });
+
   it('watches a directory added to the include of a referenced project', async () => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
     await sandbox.install('yarn', {});

@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { createRequire } from 'module';
 import * as path from 'path';
 
 import type { ParsedCommandLine } from 'typescript/sync';
@@ -112,6 +113,38 @@ function resolveExtendsPath(extendsPath: string, baseDirectory: string): string 
 }
 
 /**
+ * Resolves an `extends` that names a package. Installed packages live in
+ * node_modules, which isn't watched, but a workspace package is a symlink to a
+ * directory that people edit - only those are returned, by their real path.
+ *
+ * This approximates TypeScript's own lookup. A specifier it gets wrong is left
+ * untracked, which only costs a restart after that config changes.
+ */
+function resolveWorkspaceExtendsPath(
+  extendsPath: string,
+  baseDirectory: string
+): string | undefined {
+  const { resolve } = createRequire(path.join(baseDirectory, 'tsconfig.json'));
+  const candidates = [extendsPath, `${extendsPath}.json`, `${extendsPath}/tsconfig.json`];
+
+  for (const candidate of candidates) {
+    let resolved: string;
+    try {
+      resolved = fs.realpathSync(resolve(candidate));
+    } catch (error) {
+      continue;
+    }
+    if (!resolved.endsWith('.json')) {
+      // the package's code entry point, not a config file
+      continue;
+    }
+    return resolved.split(path.sep).includes('node_modules') ? undefined : resolved;
+  }
+
+  return undefined;
+}
+
+/**
  * The chain of config files that `configFilePath` extends, without the file itself.
  * `baseDirectory` is the directory the config was parsed against - the `context`
  * option for the root config, which TypeScript also resolves `extends` against.
@@ -126,16 +159,15 @@ function getExtendedConfigFiles(
   const extendsList = Array.isArray(extendsValue) ? extendsValue : [extendsValue];
   const extendedConfigFiles: string[] = [];
 
-  // package-based `extends` live in node_modules, which we don't watch
   for (const extendsPath of extendsList) {
-    if (
-      typeof extendsPath !== 'string' ||
-      !(extendsPath.startsWith('.') || path.isAbsolute(extendsPath))
-    ) {
+    if (typeof extendsPath !== 'string') {
       continue;
     }
-    const extendedConfigFile = resolveExtendsPath(extendsPath, baseDirectory);
-    if (visited.has(extendedConfigFile)) {
+    const extendedConfigFile =
+      extendsPath.startsWith('.') || path.isAbsolute(extendsPath)
+        ? resolveExtendsPath(extendsPath, baseDirectory)
+        : resolveWorkspaceExtendsPath(extendsPath, baseDirectory);
+    if (!extendedConfigFile || visited.has(extendedConfigFile)) {
       continue;
     }
     visited.add(extendedConfigFile);

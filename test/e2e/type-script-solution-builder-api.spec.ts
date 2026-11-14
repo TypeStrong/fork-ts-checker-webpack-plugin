@@ -186,4 +186,37 @@ describe('TypeScript SolutionBuilder API', () => {
     const errors = await driver.waitForErrors();
     expect(errors.join('\n')).toContain("Property 'includes' does not exist");
   });
+
+  it('watches a directory added to the include of a referenced project', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    await sandbox.install('yarn', {});
+    await sandbox.write('packages/shared/extra/README.md', 'not included yet');
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // the referenced project's tsconfig is a config file too - its change must
+    // refresh the watched directories
+    await sandbox.patch('packages/shared/tsconfig.json', '"rootDir": "./src",', '');
+    await sandbox.patch(
+      'packages/shared/tsconfig.json',
+      '"include": ["src"]',
+      '"include": ["src", "extra"]'
+    );
+    await driver.waitForNoErrors();
+
+    // a new file that webpack doesn't import is only found through the watched include
+    await sandbox.write(
+      'packages/shared/extra/added.ts',
+      'export const added: number = "not a number";'
+    );
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain('TS2322');
+  });
 });

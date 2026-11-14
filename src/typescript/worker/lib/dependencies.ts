@@ -11,46 +11,42 @@ import { config } from './worker-config';
 
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.tsbuildinfo'];
 
-let dependencies: FilesMatch | undefined;
-let configFiles: string[] | undefined;
-
-export function getDependencies(force = false): FilesMatch {
-  if (!dependencies || force) {
-    const parsedConfig = getParsedConfig();
-
-    dependencies = getDependenciesWorker(parsedConfig, config.configFile, config.context);
-  }
-
-  return dependencies;
+interface ProjectGraph {
+  dependencies: FilesMatch;
+  configFiles: string[];
 }
 
-/** The root config file and every local config file it extends. */
-export function getConfigFiles(): string[] {
-  if (!configFiles) {
-    configFiles = [
-      config.configFile,
-      ...getExtendedConfigFiles(getParsedConfig().raw, config.configFile, config.context),
-    ].map((file) => path.normalize(file));
+// both come from one walk over the project references, so they share a cache
+let projectGraph: ProjectGraph | undefined;
+
+function getProjectGraph(): ProjectGraph {
+  if (!projectGraph) {
+    projectGraph = createProjectGraph();
   }
 
-  return configFiles;
+  return projectGraph;
+}
+
+export function getDependencies(): FilesMatch {
+  return getProjectGraph().dependencies;
+}
+
+/**
+ * The root config file, the config file of every referenced project, and every
+ * local config file they extend.
+ */
+export function getConfigFiles(): string[] {
+  return getProjectGraph().configFiles;
 }
 
 export function invalidateDependencies() {
-  dependencies = undefined;
-  configFiles = undefined;
+  projectGraph = undefined;
 }
 
 /** A project reference's `path` can be either a tsconfig file or its directory. */
 export function resolveProjectReferencePath(referencePath: string): string {
-  try {
-    if (fs.statSync(referencePath).isDirectory()) {
-      return path.join(referencePath, 'tsconfig.json');
-    }
-  } catch (error) {
-    // missing reference - the compiler reports it
-  }
-  return referencePath;
+  // a missing reference is reported by the compiler
+  return isDirectory(referencePath) ? path.join(referencePath, 'tsconfig.json') : referencePath;
 }
 
 /**
@@ -82,11 +78,7 @@ function isFile(file: string) {
  * The native API doesn't expose `wildcardDirectories`, so derive the directories
  * to watch from the static prefix of each `include` pattern.
  */
-function getIncludeDirectories(
-  parsedConfig: ParsedCommandLine,
-  configFilePath: string,
-  configFileContext: string
-) {
+function getIncludeDirectories(parsedConfig: ParsedCommandLine, configFileContext: string) {
   const raw = (parsedConfig.raw || {}) as { include?: unknown; files?: unknown };
   const include = Array.isArray(raw.include)
     ? raw.include.filter((pattern): pattern is string => typeof pattern === 'string')
@@ -164,54 +156,59 @@ function getExtendedConfigFiles(
   return extendedConfigFiles;
 }
 
-function getDependenciesWorker(
-  parsedConfig: ParsedCommandLine,
-  configFilePath: string,
-  configFileContext: string,
-  processedConfigFiles: string[] = []
-): FilesMatch {
-  const files = new Set<string>(parsedConfig.fileNames);
-  files.add(configFilePath);
-  const extendedConfigFiles =
-    configFilePath === config.configFile
-      ? getConfigFiles().slice(1)
-      : getExtendedConfigFiles(parsedConfig.raw, configFilePath, configFileContext);
-  extendedConfigFiles.forEach((file) => files.add(file));
+function createProjectGraph(): ProjectGraph {
+  const files = new Set<string>();
+  const dirs = new Set<string>();
+  const configFiles = new Set<string>();
+  // a project can be referenced many times, or in a circle - parse each one once
+  const visited = new Set<string>();
 
-  const dirs = new Set(getIncludeDirectories(parsedConfig, configFilePath, configFileContext));
-  const rawExclude = (parsedConfig.raw as { exclude?: unknown } | undefined)?.exclude;
-  const excluded = new Set<string>(
-    (Array.isArray(rawExclude) ? rawExclude : [])
-      .filter((pattern): pattern is string => typeof pattern === 'string')
-      .map((pattern) => resolveConfigPattern(pattern, configFileContext))
-  );
-
-  for (const projectReference of parsedConfig.projectReferences || []) {
-    const childConfigFilePath = resolveProjectReferencePath(projectReference.path);
-    const childConfigContext = path.dirname(childConfigFilePath);
-    if (processedConfigFiles.includes(childConfigFilePath)) {
-      // handle circular dependencies
-      continue;
-    }
-    const childParsedConfig = parseConfig(childConfigFilePath, childConfigContext);
-    const childDependencies = getDependenciesWorker(
-      childParsedConfig,
-      childConfigFilePath,
-      childConfigContext,
-      [...processedConfigFiles, childConfigFilePath]
+  const visit = (
+    parsedConfig: ParsedCommandLine,
+    configFilePath: string,
+    configFileContext: string
+  ) => {
+    configFiles.add(configFilePath);
+    getExtendedConfigFiles(parsedConfig.raw, configFilePath, configFileContext).forEach((file) =>
+      configFiles.add(file)
     );
-    childDependencies.files.forEach((file) => {
-      files.add(file);
-    });
-    childDependencies.dirs.forEach((dir) => {
-      dirs.add(dir);
-    });
-  }
+    parsedConfig.fileNames.forEach((file) => files.add(file));
+    getIncludeDirectories(parsedConfig, configFileContext).forEach((dir) => dirs.add(dir));
+
+    for (const projectReference of parsedConfig.projectReferences || []) {
+      const childConfigFilePath = resolveProjectReferencePath(projectReference.path);
+      const childConfigKey = path.normalize(childConfigFilePath);
+      if (visited.has(childConfigKey)) {
+        continue;
+      }
+      visited.add(childConfigKey);
+
+      const childConfigContext = path.dirname(childConfigFilePath);
+      visit(
+        parseConfig(childConfigFilePath, childConfigContext),
+        childConfigFilePath,
+        childConfigContext
+      );
+    }
+  };
+
+  const parsedConfig = getParsedConfig();
+  visited.add(path.normalize(config.configFile));
+  visit(parsedConfig, config.configFile, config.context);
+  configFiles.forEach((file) => files.add(file));
+
+  const rawExclude = (parsedConfig.raw as { exclude?: unknown } | undefined)?.exclude;
+  const excluded = (Array.isArray(rawExclude) ? rawExclude : [])
+    .filter((pattern): pattern is string => typeof pattern === 'string')
+    .map((pattern) => resolveConfigPattern(pattern, config.context));
 
   return {
-    files: Array.from(files).map((file) => path.normalize(file)),
-    dirs: Array.from(dirs).map((dir) => path.normalize(dir)),
-    excluded: Array.from(excluded).map((aPath) => path.normalize(aPath)),
-    extensions: EXTENSIONS,
+    dependencies: {
+      files: Array.from(files, (file) => path.normalize(file)),
+      dirs: Array.from(dirs, (dir) => path.normalize(dir)),
+      excluded: Array.from(new Set(excluded), (aPath) => path.normalize(aPath)),
+      extensions: EXTENSIONS,
+    },
+    configFiles: Array.from(configFiles, (file) => path.normalize(file)),
   };
 }

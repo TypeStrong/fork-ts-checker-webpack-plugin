@@ -1,71 +1,65 @@
-import type * as ts from 'typescript';
+import type { BuildOrchestrator, OverrideCompilerOptions } from 'typescript/sync';
 
-import { getConfigFilePathFromBuilderProgram, getParsedConfig } from '../config';
-import { updateDiagnostics, getDiagnosticsOfProgram } from '../diagnostics';
-import { createWatchSolutionBuilderHost } from '../host/watch-solution-builder-host';
-import { startTracingIfNeeded, stopTracingIfNeeded } from '../tracing';
-import { emitTsBuildInfoIfNeeded } from '../tsbuildinfo';
-import { typescript } from '../typescript';
+import { clearRealDirectories, createBuildOrchestrator } from '../api';
+import { updateDiagnostics } from '../diagnostics';
 import { config } from '../worker-config';
 
-let solutionBuilderHost:
-  | ts.SolutionBuilderWithWatchHost<ts.SemanticDiagnosticsBuilderProgram>
-  | undefined;
-let solutionBuilder: ts.SolutionBuilder<ts.SemanticDiagnosticsBuilderProgram> | undefined;
+const OVERRIDABLE_COMPILER_OPTIONS: (keyof OverrideCompilerOptions)[] = [
+  'incremental',
+  'assumeChangesOnlyAffectDirectDependencies',
+  'declaration',
+  'declarationMap',
+  'emitDeclarationOnly',
+  'sourceMap',
+  'inlineSourceMap',
+  'traceResolution',
+];
 
-export function useSolutionBuilder() {
-  if (!solutionBuilderHost) {
-    const parsedConfig = getParsedConfig();
+/**
+ * The build orchestrator reads each project's tsconfig.json from disk and only
+ * accepts this small set of overrides, so the rest of `configOverwrite` can't apply.
+ */
+function getOverrideCompilerOptions(): OverrideCompilerOptions {
+  const userCompilerOptions = config.configOverwrite?.compilerOptions || {};
+  const overrides: OverrideCompilerOptions = {
+    sourceMap: false,
+    inlineSourceMap: false,
+  };
+  if (config.mode === 'write-dts') {
+    overrides.declaration = true;
+  }
+  for (const option of OVERRIDABLE_COMPILER_OPTIONS) {
+    if (option in userCompilerOptions) {
+      overrides[option] = userCompilerOptions[option];
+    }
+  }
 
-    solutionBuilderHost = createWatchSolutionBuilderHost(
-      parsedConfig,
-      (
-        rootNames,
-        compilerOptions,
-        host,
-        oldProgram,
-        configFileParsingDiagnostics,
-        projectReferences
-      ) => {
-        if (compilerOptions) {
-          startTracingIfNeeded(compilerOptions);
-        }
-        return typescript.createSemanticDiagnosticsBuilderProgram(
-          rootNames,
-          compilerOptions,
-          host,
-          oldProgram,
-          configFileParsingDiagnostics,
-          projectReferences
-        );
-      },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      (builderProgram) => {
-        updateDiagnostics(
-          getConfigFilePathFromBuilderProgram(builderProgram),
-          getDiagnosticsOfProgram(builderProgram)
-        );
-        emitTsBuildInfoIfNeeded(builderProgram);
-        stopTracingIfNeeded(builderProgram);
-      }
-    );
-  }
-  if (!solutionBuilder) {
-    solutionBuilder = typescript.createSolutionBuilderWithWatch(
-      solutionBuilderHost,
-      [config.configFile],
-      { watch: true }
-    );
-    solutionBuilder.build();
-  }
+  return overrides;
 }
 
-export function invalidateSolutionBuilder(withHost = false) {
-  if (withHost) {
-    solutionBuilderHost = undefined;
+let solutionBuilder: BuildOrchestrator | undefined;
+
+export function useSolutionBuilder() {
+  if (!solutionBuilder) {
+    solutionBuilder = createBuildOrchestrator([config.configFile], {
+      cwd: config.context,
+      overrideCompilerOptions: getOverrideCompilerOptions(),
+    });
   }
+
+  // the orchestrator checks the file system for changes itself, but a
+  // `yarn install` can relink workspace packages between builds
+  clearRealDirectories();
+  const result = solutionBuilder.build();
+  updateDiagnostics(config.configFile, result.diagnostics || []);
+}
+
+export function invalidateSolutionBuilder() {
+  solutionBuilder?.dispose();
+  solutionBuilder = undefined;
+}
+
+/** Forgets the orchestrator without talking to the compiler, which may be gone. */
+export function resetSolutionBuilder() {
   solutionBuilder = undefined;
 }

@@ -1,7 +1,5 @@
 import path from 'path';
 
-import semver from 'semver';
-
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 
 describe('TypeScript Watch API', () => {
@@ -33,7 +31,7 @@ describe('TypeScript Watch API', () => {
       expect(errors).toEqual([
         [
           'ERROR in ./src/index.ts:34:7',
-          `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
+          `TS2367: This comparison appears to be unintentional because the types 'Role' and '"admin"' have no overlap.`,
           '    32 |   const user = await login(email, password);',
           '    33 |',
           `  > 34 |   if (user.role === 'admin') {`,
@@ -95,7 +93,7 @@ describe('TypeScript Watch API', () => {
       expect(errors).toEqual([
         [
           'ERROR in ./src/index.ts:34:7',
-          "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
+          "TS2367: This comparison appears to be unintentional because the types 'Role' and '\"provider\"' have no overlap.",
           '    32 |   const user = await login(email, password);',
           '    33 |',
           "  > 34 |   if (user.role === 'provider') {",
@@ -136,7 +134,7 @@ describe('TypeScript Watch API', () => {
       expect(errors).toEqual([
         [
           'ERROR in ./src/index.ts:34:7',
-          `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
+          `TS2367: This comparison appears to be unintentional because the types 'Role' and '"admin"' have no overlap.`,
           '    32 |   const user = await login(email, password);',
           '    33 |',
           `  > 34 |   if (user.role === 'admin') {`,
@@ -198,7 +196,7 @@ describe('TypeScript Watch API', () => {
       expect(errors).toEqual([
         [
           'ERROR in ./src/index.ts:34:7',
-          "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
+          "TS2367: This comparison appears to be unintentional because the types 'Role' and '\"provider\"' have no overlap.",
           '    32 |   const user = await login(email, password);',
           '    33 |',
           "  > 34 |   if (user.role === 'provider') {",
@@ -212,10 +210,8 @@ describe('TypeScript Watch API', () => {
   );
 
   it.each([
-    { async: true, typescript: '~3.6.0', 'ts-loader': '^6.0.0' },
-    { async: false, typescript: '~3.8.0', 'ts-loader': '^7.0.0' },
-    { async: true, typescript: '~4.0.0', 'ts-loader': '^8.0.0' },
-    { async: false, typescript: '~4.3.0', 'ts-loader': '^8.0.0' },
+    { async: true, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
+    { async: false, typescript: '7.1.0-beta', 'ts-loader': '^10.0.0-beta.0' },
   ])('reports semantic error for %p long', async ({ async, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { ...dependencies });
@@ -280,9 +276,7 @@ describe('TypeScript Watch API', () => {
     expect(errors).toContain(
       [
         'ERROR in ./src/index.ts:1:23',
-        semver.satisfies(semver.minVersion(dependencies.typescript), '>=4.0.0')
-          ? "TS2307: Cannot find module './authenticate' or its corresponding type declarations."
-          : "TS2307: Cannot find module './authenticate'.",
+        "TS2307: Cannot find module './authenticate' or its corresponding type declarations.",
         "  > 1 | import { login } from './authenticate';",
         '      |                       ^^^^^^^^^^^^^^^^',
         "    2 | import { getUserName } from './model/User';",

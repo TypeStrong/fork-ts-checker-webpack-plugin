@@ -5,7 +5,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^18.11.9",
-    "typescript": "~5.8.0",
+    "typescript": "7.1.0-beta",
     "webpack": "^5.98.0"
   }
 }

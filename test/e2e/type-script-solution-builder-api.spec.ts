@@ -1,17 +1,13 @@
 import path from 'path';
 
-import semver from 'semver';
-
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 
-// This test is failing everywhere. It is not clear what the problem is.
-// I marked it as skipped to unblock the CI.
-describe.skip('TypeScript SolutionBuilder API', () => {
+describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: '~4.3.0', mode: 'readonly' },
-    { async: true, typescript: '~4.5.0', mode: 'write-tsbuildinfo' },
-    { async: false, typescript: '~4.7.0', mode: 'write-references' },
-    { async: true, typescript: '~4.3.0', mode: 'write-dts' },
+    { async: false, typescript: '7.1.0-beta', mode: 'readonly' },
+    { async: true, typescript: '7.1.0-beta', mode: 'write-tsbuildinfo' },
+    { async: false, typescript: '7.1.0-beta', mode: 'write-references' },
+    { async: true, typescript: '7.1.0-beta', mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
     await sandbox.install('yarn', { typescript });
@@ -30,10 +26,22 @@ describe.skip('TypeScript SolutionBuilder API', () => {
     // create semantic error in shared package
     await sandbox.patch('packages/shared/src/intersect.ts', 'arrayB: T[] = []', 'arrayB: T');
 
-    // this compilation should contain semantic error in the shared project
-    // (there is also an error in the client project but as its dependency is not built, it will not be processed)
+    // this compilation should contain semantic errors in both projects - like `tsc --build`
+    // since TypeScript 5.6, the client project is checked even though its dependency has errors
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
+      [
+        'ERROR in ./packages/client/src/index.ts:4:42',
+        "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
+        "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'.",
+        '    2 |',
+        '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
+        '  > 4 |   const intersection = intersect(arrayA, arrayB);',
+        '      |                                          ^^^^^^',
+        '    5 |   const difference = subtract(arrayA, arrayB);',
+        '    6 |',
+        '    7 |   return {',
+      ].join('\n'),
       [
         'ERROR in ./packages/shared/src/intersect.ts:2:41',
         "TS2339: Property 'includes' does not exist on type 'T'.",
@@ -59,9 +67,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
       [
         'ERROR in ./packages/client/src/index.ts:4:42',
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
-        semver.satisfies(semver.minVersion(typescript), '>=4.0.0')
-          ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."
-          : "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
+        "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'.",
         '    2 |',
         '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
         '  > 4 |   const intersection = intersect(arrayA, arrayB);',
@@ -159,5 +165,94 @@ describe.skip('TypeScript SolutionBuilder API', () => {
         await sandbox.remove('packages/client/lib');
         break;
     }
+  });
+  it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    await sandbox.install('yarn', {});
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // `Array.prototype.includes` comes with ES2016, so this breaks the shared package.
+    // The edit creates a new build orchestrator, which must not treat the
+    // in-memory .tsbuildinfo files as newer than the change.
+    await sandbox.patch('tsconfig.base.json', '"es2016"', '"es2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain("Property 'includes' does not exist");
+  });
+
+  it('rechecks projects after a change to a tsconfig extended from a workspace package', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    // a shared config package, linked into node_modules like any other workspace
+    await sandbox.write(
+      'packages/tsconfig/package.json',
+      JSON.stringify({ name: '@project-references-fixture/tsconfig', version: '1.0.0' })
+    );
+    await sandbox.write(
+      'packages/tsconfig/base.json',
+      JSON.stringify({
+        extends: '../../tsconfig.base.json',
+        compilerOptions: { lib: ['es2016', 'dom'] },
+      })
+    );
+    await sandbox.patch(
+      'packages/shared/tsconfig.json',
+      '"extends": "../../tsconfig.base.json"',
+      '"extends": "@project-references-fixture/tsconfig/base.json"'
+    );
+    await sandbox.install('yarn', {});
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // `Array.prototype.includes` comes with ES2016, so this breaks the shared package
+    await sandbox.patch('packages/tsconfig/base.json', '"es2016"', '"es2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain("Property 'includes' does not exist");
+  });
+
+  it('watches a directory added to the include of a referenced project', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    await sandbox.install('yarn', {});
+    await sandbox.write('packages/shared/extra/README.md', 'not included yet');
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // the referenced project's tsconfig is a config file too - its change must
+    // refresh the watched directories
+    await sandbox.patch('packages/shared/tsconfig.json', '"rootDir": "./src",', '');
+    await sandbox.patch(
+      'packages/shared/tsconfig.json',
+      '"include": ["src"]',
+      '"include": ["src", "extra"]'
+    );
+    await driver.waitForNoErrors();
+
+    // a new file that webpack doesn't import is only found through the watched include
+    await sandbox.write(
+      'packages/shared/extra/added.ts',
+      'export const added: number = "not a number";'
+    );
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain('TS2322');
   });
 });

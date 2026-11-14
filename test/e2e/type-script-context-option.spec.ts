@@ -4,10 +4,8 @@ import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver
 
 describe('TypeScript Context Option', () => {
   it.each([
-    { async: true, typescript: '~3.6.0' },
-    { async: false, typescript: '~3.8.0' },
-    { async: true, typescript: '~4.0.0' },
-    { async: false, typescript: '~4.3.0' },
+    { async: true, typescript: '7.1.0-beta' },
+    { async: false, typescript: '7.1.0-beta' },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
     await sandbox.install('yarn', { typescript });
@@ -25,21 +23,17 @@ describe('TypeScript Context Option', () => {
     );
 
     // update sandbox to use context option
-    await sandbox.remove('tsconfig.json');
     await sandbox.write(
       'build/tsconfig.json',
       JSON.stringify({
         compilerOptions: {
-          target: 'es5',
+          target: 'es2015',
           module: 'commonjs',
           lib: ['ES6', 'DOM'],
-          moduleResolution: 'node',
           esModuleInterop: true,
           skipLibCheck: true,
           skipDefaultLibCheck: true,
           strict: true,
-          baseUrl: './src',
-          outDir: './dist',
         },
         include: ['./src'],
         exclude: ['node_modules'],
@@ -50,22 +44,26 @@ describe('TypeScript Context Option', () => {
       "entry: './src/index.ts',",
       ["entry: './src/index.ts',", 'context: path.resolve(__dirname),'].join('\n')
     );
-    await sandbox.patch(
-      'webpack.config.js',
-      '          transpileOnly: true,',
-      [
-        '          transpileOnly: true,',
-        '          configFile: path.resolve(__dirname, "build/tsconfig.json"),',
-        '          context: __dirname,',
-      ].join('\n')
+    // ts-loader v10 has no `context` option - it always resolves paths against the
+    // config file's directory - so it gets its own root tsconfig.json
+    await sandbox.write(
+      'tsconfig.json',
+      JSON.stringify({
+        extends: './build/tsconfig.json',
+        compilerOptions: { rootDir: './src', outDir: './dist' },
+        include: ['./src'],
+      })
     );
     // create additional directory for cwd test
     await sandbox.write('foo/.gitignore', '');
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn(`yarn webpack serve --mode=development --config=../webpack.config.js`, {
-        cwd: path.join(sandbox.context, 'foo'),
-      }),
+      sandbox.spawn(
+        `node ../node_modules/webpack-cli/bin/cli.js serve --mode=development --config=../webpack.config.js`,
+        {
+          cwd: path.join(sandbox.context, 'foo'),
+        }
+      ),
       async
     );
 
@@ -106,4 +104,69 @@ describe('TypeScript Context Option', () => {
       ].join('\n'),
     ]);
   });
+
+  it.each([{ async: true }, { async: false }])(
+    'resolves extends and ${configDir} against context for %p',
+    async ({ async }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      await sandbox.patch(
+        'webpack.config.js',
+        '      async: false,',
+        [
+          `      async: ${JSON.stringify(async)},`,
+          '      typescript: {',
+          '        enabled: true,',
+          '        configFile: path.resolve(__dirname, "build/tsconfig.json"),',
+          '        context: __dirname,',
+          '      },',
+        ].join('\n')
+      );
+      // with `context`, TypeScript resolves `extends` against it, not the config's directory
+      await sandbox.write(
+        'tsconfig.base.json',
+        JSON.stringify({ compilerOptions: { lib: ['ES6', 'DOM'] } }, null, 2)
+      );
+      await sandbox.write(
+        'build/tsconfig.json',
+        JSON.stringify({
+          extends: './tsconfig.base.json',
+          compilerOptions: {
+            target: 'es2015',
+            module: 'commonjs',
+            esModuleInterop: true,
+            skipLibCheck: true,
+            strict: true,
+          },
+          // `${configDir}` is the context too
+          include: ['${configDir}/src'],
+        })
+      );
+
+      const driver = createWebpackDevServerDriver(
+        sandbox.spawn('yarn webpack serve --mode=development'),
+        async
+      );
+
+      // first compilation is successful
+      await driver.waitForNoErrors();
+
+      // change available libraries in the extended config
+      await sandbox.patch('tsconfig.base.json', '"DOM"', '"ES2015"');
+
+      const errors = await driver.waitForErrors();
+      expect(errors.length).toBeGreaterThan(0);
+
+      // revert the change
+      await sandbox.patch('tsconfig.base.json', '"ES2015"', '"DOM"');
+
+      await driver.waitForNoErrors();
+
+      // a new file that webpack doesn't import is only found through the watched include
+      await sandbox.write('src/added.ts', 'export const added: number = "not a number";');
+
+      const addedErrors = await driver.waitForErrors();
+      expect(addedErrors.join('\n')).toContain('TS2322');
+    }
+  );
 });

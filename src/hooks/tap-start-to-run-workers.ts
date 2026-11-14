@@ -1,4 +1,3 @@
-import { AbortController } from 'node-abort-controller';
 import type * as webpack from 'webpack';
 
 import type { FilesChange } from '../files-change';
@@ -116,7 +115,7 @@ function tapStartToRunWorkers(
         return issuesPool.submit(async () => {
           try {
             debug(`Running the getIssuesWorker, iteration ${iteration}.`);
-            const issues = await getIssuesWorker(aggregatedFilesChange, state.watching);
+            const issues = await getIssuesWorker(aggregatedFilesChange);
             if (state.aggregatedFilesChange === aggregatedFilesChange) {
               state.aggregatedFilesChange = undefined;
             }

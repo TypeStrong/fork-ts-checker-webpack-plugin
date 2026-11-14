@@ -1,5 +1,3 @@
-import type { AbortSignal } from 'node-abort-controller';
-
 class AbortError extends Error {
   constructor(message = 'Task aborted.') {
     super(message);

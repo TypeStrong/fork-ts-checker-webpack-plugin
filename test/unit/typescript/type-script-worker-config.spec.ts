@@ -25,12 +25,22 @@ describe('typescript/type-scripts-worker-config', () => {
     typescriptPath: require.resolve('typescript'),
   };
 
+  const warn = jest.fn();
+
   beforeEach(() => {
+    warn.mockReset();
     compiler = {
       options: {
         context,
       },
-    } as webpack.Compiler;
+      getInfrastructureLogger: () => ({
+        log: jest.fn(),
+        debug: jest.fn(),
+        error: jest.fn(),
+        warn,
+        info: jest.fn(),
+      }),
+    } as unknown as webpack.Compiler;
   });
   afterEach(() => {
     jest.resetModules();
@@ -49,9 +59,15 @@ describe('typescript/type-scripts-worker-config', () => {
     ],
     [{ build: true }, { ...configuration, build: true, mode: 'write-tsbuildinfo' }],
     [{ mode: 'readonly' }, { ...configuration, mode: 'readonly' }],
-    [{ mode: 'write-tsbuildinfo' }, { ...configuration, mode: 'write-tsbuildinfo' }],
     [{ mode: 'write-dts' }, { ...configuration, mode: 'write-dts' }],
-    [{ mode: 'write-references' }, { ...configuration, mode: 'write-references' }],
+    [
+      { build: true, mode: 'write-tsbuildinfo' },
+      { ...configuration, build: true, mode: 'write-tsbuildinfo' },
+    ],
+    [
+      { build: true, mode: 'write-references' },
+      { ...configuration, build: true, mode: 'write-references' },
+    ],
     [
       { configOverwrite: { compilerOptions: { strict: true }, include: ['src'] } },
       {
@@ -74,11 +90,25 @@ describe('typescript/type-scripts-worker-config', () => {
     ],
     [{ profile: true }, { ...configuration, profile: true }],
   ])('creates configuration from options %p', async (options, expectedConfig) => {
-    const { createTypeScriptWorkerConfig } = await import(
-      'src/typescript/type-script-worker-config'
-    );
+    const { createTypeScriptWorkerConfig } =
+      await import('src/typescript/type-script-worker-config');
     const config = createTypeScriptWorkerConfig(compiler, options as TypeScriptWorkerOptions);
 
     expect(config).toEqual(expectedConfig);
+    expect(warn).not.toHaveBeenCalled();
   });
+
+  it.each(['write-tsbuildinfo', 'write-references'] as const)(
+    'falls back to the readonly mode for %p without the build option',
+    async (mode) => {
+      const { createTypeScriptWorkerConfig } =
+        await import('src/typescript/type-script-worker-config');
+      const config = createTypeScriptWorkerConfig(compiler, { mode });
+
+      expect(config).toEqual(configuration);
+      expect(warn).toHaveBeenCalledWith(
+        `The "${mode}" mode requires the "build" option - falling back to the "readonly" mode.`
+      );
+    }
+  );
 });

@@ -1,28 +1,18 @@
 import * as path from 'path';
 
-import type * as ts from 'typescript';
+import type { Diagnostic, ParsedCommandLine } from 'typescript/sync';
 
 import type { FilesChange } from '../../../files-change';
 import type { FilesMatch } from '../../../files-match';
 import type { Issue } from '../../../issue';
-import { forwardSlash } from '../../../utils/path/forward-slash';
 import type { TypeScriptConfigOverwrite } from '../../type-script-config-overwrite';
 
+import { getApi } from './api';
 import { createIssuesFromDiagnostics } from './diagnostics';
-import { system } from './system';
-import { typescript } from './typescript';
 import { config } from './worker-config';
 
-let parsedConfig: ts.ParsedCommandLine | undefined;
-let parseConfigDiagnostics: ts.Diagnostic[] = [];
-
-// initialize ParseConfigFileHost
-const parseConfigFileHost: ts.ParseConfigFileHost = {
-  ...system,
-  onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
-    parseConfigDiagnostics.push(diagnostic);
-  },
-};
+let parsedConfig: ParsedCommandLine | undefined;
+let parseConfigDiagnostics: Diagnostic[] = [];
 
 function getUserProvidedConfigOverwrite(): TypeScriptConfigOverwrite {
   return config.configOverwrite || {};
@@ -45,6 +35,7 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
           noEmit: false,
         },
       };
+    // these two modes are only kept with the `build` option
     case 'write-tsbuildinfo':
     case 'write-references':
       return {
@@ -58,7 +49,12 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
   }
 
   return {
-    compilerOptions: baseCompilerOptionsOverwrite,
+    compilerOptions: {
+      ...baseCompilerOptionsOverwrite,
+      // nothing is emitted, and without it emit-only option diagnostics
+      // (like TS5011 for a missing `rootDir`) are reported, unlike `tsc --noEmit`
+      noEmit: true,
+    },
   };
 }
 
@@ -82,35 +78,27 @@ function applyConfigOverwrite(
   return config;
 }
 
-export function parseConfig(
-  configFileName: string,
-  configFileContext: string
-): ts.ParsedCommandLine {
-  const configFilePath = forwardSlash(configFileName);
-
-  const { config: baseConfig, error: readConfigError } = typescript.readConfigFile(
-    configFilePath,
-    parseConfigFileHost.readFile
-  );
+export function parseConfig(configFileName: string, configFileContext: string): ParsedCommandLine {
+  const api = getApi();
+  const { config: baseConfig, error: readConfigError } = api.readConfigFile(configFileName);
 
   const overwrittenConfig = applyConfigOverwrite(
-    baseConfig || {},
+    (baseConfig as TypeScriptConfigOverwrite) || {},
     getImplicitConfigOverwrite(),
     getUserProvidedConfigOverwrite()
   );
 
-  const parsedConfigFile = typescript.parseJsonConfigFileContent(
+  // the API resolves relative paths against the config file's directory unless
+  // we give it an explicit base directory - that's what the `context` option is for
+  const parsedConfigFile = api.parseJsonConfigFileContent(
     overwrittenConfig,
-    parseConfigFileHost,
-    configFileContext
+    path.normalize(configFileContext) === path.normalize(path.dirname(configFileName))
+      ? { configFileName }
+      : { configDirectory: configFileContext }
   );
 
   return {
     ...parsedConfigFile,
-    options: {
-      ...parsedConfigFile.options,
-      configFilePath: configFilePath,
-    },
     errors: readConfigError ? [readConfigError] : parsedConfigFile.errors,
   };
 }
@@ -136,34 +124,18 @@ export function getParsedConfig(force = false) {
   return parsedConfig;
 }
 
-export function parseNextConfig() {
-  const prevParsedConfig = parsedConfig;
-  const nextParsedConfig = getParsedConfig(true);
-
-  return [prevParsedConfig, nextParsedConfig] as const;
-}
-
 export function invalidateConfig() {
   parsedConfig = undefined;
   parseConfigDiagnostics = [];
 }
 
-export function getConfigFilePathFromCompilerOptions(compilerOptions: ts.CompilerOptions): string {
-  return compilerOptions.configFilePath as unknown as string;
-}
-
-export function getConfigFilePathFromProgram(program: ts.Program): string {
-  return getConfigFilePathFromCompilerOptions(program.getCompilerOptions());
-}
-
-export function getConfigFilePathFromBuilderProgram(builderProgram: ts.BuilderProgram): string {
-  return getConfigFilePathFromCompilerOptions(builderProgram.getProgram().getCompilerOptions());
-}
-
-export function didConfigFileChanged({ changedFiles = [], deletedFiles = [] }: FilesChange) {
+export function didConfigFileChanged(
+  { changedFiles = [], deletedFiles = [] }: FilesChange,
+  configFiles: readonly string[]
+) {
   return [...changedFiles, ...deletedFiles]
     .map((file) => path.normalize(file))
-    .includes(path.normalize(config.configFile));
+    .some((file) => configFiles.includes(file));
 }
 
 export function didDependenciesProbablyChanged(
@@ -180,10 +152,6 @@ export function didDependenciesProbablyChanged(
   return didSomeDependencyHasBeenAdded || didSomeDependencyHasBeenDeleted;
 }
 
-export function didRootFilesChanged() {
-  const [prevConfig, nextConfig] = parseNextConfig();
-
-  return (
-    prevConfig && JSON.stringify(prevConfig.fileNames) !== JSON.stringify(nextConfig.fileNames)
-  );
+export function didRootFilesChanged(previousRootFiles: readonly string[]) {
+  return JSON.stringify(previousRootFiles) !== JSON.stringify(getParsedConfig().fileNames);
 }

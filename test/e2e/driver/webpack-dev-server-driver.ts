@@ -1,6 +1,6 @@
 import type { ChildProcess } from 'child_process';
 
-import stripAnsi from 'strip-ansi';
+import { stripVTControlCharacters as stripAnsi } from 'util';
 
 import type { Listener, QueuedListener } from './listener';
 import { createQueuedListener } from './listener';

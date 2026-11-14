@@ -12,7 +12,8 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
 
       await sandbox.write(
         'fork-ts-checker.config.js',
-        `module.exports = { typescript: { memoryLimit: 10 } };`
+        // type checking runs in the native compiler, so the worker itself needs very little memory
+        `module.exports = { typescript: { memoryLimit: 4 } };`
       );
 
       const driver = createProcessDriver(sandbox.spawn('yarn webpack serve --mode=development'));

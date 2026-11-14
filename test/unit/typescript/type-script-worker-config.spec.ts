@@ -90,9 +90,8 @@ describe('typescript/type-scripts-worker-config', () => {
     ],
     [{ profile: true }, { ...configuration, profile: true }],
   ])('creates configuration from options %p', async (options, expectedConfig) => {
-    const { createTypeScriptWorkerConfig } = await import(
-      'src/typescript/type-script-worker-config'
-    );
+    const { createTypeScriptWorkerConfig } =
+      await import('src/typescript/type-script-worker-config');
     const config = createTypeScriptWorkerConfig(compiler, options as TypeScriptWorkerOptions);
 
     expect(config).toEqual(expectedConfig);
@@ -102,9 +101,8 @@ describe('typescript/type-scripts-worker-config', () => {
   it.each(['write-tsbuildinfo', 'write-references'] as const)(
     'falls back to the readonly mode for %p without the build option',
     async (mode) => {
-      const { createTypeScriptWorkerConfig } = await import(
-        'src/typescript/type-script-worker-config'
-      );
+      const { createTypeScriptWorkerConfig } =
+        await import('src/typescript/type-script-worker-config');
       const config = createTypeScriptWorkerConfig(compiler, { mode });
 
       expect(config).toEqual(configuration);

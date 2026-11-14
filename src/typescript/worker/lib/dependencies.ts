@@ -83,8 +83,8 @@ function getIncludeDirectories(parsedConfig: ParsedCommandLine, configFileContex
   const include = Array.isArray(raw.include)
     ? raw.include.filter((pattern): pattern is string => typeof pattern === 'string')
     : Array.isArray(raw.files)
-    ? []
-    : ['**/*'];
+      ? []
+      : ['**/*'];
 
   return include.map((pattern) => {
     const resolvedPattern = resolveConfigPattern(pattern, configFileContext);

@@ -109,7 +109,7 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
       }
       outputs.set(fileName, content);
       outputTimes.set(fileName, new Date());
-      for (let dir = path.posix.dirname(fileName); !outputDirectories.has(dir); ) {
+      for (let dir = path.posix.dirname(fileName); !outputDirectories.has(dir);) {
         outputDirectories.add(dir);
         const parent = path.posix.dirname(dir);
         if (parent === dir) break;
@@ -118,7 +118,7 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
       return serverFS.noop;
     },
     readFile: (fileName) =>
-      isHidden(fileName) ? undefined : outputs.get(toOutputPath(fileName)) ?? serverFS.useOS,
+      isHidden(fileName) ? undefined : (outputs.get(toOutputPath(fileName)) ?? serverFS.useOS),
     fileExists: (fileName) =>
       isHidden(fileName) ? false : outputs.has(toOutputPath(fileName)) || serverFS.useOS,
     directoryExists: (directoryName) =>

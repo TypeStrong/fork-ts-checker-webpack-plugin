@@ -47,7 +47,7 @@ export function wrapRpc<T extends (...args: any[]) => any>(
         new RpcExitError(
           code
             ? `Process ${childProcess.pid} exited with code ${code}` +
-              (signal ? ` [${signal}]` : '')
+                (signal ? ` [${signal}]` : '')
             : `Process ${childProcess.pid} exited` + (signal ? ` [${signal}]` : ''),
           code,
           signal

@@ -47,9 +47,8 @@ function resolveExport(packageDirectory: string, subpath: string): string {
 const packageDirectory = findTypeScriptPackageDirectory(config.typescriptPath);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-export const typescriptSync: typeof TypeScriptSync = require(resolveExport(
-  packageDirectory,
-  './sync'
-));
+export const typescriptSync: typeof TypeScriptSync = require(
+  resolveExport(packageDirectory, './sync')
+);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 export const typescriptFs: typeof TypeScriptFs = require(resolveExport(packageDirectory, './fs'));

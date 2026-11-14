@@ -242,7 +242,9 @@ To profile long type checks, run `tsc` with the `--generateTrace` option. This i
 
 ## Enabling incremental mode
 
-Set `"incremental": true` in your `tsconfig.json` (under `compilerOptions`) and `build: true` in the plugin's `typescript` options. With `build: true` the default mode is `write-tsbuildinfo`, which keeps the `.tsbuildinfo` files on disk between runs; use `write-references` to also write the `.js` and `.d.ts` files of project references.
+Set `"incremental": true` in your `tsconfig.json` (under `compilerOptions`) and `build: true` in the plugin's `typescript` options. With `build: true` the default mode is `write-tsbuildinfo`, which writes the `.tsbuildinfo` files to disk and keeps the other outputs in memory. It makes the checks after the first one incremental while the plugin is running, but the `.tsbuildinfo` files from a previous run are ignored, so the first check after a restart is a full one.
+
+To reuse the `.tsbuildinfo` files after a restart, use `write-references`, which also writes the `.js` and `.d.ts` files of project references.
 
 
 ## Related projects

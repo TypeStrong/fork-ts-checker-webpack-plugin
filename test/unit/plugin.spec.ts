@@ -5,7 +5,7 @@ describe('plugin', () => {
     'throws an error for invalid options %p',
     (options) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(() => new ForkTsCheckerWebpackPlugin(options as any)).toThrowError();
+      expect(() => new ForkTsCheckerWebpackPlugin(options as any)).toThrow();
     }
   );
 
@@ -14,7 +14,7 @@ describe('plugin', () => {
   });
 
   it("doesn't throw an error for empty options", () => {
-    expect(() => new ForkTsCheckerWebpackPlugin()).not.toThrowError();
+    expect(() => new ForkTsCheckerWebpackPlugin()).not.toThrow();
   });
 
   it('accepts a custom logger', () => {
@@ -23,6 +23,6 @@ describe('plugin', () => {
       log: (message) => console.log(message),
     };
 
-    expect(() => new ForkTsCheckerWebpackPlugin({ logger })).not.toThrowError();
+    expect(() => new ForkTsCheckerWebpackPlugin({ logger })).not.toThrow();
   });
 });

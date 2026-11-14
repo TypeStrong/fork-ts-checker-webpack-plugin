@@ -70,6 +70,38 @@ describe('TypeScript Config', () => {
     }
   );
 
+  it('follows an extensionless extends to the file when a directory has the same name', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('yarn', {});
+    await sandbox.write(
+      'tsconfig.base.json',
+      JSON.stringify({ compilerOptions: { lib: ['ES6', 'DOM'] } }, null, 2)
+    );
+    // TypeScript loads `tsconfig.base.json`, not this directory
+    await sandbox.write('tsconfig.base/README.md', 'not a config');
+    await sandbox.patch('tsconfig.json', '"lib": ["ES6", "DOM"],', '');
+    await sandbox.patch('tsconfig.json', '{', '{\n  "extends": "./tsconfig.base",');
+
+    const driver = createWebpackDevServerDriver(
+      sandbox.spawn('yarn webpack serve --mode=development'),
+      false
+    );
+
+    // first compilation is successful
+    await driver.waitForNoErrors();
+
+    // change available libraries in the extended config
+    await sandbox.patch('tsconfig.base.json', '"DOM"', '"ES2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.length).toBeGreaterThan(0);
+
+    // revert the change
+    await sandbox.patch('tsconfig.base.json', '"ES2015"', '"DOM"');
+
+    await driver.waitForNoErrors();
+  });
+
   it.each([{ async: true }, { async: false }])(
     'watches include patterns that use ${configDir} for %p',
     async ({ async }) => {

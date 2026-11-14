@@ -70,6 +70,14 @@ function isDirectory(directory: string) {
   }
 }
 
+function isFile(file: string) {
+  try {
+    return fs.statSync(file).isFile();
+  } catch (error) {
+    return false;
+  }
+}
+
 /**
  * The native API doesn't expose `wildcardDirectories`, so derive the directories
  * to watch from the static prefix of each `include` pattern.
@@ -107,7 +115,8 @@ function getIncludeDirectories(
 function resolveExtendsPath(extendsPath: string, baseDirectory: string): string {
   const resolved = path.resolve(baseDirectory, extendsPath);
 
-  return fs.existsSync(resolved) || resolved.endsWith('.json') ? resolved : `${resolved}.json`;
+  // a directory with the same name doesn't count - TypeScript looks for a file
+  return isFile(resolved) || resolved.endsWith('.json') ? resolved : `${resolved}.json`;
 }
 
 /**

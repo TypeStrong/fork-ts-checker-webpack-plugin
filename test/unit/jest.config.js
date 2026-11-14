@@ -14,7 +14,7 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': swc,
     // Jest converts `/` for Windows in transformIgnorePatterns, but not in transform keys.
-    [`[\\\\/]node_modules[\\\\/](${esmOnlyPackages})[\\\\/].+\\.js$`]: swc,
+    [`/node_modules/(${esmOnlyPackages})/.+\\.js$`.replaceAll('/', '[\\\\/]')]: swc,
   },
   transformIgnorePatterns: [`/node_modules/(?!(${esmOnlyPackages})/)`],
   testEnvironment: 'node',

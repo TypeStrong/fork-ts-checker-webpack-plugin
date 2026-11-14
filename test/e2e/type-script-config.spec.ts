@@ -134,6 +134,45 @@ describe('TypeScript Config', () => {
     }
   );
 
+  it.each([{ mode: 'write-references' }, { mode: 'write-tsbuildinfo' }])(
+    'falls back to readonly without the build option for %p',
+    async ({ mode }) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+      await sandbox.install('yarn', {});
+      // with `outDir` and no `rootDir`, a program that emits reports TS5011
+      await sandbox.write(
+        'tsconfig.checker.json',
+        JSON.stringify({
+          compilerOptions: {
+            target: 'es2015',
+            module: 'commonjs',
+            lib: ['ES6', 'DOM'],
+            strict: true,
+            outDir: './dist',
+          },
+          include: ['./src'],
+        })
+      );
+      await sandbox.patch(
+        'webpack.config.js',
+        'async: false,',
+        `async: false, typescript: { configFile: 'tsconfig.checker.json', mode: ${JSON.stringify(
+          mode
+        )} },`
+      );
+
+      const webpackProcess = sandbox.spawn('yarn webpack serve --mode=development');
+      let output = '';
+      webpackProcess.stdout?.on('data', (data) => (output += data));
+      webpackProcess.stderr?.on('data', (data) => (output += data));
+      const driver = createWebpackDevServerDriver(webpackProcess, false);
+
+      // nothing is emitted, so there are no emit-only errors - like `tsc --noEmit`
+      await driver.waitForNoErrors();
+      expect(output).toContain(`The "${mode}" mode requires the "build" option`);
+    }
+  );
+
   it.each([{ typescript: '7.1.0-beta' }])(
     'reports errors because of the misconfiguration',
     async (dependencies) => {

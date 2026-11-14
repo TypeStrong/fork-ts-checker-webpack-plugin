@@ -35,6 +35,7 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
           noEmit: false,
         },
       };
+    // these two modes are only kept with the `build` option
     case 'write-tsbuildinfo':
     case 'write-references':
       return {

@@ -18,11 +18,22 @@ function getUserProvidedConfigOverwrite(): TypeScriptConfigOverwrite {
   return config.configOverwrite || {};
 }
 
+/**
+ * The implicit overrides that apply both to a program and to the build
+ * orchestrator, which only accepts a small set of options.
+ */
+export function getSharedImplicitCompilerOptions() {
+  return {
+    sourceMap: false,
+    inlineSourceMap: false,
+    ...(config.mode === 'write-dts' ? { declaration: true } : {}),
+  };
+}
+
 function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
   const baseCompilerOptionsOverwrite = {
     skipLibCheck: true,
-    sourceMap: false,
-    inlineSourceMap: false,
+    ...getSharedImplicitCompilerOptions(),
   };
 
   switch (config.mode) {
@@ -30,7 +41,6 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
       return {
         compilerOptions: {
           ...baseCompilerOptionsOverwrite,
-          declaration: true,
           emitDeclarationOnly: true,
           noEmit: false,
         },

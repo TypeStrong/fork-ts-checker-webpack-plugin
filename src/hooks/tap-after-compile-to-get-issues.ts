@@ -2,10 +2,11 @@ import type * as webpack from 'webpack';
 
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { Issue } from '../issue';
-import { IssueWebpackError } from '../issue/issue-webpack-error';
 import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 import { getPluginHooks } from '../plugin-hooks';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
+
+import { addIssuesToCompilation, getIssuesToReport } from './report-issues';
 
 function tapAfterCompileToGetIssues(
   compiler: webpack.Compiler,
@@ -37,25 +38,7 @@ function tapAfterCompileToGetIssues(
       return;
     }
 
-    // filter list of issues by provided issue predicate
-    issues = issues.filter(config.issue.predicate);
-
-    // modify list of issues in the plugin hooks
-    issues = hooks.issues.call(issues, compilation);
-
-    issues.forEach((issue) => {
-      const error = new IssueWebpackError(
-        config.formatter.format(issue),
-        config.formatter.pathType,
-        issue
-      );
-
-      if (issue.severity === 'warning') {
-        compilation.warnings.push(error);
-      } else {
-        compilation.errors.push(error);
-      }
-    });
+    addIssuesToCompilation(getIssuesToReport(issues, compilation, config), compilation, config);
   });
 }
 

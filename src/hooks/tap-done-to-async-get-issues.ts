@@ -5,12 +5,13 @@ import { statsFormatter } from '../formatter/stats-formatter';
 import { createWebpackFormatter } from '../formatter/webpack-formatter';
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { Issue } from '../issue';
-import { IssueWebpackError } from '../issue/issue-webpack-error';
 import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 import { getPluginHooks } from '../plugin-hooks';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 import { isPending } from '../utils/async/is-pending';
 import { wait } from '../utils/async/wait';
+
+import { addIssuesToCompilation, getIssuesToReport } from './report-issues';
 
 function tapDoneToAsyncGetIssues(
   compiler: webpack.Compiler,
@@ -53,11 +54,7 @@ function tapDoneToAsyncGetIssues(
 
     debug(`Got ${issues?.length || 0} issues from getIssuesWorker.`);
 
-    // filter list of issues by provided issue predicate
-    issues = issues.filter(config.issue.predicate);
-
-    // modify list of issues in the plugin hooks
-    issues = hooks.issues.call(issues, stats.compilation);
+    issues = getIssuesToReport(issues, stats.compilation, config);
 
     const formatter = createWebpackFormatter(config.formatter.format, config.formatter.pathType);
 
@@ -74,19 +71,7 @@ function tapDoneToAsyncGetIssues(
     // report issues to webpack-dev-server, if it's listening
     // skip reporting if there are no issues, to avoid an extra hot reload
     if (issues.length && state.webpackDevServerDoneTap) {
-      issues.forEach((issue) => {
-        const error = new IssueWebpackError(
-          config.formatter.format(issue),
-          config.formatter.pathType,
-          issue
-        );
-
-        if (issue.severity === 'warning') {
-          stats.compilation.warnings.push(error);
-        } else {
-          stats.compilation.errors.push(error);
-        }
-      });
+      addIssuesToCompilation(issues, stats.compilation, config);
 
       debug('Sending issues to the webpack-dev-server.');
       state.webpackDevServerDoneTap.fn(stats);

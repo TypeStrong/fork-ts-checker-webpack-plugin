@@ -1,6 +1,7 @@
 import type { BuildOrchestrator, OverrideCompilerOptions } from 'typescript/sync';
 
 import { clearRealDirectories, createBuildOrchestrator } from '../api';
+import { getSharedImplicitCompilerOptions } from '../config';
 import { updateDiagnostics } from '../diagnostics';
 import { config } from '../worker-config';
 
@@ -21,13 +22,7 @@ const OVERRIDABLE_COMPILER_OPTIONS: (keyof OverrideCompilerOptions)[] = [
  */
 function getOverrideCompilerOptions(): OverrideCompilerOptions {
   const userCompilerOptions = config.configOverwrite?.compilerOptions || {};
-  const overrides: OverrideCompilerOptions = {
-    sourceMap: false,
-    inlineSourceMap: false,
-  };
-  if (config.mode === 'write-dts') {
-    overrides.declaration = true;
-  }
+  const overrides: OverrideCompilerOptions = getSharedImplicitCompilerOptions();
   for (const option of OVERRIDABLE_COMPILER_OPTIONS) {
     if (option in userCompilerOptions) {
       overrides[option] = userCompilerOptions[option];

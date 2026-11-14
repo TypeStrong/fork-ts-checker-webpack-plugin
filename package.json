@@ -60,7 +60,6 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.16.7",
-    "chokidar": "^4.0.3",
     "cosmiconfig": "^9.0.2",
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.7",

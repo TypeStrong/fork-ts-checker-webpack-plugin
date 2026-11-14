@@ -60,8 +60,8 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.16.7",
-    "chalk": "^4.1.2",
-    "chokidar": "^4.0.1",
+    "chalk": "^6.0.1",
+    "chokidar": "^5.0.0",
     "cosmiconfig": "^9.0.2",
     "minimatch": "^10.2.6",
     "schema-utils": "^4.3.0",

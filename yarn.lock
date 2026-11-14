@@ -3773,24 +3773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cosmiconfig@npm:^8.2.0":
-  version: 8.3.6
-  resolution: "cosmiconfig@npm:8.3.6"
-  dependencies:
-    import-fresh: "npm:^3.3.0"
-    js-yaml: "npm:^4.1.0"
-    parse-json: "npm:^5.2.0"
-    path-type: "npm:^4.0.0"
-  peerDependencies:
-    typescript: ">=4.9.5"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: 10c0/0382a9ed13208f8bfc22ca2f62b364855207dffdb73dc26e150ade78c3093f1cf56172df2dd460c8caf2afa91c0ed4ec8a88c62f8f9cd1cf423d26506aa8797a
-  languageName: node
-  linkType: hard
-
-"cosmiconfig@npm:^9.0.1":
+"cosmiconfig@npm:^9.0.1, cosmiconfig@npm:^9.0.2":
   version: 9.0.2
   resolution: "cosmiconfig@npm:9.0.2"
   dependencies:
@@ -4424,7 +4407,7 @@ __metadata:
     chalk: "npm:^4.1.2"
     chokidar: "npm:^4.0.1"
     commitlint: "npm:^21.2.4"
-    cosmiconfig: "npm:^8.2.0"
+    cosmiconfig: "npm:^9.0.2"
     cross-env: "npm:^7.0.3"
     git-cz: "npm:^4.8.0"
     husky: "npm:^9.1.7"

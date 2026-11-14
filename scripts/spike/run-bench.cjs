@@ -12,7 +12,7 @@ const TREES = [
   { name: '2,000 files + 40,000 in ignored node_modules', srcDirs: 200, nodeModulesDirs: 4000 },
   { name: '20,000 files', srcDirs: 2000, nodeModulesDirs: 0 },
 ];
-const IMPLS = ['chokidar', 'chokidar-plain', 'native'];
+const IMPLS = ['chokidar', 'chokidar-plain', 'native', 'native-rescan'];
 
 function fill(base, dirs, extension) {
   for (let d = 0; d < dirs; d++) {
@@ -32,12 +32,12 @@ const median = (values) => {
 const lines = [
   `### Watcher benchmark: ${os.platform()} ${os.release()}, Node ${process.version}, ${os.cpus().length} CPUs`,
   '',
-  "`chokidar` = the plugin's options (with `awaitWriteFinish`), `chokidar-plain` = without it, `native` = `fs.watch(dir, { recursive: true })`. Medians of " +
+  "`chokidar` = the plugin's options (with `awaitWriteFinish`), `chokidar-plain` = without it, `native` = `fs.watch(dir, { recursive: true })`, `native-rescan` = the same, walking the tree again after an event without a file name. Medians of " +
     RUNS +
     ' runs.',
   '',
-  '| Tree | Watcher | Setup ms | Setup CPU ms | First event ms | RSS +MB | Handles | New file latency ms | 500 files: all seen ms | 500 files: seen | 500 files: CPU ms | Error |',
-  '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+  '| Tree | Watcher | Setup ms | Setup CPU ms | First event ms | RSS +MB | Handles | New file latency ms | 500 files: all seen ms | 500 files: seen | 500 files: CPU ms | Events | Events without a name | Rescans | Rescan ms (total) | Error |',
+  '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
 ];
 
 const base = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'watch-bench-'));
@@ -75,7 +75,7 @@ for (const [index, tree] of TREES.entries()) {
     const column = (key) => median(results.map((result) => result[key]));
     const errors = [...new Set(results.map((result) => result.error).filter(Boolean))].join(', ');
     lines.push(
-      `| ${tree.name} | ${impl} | ${column('setupMs')} | ${column('setupCpuMs')} | ${column('firstEventMs')} | ${column('rssDeltaMb')} | ${column('handles')} | ${column('latencyMs')} | ${column('burstMs')} | ${column('burstSeen')} | ${column('burstCpuMs')} | ${errors} |`
+      `| ${tree.name} | ${impl} | ${column('setupMs')} | ${column('setupCpuMs')} | ${column('firstEventMs')} | ${column('rssDeltaMb')} | ${column('handles')} | ${column('latencyMs')} | ${column('burstMs')} | ${column('burstSeen')} | ${column('burstCpuMs')} | ${column('events')} | ${column('eventsWithoutName')} | ${column('rescans')} | ${column('rescanMs')} | ${errors} |`
     );
   }
   fs.rmSync(root, { recursive: true, force: true });

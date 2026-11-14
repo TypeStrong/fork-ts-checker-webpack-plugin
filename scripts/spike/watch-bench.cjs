@@ -13,15 +13,43 @@ const ms = (from) => Math.round(Number(process.hrtime.bigint() - from) / 1e6);
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 
 let onAdd = () => {};
+const counters = { events: 0, eventsWithoutName: 0, rescans: 0, rescanMs: 0 };
+let rescanTimer;
+// walk the tree, skipping ignored directories, and report every .ts file
+function rescan() {
+  const started = process.hrtime.bigint();
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (!isIgnored(file + path.sep)) walk(file);
+      } else if (path.extname(file) === '.ts') {
+        onAdd(file);
+      }
+    }
+  };
+  walk(root);
+  counters.rescans++;
+  counters.rescanMs += ms(started);
+}
 let watchError;
 const noteError = (error) => {
   watchError = watchError || error.code || error.message;
 };
 
 async function start() {
-  if (impl === 'native') {
+  if (impl === 'native' || impl === 'native-rescan') {
     const watcher = fs.watch(root, { recursive: true }, (eventType, fileName) => {
-      if (!fileName) return;
+      counters.events++;
+      if (!fileName) {
+        // the platform dropped events and can't say what changed
+        counters.eventsWithoutName++;
+        if (impl === 'native-rescan') {
+          clearTimeout(rescanTimer);
+          rescanTimer = setTimeout(rescan, 50);
+        }
+        return;
+      }
       const file = path.join(root, fileName);
       if (path.extname(file) !== '.ts' || isIgnored(file)) return;
       onAdd(file);
@@ -130,6 +158,7 @@ async function start() {
     noteError(error);
   }
   for (const file of created) fs.rmSync(file, { force: true });
+  Object.assign(result, counters);
   if (watchError) result.error = String(watchError);
   console.log(JSON.stringify(result));
   process.exit(0);

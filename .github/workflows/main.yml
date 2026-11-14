@@ -61,6 +61,12 @@ jobs:
           name: lib
           path: lib
 
+      # SPIKE: chokidar 4 against Node's recursive fs.watch - results go to the run summary
+      - name: Watcher benchmark
+        if: matrix.node == 24
+        continue-on-error: true
+        run: node scripts/spike/run-bench.cjs
+
       - name: Run unit tests
         run: yarn test:unit
 

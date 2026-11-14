@@ -86,6 +86,7 @@
     "@types/node": "^22",
     "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.3.9",
+    "chokidar": "^4.0.3",
     "commitlint": "^21.2.4",
     "cross-env": "^7.0.3",
     "git-cz": "^4.8.0",

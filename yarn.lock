@@ -675,13 +675,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@isaacs/nonrecursive-glob-match@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@isaacs/nonrecursive-glob-match@npm:1.1.0"
-  checksum: 10c0/89f8535f3d8147649360de992f58fba2b0e97b687e18cdc16c5b34a6c52afff4f474d05c5a0b6411708614f368cf19c41b037d3a1c6c6821e02aee967d888e98
-  languageName: node
-  linkType: hard
-
 "@isaacs/string-locale-compare@npm:*, @isaacs/string-locale-compare@npm:^1.1.0":
   version: 1.1.0
   resolution: "@isaacs/string-locale-compare@npm:1.1.0"
@@ -2338,6 +2331,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/picomatch@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "@types/picomatch@npm:4.0.3"
+  checksum: 10c0/974107ec98ea9a8b437f36bdf6ac9c57772fd66d9d746e43f6da2a7b97f6e03bc48226e5cdf2beb0b73b7a843cf486e7336ae15ab9017e47287dcb49d78499a2
+  languageName: node
+  linkType: hard
+
 "@types/retry@npm:0.12.0":
   version: 0.12.0
   resolution: "@types/retry@npm:0.12.0"
@@ -3254,7 +3254,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^5.0.12, brace-expansion@npm:^5.0.8":
+"brace-expansion@npm:^5.0.8":
   version: 5.0.13
   resolution: "brace-expansion@npm:5.0.13"
   dependencies:
@@ -4402,6 +4402,7 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/json-schema": "npm:^7.0.9"
     "@types/node": "npm:^22"
+    "@types/picomatch": "npm:^4.0.3"
     "@types/semver": "npm:^7.3.9"
     chokidar: "npm:^5.0.0"
     commitlint: "npm:^21.2.4"
@@ -4414,10 +4415,10 @@ __metadata:
     json-schema: "npm:^0.4.0"
     karton: "npm:^0.4.1"
     lint-staged: "npm:^17.6.0"
-    minimatch: "npm:^11.0.8"
     oxlint: "npm:^1.93.0"
     oxlint-tsgolint: "npm:^7.0.2006"
     picocolors: "npm:^1.1.1"
+    picomatch: "npm:^4.0.7"
     prettier: "npm:^3.10.1"
     schema-utils: "npm:^4.3.0"
     semantic-release: "npm:^17.4.4"
@@ -6328,16 +6329,6 @@ __metadata:
   dependencies:
     brace-expansion: "npm:^5.0.8"
   checksum: 10c0/4559a836243b98bd4d17ea9f7edae698717c76399eea7be374f3737f33164e4907f19e9726891ddeb122f750a5a7fa80d2ac43e851d6e5984dc4ff42ec127d3a
-  languageName: node
-  linkType: hard
-
-"minimatch@npm:^11.0.8":
-  version: 11.0.8
-  resolution: "minimatch@npm:11.0.8"
-  dependencies:
-    "@isaacs/nonrecursive-glob-match": "npm:^1.1.0"
-    brace-expansion: "npm:^5.0.12"
-  checksum: 10c0/9f4cfaa792adbd78f3aed1fec74ff9af94bfed6832f31a4f5fa36cf9bb928b2f8fdacbeccc2ea6617e9ec09ce5f5d386eb3efb59b29915b43a1884fc689749c5
   languageName: node
   linkType: hard
 

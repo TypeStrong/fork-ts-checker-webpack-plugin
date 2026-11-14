@@ -62,8 +62,8 @@
     "@babel/code-frame": "^7.16.7",
     "chokidar": "^5.0.0",
     "cosmiconfig": "^9.0.2",
-    "minimatch": "^11.0.8",
     "picocolors": "^1.1.1",
+    "picomatch": "^4.0.7",
     "schema-utils": "^4.3.0",
     "semver": "^7.3.5",
     "tapable": "^2.2.1"
@@ -85,6 +85,7 @@
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.9",
     "@types/node": "^22",
+    "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.3.9",
     "commitlint": "^21.2.4",
     "cross-env": "^7.0.3",

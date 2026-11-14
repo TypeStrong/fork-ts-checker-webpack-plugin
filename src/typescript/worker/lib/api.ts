@@ -26,6 +26,18 @@ const outputDirectories = new Set<string>();
 // symlinked directory -> real directory, cleared before each build in case of relinks
 const realDirectories = new Map<string, string>();
 
+let interceptsBuildOutputs = false;
+
+/**
+ * Makes the API keep build-mode outputs in memory according to `mode`. Only the
+ * worker that builds needs it: the callbacks are round trips from the native
+ * compiler, which a worker that only parses tsconfig files would pay for nothing.
+ * Call it before the first `getApi()`.
+ */
+export function interceptBuildOutputs() {
+  interceptsBuildOutputs = true;
+}
+
 export function clearRealDirectories() {
   realDirectories.clear();
 }
@@ -149,7 +161,9 @@ export function getApi(): API {
   if (!api) {
     api = new typescriptSync.API({
       cwd: config.context,
-      fs: createFileSystemCallbacks() as FileSystemCallbacks | undefined,
+      fs: interceptsBuildOutputs
+        ? (createFileSystemCallbacks() as FileSystemCallbacks | undefined)
+        : undefined,
       collectTiming: config.profile,
     });
   }

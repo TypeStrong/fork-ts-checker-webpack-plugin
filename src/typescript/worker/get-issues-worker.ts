@@ -2,7 +2,7 @@ import type { FilesChange } from '../../files-change';
 import type { Issue } from '../../issue';
 import { exposeRpc } from '../../rpc';
 
-import { closeApi, closeApiOnExit } from './lib/api';
+import { closeApi, closeApiOnExit, interceptBuildOutputs } from './lib/api';
 import {
   didConfigFileChanged,
   didDependenciesProbablyChanged,
@@ -33,6 +33,7 @@ import {
 import { config } from './lib/worker-config';
 
 closeApiOnExit();
+interceptBuildOutputs();
 
 const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
   try {

@@ -36,7 +36,7 @@ The pre-commit hook runs lint-staged, `yarn build` and `yarn test:unit`.
 - `src/typescript/worker/get-issues-worker.ts`: type checking. Its try/catch resets the program, the orchestrator and the API after any error, so a dead compiler process recovers on the next run. Keep every native API call inside it.
 - `src/typescript/worker/get-dependencies-worker.ts`: computes the files and directories webpack should watch. It runs its own native compiler process and has the same reset-on-error handling.
 - `src/typescript/worker/lib/`:
-  - `api.ts`: creates the `API`, plus the file system callbacks that keep build-mode outputs in memory according to `mode`.
+  - `api.ts`: creates the `API`, plus the file system callbacks that keep build-mode outputs in memory according to `mode`. Only the issues worker installs them (`interceptBuildOutputs`).
   - `config.ts`: reads and parses tsconfig with the implicit and `configOverwrite` overrides.
   - `dependencies.ts`: works out watched files and directories, `extends` chains and `${configDir}`.
   - `program/program.ts`: normal mode, a synthetic program in a snapshot.

@@ -60,10 +60,10 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.16.7",
-    "chalk": "^6.0.1",
     "chokidar": "^5.0.0",
     "cosmiconfig": "^9.0.2",
     "minimatch": "^11.0.8",
+    "picocolors": "^1.1.1",
     "schema-utils": "^4.3.0",
     "semver": "^7.3.5",
     "tapable": "^2.2.1"

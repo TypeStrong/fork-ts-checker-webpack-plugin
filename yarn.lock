@@ -3401,13 +3401,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "chalk@npm:6.0.1"
-  checksum: 10c0/4c58238fa874f531b5201bf99ebd374742be31f8e306c7783d930856aec305f2dea3e07531a8805b2a7ba92807296e39ced52e9f673703e0264d96e83998a429
-  languageName: node
-  linkType: hard
-
 "char-regex@npm:^1.0.2":
   version: 1.0.2
   resolution: "char-regex@npm:1.0.2"
@@ -4410,7 +4403,6 @@ __metadata:
     "@types/json-schema": "npm:^7.0.9"
     "@types/node": "npm:^22"
     "@types/semver": "npm:^7.3.9"
-    chalk: "npm:^6.0.1"
     chokidar: "npm:^5.0.0"
     commitlint: "npm:^21.2.4"
     cosmiconfig: "npm:^9.0.2"
@@ -4425,6 +4417,7 @@ __metadata:
     minimatch: "npm:^11.0.8"
     oxlint: "npm:^1.93.0"
     oxlint-tsgolint: "npm:^7.0.2006"
+    picocolors: "npm:^1.1.1"
     prettier: "npm:^3.10.1"
     schema-utils: "npm:^4.3.0"
     semantic-release: "npm:^17.4.4"

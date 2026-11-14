@@ -2,7 +2,7 @@
 
 Guidance for coding agents working on **fork-ts-checker-webpack-plugin**. For commit format, PR process and releases, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The plugin type-checks a webpack build in a forked worker, using TypeScript 7.1's native `typescript/sync` API (the Go compiler, tsgo). It requires TypeScript >= 7.1.0-beta and Node.js >= 22.12. TypeScript 3.6 to 6.x is supported by v9 only.
+The plugin type-checks a webpack build in a forked worker, using TypeScript 7.1's native `typescript/sync` API (the Go compiler, tsgo). It requires TypeScript >= 7.1.0-beta and Node.js >= 22.22. TypeScript 3.6 to 6.x is supported by v9 only.
 
 ## Commands
 

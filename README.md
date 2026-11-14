@@ -23,7 +23,7 @@
 
 ## Installation
 
-This plugin requires **Node.js >=22.12.0**, **Webpack ^5.11.0**, **TypeScript >=7.1.0** (until TypeScript 7.1 has a stable release, that means `typescript@beta`)
+This plugin requires **Node.js >=22.22.0**, **Webpack ^5.11.0**, **TypeScript >=7.1.0** (until TypeScript 7.1 has a stable release, that means `typescript@beta`)
 
 It type checks with TypeScript's native API (`typescript/sync`), so it pairs with [ts-loader v10](https://github.com/TypeStrong/ts-loader), which is built on the same API.
 TypeScript's native compiler resolves modules from the file system itself, so [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp) isn't supported - use `nodeLinker: node-modules`.

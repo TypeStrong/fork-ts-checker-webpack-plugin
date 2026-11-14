@@ -1,8 +1,7 @@
 import path from 'path';
 
-import minimatch from 'minimatch';
-
 import { forwardSlash } from '../utils/path/forward-slash';
+import { matchGlob } from '../utils/path/match-glob';
 
 import type { IssuePredicate } from './issue-predicate';
 
@@ -17,7 +16,7 @@ function createIssuePredicateFromIssueMatch(context: string, match: IssueMatch):
     const matchesFile =
       !issue.file ||
       (!!issue.file &&
-        (!match.file || minimatch(forwardSlash(path.relative(context, issue.file)), match.file)));
+        (!match.file || matchGlob(forwardSlash(path.relative(context, issue.file)), match.file)));
 
     return matchesSeverity && matchesCode && matchesFile;
   };

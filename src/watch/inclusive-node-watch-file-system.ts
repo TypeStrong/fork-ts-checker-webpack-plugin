@@ -2,13 +2,13 @@ import { extname } from 'path';
 
 import type { FSWatcher } from 'chokidar';
 import chokidar from 'chokidar';
-import minimatch from 'minimatch';
 import type { Compiler } from 'webpack';
 
 import { clearFilesChange, updateFilesChange } from '../files-change';
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
 import { isInsideAnotherPath } from '../utils/path/is-inside-another-path';
+import { matchGlob } from '../utils/path/match-glob';
 
 import type { WatchFileSystem } from './watch-file-system';
 
@@ -22,7 +22,7 @@ function createIsIgnored(
   const ignoredFunctions = ignoredPatterns.map((pattern) => {
     // ensure patterns are valid - see https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/594
     if (typeof pattern === 'string') {
-      return (path: string) => minimatch(path, pattern);
+      return (path: string) => matchGlob(path, pattern);
     } else if (pattern instanceof RegExp) {
       return (path: string) => pattern.test(path);
     } else {

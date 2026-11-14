@@ -2292,13 +2292,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimatch@npm:^3.0.5":
-  version: 3.0.5
-  resolution: "@types/minimatch@npm:3.0.5"
-  checksum: 10c0/a1a19ba342d6f39b569510f621ae4bbe972dc9378d15e9a5e47904c440ee60744f5b09225bc73be1c6490e3a9c938eee69eb53debf55ce1f15761201aa965f97
-  languageName: node
-  linkType: hard
-
 "@types/minimist@npm:^1.2.0":
   version: 1.2.5
   resolution: "@types/minimist@npm:1.2.5"
@@ -4401,7 +4394,6 @@ __metadata:
     "@types/babel__code-frame": "npm:^7.0.3"
     "@types/jest": "npm:^30.0.0"
     "@types/json-schema": "npm:^7.0.9"
-    "@types/minimatch": "npm:^3.0.5"
     "@types/node": "npm:^22"
     "@types/semver": "npm:^7.3.9"
     chalk: "npm:^4.1.2"
@@ -4416,7 +4408,7 @@ __metadata:
     json-schema: "npm:^0.4.0"
     karton: "npm:^0.4.1"
     lint-staged: "npm:^17.6.0"
-    minimatch: "npm:^3.0.4"
+    minimatch: "npm:^10.2.6"
     oxlint: "npm:^1.93.0"
     oxlint-tsgolint: "npm:^7.0.2006"
     prettier: "npm:^3.10.1"
@@ -6323,7 +6315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^10.0.0, minimatch@npm:^10.2.2":
+"minimatch@npm:^10.0.0, minimatch@npm:^10.2.2, minimatch@npm:^10.2.6":
   version: 10.2.6
   resolution: "minimatch@npm:10.2.6"
   dependencies:
@@ -6332,7 +6324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^3.0.4, minimatch@npm:^3.1.1":
+"minimatch@npm:^3.1.1":
   version: 3.1.5
   resolution: "minimatch@npm:3.1.5"
   dependencies:

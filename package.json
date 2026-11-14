@@ -63,7 +63,7 @@
     "chalk": "^4.1.2",
     "chokidar": "^4.0.1",
     "cosmiconfig": "^9.0.2",
-    "minimatch": "^3.0.4",
+    "minimatch": "^10.2.6",
     "schema-utils": "^4.3.0",
     "semver": "^7.3.5",
     "tapable": "^2.2.1"
@@ -84,7 +84,6 @@
     "@types/babel__code-frame": "^7.0.3",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.9",
-    "@types/minimatch": "^3.0.5",
     "@types/node": "^22",
     "@types/semver": "^7.3.9",
     "commitlint": "^21.2.4",

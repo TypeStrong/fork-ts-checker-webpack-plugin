@@ -91,6 +91,9 @@ describe('typescript/type-scripts-worker-config', () => {
       },
     ],
     [{ profile: true }, { ...configuration, profile: true }],
+    // the worker compares and joins paths, so `context` has to be absolute and normalized
+    [{ context: 'packages/app' }, { ...configuration, context: path.resolve('packages/app') }],
+    [{ context: context + path.sep }, { ...configuration, context: path.resolve(context) }],
   ])('creates configuration from options %p', async (options, expectedConfig) => {
     const { createTypeScriptWorkerConfig } =
       await import('src/typescript/type-script-worker-config');

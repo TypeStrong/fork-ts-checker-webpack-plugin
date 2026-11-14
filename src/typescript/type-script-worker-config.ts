@@ -57,7 +57,10 @@ function createTypeScriptWorkerConfig(
     mode,
     configFile: configFile,
     configOverwrite: optionsAsObject.configOverwrite || {},
-    context: optionsAsObject.context || path.dirname(configFile),
+    // ensure that `context` is an absolute normalized path, like `configFile`
+    context: optionsAsObject.context
+      ? path.resolve(optionsAsObject.context)
+      : path.dirname(configFile),
     diagnosticOptions: {
       syntactic: false, // by default they are reported by the loader
       semantic: true,

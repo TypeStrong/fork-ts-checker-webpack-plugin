@@ -1,7 +1,6 @@
 import * as path from 'path';
 
 import { cosmiconfigSync } from 'cosmiconfig';
-import merge from 'deepmerge';
 import type { JSONSchema7 } from 'json-schema';
 import { validate } from 'schema-utils';
 import type * as webpack from 'webpack';
@@ -21,6 +20,7 @@ import { createRpcWorker } from './rpc';
 import { assertTypeScriptSupport } from './typescript/type-script-support';
 import type { GetDependenciesWorker } from './typescript/worker/get-dependencies-worker';
 import type { GetIssuesWorker } from './typescript/worker/get-issues-worker';
+import { deepMerge } from './utils/deep-merge';
 
 class ForkTsCheckerWebpackPlugin {
   /**
@@ -48,7 +48,7 @@ class ForkTsCheckerWebpackPlugin {
     const config = { name: 'ForkTsCheckerWebpackPlugin' };
     validate(schema as JSONSchema7, options, config);
 
-    this.options = merge(externalOptions || {}, options || {});
+    this.options = deepMerge(externalOptions || {}, options || {});
 
     // then validate merged options
     validate(schema as JSONSchema7, this.options, config);

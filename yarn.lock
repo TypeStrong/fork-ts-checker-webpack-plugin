@@ -4255,7 +4255,6 @@ __metadata:
     commitlint: "npm:^21.2.4"
     cosmiconfig: "npm:^8.2.0"
     cross-env: "npm:^7.0.3"
-    deepmerge: "npm:^4.2.2"
     git-cz: "npm:^4.8.0"
     husky: "npm:^7.0.4"
     jest: "npm:^27.4.7"

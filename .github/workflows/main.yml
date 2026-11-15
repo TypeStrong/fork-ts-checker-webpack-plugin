@@ -71,6 +71,7 @@ jobs:
       contents: write
       pull-requests: write
       deployments: write
+      id-token: write
     needs: [build, test]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta')
     steps:
@@ -95,4 +96,3 @@ jobs:
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

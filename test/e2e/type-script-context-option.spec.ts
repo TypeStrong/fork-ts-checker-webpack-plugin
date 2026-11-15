@@ -62,10 +62,14 @@ describe('TypeScript Context Option', () => {
     // create additional directory for cwd test
     await sandbox.write('foo/.gitignore', '');
 
+    // run webpack directly, as "yarn webpack" would change the cwd to the directory of the package.json
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn(`yarn webpack serve --mode=development --config=../webpack.config.js`, {
-        cwd: path.join(sandbox.context, 'foo'),
-      }),
+      sandbox.spawn(
+        `node ../node_modules/webpack/bin/webpack.js serve --mode=development --config=../webpack.config.js`,
+        {
+          cwd: path.join(sandbox.context, 'foo'),
+        }
+      ),
       async
     );
 

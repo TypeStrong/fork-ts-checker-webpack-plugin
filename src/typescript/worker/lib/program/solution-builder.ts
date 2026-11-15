@@ -9,8 +9,7 @@ import { typescript } from '../typescript';
 import { config } from '../worker-config';
 
 let solutionBuilderHost:
-  | ts.SolutionBuilderWithWatchHost<ts.SemanticDiagnosticsBuilderProgram>
-  | undefined;
+  ts.SolutionBuilderWithWatchHost<ts.SemanticDiagnosticsBuilderProgram> | undefined;
 let solutionBuilder: ts.SolutionBuilder<ts.SemanticDiagnosticsBuilderProgram> | undefined;
 
 export function useSolutionBuilder() {

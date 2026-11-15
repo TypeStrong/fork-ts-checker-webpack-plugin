@@ -10,7 +10,7 @@ describe('TypeScript Formatter Option', () => {
     'uses the custom formatter to format the error message for %p',
     async ({ async, typescript }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { typescript });
+      await sandbox.install('npm', { typescript });
       await sandbox.patch(
         'webpack.config.js',
         '      async: false,',
@@ -23,7 +23,7 @@ describe('TypeScript Formatter Option', () => {
       );
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
+        sandbox.spawn('npm exec -- webpack serve --mode=development'),
         async
       );
 

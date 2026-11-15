@@ -8,14 +8,14 @@
     // Dockerfile with your user's UID/GID if not 1000.
     "runArgs": [ "-u", "node" ],
 
-	// Use 'settings' to set *default* container specific settings.json values on container create. 
-	// You can edit these settings after create using File > Preferences > Settings > Remote.
+    // Use 'settings' to set *default* container specific settings.json values on container create.
+    // You can edit these settings after create using File > Preferences > Settings > Remote.
     "settings": {
         "terminal.integrated.shell.linux": "/bin/bash"
     },
 
     // Specifies a command that should be run after the container has been created.
-    "postCreateCommand": "yarn install",
+    "postCreateCommand": "npm ci",
 
     "extensions": [
         "dbaeumer.vscode-eslint"

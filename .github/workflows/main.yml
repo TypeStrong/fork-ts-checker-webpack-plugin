@@ -12,13 +12,13 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 26
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm ci
 
       - name: Build project
-        run: yarn build
+        run: npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -41,16 +41,16 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
-          cache: "yarn"
+          cache: 'npm'
 
       - name: Locks cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: test/e2e/__locks__
-          key: ${{ runner.os }}-locks
+          key: ${{ runner.os }}-locks-npm
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm ci
 
       - name: Download build artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -59,10 +59,10 @@ jobs:
           path: lib
 
       - name: Run unit tests
-        run: yarn test:unit
+        run: npm run test:unit
 
       - name: Run e2e tests
-        run: yarn test:e2e
+        run: npm run test:e2e
 
   release:
     runs-on: ubuntu-latest
@@ -81,10 +81,10 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 26
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm ci
 
       - name: Download build artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -93,6 +93,6 @@ jobs:
           path: lib
 
       - name: Release
-        run: yarn semantic-release
+        run: npm run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

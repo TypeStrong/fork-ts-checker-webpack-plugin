@@ -13,11 +13,11 @@ describe('TypeScript Config', () => {
     'change in the tsconfig.json affects compilation for %p',
     async ({ async, ...dependencies }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { ...dependencies });
+      await sandbox.install('npm', { ...dependencies });
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
+        sandbox.spawn('npm exec -- webpack serve --mode=development'),
         async
       );
 
@@ -44,7 +44,7 @@ describe('TypeScript Config', () => {
     { typescript: '^4.3.0' },
   ])('reports errors because of the misconfiguration', async (dependencies) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { ...dependencies });
+    await sandbox.install('npm', { ...dependencies });
 
     let driver: WebpackDevServerDriver;
     let errors: string[];
@@ -55,7 +55,7 @@ describe('TypeScript Config', () => {
     );
 
     driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
+      sandbox.spawn('npm exec -- webpack serve --mode=development'),
       false
     );
     errors = await driver.waitForErrors();
@@ -68,7 +68,7 @@ describe('TypeScript Config', () => {
     );
 
     driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
+      sandbox.spawn('npm exec -- webpack serve --mode=development'),
       false
     );
     errors = await driver.waitForErrors();

@@ -13,5 +13,8 @@
   },
   "installConfig": {
     "pnp": true
+  },
+  "resolutions": {
+    "@types/minimatch": "^5.1.2"
   }
 }

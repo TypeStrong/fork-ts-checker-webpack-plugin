@@ -20,11 +20,11 @@ The pre-commit hook runs lint-staged, `npm run build` and `npm run test:unit`.
 ### Running e2e tests
 
 - **Build first.** `test:e2e` runs `npm pack`, which packs whatever is in `lib/`. Without `npm run build`, you test a stale build.
-- **Run single specs with `node_modules/.bin/jest`, not `npx jest`.** `npx` puts the project's own `npm` (a semantic-release dependency) first on `PATH`, and sandbox setup fails with `glob is not a function`:
+- **Run a single spec** after building and packing:
 
   ```bash
   npm run build && npm pack && \
-    node_modules/.bin/jest --config=test/e2e/jest.config.js --ci -i test/e2e/<spec>.ts -t "<name>"
+    npx jest --config=test/e2e/jest.config.js --ci -i test/e2e/<spec>.ts -t "<name>"
   ```
 
 - Each e2e test copies a fixture from `test/e2e/fixtures/` into a sandbox and installs it with npm.

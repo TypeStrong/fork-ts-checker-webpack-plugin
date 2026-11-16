@@ -8,11 +8,11 @@ describe('TypeScript 6', () => {
     'reports semantic error for %p in a TypeScript 6 project',
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-6'));
-      await sandbox.install('yarn', {});
+      await sandbox.install('npm', {});
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
+        sandbox.spawn('npm exec -- webpack serve --mode=development'),
         async
       );
 
@@ -55,7 +55,7 @@ describe('TypeScript 6', () => {
 
   it('reports a deprecated compiler option as an error', async () => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-6'));
-    await sandbox.install('yarn', {});
+    await sandbox.install('npm', {});
 
     // "moduleResolution": "node" is deprecated in TypeScript 6
     await sandbox.patch('tsconfig.json', '"module": "esnext"', '"module": "commonjs"');
@@ -65,7 +65,7 @@ describe('TypeScript 6', () => {
       '"moduleResolution": "node"'
     );
 
-    const result = await sandbox.exec('yarn webpack --mode=production', { fail: true });
+    const result = await sandbox.exec('npm exec -- webpack --mode=production', { fail: true });
     const errors = extractWebpackErrors(result);
 
     expect(errors).toHaveLength(1);
@@ -76,9 +76,9 @@ describe('TypeScript 6', () => {
 
   it('compiles the project successfully in a production build', async () => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-6'));
-    await sandbox.install('yarn', {});
+    await sandbox.install('npm', {});
 
-    const result = await sandbox.exec('yarn webpack --mode=production');
+    const result = await sandbox.exec('npm exec -- webpack --mode=production');
     const errors = extractWebpackErrors(result);
 
     expect(errors).toEqual([]);

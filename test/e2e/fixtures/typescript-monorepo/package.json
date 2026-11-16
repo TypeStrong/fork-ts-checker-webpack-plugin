@@ -16,7 +16,7 @@
     "webpack-cli": "^4.0.0",
     "webpack-dev-server": "^3.0.0"
   },
-  "resolutions": {
+  "overrides": {
     "@types/minimatch": "^5.1.2"
   }
 }

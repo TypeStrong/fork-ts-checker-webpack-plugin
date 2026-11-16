@@ -10,7 +10,7 @@ describe('TypeScript Context Option', () => {
     { async: false, typescript: '~4.3.0' },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { typescript });
+    await sandbox.install('npm', { typescript });
     await sandbox.patch(
       'webpack.config.js',
       '      async: false,',
@@ -62,7 +62,7 @@ describe('TypeScript Context Option', () => {
     // create additional directory for cwd test
     await sandbox.write('foo/.gitignore', '');
 
-    // run webpack directly, as "yarn webpack" would change the cwd to the directory of the package.json
+    // run webpack directly so the cwd stays in the nested directory
     const driver = createWebpackDevServerDriver(
       sandbox.spawn(
         `node ../node_modules/webpack/bin/webpack.js serve --mode=development --config=../webpack.config.js`,

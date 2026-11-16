@@ -1,1 +1,1 @@
-yarn commitlint --edit "$1"
+npm exec -- commitlint --edit "$1"

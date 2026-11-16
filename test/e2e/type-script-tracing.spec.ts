@@ -10,7 +10,7 @@ describe('TypeScript Tracing', () => {
     { build: true, typescript: '~4.6.0' },
   ])('can generate trace files for %p', async ({ build, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { ...dependencies });
+    await sandbox.install('npm', { ...dependencies });
 
     // enable tracing
     await sandbox.patch(
@@ -24,7 +24,7 @@ describe('TypeScript Tracing', () => {
       `module.exports = ${JSON.stringify({ typescript: { build } })};`
     );
 
-    const webpackResult = await sandbox.exec('yarn webpack --mode=development');
+    const webpackResult = await sandbox.exec('npm exec -- webpack --mode=development');
     const errors = extractWebpackErrors(webpackResult);
     expect(errors).toEqual([]);
 

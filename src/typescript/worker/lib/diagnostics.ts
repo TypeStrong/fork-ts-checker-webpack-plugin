@@ -28,25 +28,9 @@ export function invalidateDiagnostics(): void {
   diagnosticsPerConfigFile.clear();
 }
 
-/**
- * Options diagnostics contain errors that the user did not cause, so we skip them.
- */
-function isReportableOptionsDiagnostic(diagnostic: ts.Diagnostic): boolean {
-  if (diagnostic.code === 6053) {
-    // File '{0}' not found.
-    // A deleted file stays in the list of root files of a watch program until the next update.
-    return false;
-  }
-  return true;
-}
-
 export function getDiagnosticsOfProgram(program: ts.Program | ts.BuilderProgram): ts.Diagnostic[] {
   const programDiagnostics: ts.Diagnostic[] = [];
   try {
-    // compiler options errors, for example a deprecated or an invalid option, are always reported
-    programDiagnostics.push(
-      ...program.getOptionsDiagnostics().filter(isReportableOptionsDiagnostic)
-    );
     if (config.diagnosticOptions.syntactic) {
       programDiagnostics.push(...program.getSyntacticDiagnostics());
     }

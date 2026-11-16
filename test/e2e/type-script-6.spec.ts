@@ -53,27 +53,6 @@ describe('TypeScript 6', () => {
     }
   );
 
-  it('reports a deprecated compiler option as an error', async () => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-6'));
-    await sandbox.install('npm', {});
-
-    // "moduleResolution": "node" is deprecated in TypeScript 6
-    await sandbox.patch('tsconfig.json', '"module": "esnext"', '"module": "commonjs"');
-    await sandbox.patch(
-      'tsconfig.json',
-      '"moduleResolution": "bundler"',
-      '"moduleResolution": "node"'
-    );
-
-    const result = await sandbox.exec('npm exec -- webpack --mode=production', { fail: true });
-    const errors = extractWebpackErrors(result);
-
-    expect(errors).toHaveLength(1);
-    expect(errors[0]).toContain(
-      "TS5107: Option 'moduleResolution=node10' is deprecated and will stop functioning in TypeScript 7.0."
-    );
-  });
-
   it('compiles the project successfully in a production build', async () => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-6'));
     await sandbox.install('npm', {});

@@ -1,5 +1,6 @@
 import type { WebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { extractWebpackErrors } from './driver/webpack-errors-extractor';
 import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
 describe('TypeScript Config', () => {
@@ -151,6 +152,27 @@ describe('TypeScript Config', () => {
       expect(output).toContain(`The "${mode}" mode requires the "build" option`);
     }
   );
+
+  it('ignores source map options that depend on the options turned off by the plugin', async () => {
+    await loadProject('typescript-basic');
+
+    // the plugin turns off "sourceMap", which would make the other options invalid
+    await sandbox.patch(
+      'tsconfig.json',
+      '"skipLibCheck": true,',
+      [
+        '"skipLibCheck": true,',
+        '    "sourceMap": true,',
+        '    "inlineSources": true,',
+        '    "sourceRoot": "/",',
+        '    "mapRoot": "/maps",',
+      ].join('\n')
+    );
+
+    const result = await sandbox.exec('npm exec -- webpack --mode=production');
+
+    expect(extractWebpackErrors(result)).toEqual([]);
+  });
 
   it.each([{ typescript: TYPESCRIPT_VERSION }])(
     'reports errors because of the misconfiguration',

@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import type { Diagnostic, ParsedCommandLine } from 'typescript/sync';
+import type { CompilerOptions, Diagnostic, ParsedCommandLine } from 'typescript/sync';
 
 import type { FilesChange } from '../../../files-change';
 import type { FilesMatch } from '../../../files-match';
@@ -88,6 +88,20 @@ function applyConfigOverwrite(
   return config;
 }
 
+/**
+ * The plugin turns off the "sourceMap" and the "inlineSourceMap" options. Options that depend on
+ * them would become invalid, so we remove them as well.
+ */
+function removeOrphanedSourceMapOptions(options: CompilerOptions): CompilerOptions {
+  const { inlineSources, sourceRoot, mapRoot, ...otherOptions } = options;
+
+  return {
+    ...otherOptions,
+    ...(options.sourceMap || options.inlineSourceMap ? { inlineSources, sourceRoot } : {}),
+    ...(options.sourceMap || options.declarationMap ? { mapRoot } : {}),
+  };
+}
+
 export function parseConfig(configFileName: string, configFileContext: string): ParsedCommandLine {
   const api = getApi();
   const { config: baseConfig, error: readConfigError } = api.readConfigFile(configFileName);
@@ -109,6 +123,7 @@ export function parseConfig(configFileName: string, configFileContext: string): 
 
   return {
     ...parsedConfigFile,
+    options: removeOrphanedSourceMapOptions(parsedConfigFile.options),
     errors: readConfigError ? [readConfigError] : parsedConfigFile.errors,
   };
 }

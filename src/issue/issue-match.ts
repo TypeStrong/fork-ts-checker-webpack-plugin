@@ -1,6 +1,6 @@
 import path from 'path';
 
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 
 import { forwardSlash } from '../utils/path/forward-slash';
 

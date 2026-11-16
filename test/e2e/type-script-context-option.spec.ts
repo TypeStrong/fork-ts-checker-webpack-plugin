@@ -62,10 +62,14 @@ describe('TypeScript Context Option', () => {
     // create additional directory for cwd test
     await sandbox.write('foo/.gitignore', '');
 
+    // run webpack directly so the cwd stays in the nested directory
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn(`npm exec -- webpack serve --mode=development --config=../webpack.config.js`, {
-        cwd: path.join(sandbox.context, 'foo'),
-      }),
+      sandbox.spawn(
+        `node ../node_modules/webpack/bin/webpack.js serve --mode=development --config=../webpack.config.js`,
+        {
+          cwd: path.join(sandbox.context, 'foo'),
+        }
+      ),
       async
     );
 

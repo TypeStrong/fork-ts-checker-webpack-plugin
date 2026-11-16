@@ -41,7 +41,12 @@ class ForkTsCheckerWebpackPlugin {
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
   constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {
-    const explorerSync = cosmiconfigSync('fork-ts-checker');
+    const explorerSync = cosmiconfigSync('fork-ts-checker', {
+      // keep searching parent directories up to the home directory, as cosmiconfig did before v9
+      // TODO: in the next major release, drop this option to use the cosmiconfig default (no search in
+      //  parent directories) - it's a breaking change
+      searchStrategy: 'global',
+    });
     const { config: externalOptions } = explorerSync.search() || {};
 
     // first validate options directly passed to the constructor

@@ -9,7 +9,7 @@ function assertTypeScriptSupport(config: TypeScriptWorkerConfig) {
   let typescriptVersion: string | undefined;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     typescriptVersion = require(config.typescriptPath).version;
   } catch (error) {
     // silent catch

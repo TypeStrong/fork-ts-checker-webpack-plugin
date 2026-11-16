@@ -62,9 +62,10 @@ function readDir(path: string): Dirent[] {
   const stats = readStats(path);
 
   if (stats && stats.isDirectory()) {
+    // memfs has its own Dirent type, which lacks properties added in newer versions of Node.js
     return mem.readdirSync(realFileSystem.normalizePath(path), {
       withFileTypes: true,
-    }) as Dirent[];
+    }) as unknown as Dirent[];
   }
 
   return [];

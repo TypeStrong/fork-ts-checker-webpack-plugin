@@ -1,4 +1,1 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 npm exec -- lint-staged && npm run build && npm run test:unit

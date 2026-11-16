@@ -74,9 +74,8 @@ describe('typescript/type-scripts-worker-config', () => {
     ],
     [{ profile: true }, { ...configuration, profile: true }],
   ])('creates configuration from options %p', async (options, expectedConfig) => {
-    const { createTypeScriptWorkerConfig } = await import(
-      'src/typescript/type-script-worker-config'
-    );
+    const { createTypeScriptWorkerConfig } =
+      await import('src/typescript/type-script-worker-config');
     const config = createTypeScriptWorkerConfig(compiler, options as TypeScriptWorkerOptions);
 
     expect(config).toEqual(expectedConfig);

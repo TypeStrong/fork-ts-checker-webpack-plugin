@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "commonjs",
+    "module": "node16",
     "lib": ["ES6"],
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "strict": true,
     "declaration": true,
-    "baseUrl": "./src",
+    "types": ["node"],
+    "rootDir": "./src",
     "outDir": "./lib",
     "forceConsistentCasingInFileNames": true
   },

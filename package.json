@@ -102,6 +102,9 @@
     "typescript": "7.1.0-beta",
     "webpack": "^5.112.2"
   },
+  "overrides": {
+    "typescript": "$typescript"
+  },
   "engines": {
     "node": "^22.22.0 || >=24.11.0"
   },

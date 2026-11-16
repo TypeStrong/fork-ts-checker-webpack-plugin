@@ -82,6 +82,20 @@ function applyConfigOverwrite(
   return config;
 }
 
+/**
+ * The plugin turns off the "sourceMap" and the "inlineSourceMap" options. Options that depend on
+ * them would become invalid, so we remove them as well.
+ */
+function removeOrphanedSourceMapOptions(options: ts.CompilerOptions): ts.CompilerOptions {
+  const { inlineSources, sourceRoot, mapRoot, ...otherOptions } = options;
+
+  return {
+    ...otherOptions,
+    ...(options.sourceMap || options.inlineSourceMap ? { inlineSources, sourceRoot } : {}),
+    ...(options.sourceMap || options.declarationMap ? { mapRoot } : {}),
+  };
+}
+
 export function parseConfig(
   configFileName: string,
   configFileContext: string
@@ -108,7 +122,7 @@ export function parseConfig(
   return {
     ...parsedConfigFile,
     options: {
-      ...parsedConfigFile.options,
+      ...removeOrphanedSourceMapOptions(parsedConfigFile.options),
       configFilePath: configFilePath,
     },
     errors: readConfigError ? [readConfigError] : parsedConfigFile.errors,

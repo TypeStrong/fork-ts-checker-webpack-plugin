@@ -1,6 +1,7 @@
+import fs from 'fs';
 import os from 'os';
+import path from 'path';
 
-import mockFs from 'mock-fs';
 import type { FormatterOptions } from 'src/formatter';
 import { createFormatterConfig } from 'src/formatter';
 import type { Issue } from 'src/issue';
@@ -8,30 +9,31 @@ import type { Issue } from 'src/issue';
 import { stripAnsi } from './strip-ansi';
 
 describe('formatter/formatter-config', () => {
+  let tempDirectory: string;
+
   beforeEach(() => {
-    mockFs({
-      src: {
-        'index.ts': [
-          'const foo: number = "1";',
-          'const bar = 1;',
-          '',
-          'function baz() {',
-          '  console.log(baz);',
-          '}',
-        ].join('\n'),
-      },
-    });
+    tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'formatter-config-'));
+    fs.writeFileSync(
+      path.join(tempDirectory, 'index.ts'),
+      [
+        'const foo: number = "1";',
+        'const bar = 1;',
+        '',
+        'function baz() {',
+        '  console.log(baz);',
+        '}',
+      ].join('\n')
+    );
   });
 
   afterEach(() => {
-    mockFs.restore();
+    fs.rmSync(tempDirectory, { recursive: true });
   });
 
   const issue: Issue = {
     severity: 'error',
     code: 'TS2322',
     message: `Type '"1"' is not assignable to type 'number'.`,
-    file: 'src/index.ts',
     location: {
       start: {
         line: 1,
@@ -81,7 +83,9 @@ describe('formatter/formatter-config', () => {
     [{ type: 'codeframe', pathType: 'absolute' }, CODEFRAME_FORMATTER_OUTPUT, 'absolute'],
   ])('creates configuration from options', (options, expectedFormat, expectedPathType) => {
     const formatter = createFormatterConfig(options as FormatterOptions);
-    const format = stripAnsi(formatter.format(issue));
+    const format = stripAnsi(
+      formatter.format({ ...issue, file: path.join(tempDirectory, 'index.ts') })
+    );
 
     expect(format).toEqual(expectedFormat);
     expect(formatter.pathType).toEqual(expectedPathType);

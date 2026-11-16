@@ -59,7 +59,7 @@ Here is a summary of the steps to follow:
 ```bash
 $ git checkout main
 $ git pull upstream main
-$ yarn install
+$ npm ci
 ```
 
 3. Create a new topic branch (off the main project development branch) to contain your feature, change, or fix:
@@ -145,7 +145,7 @@ The **footer** can contain a [closing reference to an issue](https://help.github
 
 #### Type
 
-The type is forced by the `commitlint` package. To see available types, run `yarn commit` or check [changelog.config.js](changelog.config.js) file
+The type is forced by the `commitlint` package. To see available types, run `npm run commit` or check [changelog.config.js](changelog.config.js) file
 
 #### Subject
 
@@ -194,15 +194,17 @@ $ cd fork-ts-checker-webpack-plugin
 # Assign the original repo to a remote called "upstream"
 $ git remote add upstream https://github.com/TypeStrong/fork-ts-checker-webpack-plugin
 # Install the dependencies
-$ yarn install
+$ npm ci
 ```
+
+**npm** installs the pinned `@yarnpkg/cli-dist` devDependency only for Plug'n'Play (PnP) end-to-end tests. Use **npm** for root development commands.
 
 ### Commits
 
 Commit message have to follow [conventional-commit](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) standard, for example:
 
 This repository use [Commitizen](https://github.com/commitizen/cz-cli) to help you create [valid commit messages](#commit-message-guidelines).
-After staging your changes with `git add`, run `yarn commit` to start the interactive commit message CLI.
+After staging your changes with `git add`, run `npm run commit` to start the interactive commit message CLI.
 
 ## Releasing a new version
 

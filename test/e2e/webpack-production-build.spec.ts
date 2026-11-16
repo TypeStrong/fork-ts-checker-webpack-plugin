@@ -9,7 +9,7 @@ describe('Webpack Production Build', () => {
     'compiles the project successfully with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { ...dependencies });
+      await sandbox.install('npm', { ...dependencies });
 
       // lets remove the async option at all as the plugin should now how to set it by default
       await sandbox.patch(
@@ -18,7 +18,7 @@ describe('Webpack Production Build', () => {
         ['    new ForkTsCheckerWebpackPlugin(),'].join('\n')
       );
 
-      const result = await sandbox.exec('yarn webpack --mode=production');
+      const result = await sandbox.exec('npm exec -- webpack --mode=production');
       const errors = extractWebpackErrors(result);
 
       expect(errors).toEqual([]);
@@ -37,7 +37,7 @@ describe('Webpack Production Build', () => {
 
   it('generates .d.ts files in write-dts mode', async () => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { webpack: '^5.54.0' });
+    await sandbox.install('npm', { webpack: '^5.54.0' });
 
     await sandbox.patch(
       'webpack.config.js',
@@ -45,7 +45,7 @@ describe('Webpack Production Build', () => {
       'async: false, typescript: { mode: "write-dts" },'
     );
 
-    const result = await sandbox.exec('yarn webpack --mode=production');
+    const result = await sandbox.exec('npm exec -- webpack --mode=production');
     const errors = extractWebpackErrors(result);
 
     expect(errors).toEqual([]);
@@ -65,7 +65,7 @@ describe('Webpack Production Build', () => {
     'exits with error on the project error with %p',
     async (dependencies) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', { ...dependencies });
+      await sandbox.install('npm', { ...dependencies });
 
       // remove the async option at all as the plugin should now how to set it by default
       await sandbox.patch(
@@ -76,7 +76,7 @@ describe('Webpack Production Build', () => {
 
       // introduce an error in the project
       await sandbox.remove('src/model/User.ts');
-      const result = await sandbox.exec('yarn webpack --mode=production', { fail: true });
+      const result = await sandbox.exec('npm exec -- webpack --mode=production', { fail: true });
 
       // remove npm related output
       const output = stripAnsi(String(result)).replace(/npm (ERR!|WARN).*/g, '');

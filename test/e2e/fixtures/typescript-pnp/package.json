@@ -11,7 +11,5 @@
     "webpack-cli": "^4.0.0",
     "webpack-dev-server": "^3.0.0"
   },
-  "installConfig": {
-    "pnp": true
-  }
+  "packageManager": "yarn@4.7.0"
 }

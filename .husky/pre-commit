@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn lint-staged && yarn build && yarn test:unit
+npm exec -- lint-staged && npm run build && npm run test:unit

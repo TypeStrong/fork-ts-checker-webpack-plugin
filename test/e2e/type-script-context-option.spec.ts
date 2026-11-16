@@ -10,7 +10,7 @@ describe('TypeScript Context Option', () => {
     { async: false, typescript: '~4.3.0' },
   ])('uses context and cwd to resolve project files for %p', async ({ async, typescript }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { typescript });
+    await sandbox.install('npm', { typescript });
     await sandbox.patch(
       'webpack.config.js',
       '      async: false,',
@@ -63,7 +63,7 @@ describe('TypeScript Context Option', () => {
     await sandbox.write('foo/.gitignore', '');
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn(`yarn webpack serve --mode=development --config=../webpack.config.js`, {
+      sandbox.spawn(`npm exec -- webpack serve --mode=development --config=../webpack.config.js`, {
         cwd: path.join(sandbox.context, 'foo'),
       }),
       async

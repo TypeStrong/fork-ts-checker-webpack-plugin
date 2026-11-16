@@ -8,26 +8,26 @@ The plugin type-checks a webpack build in a forked worker, using TypeScript 7.1'
 
 | Task | Command |
 | --- | --- |
-| Install | `yarn install` (Yarn 4, see `packageManager`) |
-| Type-check and lint | `yarn lint` (tsgo for `src` and `test`, then oxlint) |
-| Formatting | `yarn format:check` (prettier) |
-| Build | `yarn build` (output in `lib/`) |
-| Unit tests | `yarn test:unit` |
-| e2e tests | `yarn build && yarn test:e2e` |
+| Install | `npm ci` |
+| Type-check and lint | `npm run lint` (tsgo for `src` and `test`, then oxlint) |
+| Formatting | `npm run format:check` (prettier) |
+| Build | `npm run build` (output in `lib/`) |
+| Unit tests | `npm run test:unit` |
+| e2e tests | `npm run build && npm run test:e2e` |
 
-The pre-commit hook runs lint-staged, `yarn build` and `yarn test:unit`.
+The pre-commit hook runs lint-staged, `npm run build` and `npm run test:unit`.
 
 ### Running e2e tests
 
-- **Build first.** `test:e2e` runs `npm pack`, which packs whatever is in `lib/`. Without `yarn build`, you test a stale build.
+- **Build first.** `test:e2e` runs `npm pack`, which packs whatever is in `lib/`. Without `npm run build`, you test a stale build.
 - **Run single specs with `node_modules/.bin/jest`, not `npx jest`.** `npx` puts the project's own `npm` (a semantic-release dependency) first on `PATH`, and sandbox setup fails with `glob is not a function`:
 
   ```bash
-  yarn build && npm pack && YARN_ENABLE_IMMUTABLE_INSTALLS=false \
+  npm run build && npm pack && \
     node_modules/.bin/jest --config=test/e2e/jest.config.js --ci -i test/e2e/<spec>.ts -t "<name>"
   ```
 
-- Each e2e test copies a fixture from `test/e2e/fixtures/` into a sandbox and installs it with Yarn's `node-modules` linker. The native compiler can't resolve through Plug'n'Play.
+- Each e2e test copies a fixture from `test/e2e/fixtures/` into a sandbox and installs it with npm.
 - Don't run prettier over `test/e2e/fixtures/`. The fixtures are test inputs, not project code.
 
 ## Architecture
@@ -94,6 +94,6 @@ Reviews of the TypeScript 7 migration raised these repeatedly. They were checked
 
 ## Working practices
 
-- **Prove a fix with a test that fails without it.** Stash the source change, run `yarn build && npm pack`, and run the new test to see it fail. Then restore the change and rebuild.
+- **Prove a fix with a test that fails without it.** Stash the source change, run `npm run build && npm pack`, and run the new test to see it fail. Then restore the change and rebuild.
 - **Keep the README in step.** It documents option behaviour, including the build-mode limits: `configOverwrite`, `diagnosticOptions` and `skipLibCheck`.
 - **Keep commits focused.** Separate unrelated changes, such as editor settings, from fixes.

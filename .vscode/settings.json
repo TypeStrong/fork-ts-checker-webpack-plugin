@@ -3,12 +3,12 @@
   "jest.virtualFolders": [
     {
       "name": "test/e2e",
-      "jestCommandLine": "yarn build && yarn test:e2e",
+      "jestCommandLine": "npm run build && npm run test:e2e",
       "runMode": "on-demand"
     },
     {
       "name": "test/unit",
-      "jestCommandLine": "yarn jest --config=test/unit/jest.config.js",
+      "jestCommandLine": "npm exec -- jest --config=test/unit/jest.config.js",
       "runMode": "on-demand"
     }
   ]

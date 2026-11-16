@@ -173,7 +173,7 @@ describe('TypeScript SolutionBuilder API', () => {
       '"extends": "../../tsconfig.base.json"',
       '"extends": "@project-references-fixture/tsconfig/base.json"'
     );
-    await sandbox.install('yarn', {});
+    await sandbox.install('npm', {});
 
     const driver = startDevServer(false);
 

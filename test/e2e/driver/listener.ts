@@ -38,7 +38,6 @@ function createQueuedListener<TValue = void>(): QueuedListener<TValue> {
     apply(listener) {
       switch (queuedListener.status) {
         case 'resolved':
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           listener.resolve(queuedListener.resolved!);
           break;
         case 'rejected':

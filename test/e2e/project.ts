@@ -24,7 +24,7 @@ export async function loadProject(
   for (const fixture of [fixtures].flat()) {
     await sandbox.load(path.join(__dirname, 'fixtures', fixture));
   }
-  await sandbox.install('yarn', dependencies);
+  await sandbox.install('npm', dependencies);
 
   if (async !== undefined) {
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
@@ -34,7 +34,7 @@ export async function loadProject(
 /** Starts webpack-dev-server in the sandbox and returns a driver that reads its output. */
 export function startDevServer(async: boolean) {
   return createWebpackDevServerDriver(
-    sandbox.spawn('yarn webpack serve --mode=development'),
+    sandbox.spawn('npm exec -- webpack serve --mode=development'),
     async
   );
 }

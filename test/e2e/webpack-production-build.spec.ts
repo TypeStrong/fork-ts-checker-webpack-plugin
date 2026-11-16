@@ -16,7 +16,7 @@ describe('Webpack Production Build', () => {
         ['    new ForkTsCheckerWebpackPlugin(),'].join('\n')
       );
 
-      const result = await sandbox.exec('yarn webpack --mode=production');
+      const result = await sandbox.exec('npm exec -- webpack --mode=production');
       const errors = extractWebpackErrors(result);
 
       expect(errors).toEqual([]);
@@ -42,7 +42,7 @@ describe('Webpack Production Build', () => {
       'async: false, typescript: { mode: "write-dts" },'
     );
 
-    const result = await sandbox.exec('yarn webpack --mode=production');
+    const result = await sandbox.exec('npm exec -- webpack --mode=production');
     const errors = extractWebpackErrors(result);
 
     expect(errors).toEqual([]);
@@ -72,7 +72,7 @@ describe('Webpack Production Build', () => {
 
       // introduce an error in the project
       await sandbox.remove('src/model/User.ts');
-      const result = await sandbox.exec('yarn webpack --mode=production', { fail: true });
+      const result = await sandbox.exec('npm exec -- webpack --mode=production', { fail: true });
 
       // remove npm related output
       const output = stripAnsi(String(result)).replace(/npm (ERR!|WARN).*/g, '');

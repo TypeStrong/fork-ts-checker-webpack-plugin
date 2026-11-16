@@ -17,7 +17,6 @@ type RpcMessage = RpcCallMessage | RpcResolveMessage | RpcRejectMessage;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RpcMethod = (...args: any[]) => any;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RpcRemoteMethod<T extends RpcMethod> = T extends (...args: infer A) => infer R
   ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
     R extends Promise<any>

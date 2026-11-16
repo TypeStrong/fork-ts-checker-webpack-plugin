@@ -140,7 +140,7 @@ describe('TypeScript Config', () => {
         )} },`
       );
 
-      const webpackProcess = sandbox.spawn('yarn webpack serve --mode=development');
+      const webpackProcess = sandbox.spawn('npm exec -- webpack serve --mode=development');
       let output = '';
       webpackProcess.stdout?.on('data', (data) => (output += data));
       webpackProcess.stderr?.on('data', (data) => (output += data));

@@ -25,7 +25,7 @@ describe('Webpack Inclusive Watcher', () => {
       );
 
       // start webpack dev server
-      const process = sandbox.spawn('yarn webpack serve --mode=development');
+      const process = sandbox.spawn('npm exec -- webpack serve --mode=development');
       const baseDriver = createProcessDriver(process);
       const webpackDriver = createWebpackDevServerDriver(process, async);
 

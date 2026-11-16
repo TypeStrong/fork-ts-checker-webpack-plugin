@@ -6,7 +6,7 @@ describe('Webpack Node Api', () => {
     async (dependencies) => {
       await loadProject(['typescript-basic', 'webpack-node-api'], { dependencies });
 
-      const result = await sandbox.exec('yarn node ./webpack-node-api.js');
+      const result = await sandbox.exec('node ./webpack-node-api.js');
       expect(result).toContain('Compiled successfully twice.');
     }
   );

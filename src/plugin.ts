@@ -1,5 +1,3 @@
-import * as path from 'path';
-
 import { cosmiconfigSync } from 'cosmiconfig';
 import type { JSONSchema7 } from 'json-schema';
 import { validate } from 'schema-utils';
@@ -8,18 +6,16 @@ import type * as webpack from 'webpack';
 import { tapAfterCompileToAddDependencies } from './hooks/tap-after-compile-to-add-dependencies';
 import { tapAfterEnvironmentToPatchWatching } from './hooks/tap-after-environment-to-patch-watching';
 import { tapErrorToLogMessage } from './hooks/tap-error-to-log-message';
-import { tapStartToRunWorkers } from './hooks/tap-start-to-run-workers';
-import { tapStopToTerminateWorkers } from './hooks/tap-stop-to-terminate-workers';
+import { tapStartToRunChecks } from './hooks/tap-start-to-run-checks';
+import { tapStopToCloseService } from './hooks/tap-stop-to-close-service';
 import { createPluginConfig } from './plugin-config';
 import { getPluginHooks } from './plugin-hooks';
 import type { ForkTsCheckerWebpackPluginOptions } from './plugin-options';
 import schema from './plugin-options.json';
 import { dependenciesPool, issuesPool } from './plugin-pools';
 import { createPluginState } from './plugin-state';
-import { createRpcWorker } from './rpc';
+import { createTypeScriptService } from './typescript/service/type-script-service';
 import { assertTypeScriptSupport } from './typescript/type-script-support';
-import type { GetDependenciesWorker } from './typescript/worker/get-dependencies-worker';
-import type { GetIssuesWorker } from './typescript/worker/get-issues-worker';
 import { deepMerge } from './utils/deep-merge';
 
 class ForkTsCheckerWebpackPlugin {
@@ -68,19 +64,12 @@ class ForkTsCheckerWebpackPlugin {
     const state = createPluginState();
 
     assertTypeScriptSupport(config.typescript);
-    const getIssuesWorker = createRpcWorker<GetIssuesWorker>(
-      path.resolve(__dirname, './typescript/worker/get-issues-worker.js'),
-      config.typescript
-    );
-    const getDependenciesWorker = createRpcWorker<GetDependenciesWorker>(
-      path.resolve(__dirname, './typescript/worker/get-dependencies-worker.js'),
-      config.typescript
-    );
+    const typescriptService = createTypeScriptService(config.typescript);
 
     tapAfterEnvironmentToPatchWatching(compiler, state);
-    tapStartToRunWorkers(compiler, getIssuesWorker, getDependenciesWorker, config, state);
+    tapStartToRunChecks(compiler, typescriptService, config, state);
     tapAfterCompileToAddDependencies(compiler, config, state);
-    tapStopToTerminateWorkers(compiler, getIssuesWorker, getDependenciesWorker, state);
+    tapStopToCloseService(compiler, typescriptService, state);
     tapErrorToLogMessage(compiler, config);
   }
 }

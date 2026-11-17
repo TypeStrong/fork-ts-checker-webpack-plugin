@@ -1,14 +1,14 @@
 import * as path from 'path';
 
+import type * as TypeScriptAsync from 'typescript/async';
 import type * as TypeScriptFs from 'typescript/fs';
-import type * as TypeScriptSync from 'typescript/sync';
 
-import {
-  findTypeScriptPackageDirectory,
-  readTypeScriptPackageJson,
-} from '../../type-script-package';
+import { findTypeScriptPackageDirectory, readTypeScriptPackageJson } from '../type-script-package';
 
-import { config } from './worker-config';
+export interface TypeScriptModules {
+  typescriptAsync: typeof TypeScriptAsync;
+  typescriptFs: typeof TypeScriptFs;
+}
 
 /** Picks the file a `require` of an `exports` entry resolves to, through nested conditions. */
 function resolveExportTarget(target: unknown): string | undefined {
@@ -44,11 +44,14 @@ function resolveExport(packageDirectory: string, subpath: string): string {
   return path.join(packageDirectory, file);
 }
 
-const packageDirectory = findTypeScriptPackageDirectory(config.typescriptPath);
+/** Loads the native API of the TypeScript package that `typescriptPath` points at. */
+export function loadTypeScript(typescriptPath: string): TypeScriptModules {
+  const packageDirectory = findTypeScriptPackageDirectory(typescriptPath);
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-export const typescriptSync: typeof TypeScriptSync = require(
-  resolveExport(packageDirectory, './sync')
-);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-export const typescriptFs: typeof TypeScriptFs = require(resolveExport(packageDirectory, './fs'));
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    typescriptAsync: require(resolveExport(packageDirectory, './async')),
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    typescriptFs: require(resolveExport(packageDirectory, './fs')),
+  };
+}

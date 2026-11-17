@@ -1,35 +1,14 @@
 import * as os from 'os';
 import * as path from 'path';
 
-import type { Diagnostic, Program } from 'typescript/sync';
+import type { Diagnostic, Program } from 'typescript/async';
 
-import type { Issue, IssueLocation } from '../../../issue';
-import { deduplicateAndSortIssues } from '../../../issue';
-
-import { config } from './worker-config';
+import type { Issue, IssueLocation } from '../../issue';
+import { deduplicateAndSortIssues } from '../../issue';
+import type { TypeScriptDiagnosticsOptions } from '../type-script-diagnostics-options';
 
 // matches TypeScript's DiagnosticCategory
 const DIAGNOSTIC_CATEGORY_WARNING = 0;
-
-const diagnosticsPerConfigFile = new Map<string, Diagnostic[]>();
-
-export function updateDiagnostics(configFile: string, diagnostics: Diagnostic[]): void {
-  diagnosticsPerConfigFile.set(configFile, diagnostics);
-}
-
-export function getIssues(): Issue[] {
-  const allDiagnostics: Diagnostic[] = [];
-
-  diagnosticsPerConfigFile.forEach((diagnostics) => {
-    allDiagnostics.push(...diagnostics);
-  });
-
-  return createIssuesFromDiagnostics(allDiagnostics);
-}
-
-export function invalidateDiagnostics(): void {
-  diagnosticsPerConfigFile.clear();
-}
 
 export function createCrashDiagnostic(error: unknown): Diagnostic {
   return {
@@ -43,22 +22,25 @@ export function createCrashDiagnostic(error: unknown): Diagnostic {
   };
 }
 
-export function getDiagnosticsOfProgram(program: Program): Diagnostic[] {
-  // errors aren't caught here: the worker reports them and resets the compiler
+export async function getDiagnosticsOfProgram(
+  program: Program,
+  diagnosticOptions: TypeScriptDiagnosticsOptions
+): Promise<Diagnostic[]> {
+  // errors aren't caught here: the service reports them and resets the compiler
   const programDiagnostics: Diagnostic[] = [];
   // compiler options diagnostics (e.g. a removed `target`)
-  programDiagnostics.push(...program.getProgramDiagnostics());
-  if (config.diagnosticOptions.syntactic) {
-    programDiagnostics.push(...program.getSyntacticDiagnostics());
+  programDiagnostics.push(...(await program.getProgramDiagnostics()));
+  if (diagnosticOptions.syntactic) {
+    programDiagnostics.push(...(await program.getSyntacticDiagnostics()));
   }
-  if (config.diagnosticOptions.global) {
-    programDiagnostics.push(...program.getGlobalDiagnostics());
+  if (diagnosticOptions.global) {
+    programDiagnostics.push(...(await program.getGlobalDiagnostics()));
   }
-  if (config.diagnosticOptions.semantic) {
-    programDiagnostics.push(...program.getSemanticDiagnostics());
+  if (diagnosticOptions.semantic) {
+    programDiagnostics.push(...(await program.getSemanticDiagnostics()));
   }
-  if (config.diagnosticOptions.declaration) {
-    programDiagnostics.push(...program.getDeclarationDiagnostics());
+  if (diagnosticOptions.declaration) {
+    programDiagnostics.push(...(await program.getDeclarationDiagnostics()));
   }
   return programDiagnostics;
 }

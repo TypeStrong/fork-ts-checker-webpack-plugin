@@ -19,7 +19,7 @@ function tapAfterCompileToAddDependencies(
 
     const dependencies = await state.dependenciesPromise;
 
-    debug(`Got dependencies from the getDependenciesWorker.`, dependencies);
+    debug(`Got dependencies from the dependencies check.`, dependencies);
     if (dependencies) {
       state.lastDependencies = dependencies;
 

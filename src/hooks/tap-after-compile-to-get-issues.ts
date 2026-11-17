@@ -31,7 +31,7 @@ function tapAfterCompileToGetIssues(
       return;
     }
 
-    debug('Got issues from getIssuesWorker.', issues?.length);
+    debug('Got issues from the issues check.', issues?.length);
 
     if (!issues) {
       // some error has been thrown or it was canceled

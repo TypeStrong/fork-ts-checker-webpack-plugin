@@ -2,37 +2,40 @@ import type * as webpack from 'webpack';
 
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
-import type { RpcWorker } from '../rpc';
+import type { TypeScriptService } from '../typescript/service/type-script-service';
 
-function tapStopToTerminateWorkers(
+/**
+ * The native compiler processes keep the Node.js process alive, so they have to
+ * be stopped once webpack is done.
+ */
+function tapStopToCloseService(
   compiler: webpack.Compiler,
-  getIssuesWorker: RpcWorker,
-  getDependenciesWorker: RpcWorker,
+  typescriptService: TypeScriptService,
   state: ForkTsCheckerWebpackPluginState
 ) {
   const { debug } = getInfrastructureLogger(compiler);
 
-  const terminateWorkers = () => {
-    debug('Compiler is going to close - terminating workers...');
-    getIssuesWorker.terminate();
-    getDependenciesWorker.terminate();
+  const closeService = () => {
+    debug('Compiler is going to close - stopping the TypeScript service...');
+    // closing never rejects
+    void typescriptService.close();
   };
 
   compiler.hooks.watchClose.tap('ForkTsCheckerWebpackPlugin', () => {
-    terminateWorkers();
+    closeService();
   });
 
   compiler.hooks.done.tap('ForkTsCheckerWebpackPlugin', () => {
     if (!state.watching) {
-      terminateWorkers();
+      closeService();
     }
   });
 
   compiler.hooks.failed.tap('ForkTsCheckerWebpackPlugin', () => {
     if (!state.watching) {
-      terminateWorkers();
+      closeService();
     }
   });
 }
 
-export { tapStopToTerminateWorkers };
+export { tapStopToCloseService };

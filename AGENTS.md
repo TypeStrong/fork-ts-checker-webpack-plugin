@@ -2,7 +2,7 @@
 
 Guidance for coding agents working on **fork-ts-checker-webpack-plugin**. For commit format, PR process and releases, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The plugin type-checks a webpack build in a forked worker, using TypeScript 7.1's native `typescript/sync` API (the Go compiler, tsgo). It requires TypeScript >= 7.1.0-beta and Node.js ^22.22.0 or >= 24.11.0. TypeScript 3.6 to 6.x is supported by v9 only.
+The plugin type-checks a webpack build from the webpack process, using TypeScript 7.1's native `typescript/async` API. The work is done by the Go compiler (tsgo) in its own process, so webpack isn't blocked. It requires TypeScript >= 7.1.0-beta and Node.js ^22.22.0 or >= 24.11.0. TypeScript 3.6 to 6.x is supported by v9 only.
 
 ## Commands
 
@@ -32,15 +32,18 @@ The pre-commit hook runs lint-staged, `npm run build` and `npm run test:unit`.
 
 ## Architecture
 
-- `src/plugin.ts` and `src/hooks/`: webpack integration. They start two RPC workers (`src/rpc/`).
-- `src/typescript/worker/get-issues-worker.ts`: type checking. Its try/catch resets the program, the orchestrator and the API after any error, so a dead compiler process recovers on the next run. Keep every native API call inside it.
-- `src/typescript/worker/get-dependencies-worker.ts`: computes the files and directories webpack should watch. It runs its own native compiler process and has the same reset-on-error handling.
-- `src/typescript/worker/lib/`:
-  - `api.ts`: creates the `API`, plus the file system callbacks that keep build-mode outputs in memory according to `mode`. Only the issues worker installs them (`interceptBuildOutputs`).
+- `src/plugin.ts` and `src/hooks/`: webpack integration. They create one TypeScript service per plugin instance and call it from the webpack process. There are no worker processes.
+- `src/typescript/service/type-script-service.ts`: the service. It has two parts, each with its own native compiler process, its own parsed config and a queue that runs one call at a time:
+  - the issues checker does the type checking. Its try/catch resets the program, the orchestrator and the API after any error, so a dead compiler process recovers on the next run. Keep every native API call inside it.
+  - the dependencies resolver computes the files and directories webpack should watch, with the same reset-on-error handling.
+- State lives in closures created per service (`createApiHost`, `createConfigStore` and so on), never at module level: a multi-compiler build has several plugin instances in one process.
+- The service must be closed when webpack is done (`tap-stop-to-close-service.ts`), or the compiler processes keep Node.js alive.
+- `src/typescript/service/`:
+  - `api.ts`: creates the `API`, plus the file system callbacks that keep build-mode outputs in memory according to `mode`. Only the issues checker installs them (`interceptBuildOutputs`).
   - `config.ts`: reads and parses tsconfig with the implicit and `configOverwrite` overrides.
   - `dependencies.ts`: works out watched files and directories, `extends` chains and `${configDir}`.
-  - `program/program.ts`: normal mode, a synthetic program in a snapshot.
-  - `program/solution-builder.ts`: `build: true`, using the build orchestrator.
+  - `program.ts`: normal mode, a synthetic program in a snapshot.
+  - `solution-builder.ts`: `build: true`, using the build orchestrator.
 - `src/typescript/type-script-package.ts`: finds the TypeScript package from `typescriptPath`, which can be the package directory or any file inside it. TypeScript 7 has no `main`, and its entry points are only reachable through `exports`.
 
 ## Native API behaviour
@@ -57,7 +60,7 @@ These were found against `7.1.0-beta`. Re-check them on newer TypeScript version
 **Emit**
 
 - Synthetic programs never write `.tsbuildinfo`, so `write-tsbuildinfo` and `write-references` need `build: true`.
-- `emit(EmitOnly.OnlyDts)` and `emitToString(...)` work. Take `EmitOnly` from the runtime `typescriptSync` module, not from `import 'typescript/sync'`, so `typescriptPath` is honoured.
+- `emit(EmitOnly.OnlyDts)` and `emitToString(...)` work. Take `EmitOnly` from the runtime `typescriptAsync` module, not from `import 'typescript/async'`, so `typescriptPath` is honoured.
 
 **Build orchestrator**
 
@@ -79,17 +82,18 @@ These were found against `7.1.0-beta`. Re-check them on newer TypeScript version
 - `generateTrace` produces no traces through the API (microsoft/TypeScript#65485).
 - TypeScript 7 accepts `noEmit` together with `emitDeclarationOnly`.
 
-To check a claim about the API, a small `.mjs` script importing `node_modules/typescript/dist/api/sync/api.js` settles it in seconds. If the API is constructed with `fs` callbacks, every callback must be given, even if only as `serverFS.useOS`.
+To check a claim about the API, a small `.mjs` script importing `node_modules/typescript/dist/api/async/api.js` settles it in seconds. If the API is constructed with `fs` callbacks, every callback must be given, even if only as `serverFS.useOS`.
 
 ## Decisions already made
 
 Reviews of the TypeScript 7 migration raised these repeatedly. They were checked and kept deliberately; revisit them only with new evidence.
 
 - **Forced `noEmit` in `readonly` mode.** It avoids emit-only option errors such as TS5011, matching `tsc --noEmit`.
-- **Ignoring `.tsbuildinfo` this worker didn't write, in the in-memory modes.** One left by an earlier run, or by a run in another mode, could mark projects as built while their `.d.ts` files are missing. The cost is a full first check after a restart, which the README documents.
+- **Ignoring `.tsbuildinfo` this service didn't write, in the in-memory modes.** One left by an earlier run, or by a run in another mode, could mark projects as built while their `.d.ts` files are missing. The cost is a full first check after a restart, which the README documents.
 - **`write-dts` re-emits every declaration and writes only changed files.** Reading the existing files back is cheap next to `emitToString`'s round trip to the compiler.
 - **No negative cache in `toOutputPath`.** Each callback is already a round trip to the Go process, and a cache of missing directories would go stale when packages are installed during watch.
-- **A second compiler process in the dependencies worker.** It's a known cost, not a bug.
+- **A second compiler process for the dependencies resolver.** It's a known cost, not a bug: it keeps the dependencies from waiting for a type check.
+- **Never call the synchronous API from the webpack process.** It blocks webpack for the whole check.
 - **`configOverwrite` wins over each mode's implicit overrides,** in both normal and build mode.
 
 ## Working practices

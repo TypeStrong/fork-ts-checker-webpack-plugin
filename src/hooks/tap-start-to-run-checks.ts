@@ -7,18 +7,15 @@ import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 import { getPluginHooks } from '../plugin-hooks';
 import { dependenciesPool, issuesPool } from '../plugin-pools';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
-import type { RpcWorker } from '../rpc';
-import type { GetDependenciesWorker } from '../typescript/worker/get-dependencies-worker';
-import type { GetIssuesWorker } from '../typescript/worker/get-issues-worker';
+import type { TypeScriptService } from '../typescript/service/type-script-service';
 
 import { interceptDoneToGetDevServerTap } from './intercept-done-to-get-dev-server-tap';
 import { tapAfterCompileToGetIssues } from './tap-after-compile-to-get-issues';
 import { tapDoneToAsyncGetIssues } from './tap-done-to-async-get-issues';
 
-function tapStartToRunWorkers(
+function tapStartToRunChecks(
   compiler: webpack.Compiler,
-  getIssuesWorker: RpcWorker<GetIssuesWorker>,
-  getDependenciesWorker: RpcWorker<GetDependenciesWorker>,
+  typescriptService: TypeScriptService,
   config: ForkTsCheckerWebpackPluginConfig,
   state: ForkTsCheckerWebpackPluginState
 ) {
@@ -111,11 +108,11 @@ function tapStartToRunWorkers(
           return undefined;
         }
 
-        debug(`Submitting the getIssuesWorker to the pool, iteration ${iteration}.`);
+        debug(`Submitting the issues check to the pool, iteration ${iteration}.`);
         return issuesPool.submit(async () => {
           try {
-            debug(`Running the getIssuesWorker, iteration ${iteration}.`);
-            const issues = await getIssuesWorker(aggregatedFilesChange);
+            debug(`Running the issues check, iteration ${iteration}.`);
+            const issues = await typescriptService.getIssues(aggregatedFilesChange);
             if (state.aggregatedFilesChange === aggregatedFilesChange) {
               state.aggregatedFilesChange = undefined;
             }
@@ -127,24 +124,24 @@ function tapStartToRunWorkers(
             hooks.error.call(error, compilation);
             return undefined;
           } finally {
-            debug(`The getIssuesWorker finished its job, iteration ${iteration}.`);
+            debug(`The issues check finished, iteration ${iteration}.`);
           }
         }, abortController.signal);
       });
 
-    debug(`Submitting the getDependenciesWorker to the pool, iteration ${iteration}.`);
+    debug(`Submitting the dependencies check to the pool, iteration ${iteration}.`);
     state.dependenciesPromise = dependenciesPool.submit(async () => {
       try {
-        debug(`Running the getDependenciesWorker, iteration ${iteration}.`);
-        return await getDependenciesWorker(filesChange);
+        debug(`Running the dependencies check, iteration ${iteration}.`);
+        return await typescriptService.getDependencies(filesChange);
       } catch (error) {
         hooks.error.call(error, compilation);
         return undefined;
       } finally {
-        debug(`The getDependenciesWorker finished its job, iteration ${iteration}.`);
+        debug(`The dependencies check finished, iteration ${iteration}.`);
       }
-    }); // don't pass abortController.signal because getDependencies() is blocking
+    }); // don't pass abortController.signal: every compilation needs its dependencies
   });
 }
 
-export { tapStartToRunWorkers };
+export { tapStartToRunChecks };

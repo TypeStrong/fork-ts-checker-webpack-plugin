@@ -52,7 +52,7 @@ function tapDoneToAsyncGetIssues(
       return;
     }
 
-    debug(`Got ${issues?.length || 0} issues from getIssuesWorker.`);
+    debug(`Got ${issues?.length || 0} issues from the issues check.`);
 
     issues = getIssuesToReport(issues, stats.compilation, config);
 

@@ -23,7 +23,7 @@ function addIssuesToCompilation(
   compilation: webpack.Compilation,
   config: ForkTsCheckerWebpackPluginConfig
 ) {
-  issues.forEach((issue) => {
+  for (const issue of issues) {
     const error = new IssueWebpackError(
       config.formatter.format(issue),
       config.formatter.pathType,
@@ -35,7 +35,7 @@ function addIssuesToCompilation(
     } else {
       compilation.errors.push(error);
     }
-  });
+  }
 }
 
 export { getIssuesToReport, addIssuesToCompilation };

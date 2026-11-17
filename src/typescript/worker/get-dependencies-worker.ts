@@ -2,7 +2,7 @@ import type { FilesChange } from '../../files-change';
 import type { FilesMatch } from '../../files-match';
 import { exposeRpc } from '../../rpc';
 
-import { closeApi, closeApiOnExit } from './lib/api';
+import { closeApi } from './lib/api';
 import {
   didConfigFileChanged,
   didDependenciesProbablyChanged,
@@ -10,7 +10,8 @@ import {
 } from './lib/config';
 import { getConfigFiles, getDependencies, invalidateDependencies } from './lib/dependencies';
 
-closeApiOnExit();
+// the native compiler process must not outlive the worker (see get-issues-worker.ts)
+process.on('exit', closeApi);
 
 const getDependenciesWorker = (change: FilesChange): FilesMatch => {
   try {

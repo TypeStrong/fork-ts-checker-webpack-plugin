@@ -17,13 +17,18 @@ type CreateBuildOrchestrator = (
 ) => BuildOrchestrator;
 
 let api: API | undefined;
-// outputs that `mode` says must not reach the disk, keyed by forward-slashed path
+// An in-memory file system for the build outputs that `mode` says must not reach
+// the disk. The compiler always gives the callbacks forward-slashed paths, on
+// Windows too (`C:/project/lib/index.d.ts`), so paths are handled with `path.posix`.
+// file content, by path
 const outputs = new Map<string, string>();
-// when each output was written: the up-to-date check compares inputs with the
-// .tsbuildinfo mtime, so reporting "now" would make every input look older
+// file mtime, by path: the up-to-date check compares inputs with the .tsbuildinfo
+// mtime, so reporting "now" would make every input look older
 const outputTimes = new Map<string, Date>();
+// the directories that contain the files
 const outputDirectories = new Set<string>();
-// symlinked directory -> real directory, cleared before each build in case of relinks
+// A cache of resolved symlinks (symlinked directory -> real directory), cleared
+// before each build in case of relinks.
 const realDirectories = new Map<string, string>();
 
 let interceptsBuildOutputs = false;
@@ -184,17 +189,6 @@ export function createBuildOrchestrator(
   }
 
   return create.call(api, rootNames, options);
-}
-
-/**
- * The native compiler runs in its own process, which must not outlive the worker.
- * Signals are deliberately left alone: the compiler exits by itself once the
- * worker's end of the pipe closes, and a signal handler couldn't run while the
- * worker is blocked in a synchronous compiler call, so the plugin's SIGTERM
- * wouldn't stop a busy worker.
- */
-export function closeApiOnExit() {
-  process.on('exit', closeApi);
 }
 
 export function closeApi() {

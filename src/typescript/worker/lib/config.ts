@@ -178,5 +178,8 @@ export function didDependenciesProbablyChanged(
 }
 
 export function didRootFilesChanged(previousRootFiles: readonly string[]) {
-  return JSON.stringify(previousRootFiles) !== JSON.stringify(getParsedConfig().fileNames);
+  const previous = new Set(previousRootFiles);
+  const next = new Set(getParsedConfig().fileNames);
+
+  return previous.size !== next.size || [...next].some((fileName) => !previous.has(fileName));
 }

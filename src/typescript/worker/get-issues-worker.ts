@@ -2,7 +2,7 @@ import type { FilesChange } from '../../files-change';
 import type { Issue } from '../../issue';
 import { exposeRpc } from '../../rpc';
 
-import { closeApi, closeApiOnExit, interceptBuildOutputs } from './lib/api';
+import { closeApi, interceptBuildOutputs } from './lib/api';
 import {
   didConfigFileChanged,
   didDependenciesProbablyChanged,
@@ -32,7 +32,12 @@ import {
 } from './lib/program/solution-builder';
 import { config } from './lib/worker-config';
 
-closeApiOnExit();
+// The native compiler runs in its own process, which must not outlive the worker.
+// Signals are deliberately left alone: the compiler exits by itself once the
+// worker's end of the pipe closes, and a signal handler couldn't run while the
+// worker is blocked in a synchronous compiler call, so the plugin's SIGTERM
+// wouldn't stop a busy worker.
+process.on('exit', closeApi);
 interceptBuildOutputs();
 
 const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {

@@ -11,7 +11,6 @@ const TYPESCRIPT_WORKER_MODES = [
 type TypeScriptWorkerMode = (typeof TYPESCRIPT_WORKER_MODES)[number];
 
 type TypeScriptWorkerOptions = {
-  memoryLimit?: number;
   configFile?: string;
   configOverwrite?: TypeScriptConfigOverwrite;
   context?: string;

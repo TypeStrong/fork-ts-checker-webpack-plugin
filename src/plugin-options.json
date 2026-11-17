@@ -115,10 +115,6 @@
     "TypeScriptOptions": {
       "type": "object",
       "properties": {
-        "memoryLimit": {
-          "type": "number",
-          "description": "Memory limit for TypeScript reporter process. Type checking itself runs in TypeScript's native compiler process, which this limit does not apply to."
-        },
         "configFile": {
           "type": "string",
           "description": "Path to tsconfig.json. By default plugin uses context or process.cwd() to localize tsconfig.json file."

@@ -15,11 +15,7 @@ interface RpcWorkerBase {
 }
 type RpcWorker<T extends RpcMethod = RpcMethod> = RpcWorkerBase & RpcRemoteMethod<T>;
 
-function createRpcWorker<T extends RpcMethod>(
-  modulePath: string,
-  data: unknown,
-  memoryLimit?: number
-): RpcWorker<T> {
+function createRpcWorker<T extends RpcMethod>(modulePath: string, data: unknown): RpcWorker<T> {
   const options: ForkOptions = {
     env: {
       ...process.env,
@@ -28,9 +24,6 @@ function createRpcWorker<T extends RpcMethod>(
     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
     serialization: 'advanced',
   };
-  if (memoryLimit) {
-    options.execArgv = [`--max-old-space-size=${memoryLimit}`];
-  }
   let childProcess: ChildProcess | undefined;
   let remoteMethod: RpcRemoteMethod<T> | undefined;
 

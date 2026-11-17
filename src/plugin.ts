@@ -41,8 +41,7 @@ class ForkTsCheckerWebpackPlugin {
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
   constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {
-    // look in the parent directories too, as a monorepo keeps its config at the root
-    const explorerSync = cosmiconfigSync('fork-ts-checker', { searchStrategy: 'global' });
+    const explorerSync = cosmiconfigSync('fork-ts-checker');
     const { config: loadedOptions } = explorerSync.search() || {};
     // a config file that is an ES module (`export default`) is loaded as its namespace
     const externalOptions =
@@ -71,8 +70,7 @@ class ForkTsCheckerWebpackPlugin {
     assertTypeScriptSupport(config.typescript);
     const getIssuesWorker = createRpcWorker<GetIssuesWorker>(
       path.resolve(__dirname, './typescript/worker/get-issues-worker.js'),
-      config.typescript,
-      config.typescript.memoryLimit
+      config.typescript
     );
     const getDependenciesWorker = createRpcWorker<GetDependenciesWorker>(
       path.resolve(__dirname, './typescript/worker/get-dependencies-worker.js'),

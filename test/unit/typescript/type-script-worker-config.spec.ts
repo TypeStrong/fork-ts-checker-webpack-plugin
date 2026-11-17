@@ -11,7 +11,6 @@ describe('typescript/type-scripts-worker-config', () => {
   const context = '/webpack/context';
 
   const configuration: TypeScriptWorkerConfig = {
-    memoryLimit: 2048,
     configFile: path.normalize(path.resolve(context, 'tsconfig.json')),
     configOverwrite: {},
     context: path.normalize(path.dirname(path.resolve(context, 'tsconfig.json'))),
@@ -51,7 +50,6 @@ describe('typescript/type-scripts-worker-config', () => {
   it.each([
     [undefined, configuration],
     [{}, configuration],
-    [{ memoryLimit: 512 }, { ...configuration, memoryLimit: 512 }],
     [
       { configFile: 'tsconfig.another.json' },
       {

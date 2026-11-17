@@ -9,7 +9,6 @@ import type { TypeScriptDiagnosticsOptions } from './type-script-diagnostics-opt
 import type { TypeScriptWorkerMode, TypeScriptWorkerOptions } from './type-script-worker-options';
 
 interface TypeScriptWorkerConfig {
-  memoryLimit: number;
   configFile: string;
   configOverwrite: TypeScriptConfigOverwrite;
   build: boolean;
@@ -50,7 +49,6 @@ function createTypeScriptWorkerConfig(
   }
 
   return {
-    memoryLimit: 2048,
     profile: false,
     ...optionsAsObject,
     build,

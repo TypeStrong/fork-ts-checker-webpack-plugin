@@ -64,7 +64,7 @@ These were found against `7.1.0-beta`. Re-check them on newer TypeScript version
 - `API#createBuildOrchestrator` works but is `@internal`, so it's missing from the typings (microsoft/TypeScript#64709).
 - Its `force` option is ignored, and it ignores a `skipLibCheck` override; `tsc --build` rejects that option (TS5094).
 - It returns one flat list of diagnostics, so `diagnosticOptions` can't apply in build mode.
-- An existing orchestrator notices file edits and added files itself.
+- The orchestrator has no watcher and no API to receive changed files. Webpack's watcher triggers each run, and an existing orchestrator re-checks the file system during `build()`, which is how it finds file edits and added files.
 - A **new** orchestrator decides what's up to date by comparing input mtimes with the `.tsbuildinfo` mtime from `stat`. In-memory outputs must report their real write time: reporting "now" makes every project look up to date after a config change.
 
 **Config parsing**

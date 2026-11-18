@@ -15,7 +15,7 @@
         "terminal.integrated.defaultProfile.linux": "bash"
       },
       "extensions": [
-        "dbaeumer.vscode-eslint"
+        "oxc.oxc-vscode"
       ]
     }
   }

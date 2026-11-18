@@ -1,5 +1,5 @@
 {
-  "eslint.validate": ["javascript", "typescript"],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "jest.virtualFolders": [
     {
       "name": "test/e2e",

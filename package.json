@@ -20,9 +20,9 @@
     "url": "https://github.com/TypeStrong/fork-ts-checker-webpack-plugin.git"
   },
   "license": "MIT",
-  "author": "Piotr Oleś <piotrek.oles@gmail.com>",
+  "author": "Piotr Ole\u015b <piotrek.oles@gmail.com>",
   "contributors": [
-    "Piotr Oleś <piotrek.oles@gmail.com> (https://github.com/piotr-oles)",
+    "Piotr Ole\u015b <piotrek.oles@gmail.com> (https://github.com/piotr-oles)",
     "John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)"
   ],
   "files": [
@@ -32,13 +32,14 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "cross-env rimraf lib && cross-env tsc --version && cross-env tsc",
-    "lint": "cross-env eslint ./src ./test",
+    "lint": "cross-env oxlint src test",
     "test": "npm run build && npm run test:unit && npm run test:e2e",
     "test:unit": "cross-env jest --config=test/unit/jest.config.js",
     "test:e2e": "npm pack && cross-env jest --config=test/e2e/jest.config.js --ci -i -b",
     "commit": "cross-env git-cz",
     "semantic-release": "semantic-release",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format:check": "cross-env prettier --check \"src/**/*.ts\" \"test/**/*.ts\""
   },
   "commitlint": {
     "extends": [
@@ -46,7 +47,10 @@
     ]
   },
   "lint-staged": {
-    "*.ts": "eslint --fix"
+    "*.ts": [
+      "oxlint --fix",
+      "prettier --write"
+    ]
   },
   "config": {
     "commitizen": {
@@ -55,7 +59,6 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.29.7",
-    "chalk": "^4.1.2",
     "chokidar": "^4.0.3",
     "cosmiconfig": "^9.0.2",
     "deepmerge": "^4.3.1",
@@ -63,6 +66,7 @@
     "memfs": "^3.6.0",
     "minimatch": "^9.0.9",
     "node-abort-controller": "^3.0.1",
+    "picocolors": "^1.1.1",
     "schema-utils": "^4.8.3",
     "semver": "^7.8.6",
     "tapable": "^2.3.4"
@@ -73,7 +77,6 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^20.5.3",
-    "@eslint/js": "^9.39.5",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/github": "^12.0.11",
@@ -85,15 +88,9 @@
     "@types/json-schema": "^7.0.15",
     "@types/node": "^22.20.5",
     "@types/semver": "^7.8.0",
-    "@typescript-eslint/eslint-plugin": "^8.72.2",
-    "@typescript-eslint/parser": "^8.72.2",
     "@yarnpkg/cli-dist": "4.7.0",
     "commitlint": "^20.5.3",
     "cross-env": "^7.0.3",
-    "eslint": "^9.39.5",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^17.24.0",
-    "eslint-plugin-prettier": "^5.5.7",
     "git-cz": "^4.9.0",
     "husky": "^9.1.7",
     "jest": "^30.5.2",
@@ -102,6 +99,7 @@
     "json-schema": "^0.4.0",
     "karton": "^0.4.1",
     "lint-staged": "^15.5.2",
+    "oxlint": "^1.93.0",
     "prettier": "^3.10.1",
     "rimraf": "^5.0.10",
     "semantic-release": "^25.0.9",

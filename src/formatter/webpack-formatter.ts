@@ -1,6 +1,6 @@
 import os from 'os';
 
-import pc from 'picocolors';
+import chalk from 'chalk';
 
 import { formatIssueLocation } from '../issue';
 import { formatFilePath } from '../utils/path/format-file-path';
@@ -11,14 +11,14 @@ function createWebpackFormatter(formatter: Formatter, pathType: FormatterPathTyp
   // mimics webpack error formatter
   return function webpackFormatter(issue) {
     const color = (text: string) =>
-      pc.bold(issue.severity === 'warning' ? pc.yellow(text) : pc.red(text));
+      chalk.bold(issue.severity === 'warning' ? chalk.yellow(text) : chalk.red(text));
 
     const severity = issue.severity.toUpperCase();
 
     if (issue.file) {
-      let location = pc.bold(formatFilePath(issue.file, pathType));
+      let location = chalk.bold(formatFilePath(issue.file, pathType));
       if (issue.location) {
-        location += `:${pc.bold(pc.green(formatIssueLocation(issue.location)))}`;
+        location += `:${chalk.bold(chalk.green(formatIssueLocation(issue.location)))}`;
       }
 
       return [`${color(severity)} in ${location}`, formatter(issue), ''].join(os.EOL);

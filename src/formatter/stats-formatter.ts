@@ -1,4 +1,4 @@
-import pc from 'picocolors';
+import chalk from 'chalk';
 import type { Stats } from 'webpack';
 
 import type { Issue } from '../issue';
@@ -8,10 +8,10 @@ export function statsFormatter(issues: Issue[], stats: Stats): string {
   const errorsNumber = issues.filter((issue) => issue.severity === 'error').length;
   const warningsNumber = issues.filter((issue) => issue.severity === 'warning').length;
   const errorsFormatted = errorsNumber
-    ? pc.bold(pc.red(`${errorsNumber} ${errorsNumber === 1 ? 'error' : 'errors'}`))
+    ? chalk.bold(chalk.red(`${errorsNumber} ${errorsNumber === 1 ? 'error' : 'errors'}`))
     : '';
   const warningsFormatted = warningsNumber
-    ? pc.bold(pc.yellow(`${warningsNumber} ${warningsNumber === 1 ? 'warning' : 'warnings'}`))
+    ? chalk.bold(chalk.yellow(`${warningsNumber} ${warningsNumber === 1 ? 'warning' : 'warnings'}`))
     : '';
   const timeFormatted = Math.round(Date.now() - stats.startTime);
 

@@ -1,10 +1,10 @@
-import pc from 'picocolors';
+import chalk from 'chalk';
 
 import type { Formatter } from './formatter';
 
 function createBasicFormatter(): Formatter {
   return function basicFormatter(issue) {
-    return pc.gray(issue.code + ': ') + issue.message;
+    return chalk.gray(issue.code + ': ') + issue.message;
   };
 }
 

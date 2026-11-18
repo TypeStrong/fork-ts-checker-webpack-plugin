@@ -20,9 +20,9 @@
     "url": "https://github.com/TypeStrong/fork-ts-checker-webpack-plugin.git"
   },
   "license": "MIT",
-  "author": "Piotr Oleś <piotrek.oles@gmail.com>",
+  "author": "Piotr Ole\u015b <piotrek.oles@gmail.com>",
   "contributors": [
-    "Piotr Oleś <piotrek.oles@gmail.com> (https://github.com/piotr-oles)",
+    "Piotr Ole\u015b <piotrek.oles@gmail.com> (https://github.com/piotr-oles)",
     "John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)"
   ],
   "files": [
@@ -60,10 +60,10 @@
   },
   "dependencies": {
     "@babel/code-frame": "^8.0.6",
+    "chalk": "^4.1.2",
     "chokidar": "^6.0.0",
     "cosmiconfig": "^10.0.1",
-    "picocolors": "^1.1.1",
-    "picomatch": "^4.0.7",
+    "minimatch": "^9.0.9",
     "schema-utils": "^4.8.3",
     "semver": "^7.8.6",
     "tapable": "^2.3.4"
@@ -84,7 +84,6 @@
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^22.20.5",
-    "@types/picomatch": "^4.0.3",
     "@types/semver": "^7.8.0",
     "commitlint": "^21.2.4",
     "git-cz": "^4.9.0",

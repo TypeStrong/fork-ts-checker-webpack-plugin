@@ -1,6 +1,5 @@
-import path from 'path';
-
 import fs from 'fs';
+import path from 'path';
 
 // stubs the only file system calls the code frame formatter makes
 export function mockFiles(files: Record<string, string>) {

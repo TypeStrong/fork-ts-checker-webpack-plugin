@@ -9,8 +9,7 @@ The plugin type-checks a webpack build in a forked worker, using TypeScript 7.1'
 | Task | Command |
 | --- | --- |
 | Install | `npm ci` |
-| Type-check and lint | `npm run lint` (tsgo for `src` and `test`, then oxlint) |
-| Formatting | `npm run format:check` (prettier) |
+| Type-check and lint | `npm run lint` (tsgo for `src` and `test`, then eslint, which also checks the formatting with prettier) |
 | Build | `npm run build` (output in `lib/`) |
 | Unit tests | `npm run test:unit` |
 | e2e tests | `npm run build && npm run test:e2e` |

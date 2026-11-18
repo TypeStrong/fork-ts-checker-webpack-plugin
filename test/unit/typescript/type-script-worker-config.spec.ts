@@ -1,7 +1,7 @@
 import path from 'path';
 
-import type { TypeScriptWorkerConfig } from 'src/typescript/type-script-worker-config';
 import schema from 'src/plugin-options.json';
+import type { TypeScriptWorkerConfig } from 'src/typescript/type-script-worker-config';
 import { TYPESCRIPT_WORKER_MODES } from 'src/typescript/type-script-worker-options';
 import type { TypeScriptWorkerOptions } from 'src/typescript/type-script-worker-options';
 import type * as webpack from 'webpack';

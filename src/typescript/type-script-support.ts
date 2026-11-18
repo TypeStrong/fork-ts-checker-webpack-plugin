@@ -1,6 +1,6 @@
+import fs from 'fs';
 import os from 'os';
 
-import fs from 'fs';
 import * as semver from 'semver';
 
 import { getTypeScriptVersion } from './type-script-package';

@@ -1,10 +1,9 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "eslint.validate": ["javascript", "typescript"],
   "jest.virtualFolders": [
     {
       "name": "test/e2e",
-      "jestCommandLine": "npm run build && npm run test:e2e",
+      "jestCommandLine": "npm pack && npm exec -- jest --config=test/e2e/jest.config.js --ci -i -b",
       "runMode": "on-demand"
     },
     {

@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import pc from 'picocolors';
 import type * as webpack from 'webpack';
 
 import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
@@ -22,14 +22,14 @@ function tapErrorToLogMessage(
     if (error instanceof RpcExitError) {
       if (error.signal === 'SIGINT') {
         config.logger.error(
-          chalk.red(
+          pc.red(
             'Issues checking service interrupted - If running in a docker container, this may be caused ' +
               "by the container running out of memory. If so, try increasing the container's memory limit."
           )
         );
       } else {
         config.logger.error(
-          chalk.red(
+          pc.red(
             'Issues checking service aborted - probably out of memory. ' +
               "If increasing the available memory doesn't solve the issue, it's most probably a bug in the TypeScript."
           )

@@ -1,21 +1,12 @@
-import path from 'path';
-
-import semver from 'semver';
-
-import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
 describe('TypeScript Watch API', () => {
   it.each([{ async: false }, { async: true }])(
-    'reports semantic error for %p with ts-loader',
+    'reports semantic error for %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('npm', {});
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await loadProject('typescript-basic', { async });
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm exec -- webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
       let errors: string[];
 
       // first compilation is successful
@@ -33,7 +24,7 @@ describe('TypeScript Watch API', () => {
       expect(errors).toEqual([
         [
           'ERROR in ./src/index.ts:34:7',
-          `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
+          `TS2367: This comparison appears to be unintentional because the types 'Role' and '"admin"' have no overlap.`,
           '    32 |   const user = await login(email, password);',
           '    33 |',
           `  > 34 |   if (user.role === 'admin') {`,
@@ -95,110 +86,7 @@ describe('TypeScript Watch API', () => {
       expect(errors).toEqual([
         [
           'ERROR in ./src/index.ts:34:7',
-          "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
-          '    32 |   const user = await login(email, password);',
-          '    33 |',
-          "  > 34 |   if (user.role === 'provider') {",
-          '       |       ^^^^^^^^^^^^^^^^^^^^^^^^',
-          '    35 |     console.log(`Logged in as ${getUserName(user)} [provider].`);',
-          '    36 |   } else {',
-          '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
-        ].join('\n'),
-      ]);
-    }
-  );
-
-  it.each([{ async: false }, { async: true }])(
-    'reports semantic error for %p with babel-loader',
-    async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('npm', {});
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
-
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm exec -- webpack serve --mode=development'),
-        async
-      );
-      let errors: string[];
-
-      // first compilation is successful
-      await driver.waitForNoErrors();
-
-      // then we introduce semantic error by removing "admin" role
-      await sandbox.patch(
-        'src/model/Role.ts',
-        "type Role = 'admin' | 'client' | 'provider';",
-        "type Role = 'client' | 'provider';"
-      );
-
-      // we should receive only one semantic error
-      errors = await driver.waitForErrors();
-      expect(errors).toEqual([
-        [
-          'ERROR in ./src/index.ts:34:7',
-          `TS2367: This condition will always return 'false' since the types 'Role' and '"admin"' have no overlap.`,
-          '    32 |   const user = await login(email, password);',
-          '    33 |',
-          `  > 34 |   if (user.role === 'admin') {`,
-          '       |       ^^^^^^^^^^^^^^^^^^^^^',
-          '    35 |     console.log(`Logged in as ${getUserName(user)} [admin].`);',
-          '    36 |   } else {',
-          '    37 |     console.log(`Logged in as ${getUserName(user)}`);',
-        ].join('\n'),
-      ]);
-
-      // fix the semantic error by changing condition branch related to the "admin" role
-      await sandbox.patch(
-        'src/index.ts',
-        [
-          "  if (user.role === 'admin') {",
-          '    console.log(`Logged in as ${getUserName(user)} [admin].`);',
-          '  } else {',
-          '    console.log(`Logged in as ${getUserName(user)}`);',
-          '  }',
-        ].join('\n'),
-        [
-          "  if (user.role === 'provider') {",
-          '    console.log(`Logged in as ${getUserName(user)} [provider].`);',
-          '  } else {',
-          '    console.log(`Logged in as ${getUserName(user)}`);',
-          '  }',
-        ].join('\n')
-      );
-
-      await driver.waitForNoErrors();
-
-      // delete module to trigger another error
-      await sandbox.remove('src/model/Role.ts');
-
-      // filter-out ts-loader related errors
-      errors = (await driver.waitForErrors()).filter(
-        (error) => !error.includes('Module build failed') && !error.includes('Module not found')
-      );
-      expect(errors).toEqual([
-        [
-          'ERROR in ./src/model/User.ts:1:22',
-          "TS2307: Cannot find module './Role' or its corresponding type declarations.",
-          "  > 1 | import { Role } from './Role';",
-          '      |                      ^^^^^^^^',
-          '    2 |',
-          '    3 | type User = {',
-          '    4 |   id: string;',
-        ].join('\n'),
-      ]);
-
-      // re-create deleted module
-      await sandbox.write(
-        'src/model/Role.ts',
-        ['type Role = "admin" | "client";', '', 'export { Role };'].join('\n')
-      );
-
-      // we should receive again the one semantic error but now for "provider" role
-      errors = await driver.waitForErrors();
-      expect(errors).toEqual([
-        [
-          'ERROR in ./src/index.ts:34:7',
-          "TS2367: This condition will always return 'false' since the types 'Role' and '\"provider\"' have no overlap.",
+          "TS2367: This comparison appears to be unintentional because the types 'Role' and '\"provider\"' have no overlap.",
           '    32 |   const user = await login(email, password);',
           '    33 |',
           "  > 34 |   if (user.role === 'provider') {",
@@ -212,19 +100,12 @@ describe('TypeScript Watch API', () => {
   );
 
   it.each([
-    { async: true, typescript: '~3.6.0', 'ts-loader': '^6.0.0' },
-    { async: false, typescript: '~3.8.0', 'ts-loader': '^7.0.0' },
-    { async: true, typescript: '~4.0.0', 'ts-loader': '^8.0.0' },
-    { async: false, typescript: '~4.3.0', 'ts-loader': '^8.0.0' },
+    { async: true, typescript: TYPESCRIPT_VERSION, 'ts-loader': TS_LOADER_VERSION },
+    { async: false, typescript: TYPESCRIPT_VERSION, 'ts-loader': TS_LOADER_VERSION },
   ])('reports semantic error for %p long', async ({ async, ...dependencies }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('npm', { ...dependencies });
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+    await loadProject('typescript-basic', { async, dependencies });
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('npm exec -- webpack serve --mode=development'),
-      async
-    );
+    const driver = startDevServer(async);
     let errors: string[];
 
     // first compilation is successful
@@ -280,9 +161,7 @@ describe('TypeScript Watch API', () => {
     expect(errors).toContain(
       [
         'ERROR in ./src/index.ts:1:23',
-        semver.satisfies(semver.minVersion(dependencies.typescript), '>=4.0.0')
-          ? "TS2307: Cannot find module './authenticate' or its corresponding type declarations."
-          : "TS2307: Cannot find module './authenticate'.",
+        "TS2307: Cannot find module './authenticate' or its corresponding type declarations.",
         "  > 1 | import { login } from './authenticate';",
         '      |                       ^^^^^^^^^^^^^^^^',
         "    2 | import { getUserName } from './model/User';",
@@ -365,9 +244,7 @@ describe('TypeScript Watch API', () => {
     { async: true, ignored: '"**/src/model/**"' },
     { async: false, ignored: '/src\\/model/' },
   ])('ignores directories from watch with %p', async ({ async, ignored }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('npm', {});
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+    await loadProject('typescript-basic', { async });
 
     await sandbox.patch(
       'webpack.config.js',
@@ -387,10 +264,7 @@ describe('TypeScript Watch API', () => {
       )
     );
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('npm exec -- webpack serve --mode=development'),
-      async
-    );
+    const driver = startDevServer(async);
 
     // first compilation is successful
     await driver.waitForNoErrors();
@@ -413,21 +287,54 @@ describe('TypeScript Watch API', () => {
     );
   });
 
+  it('notices a file deleted in the run that leaves the tsconfig.json without inputs', async () => {
+    await loadProject('typescript-basic');
+    // check a directory that webpack doesn't bundle, so only the plugin reports on it
+    await sandbox.patch('tsconfig.json', '"rootDir": "./src"', '"rootDir": "."');
+    await sandbox.patch('tsconfig.json', '"include": ["./src"]', '"include": ["./types"]');
+    await sandbox.write('types/a.ts', 'export const a = 1;\n');
+
+    const driver = startDevServer(false);
+    let errors: string[];
+
+    // first compilation is successful
+    await driver.waitForNoErrors();
+
+    // delete the only input - the config can't be parsed any more
+    await sandbox.remove('types/a.ts');
+
+    errors = await driver.waitForErrors();
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('TS18003: No inputs were found in config file');
+
+    // a new input makes the config valid again, but it imports the deleted file
+    await sandbox.write('types/b.ts', "import { a } from './a';\n\nexport const b = a;\n");
+
+    errors = await driver.waitForErrors();
+    expect(errors).toEqual([
+      [
+        'ERROR in ./types/b.ts:1:19',
+        "TS2307: Cannot find module './a' or its corresponding type declarations.",
+        "  > 1 | import { a } from './a';",
+        '      |                   ^^^^^',
+        '    2 |',
+        '    3 | export const b = a;',
+        '    4 |',
+      ].join('\n'),
+    ]);
+  });
+
   it.each([{ async: false }, { async: true }])(
     'saves .d.ts files in watch mode with %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('npm', {});
+      await loadProject('typescript-basic');
       await sandbox.patch(
         'webpack.config.js',
         'async: false,',
         `async: ${JSON.stringify(async)}, typescript: { mode: 'write-dts' },`
       );
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm exec -- webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();

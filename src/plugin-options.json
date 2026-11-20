@@ -115,10 +115,6 @@
     "TypeScriptOptions": {
       "type": "object",
       "properties": {
-        "memoryLimit": {
-          "type": "number",
-          "description": "Memory limit for TypeScript reporter process."
-        },
         "configFile": {
           "type": "string",
           "description": "Path to tsconfig.json. By default plugin uses context or process.cwd() to localize tsconfig.json file."
@@ -133,8 +129,8 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["readonly", "write-tsbuildinfo", "write-dts", "write-references"],
-          "description": "`readonly` keeps all emitted files in memory, `write-tsbuildinfo` which writes only .tsbuildinfo files, `write-dts` writes .tsbuildinfo and type definition files, and `write-references` which writes both .tsbuildinfo and referenced projects output"
+          "enum": ["readonly", "write-dts", "write-references"],
+          "description": "`readonly` keeps all emitted files in memory, `write-dts` writes .tsbuildinfo and type definition files, and `write-references` which writes both .tsbuildinfo and referenced projects output"
         },
         "compilerOptions": {
           "type": "object",
@@ -161,11 +157,11 @@
         },
         "profile": {
           "type": "boolean",
-          "description": "Measures and prints timings related to the TypeScript performance."
+          "description": "Measures and prints timings of the requests made to TypeScript's native compiler."
         },
         "typescriptPath": {
           "type": "string",
-          "description": "If supplied this is a custom path where TypeScript can be found."
+          "description": "If supplied this is a custom path where TypeScript (7.1 or newer) can be found."
         }
       }
     },

@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi';
+import { stripVTControlCharacters as stripAnsi } from 'util';
 
 function isLineRelatedToTsLoader(line: string) {
   return line.includes('[tsl]') || line.includes('ts-loader');

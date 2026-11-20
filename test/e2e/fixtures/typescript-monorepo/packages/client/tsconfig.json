@@ -4,9 +4,12 @@
     "rootDir": "./src",
     "outDir": "./lib",
     "tsBuildInfoFile": "lib/tsconfig.tsbuildinfo",
-    "sourceRoot": "./src",
-    "baseUrl": "./src"
+    "sourceRoot": "./src"
   },
-  "references": [{ "path": "../shared" }],
+  "references": [
+    {
+      "path": "../shared"
+    }
+  ],
   "include": ["src"]
 }

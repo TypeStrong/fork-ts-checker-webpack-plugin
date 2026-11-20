@@ -62,6 +62,22 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
     this.deletedFiles = new Set();
   }
 
+  private hasSupportedExtension(file: string) {
+    const supportedExtensions = this.pluginState.lastDependencies?.extensions || [];
+
+    return supportedExtensions.includes(extname(file));
+  }
+
+  private addChangedFile(file: string) {
+    this.deletedFiles.delete(file);
+    updateFilesChange(this.compiler, { changedFiles: [file] });
+  }
+
+  private addDeletedFile(file: string) {
+    this.deletedFiles.add(file);
+    updateFilesChange(this.compiler, { deletedFiles: [file] });
+  }
+
   watch: WatchFileSystem['watch'] = (
     files,
     dirs,
@@ -97,8 +113,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
 
       if (!isIgnored(file)) {
         debug('Detected file change', file);
-        this.deletedFiles.delete(file);
-        updateFilesChange(this.compiler, { changedFiles: [file] });
+        this.addChangedFile(file);
       } else {
         debug("Detected file change but it's ignored", file);
       }
@@ -115,8 +130,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
 
       if (!isIgnored(file)) {
         debug('Detected file remove', file);
-        this.deletedFiles.add(file);
-        updateFilesChange(this.compiler, { deletedFiles: [file] });
+        this.addDeletedFile(file);
       } else {
         debug("Detected file remove but it's ignored", file);
       }
@@ -155,17 +169,13 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
           return;
         }
 
-        const extension = extname(file);
-        const supportedExtensions = this.pluginState.lastDependencies?.extensions || [];
-
-        if (!supportedExtensions.includes(extension)) {
+        if (!this.hasSupportedExtension(file)) {
           debug('Detected new file add but extension is not supported', file);
           return;
         }
 
         debug('Detected new file add', file);
-        this.deletedFiles.delete(file);
-        updateFilesChange(this.compiler, { changedFiles: [file] });
+        this.addChangedFile(file);
 
         this.watcher?._onChange(dirToWatch, stats?.mtimeMs || stats?.ctimeMs || 1, file, 'rename');
       });
@@ -174,10 +184,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
           return;
         }
 
-        const extension = extname(file);
-        const supportedExtensions = this.pluginState.lastDependencies?.extensions || [];
-
-        if (!supportedExtensions.includes(extension)) {
+        if (!this.hasSupportedExtension(file)) {
           debug('Detected new file remove but extension is not supported', file);
           return;
         }
@@ -188,8 +195,7 @@ class InclusiveNodeWatchFileSystem implements WatchFileSystem {
         }
 
         debug('Detected new file remove', file);
-        this.deletedFiles.add(file);
-        updateFilesChange(this.compiler, { deletedFiles: [file] });
+        this.addDeletedFile(file);
 
         this.watcher?._onRemove(dirToWatch, file, 'rename');
       });

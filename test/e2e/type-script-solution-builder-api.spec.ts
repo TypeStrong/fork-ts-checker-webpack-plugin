@@ -1,27 +1,40 @@
 import path from 'path';
 
-import semver from 'semver';
+import { TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
-import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+const inPackages = (...files: string[]) =>
+  ['shared', 'client'].flatMap((name) => files.map((file) => `packages/${name}/${file}`));
 
-// This test is failing everywhere. It is not clear what the problem is.
-// I marked it as skipped to unblock the CI.
-describe.skip('TypeScript SolutionBuilder API', () => {
+// what each mode leaves on disk after a build
+const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
+  readonly: {
+    written: [],
+    notWritten: inPackages('tsconfig.tsbuildinfo', 'lib'),
+  },
+  'write-dts': {
+    written: [
+      ...inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.d.ts', 'lib/index.d.ts.map'),
+      'packages/client/lib/nested/additional.d.ts',
+      'packages/client/lib/nested/additional.d.ts.map',
+    ],
+    notWritten: [...inPackages('lib/index.js'), 'packages/client/lib/nested/additional.js'],
+  },
+  'write-references': {
+    written: inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.js'),
+    notWritten: [],
+  },
+};
+
+describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: '~4.3.0', mode: 'readonly' },
-    { async: true, typescript: '~4.5.0', mode: 'write-tsbuildinfo' },
-    { async: false, typescript: '~4.7.0', mode: 'write-references' },
-    { async: true, typescript: '~4.3.0', mode: 'write-dts' },
+    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'readonly' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-references' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
-    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
-    await sandbox.install('npm', { typescript });
-    await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+    await loadProject('typescript-monorepo', { async, dependencies: { typescript } });
     await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
 
-    const driver = createWebpackDevServerDriver(
-      sandbox.spawn('npm exec -- webpack serve --mode=development'),
-      async
-    );
+    const driver = startDevServer(async);
     let errors: string[];
 
     // initial compilation should be successful
@@ -30,10 +43,22 @@ describe.skip('TypeScript SolutionBuilder API', () => {
     // create semantic error in shared package
     await sandbox.patch('packages/shared/src/intersect.ts', 'arrayB: T[] = []', 'arrayB: T');
 
-    // this compilation should contain semantic error in the shared project
-    // (there is also an error in the client project but as its dependency is not built, it will not be processed)
+    // this compilation should contain semantic errors in both projects - like `tsc --build`
+    // since TypeScript 5.6, the client project is checked even though its dependency has errors
     errors = await driver.waitForErrors();
     expect(errors).toEqual([
+      [
+        'ERROR in ./packages/client/src/index.ts:4:42',
+        "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
+        "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'.",
+        '    2 |',
+        '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
+        '  > 4 |   const intersection = intersect(arrayA, arrayB);',
+        '      |                                          ^^^^^^',
+        '    5 |   const difference = subtract(arrayA, arrayB);',
+        '    6 |',
+        '    7 |   return {',
+      ].join('\n'),
       [
         'ERROR in ./packages/shared/src/intersect.ts:2:41',
         "TS2339: Property 'includes' does not exist on type 'T'.",
@@ -59,9 +84,7 @@ describe.skip('TypeScript SolutionBuilder API', () => {
       [
         'ERROR in ./packages/client/src/index.ts:4:42',
         "TS2345: Argument of type 'T[]' is not assignable to parameter of type 'T'.",
-        semver.satisfies(semver.minVersion(typescript), '>=4.0.0')
-          ? "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'."
-          : "  'T[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '{}'.",
+        "  'T' could be instantiated with an arbitrary type which could be unrelated to 'T[]'.",
         '    2 |',
         '    3 | function compute<T>(arrayA: T[], arrayB: T[]) {',
         '  > 4 |   const intersection = intersect(arrayA, arrayB);',
@@ -97,67 +120,94 @@ describe.skip('TypeScript SolutionBuilder API', () => {
     // close webpack-dev-server
     await sandbox.kill(driver.process);
 
-    switch (mode) {
-      case 'readonly':
-        expect(await sandbox.exists('packages/shared/tsconfig.tsbuildinfo')).toEqual(false);
-        expect(await sandbox.exists('packages/client/tsconfig.tsbuildinfo')).toEqual(false);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(false);
-        break;
-
-      case 'write-tsbuildinfo':
-        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
-
-        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-
-        await sandbox.remove('packages/shared/lib');
-        await sandbox.remove('packages/client/lib');
-        break;
-
-      case 'write-dts':
-        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.d.ts')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.d.ts.map')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/index.d.ts')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/index.d.ts.map')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(false);
-        expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/nested/additional.d.ts.map')).toEqual(
-          true
-        );
-        expect(await sandbox.exists('packages/client/lib/nested/additional.js')).toEqual(false);
-
-        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-
-        await sandbox.remove('packages/shared/lib');
-        await sandbox.remove('packages/client/lib');
-        break;
-
-      case 'write-references':
-        expect(await sandbox.exists('packages/shared/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/tsconfig.tsbuildinfo')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib')).toEqual(true);
-        expect(await sandbox.exists('packages/shared/lib/index.js')).toEqual(true);
-        expect(await sandbox.exists('packages/client/lib/index.js')).toEqual(true);
-
-        expect(await sandbox.read('packages/shared/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-        expect(await sandbox.read('packages/client/lib/tsconfig.tsbuildinfo')).not.toEqual('');
-
-        await sandbox.remove('packages/shared/lib');
-        await sandbox.remove('packages/client/lib');
-        break;
+    const { written, notWritten } = OUTPUTS[mode];
+    for (const file of written) {
+      expect([file, await sandbox.exists(file)]).toEqual([file, true]);
     }
+    for (const file of notWritten) {
+      expect([file, await sandbox.exists(file)]).toEqual([file, false]);
+    }
+    for (const file of written.filter((file) => file.endsWith('.tsbuildinfo'))) {
+      expect(await sandbox.read(file)).not.toEqual('');
+    }
+  });
+
+  it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
+    await loadProject('typescript-monorepo');
+
+    const driver = startDevServer(false);
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // `Array.prototype.includes` comes with ES2016, so this breaks the shared package.
+    // The edit creates a new build orchestrator, which must not treat the
+    // in-memory .tsbuildinfo files as newer than the change.
+    await sandbox.patch('tsconfig.base.json', '"es2016"', '"es2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain("Property 'includes' does not exist");
+  });
+
+  it('rechecks projects after a change to a tsconfig extended from a workspace package', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-monorepo'));
+    // a shared config package, linked into node_modules like any other workspace
+    await sandbox.write(
+      'packages/tsconfig/package.json',
+      JSON.stringify({ name: '@project-references-fixture/tsconfig', version: '1.0.0' })
+    );
+    await sandbox.write(
+      'packages/tsconfig/base.json',
+      JSON.stringify({
+        extends: '../../tsconfig.base.json',
+        compilerOptions: { lib: ['es2016', 'dom'] },
+      })
+    );
+    await sandbox.patch(
+      'packages/shared/tsconfig.json',
+      '"extends": "../../tsconfig.base.json"',
+      '"extends": "@project-references-fixture/tsconfig/base.json"'
+    );
+    await sandbox.install('npm', {});
+
+    const driver = startDevServer(false);
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // `Array.prototype.includes` comes with ES2016, so this breaks the shared package
+    await sandbox.patch('packages/tsconfig/base.json', '"es2016"', '"es2015"');
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain("Property 'includes' does not exist");
+  });
+
+  it('watches a directory added to the include of a referenced project', async () => {
+    await loadProject('typescript-monorepo');
+    await sandbox.write('packages/shared/extra/README.md', 'not included yet');
+
+    const driver = startDevServer(false);
+
+    // initial compilation should be successful
+    await driver.waitForNoErrors();
+
+    // the referenced project's tsconfig is a config file too - its change must
+    // refresh the watched directories
+    await sandbox.patch('packages/shared/tsconfig.json', '"rootDir": "./src",', '');
+    await sandbox.patch(
+      'packages/shared/tsconfig.json',
+      '"include": ["src"]',
+      '"include": ["src", "extra"]'
+    );
+    await driver.waitForNoErrors();
+
+    // a new file that webpack doesn't import is only found through the watched include
+    await sandbox.write(
+      'packages/shared/extra/added.ts',
+      'export const added: number = "not a number";'
+    );
+
+    const errors = await driver.waitForErrors();
+    expect(errors.join('\n')).toContain('TS2322');
   });
 });

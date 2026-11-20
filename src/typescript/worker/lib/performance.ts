@@ -1,33 +1,22 @@
-import { typescript } from './typescript';
+import { getApi } from './api';
 import { config } from './worker-config';
 
-interface TypeScriptPerformance {
-  enable?(): void;
-  disable?(): void;
-  forEachMeasure?(callback: (measureName: string, duration: number) => void): void;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const performance: TypeScriptPerformance | undefined = (typescript as any).performance;
-
-export function enablePerformanceIfNeeded() {
+export function resetPerformanceIfNeeded() {
   if (config.profile) {
-    performance?.enable?.();
-  }
-}
-
-export function disablePerformanceIfNeeded() {
-  if (config.profile) {
-    performance?.disable?.();
+    getApi().resetTimingInfo();
   }
 }
 
 export function printPerformanceMeasuresIfNeeded() {
   if (config.profile) {
-    const measures: Record<string, number> = {};
-    performance?.forEachMeasure?.((measureName, duration) => {
-      measures[measureName] = duration;
+    const { totals } = getApi().getTimingInfo();
+    console.table({
+      Requests: totals.requestCount,
+      'Round trip (ms)': Math.round(totals.roundTripMs),
+      'Compiler (ms)': Math.round(totals.serverTimeMs),
+      'Transport (ms)': Math.round(totals.roundTripMs - totals.serverTimeMs),
+      'Sent (bytes)': totals.bytesSent,
+      'Received (bytes)': totals.bytesReceived,
     });
-    console.table(measures);
   }
 }

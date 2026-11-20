@@ -6,7 +6,7 @@ interface Listener<TValue = void> {
 interface QueuedListener<TValue = void> extends Listener<TValue> {
   apply(listener: Listener<TValue>): void;
   resolved: TValue | undefined;
-  rejected: unknown | undefined;
+  rejected: unknown;
   status: 'pending' | 'resolved' | 'rejected';
 }
 

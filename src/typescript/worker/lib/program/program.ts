@@ -108,7 +108,7 @@ export function useProgram(change: FilesChange) {
   shouldReconfigureProgram = false;
   didConfigChange = false;
 
-  const program = snapshot!.getProgram(programId);
+  const program = snapshot?.getProgram(programId);
   if (!program) {
     throw new Error('TypeScript program is missing from the snapshot.');
   }

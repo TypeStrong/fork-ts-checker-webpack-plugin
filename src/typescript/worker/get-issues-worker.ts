@@ -20,7 +20,7 @@ import {
 } from './lib/diagnostics';
 import { printPerformanceMeasuresIfNeeded, resetPerformanceIfNeeded } from './lib/performance';
 import {
-  invalidateProgram,
+  invalidateProgramConfig,
   invalidateProgramRootFileNames,
   resetProgram,
   useProgram,
@@ -47,7 +47,7 @@ const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
       invalidateDependencies();
       invalidateDiagnostics();
 
-      invalidateProgram();
+      invalidateProgramConfig();
       invalidateSolutionBuilder();
     } else if (didDependenciesProbablyChanged(getDependencies(), change)) {
       const previousRootFiles = getParsedConfig().fileNames;
@@ -65,7 +65,7 @@ const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
     if (parseConfigIssues.length) {
       // the program never sees this run's file changes, so it has to start afresh
       // once the config can be parsed again
-      invalidateProgram();
+      invalidateProgramConfig();
 
       // report config parse issues and exit
       return parseConfigIssues;

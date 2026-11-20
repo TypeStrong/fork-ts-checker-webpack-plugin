@@ -19,7 +19,7 @@ import { config } from '../worker-config';
 
 let snapshot: Snapshot | undefined;
 let programId: SyntheticProjectId | undefined;
-let shouldReconfigureProgram = false;
+let didRootFileNamesChange = false;
 let didConfigChange = false;
 
 function getProgramParams() {
@@ -98,14 +98,14 @@ export function useProgram(change: FilesChange) {
       // reconfigure in place: `removePrograms` + `createPrograms` in a single
       // update crashes the 7.1 beta compiler process
       reconfigurePrograms:
-        shouldReconfigureProgram || didConfigChange
+        didRootFileNamesChange || didConfigChange
           ? [{ id: programId, ...getProgramParams() }]
           : undefined,
       // without it, a synthetic program keeps the old contents of changed files
       ensurePrograms: true,
     });
   }
-  shouldReconfigureProgram = false;
+  didRootFileNamesChange = false;
   didConfigChange = false;
 
   const program = snapshot?.getProgram(programId);
@@ -122,18 +122,18 @@ export function useProgram(change: FilesChange) {
   updateDiagnostics(config.configFile, diagnostics);
 }
 
-export function invalidateProgram() {
+export function invalidateProgramConfig() {
   didConfigChange = true;
 }
 
 export function invalidateProgramRootFileNames() {
-  shouldReconfigureProgram = true;
+  didRootFileNamesChange = true;
 }
 
 /** Forgets the program without talking to the compiler, which may be gone. */
 export function resetProgram() {
   snapshot = undefined;
   programId = undefined;
-  shouldReconfigureProgram = false;
+  didRootFileNamesChange = false;
   didConfigChange = false;
 }

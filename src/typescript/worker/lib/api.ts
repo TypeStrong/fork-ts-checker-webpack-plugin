@@ -17,20 +17,7 @@ type CreateBuildOrchestrator = (
 ) => BuildOrchestrator;
 
 let api: API | undefined;
-// An in-memory file system for the build outputs that `mode` says must not reach
-// the disk. The compiler always gives the callbacks forward-slashed paths, on
-// Windows too (`C:/project/lib/index.d.ts`), so paths are handled with `path.posix`.
-// file content, by path
-const outputs = new Map<string, string>();
-// file mtime, by path: the up-to-date check compares inputs with the .tsbuildinfo
-// mtime, so reporting "now" would make every input look older
-const outputTimes = new Map<string, Date>();
-// the directories that contain the files
-const outputDirectories = new Set<string>();
-// A cache of resolved symlinks (symlinked directory -> real directory), cleared
-// before each build in case of relinks.
-const realDirectories = new Map<string, string>();
-
+let invalidateRealDirectoriesOfApi: (() => void) | undefined;
 let interceptsBuildOutputs = false;
 
 /**
@@ -43,8 +30,9 @@ export function interceptBuildOutputs() {
   interceptsBuildOutputs = true;
 }
 
-export function clearRealDirectories() {
-  realDirectories.clear();
+/** Forgets the resolved symlinks, in case packages were relinked between builds. */
+export function invalidateRealDirectories() {
+  invalidateRealDirectoriesOfApi?.();
 }
 
 function isWrittenToDisk(fileName: string): boolean {
@@ -65,11 +53,25 @@ function isWrittenToDisk(fileName: string): boolean {
  * write interception. These callbacks are round trips from the native compiler,
  * so everything else is left to the compiler's own file system.
  */
-function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
+function createFileSystemCallbacks():
+  { callbacks: FileSystemCallbacks; invalidateRealDirectories: () => void } | undefined {
   if (!config.build || config.mode === 'write-references') {
     return undefined;
   }
   const { serverFS } = typescriptFs;
+  // An in-memory file system for the build outputs that `mode` says must not reach
+  // the disk. The compiler always gives the callbacks forward-slashed paths, on
+  // Windows too (`C:/project/lib/index.d.ts`), so paths are handled with `path.posix`.
+  // file content, by path
+  const outputs = new Map<string, string>();
+  // file mtime, by path: the up-to-date check compares inputs with the .tsbuildinfo
+  // mtime, so reporting "now" would make every input look older
+  const outputTimes = new Map<string, Date>();
+  // the directories that contain the files
+  const outputDirectories = new Set<string>();
+  // A cache of resolved symlinks (symlinked directory -> real directory), cleared
+  // before each build in case of relinks.
+  const realDirectories = new Map<string, string>();
   // The up-to-date check only compares inputs with .tsbuildinfo, never with the
   // other outputs. Some outputs only ever lived in an earlier worker's memory (or
   // a run in another mode), so a .tsbuildinfo left on disk could mark projects as
@@ -106,7 +108,8 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
     return path.posix.join(realDirectory, ...rest);
   };
 
-  return {
+  // The API throws unless every callback is a function or a `serverFS` sentinel.
+  const callbacks: FileSystemCallbacks = {
     writeFile(fileName, content) {
       if (isWrittenToDisk(fileName)) {
         writtenToDisk.add(fileName);
@@ -160,15 +163,18 @@ function createFileSystemCallbacks(): Partial<FileSystemCallbacks> | undefined {
         : serverFS.useOS;
     },
   };
+
+  return { callbacks, invalidateRealDirectories: () => realDirectories.clear() };
 }
 
 export function getApi(): API {
   if (!api) {
+    // the in-memory outputs live in the callbacks' closure, so they go with the API
+    const fileSystem = interceptsBuildOutputs ? createFileSystemCallbacks() : undefined;
+    invalidateRealDirectoriesOfApi = fileSystem?.invalidateRealDirectories;
     api = new typescriptSync.API({
       cwd: config.context,
-      fs: interceptsBuildOutputs
-        ? (createFileSystemCallbacks() as FileSystemCallbacks | undefined)
-        : undefined,
+      fs: fileSystem?.callbacks,
       collectTiming: config.profile,
     });
   }
@@ -192,10 +198,7 @@ export function createBuildOrchestrator(
 }
 
 export function closeApi() {
-  outputs.clear();
-  outputTimes.clear();
-  outputDirectories.clear();
-  realDirectories.clear();
+  invalidateRealDirectoriesOfApi = undefined;
   if (api) {
     try {
       api.close();

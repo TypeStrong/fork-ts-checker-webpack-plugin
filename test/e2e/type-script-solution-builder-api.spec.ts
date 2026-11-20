@@ -11,10 +11,6 @@ const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
     written: [],
     notWritten: inPackages('tsconfig.tsbuildinfo', 'lib'),
   },
-  'write-tsbuildinfo': {
-    written: inPackages('lib/tsconfig.tsbuildinfo'),
-    notWritten: inPackages('lib/index.js'),
-  },
   'write-dts': {
     written: [
       ...inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.d.ts', 'lib/index.d.ts.map'),
@@ -32,8 +28,7 @@ const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
     { async: false, typescript: TYPESCRIPT_VERSION, mode: 'readonly' },
-    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-tsbuildinfo' },
-    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'write-references' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-references' },
     { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await loadProject('typescript-monorepo', { async, dependencies: { typescript } });

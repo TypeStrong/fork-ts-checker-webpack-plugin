@@ -45,8 +45,7 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
           noEmit: false,
         },
       };
-    // these two modes are only kept with the `build` option
-    case 'write-tsbuildinfo':
+    // this mode is only kept with the `build` option
     case 'write-references':
       return {
         compilerOptions: {
@@ -155,8 +154,8 @@ export function invalidateConfig() {
 }
 
 export function didConfigFileChanged(
-  { changedFiles = [], deletedFiles = [] }: FilesChange,
-  configFiles: readonly string[]
+  configFiles: readonly string[],
+  { changedFiles = [], deletedFiles = [] }: FilesChange
 ) {
   return [...changedFiles, ...deletedFiles]
     .map((file) => path.normalize(file))

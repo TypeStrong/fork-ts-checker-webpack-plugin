@@ -12,24 +12,24 @@ import { config } from './worker-config';
 
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.tsbuildinfo'];
 
-interface ProjectGraph {
+interface ProjectDependencies {
   dependencies: FilesMatch;
   configFiles: string[];
 }
 
 // both come from one walk over the project references, so they share a cache
-let projectGraph: ProjectGraph | undefined;
+let projectDependencies: ProjectDependencies | undefined;
 
-function getProjectGraph(): ProjectGraph {
-  if (!projectGraph) {
-    projectGraph = createProjectGraph();
+function getProjectDependencies(): ProjectDependencies {
+  if (!projectDependencies) {
+    projectDependencies = createProjectDependencies();
   }
 
-  return projectGraph;
+  return projectDependencies;
 }
 
 export function getDependencies(): FilesMatch {
-  return getProjectGraph().dependencies;
+  return getProjectDependencies().dependencies;
 }
 
 /**
@@ -37,11 +37,11 @@ export function getDependencies(): FilesMatch {
  * local config file they extend.
  */
 export function getConfigFiles(): string[] {
-  return getProjectGraph().configFiles;
+  return getProjectDependencies().configFiles;
 }
 
 export function invalidateDependencies() {
-  projectGraph = undefined;
+  projectDependencies = undefined;
 }
 
 /** A project reference's `path` can be either a tsconfig file or its directory. */
@@ -188,7 +188,7 @@ function getExtendedConfigFiles(
   return extendedConfigFiles;
 }
 
-function createProjectGraph(): ProjectGraph {
+function createProjectDependencies(): ProjectDependencies {
   const files = new Set<string>();
   const dirs = new Set<string>();
   const configFiles = new Set<string>();

@@ -42,7 +42,7 @@ interceptBuildOutputs();
 
 const getIssuesWorker = async (change: FilesChange): Promise<Issue[]> => {
   try {
-    if (didConfigFileChanged(change, getConfigFiles())) {
+    if (didConfigFileChanged(getConfigFiles(), change)) {
       invalidateConfig();
       invalidateDependencies();
       invalidateDiagnostics();

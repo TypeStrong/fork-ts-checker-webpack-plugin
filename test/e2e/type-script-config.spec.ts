@@ -115,7 +115,7 @@ describe('TypeScript Config', () => {
     }
   );
 
-  it.each([{ mode: 'write-references' }, { mode: 'write-tsbuildinfo' }])(
+  it.each([{ mode: 'write-references' }])(
     'falls back to readonly without the build option for %p',
     async ({ mode }) => {
       await loadProject('typescript-basic');

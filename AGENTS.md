@@ -56,7 +56,7 @@ These were found against `7.1.0-beta`. Re-check them on newer TypeScript version
 
 **Emit**
 
-- Synthetic programs never write `.tsbuildinfo`, so `write-tsbuildinfo` and `write-references` need `build: true`.
+- Synthetic programs never write `.tsbuildinfo`, so `write-references` needs `build: true`.
 - `emit(EmitOnly.OnlyDts)` and `emitToString(...)` work. Take `EmitOnly` from the runtime `typescriptSync` module, not from `import 'typescript/sync'`, so `typescriptPath` is honoured.
 
 **Build orchestrator**

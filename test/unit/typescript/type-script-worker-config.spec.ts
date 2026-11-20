@@ -57,13 +57,9 @@ describe('typescript/type-scripts-worker-config', () => {
         configFile: path.normalize(path.resolve(context, 'tsconfig.another.json')),
       },
     ],
-    [{ build: true }, { ...configuration, build: true, mode: 'write-tsbuildinfo' }],
+    [{ build: true }, { ...configuration, build: true, mode: 'readonly' }],
     [{ mode: 'readonly' }, { ...configuration, mode: 'readonly' }],
     [{ mode: 'write-dts' }, { ...configuration, mode: 'write-dts' }],
-    [
-      { build: true, mode: 'write-tsbuildinfo' },
-      { ...configuration, build: true, mode: 'write-tsbuildinfo' },
-    ],
     [
       { build: true, mode: 'write-references' },
       { ...configuration, build: true, mode: 'write-references' },
@@ -101,7 +97,7 @@ describe('typescript/type-scripts-worker-config', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it.each(['write-tsbuildinfo', 'write-references'] as const)(
+  it.each(['write-references'] as const)(
     'falls back to the readonly mode for %p without the build option',
     async (mode) => {
       const { createTypeScriptWorkerConfig } =

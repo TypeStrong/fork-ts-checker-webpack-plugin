@@ -38,8 +38,8 @@ function createTypeScriptWorkerConfig(
   const typescriptPath = optionsAsObject.typescriptPath || require.resolve('typescript');
 
   const build = Boolean(optionsAsObject.build);
-  let mode = optionsAsObject.mode || (build ? 'write-tsbuildinfo' : 'readonly');
-  if (!build && (mode === 'write-tsbuildinfo' || mode === 'write-references')) {
+  let mode = optionsAsObject.mode || 'readonly';
+  if (!build && mode === 'write-references') {
     // only the build orchestrator writes these files - without it nothing is
     // emitted, and asking for emit would only add emit-only errors like TS5011
     getInfrastructureLogger(compiler).warn(

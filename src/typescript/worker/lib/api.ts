@@ -41,8 +41,6 @@ function isWrittenToDisk(fileName: string): boolean {
       return true;
     case 'write-dts':
       return fileName.endsWith('.tsbuildinfo') || /\.d\.[cm]?ts(\.map)?$/.test(fileName);
-    case 'write-tsbuildinfo':
-      return fileName.endsWith('.tsbuildinfo');
     default:
       return false;
   }

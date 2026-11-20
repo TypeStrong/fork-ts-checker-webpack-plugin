@@ -16,7 +16,7 @@ process.on('exit', closeApi);
 const getDependenciesWorker = (change: FilesChange): FilesMatch => {
   try {
     if (
-      didConfigFileChanged(change, getConfigFiles()) ||
+      didConfigFileChanged(getConfigFiles(), change) ||
       didDependenciesProbablyChanged(getDependencies(), change)
     ) {
       invalidateConfig();

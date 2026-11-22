@@ -13,7 +13,7 @@ describe('typescript/type-script-support', () => {
       configOverwrite: {},
       context: '.',
       build: false,
-      mode: 'readonly',
+      mode: 'in-memory',
       diagnosticOptions: {
         declaration: false,
         global: true,

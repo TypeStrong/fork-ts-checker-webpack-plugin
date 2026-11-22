@@ -46,7 +46,7 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
         },
       };
     // this mode is only kept with the `build` option
-    case 'write-references':
+    case 'write':
       return {
         compilerOptions: {
           ...baseCompilerOptionsOverwrite,

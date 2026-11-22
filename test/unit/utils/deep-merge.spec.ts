@@ -4,12 +4,12 @@ describe('deepMerge', () => {
   it('merges nested objects and lets the source win', () => {
     expect(
       deepMerge(
-        { async: true, typescript: { build: false, mode: 'readonly' } },
+        { async: true, typescript: { build: false, mode: 'in-memory' } },
         { typescript: { build: true }, devServer: false }
       )
     ).toEqual({
       async: true,
-      typescript: { build: true, mode: 'readonly' },
+      typescript: { build: true, mode: 'in-memory' },
       devServer: false,
     });
   });

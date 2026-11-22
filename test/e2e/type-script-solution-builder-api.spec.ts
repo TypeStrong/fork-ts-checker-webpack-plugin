@@ -5,34 +5,34 @@ import { TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 const inPackages = (...files: string[]) =>
   ['shared', 'client'].flatMap((name) => files.map((file) => `packages/${name}/${file}`));
 
+const IN_MEMORY_OUTPUTS = {
+  written: [],
+  notWritten: inPackages('tsconfig.tsbuildinfo', 'lib'),
+};
+
 // what each mode leaves on disk after a build
 const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
-  readonly: {
-    written: [],
-    notWritten: inPackages('tsconfig.tsbuildinfo', 'lib'),
-  },
-  'write-dts': {
-    written: [
-      ...inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.d.ts', 'lib/index.d.ts.map'),
-      'packages/client/lib/nested/additional.d.ts',
-      'packages/client/lib/nested/additional.d.ts.map',
-    ],
-    notWritten: [...inPackages('lib/index.js'), 'packages/client/lib/nested/additional.js'],
-  },
-  'write-references': {
-    written: inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.js'),
+  'in-memory': IN_MEMORY_OUTPUTS,
+  // falls back to the in-memory mode with the build option
+  'write-dts': IN_MEMORY_OUTPUTS,
+  write: {
+    written: inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.js', 'lib/index.d.ts'),
     notWritten: [],
   },
 };
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'readonly' },
-    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-references' },
+    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'in-memory' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write' },
     { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await loadProject('typescript-monorepo', { async, dependencies: { typescript } });
-    await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
+    await sandbox.patch(
+      'webpack.config.js',
+      "mode: 'in-memory',",
+      `mode: ${JSON.stringify(mode)},`
+    );
 
     const driver = startDevServer(async);
     let errors: string[];
@@ -132,7 +132,7 @@ describe('TypeScript SolutionBuilder API', () => {
     }
   });
 
-  it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
+  it('rechecks projects after a change to the shared tsconfig in in-memory mode', async () => {
     await loadProject('typescript-monorepo');
 
     const driver = startDevServer(false);

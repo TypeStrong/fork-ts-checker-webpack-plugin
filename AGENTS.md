@@ -56,7 +56,7 @@ These were found against `7.1.0-beta`. Re-check them on newer TypeScript version
 
 **Emit**
 
-- Synthetic programs never write `.tsbuildinfo`, so `write-references` needs `build: true`.
+- Synthetic programs never write `.tsbuildinfo`, so the `write` mode needs `build: true`.
 - `emit(EmitOnly.OnlyDts)` and `emitToString(...)` work. Take `EmitOnly` from the runtime `typescriptSync` module, not from `import 'typescript/sync'`, so `typescriptPath` is honoured.
 
 **Build orchestrator**
@@ -85,8 +85,8 @@ To check a claim about the API, a small `.mjs` script importing `node_modules/ty
 
 Reviews of the TypeScript 7 migration raised these repeatedly. They were checked and kept deliberately; revisit them only with new evidence.
 
-- **Forced `noEmit` in `readonly` mode.** It avoids emit-only option errors such as TS5011, matching `tsc --noEmit`.
-- **Ignoring `.tsbuildinfo` this worker didn't write, in the in-memory modes.** One left by an earlier run, or by a run in another mode, could mark projects as built while their `.d.ts` files are missing. The cost is a full first check after a restart, which the README documents.
+- **Forced `noEmit` in `in-memory` mode.** It avoids emit-only option errors such as TS5011, matching `tsc --noEmit`.
+- **Ignoring `.tsbuildinfo` on disk, with `build` in the `in-memory` mode.** One left by a run in the `write` mode, or by `tsc --build`, could mark projects as built while their `.d.ts` files are missing. The cost is a full first check after a restart, which the README documents.
 - **`write-dts` re-emits every declaration and writes only changed files.** Reading the existing files back is cheap next to `emitToString`'s round trip to the compiler.
 - **No negative cache in `toOutputPath`.** Each callback is already a round trip to the Go process, and a cache of missing directories would go stale when packages are installed during watch.
 - **A second compiler process in the dependencies worker.** It's a known cost, not a bug.

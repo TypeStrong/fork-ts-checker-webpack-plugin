@@ -2,7 +2,7 @@ import type { TypeScriptConfigOverwrite } from './type-script-config-overwrite';
 import type { TypeScriptDiagnosticsOptions } from './type-script-diagnostics-options';
 
 // keep in sync with the `mode` enum in plugin-options.json - a unit test checks it
-const TYPESCRIPT_WORKER_MODES = ['readonly', 'write-dts', 'write-references'] as const;
+const TYPESCRIPT_WORKER_MODES = ['in-memory', 'write-dts', 'write'] as const;
 type TypeScriptWorkerMode = (typeof TYPESCRIPT_WORKER_MODES)[number];
 
 type TypeScriptWorkerOptions = {

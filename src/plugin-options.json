@@ -129,8 +129,8 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["readonly", "write-dts", "write-references"],
-          "description": "`readonly` keeps all emitted files in memory, `write-dts` writes .tsbuildinfo and type definition files, and `write-references` which writes both .tsbuildinfo and referenced projects output"
+          "enum": ["in-memory", "write-dts", "write"],
+          "description": "`in-memory` writes nothing to the disk, `write-dts` writes type definition files (not available with `build`), and `write` writes the output and .tsbuildinfo of every project (requires `build`)"
         },
         "compilerOptions": {
           "type": "object",

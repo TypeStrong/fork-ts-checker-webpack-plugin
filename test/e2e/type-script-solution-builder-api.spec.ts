@@ -7,19 +7,11 @@ const inPackages = (...files: string[]) =>
 
 // what each mode leaves on disk after a build
 const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
-  readonly: {
+  'in-memory': {
     written: [],
     notWritten: inPackages('tsconfig.tsbuildinfo', 'lib'),
   },
-  'write-dts': {
-    written: [
-      ...inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.d.ts', 'lib/index.d.ts.map'),
-      'packages/client/lib/nested/additional.d.ts',
-      'packages/client/lib/nested/additional.d.ts.map',
-    ],
-    notWritten: [...inPackages('lib/index.js'), 'packages/client/lib/nested/additional.js'],
-  },
-  'write-references': {
+  write: {
     written: inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.js'),
     notWritten: [],
   },
@@ -27,12 +19,15 @@ const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
 
 describe('TypeScript SolutionBuilder API', () => {
   it.each([
-    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'readonly' },
-    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-references' },
-    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-dts' },
+    { async: false, typescript: TYPESCRIPT_VERSION, mode: 'in-memory' },
+    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await loadProject('typescript-monorepo', { async, dependencies: { typescript } });
-    await sandbox.patch('webpack.config.js', "mode: 'readonly',", `mode: ${JSON.stringify(mode)},`);
+    await sandbox.patch(
+      'webpack.config.js',
+      "mode: 'in-memory',",
+      `mode: ${JSON.stringify(mode)},`
+    );
 
     const driver = startDevServer(async);
     let errors: string[];
@@ -132,7 +127,7 @@ describe('TypeScript SolutionBuilder API', () => {
     }
   });
 
-  it('rechecks projects after a change to the shared tsconfig in readonly mode', async () => {
+  it('rechecks projects after a change to the shared tsconfig in in-memory mode', async () => {
     await loadProject('typescript-monorepo');
 
     const driver = startDevServer(false);

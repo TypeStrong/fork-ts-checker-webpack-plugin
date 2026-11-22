@@ -21,7 +21,7 @@ module.exports = {
           semantic: true,
           syntactic: true,
         },
-        mode: 'write-references',
+        mode: 'write',
       },
     }),
   ],

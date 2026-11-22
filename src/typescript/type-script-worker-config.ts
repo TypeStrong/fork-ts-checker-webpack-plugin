@@ -38,14 +38,20 @@ function createTypeScriptWorkerConfig(
   const typescriptPath = optionsAsObject.typescriptPath || require.resolve('typescript');
 
   const build = Boolean(optionsAsObject.build);
-  let mode = optionsAsObject.mode || 'readonly';
-  if (!build && mode === 'write-references') {
+  let mode = optionsAsObject.mode || 'in-memory';
+  if (!build && mode === 'write') {
     // only the build orchestrator writes these files - without it nothing is
     // emitted, and asking for emit would only add emit-only errors like TS5011
     getInfrastructureLogger(compiler).warn(
-      `The "${mode}" mode requires the "build" option - falling back to the "readonly" mode.`
+      `The "${mode}" mode requires the "build" option - falling back to the "in-memory" mode.`
     );
-    mode = 'readonly';
+    mode = 'in-memory';
+  } else if (build && mode === 'write-dts') {
+    // the build orchestrator writes all of a project's outputs or none of them
+    getInfrastructureLogger(compiler).warn(
+      `The "${mode}" mode is not available with the "build" option - falling back to the "in-memory" mode.`
+    );
+    mode = 'in-memory';
   }
 
   return {

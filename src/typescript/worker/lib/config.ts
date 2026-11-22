@@ -26,7 +26,6 @@ export function getSharedImplicitCompilerOptions() {
   return {
     sourceMap: false,
     inlineSourceMap: false,
-    ...(config.mode === 'write-dts' ? { declaration: true } : {}),
   };
 }
 
@@ -37,16 +36,18 @@ function getImplicitConfigOverwrite(): TypeScriptConfigOverwrite {
   };
 
   switch (config.mode) {
+    // this mode is never kept with the `build` option
     case 'write-dts':
       return {
         compilerOptions: {
           ...baseCompilerOptionsOverwrite,
+          declaration: true,
           emitDeclarationOnly: true,
           noEmit: false,
         },
       };
     // this mode is only kept with the `build` option
-    case 'write-references':
+    case 'write':
       return {
         compilerOptions: {
           ...baseCompilerOptionsOverwrite,

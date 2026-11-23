@@ -82,7 +82,7 @@ function createIssueFromDiagnostic(diagnostic: ts.Diagnostic): Issue {
   if (diagnostic.file) {
     file = diagnostic.file.fileName;
 
-    if (diagnostic.start && diagnostic.length) {
+    if (diagnostic.start !== undefined && diagnostic.length !== undefined) {
       const { line: startLine, character: startCharacter } =
         diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
       const { line: endLine, character: endCharacter } =

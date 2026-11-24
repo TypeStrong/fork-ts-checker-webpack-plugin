@@ -13,8 +13,6 @@ const IN_MEMORY_OUTPUTS = {
 // what each mode leaves on disk after a build
 const OUTPUTS: Record<string, { written: string[]; notWritten: string[] }> = {
   'in-memory': IN_MEMORY_OUTPUTS,
-  // falls back to the in-memory mode with the build option
-  'write-dts': IN_MEMORY_OUTPUTS,
   write: {
     written: inPackages('lib/tsconfig.tsbuildinfo', 'lib/index.js', 'lib/index.d.ts'),
     notWritten: [],
@@ -25,7 +23,6 @@ describe('TypeScript SolutionBuilder API', () => {
   it.each([
     { async: false, typescript: TYPESCRIPT_VERSION, mode: 'in-memory' },
     { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write' },
-    { async: true, typescript: TYPESCRIPT_VERSION, mode: 'write-dts' },
   ])('reports semantic error for %p', async ({ async, typescript, mode }) => {
     await loadProject('typescript-monorepo', { async, dependencies: { typescript } });
     await sandbox.patch(

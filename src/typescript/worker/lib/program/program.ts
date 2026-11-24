@@ -115,7 +115,7 @@ export function useProgram(change: FilesChange) {
 
   const diagnostics = getDiagnosticsOfProgram(program);
   // `configOverwrite` can turn `declaration` off, as with `tsc`
-  if (config.mode === 'write-dts' && getParsedConfig().options.declaration) {
+  if (config.mode === 'write' && getParsedConfig().options.declaration) {
     diagnostics.push(...emitDeclarations(program));
   }
 

@@ -2,8 +2,6 @@ import path from 'path';
 
 import type * as webpack from 'webpack';
 
-import { getInfrastructureLogger } from '../infrastructure-logger';
-
 import type { TypeScriptConfigOverwrite } from './type-script-config-overwrite';
 import type { TypeScriptDiagnosticsOptions } from './type-script-diagnostics-options';
 import type { TypeScriptWorkerMode, TypeScriptWorkerOptions } from './type-script-worker-options';
@@ -38,21 +36,7 @@ function createTypeScriptWorkerConfig(
   const typescriptPath = optionsAsObject.typescriptPath || require.resolve('typescript');
 
   const build = Boolean(optionsAsObject.build);
-  let mode = optionsAsObject.mode || 'in-memory';
-  if (!build && mode === 'write') {
-    // only the build orchestrator writes these files - without it nothing is
-    // emitted, and asking for emit would only add emit-only errors like TS5011
-    getInfrastructureLogger(compiler).warn(
-      `The "write" mode requires the "build" option - falling back to the "in-memory" mode.`
-    );
-    mode = 'in-memory';
-  } else if (build && mode === 'write-dts') {
-    // the build orchestrator either keeps all its outputs in memory or writes them all
-    getInfrastructureLogger(compiler).warn(
-      `The "write-dts" mode is not supported with the "build" option - falling back to the "in-memory" mode.`
-    );
-    mode = 'in-memory';
-  }
+  const mode = optionsAsObject.mode || 'in-memory';
 
   return {
     profile: false,

@@ -59,7 +59,7 @@ describe('typescript/type-scripts-worker-config', () => {
     ],
     [{ build: true }, { ...configuration, build: true, mode: 'in-memory' }],
     [{ mode: 'in-memory' }, { ...configuration, mode: 'in-memory' }],
-    [{ mode: 'write-dts' }, { ...configuration, mode: 'write-dts' }],
+    [{ mode: 'write' }, { ...configuration, mode: 'write' }],
     [
       { build: true, mode: 'write' },
       { ...configuration, build: true, mode: 'write' },
@@ -95,28 +95,6 @@ describe('typescript/type-scripts-worker-config', () => {
 
     expect(config).toEqual(expectedConfig);
     expect(warn).not.toHaveBeenCalled();
-  });
-
-  it('falls back to the in-memory mode for the write mode without the build option', async () => {
-    const { createTypeScriptWorkerConfig } =
-      await import('src/typescript/type-script-worker-config');
-    const config = createTypeScriptWorkerConfig(compiler, { mode: 'write' });
-
-    expect(config).toEqual(configuration);
-    expect(warn).toHaveBeenCalledWith(
-      'The "write" mode requires the "build" option - falling back to the "in-memory" mode.'
-    );
-  });
-
-  it('falls back to the in-memory mode for the write-dts mode with the build option', async () => {
-    const { createTypeScriptWorkerConfig } =
-      await import('src/typescript/type-script-worker-config');
-    const config = createTypeScriptWorkerConfig(compiler, { build: true, mode: 'write-dts' });
-
-    expect(config).toEqual({ ...configuration, build: true });
-    expect(warn).toHaveBeenCalledWith(
-      'The "write-dts" mode is not supported with the "build" option - falling back to the "in-memory" mode.'
-    );
   });
 
   it('accepts the same modes in the options schema and in the types', () => {

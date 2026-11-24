@@ -331,7 +331,7 @@ describe('TypeScript Watch API', () => {
       await sandbox.patch(
         'webpack.config.js',
         'async: false,',
-        `async: ${JSON.stringify(async)}, typescript: { mode: 'write-dts' },`
+        `async: ${JSON.stringify(async)}, typescript: { mode: 'write' },`
       );
 
       const driver = startDevServer(async);

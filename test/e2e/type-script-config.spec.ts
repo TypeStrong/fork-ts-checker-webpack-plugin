@@ -1,5 +1,4 @@
 import type { WebpackDevServerDriver } from './driver/webpack-dev-server-driver';
-import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 import { extractWebpackErrors } from './driver/webpack-errors-extractor';
 import { TS_LOADER_VERSION, TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
@@ -112,44 +111,6 @@ describe('TypeScript Config', () => {
       await sandbox.remove('src/added.ts');
 
       await driver.waitForNoErrors();
-    }
-  );
-
-  it.each([{ mode: 'write' }])(
-    'falls back to in-memory without the build option for %p',
-    async ({ mode }) => {
-      await loadProject('typescript-basic');
-      // with `outDir` and no `rootDir`, a program that emits reports TS5011
-      await sandbox.write(
-        'tsconfig.checker.json',
-        JSON.stringify({
-          compilerOptions: {
-            target: 'es2015',
-            module: 'commonjs',
-            lib: ['ES6', 'DOM'],
-            strict: true,
-            outDir: './dist',
-          },
-          include: ['./src'],
-        })
-      );
-      await sandbox.patch(
-        'webpack.config.js',
-        'async: false,',
-        `async: false, typescript: { configFile: 'tsconfig.checker.json', mode: ${JSON.stringify(
-          mode
-        )} },`
-      );
-
-      const webpackProcess = sandbox.spawn('npm exec -- webpack serve --mode=development');
-      let output = '';
-      webpackProcess.stdout?.on('data', (data) => (output += data));
-      webpackProcess.stderr?.on('data', (data) => (output += data));
-      const driver = createWebpackDevServerDriver(webpackProcess, false);
-
-      // nothing is emitted, so there are no emit-only errors - like `tsc --noEmit`
-      await driver.waitForNoErrors();
-      expect(output).toContain(`The "${mode}" mode requires the "build" option`);
     }
   );
 

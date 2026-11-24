@@ -33,13 +33,13 @@ describe('Webpack Production Build', () => {
     }
   );
 
-  it('generates .d.ts files in write-dts mode', async () => {
+  it('generates .d.ts files in write mode', async () => {
     await loadProject('typescript-basic', { dependencies: { webpack: '^5.54.0' } });
 
     await sandbox.patch(
       'webpack.config.js',
       'async: false,',
-      'async: false, typescript: { mode: "write-dts" },'
+      'async: false, typescript: { mode: "write" },'
     );
 
     const result = await sandbox.exec('npm exec -- webpack --mode=production');

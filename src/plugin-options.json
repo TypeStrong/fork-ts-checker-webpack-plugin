@@ -129,8 +129,8 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["in-memory", "write-dts", "write"],
-          "description": "`in-memory` keeps all emitted files in memory, `write-dts` writes type definition files (without `build`), and `write` writes all outputs of the build, like `tsc --build` (with `build`)"
+          "enum": ["in-memory", "write"],
+          "description": "`in-memory` writes nothing to the disk, `write` writes type definition files, or with `build` all outputs of the build, like `tsc --build`"
         },
         "compilerOptions": {
           "type": "object",

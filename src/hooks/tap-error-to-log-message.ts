@@ -10,10 +10,25 @@ function tapErrorToLogMessage(
   compiler: webpack.Compiler,
   config: ForkTsCheckerWebpackPluginConfig
 ) {
+
+  // If the webpack build fails independently from fork-ts-checker-webpack-plugin,
+  // it will stop the RPC server with a SIGTERM. Here we catch this case.
+  let webpackFailed = false;
+  compiler.hooks.compile.tap('ForkTsCheckerWebpackPlugin', (error) => {
+    webpackFailed = false;
+  });
+  compiler.hooks.failed.tap('ForkTsCheckerWebpackPlugin', (error) => {
+    webpackFailed = true;
+  });
+  
   const hooks = getPluginHooks(compiler);
 
   hooks.error.tap('ForkTsCheckerWebpackPlugin', (error) => {
     if (error instanceof AbortError) {
+      return;
+    }
+
+    if (webpackFailed) {
       return;
     }
 

@@ -108,4 +108,21 @@ describe('Webpack Production Build', () => {
       ]);
     }
   );
+
+  it('exits with error when the issues checking service crashes', async () => {
+    await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
+    await sandbox.install('npm', { webpack: '^5.54.0' });
+
+    // make the issues checking service run out of memory
+    await sandbox.patch(
+      'webpack.config.js',
+      'async: false,',
+      'async: false, typescript: { memoryLimit: 10 },'
+    );
+
+    const result = await sandbox.exec('npm exec -- webpack --mode=production', { fail: true });
+    const errors = extractWebpackErrors(result);
+
+    expect(errors).toEqual([expect.stringContaining('RpcExitError: Process')]);
+  });
 });

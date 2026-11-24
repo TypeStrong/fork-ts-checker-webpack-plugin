@@ -1,4 +1,4 @@
-import type * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
 import { getInfrastructureLogger } from '../infrastructure-logger';
 import type { Issue } from '../issue';
@@ -6,6 +6,7 @@ import { IssueWebpackError } from '../issue/issue-webpack-error';
 import type { ForkTsCheckerWebpackPluginConfig } from '../plugin-config';
 import { getPluginHooks } from '../plugin-hooks';
 import type { ForkTsCheckerWebpackPluginState } from '../plugin-state';
+import { AbortError } from '../utils/async/abort-error';
 
 function tapAfterCompileToGetIssues(
   compiler: webpack.Compiler,
@@ -14,6 +15,15 @@ function tapAfterCompileToGetIssues(
 ) {
   const hooks = getPluginHooks(compiler);
   const { debug } = getInfrastructureLogger(compiler);
+
+  // the check is a part of the compilation, so if it fails, the compilation fails too
+  hooks.error.tap('ForkTsCheckerWebpackPlugin', (error, compilation) => {
+    if (error instanceof AbortError) {
+      return;
+    }
+
+    compilation.errors.push(new webpack.WebpackError(String(error)));
+  });
 
   compiler.hooks.afterCompile.tapPromise('ForkTsCheckerWebpackPlugin', async (compilation) => {
     if (compilation.compiler !== compiler) {

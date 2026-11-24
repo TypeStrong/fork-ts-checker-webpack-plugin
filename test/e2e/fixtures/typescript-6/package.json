@@ -1,0 +1,16 @@
+{
+  "name": "typescript-6",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "ts-loader": "^9.0.0",
+    "typescript": "~6.0.3",
+    "webpack": "^5.54.0",
+    "webpack-cli": "^4.0.0",
+    "webpack-dev-server": "^3.0.0"
+  },
+  "overrides": {
+    "@types/minimatch": "^5.1.2"
+  }
+}

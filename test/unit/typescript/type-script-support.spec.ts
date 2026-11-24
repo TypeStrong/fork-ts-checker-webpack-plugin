@@ -31,7 +31,7 @@ describe('typescript/type-script-support', () => {
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
-    expect(() => assertTypeScriptSupport(configuration)).toThrowError(
+    expect(() => assertTypeScriptSupport(configuration)).toThrow(
       'When you use ForkTsCheckerWebpackPlugin with typescript reporter enabled, you must install `typescript` package.'
     );
   });
@@ -41,7 +41,7 @@ describe('typescript/type-script-support', () => {
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
-    expect(() => assertTypeScriptSupport(configuration)).toThrowError(
+    expect(() => assertTypeScriptSupport(configuration)).toThrow(
       [
         `ForkTsCheckerWebpackPlugin cannot use the current typescript version of 3.5.9.`,
         'The minimum required version is 3.6.0.',
@@ -55,7 +55,7 @@ describe('typescript/type-script-support', () => {
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
-    expect(() => assertTypeScriptSupport(configuration)).not.toThrowError();
+    expect(() => assertTypeScriptSupport(configuration)).not.toThrow();
   });
 
   it('throws error if there is no tsconfig.json file', async () => {
@@ -64,7 +64,7 @@ describe('typescript/type-script-support', () => {
 
     const { assertTypeScriptSupport } = await import('src/typescript/type-script-support');
 
-    expect(() => assertTypeScriptSupport(configuration)).toThrowError(
+    expect(() => assertTypeScriptSupport(configuration)).toThrow(
       [
         `Cannot find the "./tsconfig.json" file.`,
         `Please check webpack and ForkTsCheckerWebpackPlugin configuration.`,

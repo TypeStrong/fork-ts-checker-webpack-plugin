@@ -10,11 +10,9 @@ import { emitTsBuildInfoIfNeeded } from '../tsbuildinfo';
 import { typescript } from '../typescript';
 
 let watchCompilerHost:
-  | ts.WatchCompilerHostOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
-  | undefined;
+  ts.WatchCompilerHostOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram> | undefined;
 let watchProgram:
-  | ts.WatchOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram>
-  | undefined;
+  ts.WatchOfFilesAndCompilerOptions<ts.SemanticDiagnosticsBuilderProgram> | undefined;
 let shouldUpdateRootFiles = false;
 
 export function useWatchProgram() {

@@ -9,11 +9,11 @@ describe('TypeScript Watch API', () => {
     'reports semantic error for %p with ts-loader',
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
+      await sandbox.install('npm', {});
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
+        sandbox.spawn('npm exec -- webpack serve --mode=development'),
         async
       );
       let errors: string[];
@@ -112,11 +112,11 @@ describe('TypeScript Watch API', () => {
     'reports semantic error for %p with babel-loader',
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
+      await sandbox.install('npm', {});
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
+        sandbox.spawn('npm exec -- webpack serve --mode=development'),
         async
       );
       let errors: string[];
@@ -218,11 +218,11 @@ describe('TypeScript Watch API', () => {
     { async: false, typescript: '~4.3.0', 'ts-loader': '^8.0.0' },
   ])('reports semantic error for %p long', async ({ async, ...dependencies }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', { ...dependencies });
+    await sandbox.install('npm', { ...dependencies });
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
+      sandbox.spawn('npm exec -- webpack serve --mode=development'),
       async
     );
     let errors: string[];
@@ -366,7 +366,7 @@ describe('TypeScript Watch API', () => {
     { async: false, ignored: '/src\\/model/' },
   ])('ignores directories from watch with %p', async ({ async, ignored }) => {
     await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-    await sandbox.install('yarn', {});
+    await sandbox.install('npm', {});
     await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
     await sandbox.patch(
@@ -388,7 +388,7 @@ describe('TypeScript Watch API', () => {
     );
 
     const driver = createWebpackDevServerDriver(
-      sandbox.spawn('yarn webpack serve --mode=development'),
+      sandbox.spawn('npm exec -- webpack serve --mode=development'),
       async
     );
 
@@ -417,7 +417,7 @@ describe('TypeScript Watch API', () => {
     'saves .d.ts files in watch mode with %p',
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
+      await sandbox.install('npm', {});
       await sandbox.patch(
         'webpack.config.js',
         'async: false,',
@@ -425,7 +425,7 @@ describe('TypeScript Watch API', () => {
       );
 
       const driver = createWebpackDevServerDriver(
-        sandbox.spawn('yarn webpack serve --mode=development'),
+        sandbox.spawn('npm exec -- webpack serve --mode=development'),
         async
       );
 

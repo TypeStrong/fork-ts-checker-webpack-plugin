@@ -3,12 +3,16 @@
     "target": "es6",
     "module": "commonjs",
     "lib": ["ES6"],
-    "moduleResolution": "node",
+    "strict": false,
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "resolveJsonModule": true,
-    "baseUrl": "../"
+    "types": ["node", "jest"],
+    "paths": {
+      "src/*": ["../src/*"]
+    }
   },
   "include": ["../src", "**/*.spec.ts"],
   "exclude": ["node_modules"]

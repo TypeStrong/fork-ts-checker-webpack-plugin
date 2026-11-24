@@ -7,7 +7,7 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
     'handles out of memory for %p',
     async ({ async }) => {
       await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('yarn', {});
+      await sandbox.install('npm', {});
       await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
 
       await sandbox.write(
@@ -15,7 +15,9 @@ describe('ForkTsCheckerWebpackPlugin Out Of Memory and Cosmiconfig', () => {
         `module.exports = { typescript: { memoryLimit: 10 } };`
       );
 
-      const driver = createProcessDriver(sandbox.spawn('yarn webpack serve --mode=development'));
+      const driver = createProcessDriver(
+        sandbox.spawn('npm exec -- webpack serve --mode=development')
+      );
 
       // we should see an error message about out of memory
       await driver.waitForStderrIncludes(

@@ -1,5 +1,5 @@
 interface TypeScriptConfigOverwrite {
-  extends?: string;
+  extends?: string | string[];
   // eslint-disable-next-line
   compilerOptions?: any;
   include?: string[];

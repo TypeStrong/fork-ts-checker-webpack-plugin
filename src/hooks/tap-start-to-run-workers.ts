@@ -91,7 +91,7 @@ function tapStartToRunWorkers(
     filesChange = await hooks.start.promise(filesChange, compilation);
     let aggregatedFilesChange = filesChange;
     if (state.aggregatedFilesChange) {
-      aggregatedFilesChange = aggregateFilesChanges([aggregatedFilesChange, filesChange]);
+      aggregatedFilesChange = aggregateFilesChanges([state.aggregatedFilesChange, filesChange]);
       debug(
         [
           `Aggregating with previous files change, iteration ${iteration}.`,

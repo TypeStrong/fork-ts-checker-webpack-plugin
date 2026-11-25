@@ -2,6 +2,7 @@ import path from 'path';
 
 import type { WebpackDevServerDriver } from './driver/webpack-dev-server-driver';
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { extractWebpackErrors } from './driver/webpack-errors-extractor';
 
 describe('TypeScript Config', () => {
   it.each([
@@ -75,4 +76,57 @@ describe('TypeScript Config', () => {
     expect(errors.length).toBeGreaterThan(0);
     await sandbox.kill(driver.process);
   });
+
+  it.each([{ typescript: '~5.0.0' }, { typescript: '~6.0.3' }])(
+    'applies configOverwrite.extends in order for %p',
+    async (dependencies) => {
+      await sandbox.load(path.join(__dirname, 'fixtures/typescript-6'));
+      await sandbox.install('npm', dependencies);
+      await sandbox.patch('tsconfig.json', '"strict": true', '"strict": false');
+      await sandbox.write(
+        'tsconfig.base.json',
+        JSON.stringify({ compilerOptions: { strictNullChecks: true, noImplicitAny: false } })
+      );
+      await sandbox.write(
+        'tsconfig.strict.json',
+        JSON.stringify({ compilerOptions: { noImplicitAny: true } })
+      );
+      await sandbox.write(
+        'src/index.ts',
+        'export function check(value) { const flag: boolean = undefined; return flag; }'
+      );
+      await sandbox.patch(
+        'webpack.config.js',
+        'async: false,',
+        `async: false,
+        typescript: {
+          configOverwrite: { extends: ['./tsconfig.base.json', './tsconfig.strict.json'] },
+        },`
+      );
+
+      const result = await sandbox.exec('npm exec -- webpack --mode=production', { fail: true });
+      const errors = extractWebpackErrors(result);
+      expect(errors).toHaveLength(2);
+      expect(errors.join('\n')).toContain(
+        "TS7006: Parameter 'value' implicitly has an 'any' type."
+      );
+      expect(errors.join('\n')).toContain(
+        "TS2322: Type 'undefined' is not assignable to type 'boolean'."
+      );
+
+      await sandbox.patch(
+        'webpack.config.js',
+        "extends: ['./tsconfig.base.json', './tsconfig.strict.json']",
+        "extends: ['./tsconfig.strict.json', './tsconfig.base.json']"
+      );
+      const reversedResult = await sandbox.exec('npm exec -- webpack --mode=production', {
+        fail: true,
+      });
+      const reversedErrors = extractWebpackErrors(reversedResult);
+      expect(reversedErrors).toHaveLength(1);
+      expect(reversedErrors[0]).toContain(
+        "TS2322: Type 'undefined' is not assignable to type 'boolean'."
+      );
+    }
+  );
 });

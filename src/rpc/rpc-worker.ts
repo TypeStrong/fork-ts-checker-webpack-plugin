@@ -29,7 +29,7 @@ function createRpcWorker<T extends RpcMethod>(
     serialization: 'advanced',
   };
   if (memoryLimit) {
-    options.execArgv = [`--max-old-space-size=${memoryLimit}`];
+    options.execArgv = process.execArgv.concat([`--max-old-space-size=${memoryLimit}`]);
   }
   let childProcess: ChildProcess | undefined;
   let remoteMethod: RpcRemoteMethod<T> | undefined;

@@ -43,8 +43,9 @@ function createFormatterConfig(options: FormatterOptions | undefined): Formatter
     };
   }
 
+  const typeName = String(type);
   throw new Error(
-    `Unknown "${type}" formatter. Available types are: "basic", "codeframe" or a custom function.`
+    `Unknown "${typeName}" formatter. Available types are: "basic", "codeframe" or a custom function.`
   );
 }
 

@@ -1,17 +1,16 @@
-import path from 'path';
-
 import { createProcessDriver } from 'karton';
 
 import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TYPESCRIPT_VERSION, loadProject } from './project';
 
 describe('Webpack Inclusive Watcher', () => {
   it.each([{ async: false }, { async: true }])(
     'ignores package.json change for %p',
     async ({ async }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-package'));
-      await sandbox.install('npm', { typescript: '4.6.3' });
-      await sandbox.patch('webpack.config.js', 'async: false,', `async: ${JSON.stringify(async)},`);
+      await loadProject(['typescript-basic', 'typescript-package'], {
+        async,
+        dependencies: { typescript: TYPESCRIPT_VERSION },
+      });
 
       // add import to typescript-nested-project project
       await sandbox.patch(

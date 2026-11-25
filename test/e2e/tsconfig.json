@@ -1,9 +1,4 @@
 {
   "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "paths": {
-      "lib/*": ["../../lib/*"]
-    }
-  },
   "include": ["../../lib", "./*.spec.ts", "./jest.setup.ts"]
 }

@@ -1,3 +1,7 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
 import { ForkTsCheckerWebpackPlugin } from 'src/plugin';
 
 describe('plugin', () => {
@@ -15,6 +19,51 @@ describe('plugin', () => {
 
   it("doesn't throw an error for empty options", () => {
     expect(() => new ForkTsCheckerWebpackPlugin()).not.toThrow();
+  });
+
+  it.each([
+    { directory: '.', found: true },
+    // parent directories are not searched
+    { directory: 'packages/app', found: false },
+  ])(
+    'looks for a configuration file in the working directory only (%p)',
+    ({ directory, found }) => {
+      const cwd = process.cwd();
+      const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'fork-ts-checker-')));
+      try {
+        // an invalid option, so finding the file makes the constructor throw
+        fs.writeFileSync(path.join(root, '.fork-ts-checkerrc'), JSON.stringify({ invalid: true }));
+        fs.mkdirSync(path.join(root, directory), { recursive: true });
+        process.chdir(path.join(root, directory));
+
+        const create = () => new ForkTsCheckerWebpackPlugin();
+        if (found) {
+          expect(create).toThrow();
+        } else {
+          expect(create).not.toThrow();
+        }
+      } finally {
+        process.chdir(cwd);
+        fs.rmSync(root, { recursive: true, force: true });
+      }
+    }
+  );
+
+  it('reads the default export of a configuration file', () => {
+    const cwd = process.cwd();
+    const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'fork-ts-checker-')));
+    try {
+      fs.writeFileSync(
+        path.join(root, 'fork-ts-checker.config.ts'),
+        'export default { async: true };\n'
+      );
+      process.chdir(root);
+
+      expect(() => new ForkTsCheckerWebpackPlugin()).not.toThrow();
+    } finally {
+      process.chdir(cwd);
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('accepts a custom logger', () => {

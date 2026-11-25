@@ -1,50 +1,21 @@
-import fs from 'fs';
 import os from 'os';
-import path from 'path';
 
 import type { FormatterOptions } from 'src/formatter';
 import { createFormatterConfig } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { ISSUE as issue, SOURCE_FILES } from './fixtures';
+import { mockFiles } from './mock-files';
 import { stripAnsi } from './strip-ansi';
 
 describe('formatter/formatter-config', () => {
-  let tempDirectory: string;
-
   beforeEach(() => {
-    tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'formatter-config-'));
-    fs.writeFileSync(
-      path.join(tempDirectory, 'index.ts'),
-      [
-        'const foo: number = "1";',
-        'const bar = 1;',
-        '',
-        'function baz() {',
-        '  console.log(baz);',
-        '}',
-      ].join('\n')
-    );
+    mockFiles(SOURCE_FILES);
   });
 
   afterEach(() => {
-    fs.rmSync(tempDirectory, { recursive: true });
+    jest.restoreAllMocks();
   });
-
-  const issue: Issue = {
-    severity: 'error',
-    code: 'TS2322',
-    message: `Type '"1"' is not assignable to type 'number'.`,
-    location: {
-      start: {
-        line: 1,
-        column: 7,
-      },
-      end: {
-        line: 1,
-        column: 10,
-      },
-    },
-  };
 
   const customFormatter = (issue: Issue) =>
     `${issue.code}: ${issue.message} at line ${issue.location.start.line}`;
@@ -83,9 +54,7 @@ describe('formatter/formatter-config', () => {
     [{ type: 'codeframe', pathType: 'absolute' }, CODEFRAME_FORMATTER_OUTPUT, 'absolute'],
   ])('creates configuration from options', (options, expectedFormat, expectedPathType) => {
     const formatter = createFormatterConfig(options as FormatterOptions);
-    const format = stripAnsi(
-      formatter.format({ ...issue, file: path.join(tempDirectory, 'index.ts') })
-    );
+    const format = stripAnsi(formatter.format(issue));
 
     expect(format).toEqual(expectedFormat);
     expect(formatter.pathType).toEqual(expectedPathType);

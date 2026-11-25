@@ -1,4 +1,3 @@
-import type { AbortController } from 'node-abort-controller';
 import type { FullTap } from 'tapable';
 
 import type { FilesChange } from './files-change';

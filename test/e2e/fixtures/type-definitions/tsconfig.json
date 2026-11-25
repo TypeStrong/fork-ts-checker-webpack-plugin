@@ -3,12 +3,11 @@
     "target": "es2020",
     "module": "commonjs",
     "lib": ["ES6", "DOM"],
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": false,
     "skipDefaultLibCheck": false,
     "strict": true,
-    "baseUrl": "./"
+    "types": ["node"]
   },
   "include": ["./"],
   "exclude": ["node_modules"]

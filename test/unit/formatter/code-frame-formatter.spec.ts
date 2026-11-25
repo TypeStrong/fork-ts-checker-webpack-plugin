@@ -1,52 +1,24 @@
-import fs from 'fs';
 import * as os from 'os';
-import path from 'path';
 
 import { createCodeFrameFormatter } from 'src/formatter';
 import type { Issue } from 'src/issue';
 
+import { ISSUE, SOURCE_FILES } from './fixtures';
+import { mockFiles } from './mock-files';
 import { stripAnsi } from './strip-ansi';
 
 describe('formatter/code-frame-formatter', () => {
-  let tempDirectory: string;
-
   beforeEach(() => {
-    tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'code-frame-formatter-'));
-    fs.writeFileSync(
-      path.join(tempDirectory, 'index.ts'),
-      [
-        'const foo: number = "1";',
-        'const bar = 1;',
-        '',
-        'function baz() {',
-        '  console.log(baz);',
-        '}',
-      ].join('\n')
-    );
+    mockFiles(SOURCE_FILES);
   });
 
   afterEach(() => {
-    fs.rmSync(tempDirectory, { recursive: true });
+    jest.restoreAllMocks();
   });
 
   it.each([
     [
-      {
-        severity: 'error',
-        code: 'TS2322',
-        message: `Type '"1"' is not assignable to type 'number'.`,
-        file: 'index.ts',
-        location: {
-          start: {
-            line: 1,
-            column: 7,
-          },
-          end: {
-            line: 1,
-            column: 10,
-          },
-        },
-      },
+      ISSUE,
       [
         `TS2322: Type '"1"' is not assignable to type 'number'.`,
         '  > 1 | const foo: number = "1";',
@@ -59,7 +31,7 @@ describe('formatter/code-frame-formatter', () => {
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
-        file: 'index.ts',
+        file: 'src/index.ts',
       },
       `TS2322: Type '"1"' is not assignable to type 'number'.`,
     ],
@@ -68,7 +40,7 @@ describe('formatter/code-frame-formatter', () => {
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
-        file: 'index.ts',
+        file: 'src/index.ts',
         location: {
           start: {
             line: 1,
@@ -88,7 +60,7 @@ describe('formatter/code-frame-formatter', () => {
         severity: 'error',
         code: 'TS2322',
         message: `Type '"1"' is not assignable to type 'number'.`,
-        file: 'not-existing.ts',
+        file: 'src/not-existing.ts',
         location: {
           start: {
             line: 1,
@@ -108,9 +80,7 @@ describe('formatter/code-frame-formatter', () => {
       linesAbove: 1,
       linesBelow: 1,
     });
-    const formatted = stripAnsi(
-      formatter({ ...issue, file: path.join(tempDirectory, issue.file) })
-    );
+    const formatted = stripAnsi(formatter(issue));
 
     expect(formatted).toEqual(expectedFormatted);
   });

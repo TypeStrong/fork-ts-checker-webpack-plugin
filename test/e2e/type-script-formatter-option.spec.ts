@@ -1,16 +1,13 @@
-import path from 'path';
-
-import { createWebpackDevServerDriver } from './driver/webpack-dev-server-driver';
+import { TYPESCRIPT_VERSION, loadProject, startDevServer } from './project';
 
 describe('TypeScript Formatter Option', () => {
   it.each([
-    { async: true, typescript: '~3.6.0' },
-    { async: false, typescript: '~4.3.0' },
+    { async: true, typescript: TYPESCRIPT_VERSION },
+    { async: false, typescript: TYPESCRIPT_VERSION },
   ])(
     'uses the custom formatter to format the error message for %p',
     async ({ async, typescript }) => {
-      await sandbox.load(path.join(__dirname, 'fixtures/typescript-basic'));
-      await sandbox.install('npm', { typescript });
+      await loadProject('typescript-basic', { dependencies: { typescript } });
       await sandbox.patch(
         'webpack.config.js',
         '      async: false,',
@@ -22,10 +19,7 @@ describe('TypeScript Formatter Option', () => {
         ].join('\n')
       );
 
-      const driver = createWebpackDevServerDriver(
-        sandbox.spawn('npm exec -- webpack serve --mode=development'),
-        async
-      );
+      const driver = startDevServer(async);
 
       // first compilation is successful
       await driver.waitForNoErrors();

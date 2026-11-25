@@ -4,8 +4,7 @@ import { join } from 'path';
 import type { Formatter } from 'src/formatter';
 import { createBasicFormatter, createWebpackFormatter } from 'src/formatter';
 import type { Issue } from 'src/issue';
-
-import { forwardSlash } from '../../../lib/utils/path/forward-slash';
+import { forwardSlash } from 'src/utils/path/forward-slash';
 
 describe('formatter/webpack-formatter', () => {
   const issue: Issue = {

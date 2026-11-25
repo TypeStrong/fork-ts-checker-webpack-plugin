@@ -33,7 +33,7 @@ module.exports = {
       async: false,
       typescript: {
         build: true,
-        mode: 'readonly',
+        mode: 'in-memory',
       },
     }),
   ],

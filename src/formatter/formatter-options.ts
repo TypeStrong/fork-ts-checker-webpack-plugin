@@ -1,5 +1,6 @@
+import type { Options as BabelCodeFrameOptions } from '@babel/code-frame';
+
 import type { Formatter, FormatterPathType } from './formatter';
-import type { BabelCodeFrameOptions } from './types/babel__code-frame';
 
 type FormatterType = 'basic' | 'codeframe';
 

@@ -8,10 +8,6 @@ function printBlock(message) {
 }
 
 class E2EEnvironment extends NodeEnvironment {
-  constructor(config, context) {
-    super(config, context);
-  }
-
   async handleTestEvent(event) {
     switch (event.name) {
       case 'test_start':

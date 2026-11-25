@@ -1,9 +1,8 @@
-import path from 'path';
+import { loadProject } from './project';
 
 describe('Type Definitions', () => {
   it('provides valid type definitions', async () => {
-    await sandbox.load(path.join(__dirname, 'fixtures/type-definitions'));
-    await sandbox.install('npm', {});
+    await loadProject('type-definitions');
 
     expect(await sandbox.exec('npm exec -- tsc', { fail: true })).toContain(
       "webpack.config.ts(10,7): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."

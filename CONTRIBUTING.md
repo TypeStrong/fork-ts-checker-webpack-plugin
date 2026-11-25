@@ -197,8 +197,6 @@ $ git remote add upstream https://github.com/TypeStrong/fork-ts-checker-webpack-
 $ npm ci
 ```
 
-**npm** installs the pinned `@yarnpkg/cli-dist` devDependency only for Plug'n'Play (PnP) end-to-end tests. Use **npm** for root development commands.
-
 ### Commits
 
 Commit message have to follow [conventional-commit](https://www.conventionalcommits.org/en/v1.0.0-beta.4/) standard, for example:

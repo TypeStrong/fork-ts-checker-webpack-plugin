@@ -1,7 +1,6 @@
 import * as path from 'path';
 
 import { cosmiconfigSync } from 'cosmiconfig';
-import merge from 'deepmerge';
 import type { JSONSchema7 } from 'json-schema';
 import { validate } from 'schema-utils';
 import type * as webpack from 'webpack';
@@ -21,6 +20,7 @@ import { createRpcWorker } from './rpc';
 import { assertTypeScriptSupport } from './typescript/type-script-support';
 import type { GetDependenciesWorker } from './typescript/worker/get-dependencies-worker';
 import type { GetIssuesWorker } from './typescript/worker/get-issues-worker';
+import { deepMerge } from './utils/deep-merge';
 
 class ForkTsCheckerWebpackPlugin {
   /**
@@ -41,19 +41,19 @@ class ForkTsCheckerWebpackPlugin {
   private readonly options: ForkTsCheckerWebpackPluginOptions;
 
   constructor(options: ForkTsCheckerWebpackPluginOptions = {}) {
-    const explorerSync = cosmiconfigSync('fork-ts-checker', {
-      // keep searching parent directories up to the home directory, as cosmiconfig did before v9
-      // TODO: in the next major release, drop this option to use the cosmiconfig default (no search in
-      //  parent directories) - it's a breaking change
-      searchStrategy: 'global',
-    });
-    const { config: externalOptions } = explorerSync.search() || {};
+    const explorerSync = cosmiconfigSync('fork-ts-checker');
+    const { config: loadedOptions } = explorerSync.search() || {};
+    // a config file that is an ES module (`export default`) is loaded as its namespace
+    const externalOptions =
+      loadedOptions?.__esModule && 'default' in loadedOptions
+        ? loadedOptions.default
+        : loadedOptions;
 
     // first validate options directly passed to the constructor
     const config = { name: 'ForkTsCheckerWebpackPlugin' };
     validate(schema as JSONSchema7, options, config);
 
-    this.options = merge(externalOptions || {}, options || {});
+    this.options = deepMerge(externalOptions || {}, options || {});
 
     // then validate merged options
     validate(schema as JSONSchema7, this.options, config);
@@ -70,8 +70,7 @@ class ForkTsCheckerWebpackPlugin {
     assertTypeScriptSupport(config.typescript);
     const getIssuesWorker = createRpcWorker<GetIssuesWorker>(
       path.resolve(__dirname, './typescript/worker/get-issues-worker.js'),
-      config.typescript,
-      config.typescript.memoryLimit
+      config.typescript
     );
     const getDependenciesWorker = createRpcWorker<GetDependenciesWorker>(
       path.resolve(__dirname, './typescript/worker/get-dependencies-worker.js'),
